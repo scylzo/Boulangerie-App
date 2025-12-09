@@ -46,7 +46,9 @@ interface ProductionStore {
   supprimerCommandeClient: (id: string) => void;
   supprimerCommandesLivreur: (livreurId: string) => void;
   annulerCommandeClient: (id: string) => void;
+
   supprimerProduitDeCommande: (commandeId: string, produitIndex: number) => void;
+  sauvegarderCommandeType: (clientId: string, produits: any[]) => Promise<void>;
 
   // Actions Quantités Boutique
   ajouterQuantiteBoutique: (quantite: QuantiteBoutique) => void;
@@ -378,6 +380,30 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         get().sauvegarderProgramme().catch(console.warn);
       }
     }, 100);
+  },
+
+  sauvegarderCommandeType: async (clientId, produits) => {
+    try {
+      // 1. Mise à jour Firestore
+      await firestoreService.update('clients', clientId, {
+        commandeType: produits,
+        updatedAt: new Date()
+      });
+
+      // 2. Mise à jour état local
+      set((state) => ({
+        clients: state.clients.map(c =>
+          c.id === clientId
+            ? { ...c, commandeType: produits, updatedAt: new Date() }
+            : c
+        )
+      }));
+
+      console.log('✅ Commande type sauvegardée pour client', clientId);
+    } catch (error) {
+      console.error('Erreur sauvegarde commande type:', error);
+      throw error;
+    }
   },
 
   // Actions Quantités Boutique

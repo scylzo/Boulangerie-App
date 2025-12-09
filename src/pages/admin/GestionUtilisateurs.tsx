@@ -49,6 +49,8 @@ export const GestionUtilisateurs: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
 
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -61,45 +63,77 @@ export const GestionUtilisateurs: React.FC = () => {
       setUsers(usersList);
     } catch (error) {
       console.error('Error fetching users:', error);
-      // toast.error('Erreur lors du chargement des utilisateurs');
     }
   };
 
-  const handleCreateUser = async () => {
+  const handleOpenModal = (user?: any) => {
+    if (user) {
+      setEditingUser(user);
+      setNewUser({
+        email: user.email,
+        password: '', // Password not editable here
+        nom: user.nom,
+        prenom: user.prenom,
+        role: user.role
+      });
+    } else {
+      setEditingUser(null);
+      setNewUser({ email: '', password: '', nom: '', prenom: '', role: 'livreur' });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSaveUser = async () => {
     setLoading(true);
     try {
-      // TRICK: Initialize a secondary app to create user without logging out admin
-      const secondaryApp = initializeApp(firebaseConfig, "Secondary");
-      const secondaryAuth = getAuth(secondaryApp);
+      if (editingUser) {
+        // Mode Edition (Firestore only)
+        const userRef = doc(db, 'users', editingUser.id);
+        await setDoc(userRef, {
+          ...editingUser,
+          nom: newUser.nom,
+          prenom: newUser.prenom,
+          role: newUser.role,
+          updatedAt: new Date()
+        }, { merge: true });
 
-      const userCredential = await createUserWithEmailAndPassword(secondaryAuth, newUser.email, newUser.password);
-      const user = userCredential.user;
+        toast.success('Utilisateur modifié avec succès');
+      } else {
+        // Mode Création
+        // TRICK: Initialize a secondary app to create user without logging out admin
+        const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+        const secondaryAuth = getAuth(secondaryApp);
 
-      // Update profile on the Auth object (optional but good)
-      await updateProfile(user, {
-        displayName: `${newUser.nom} ${newUser.prenom}`
-      });
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, newUser.email, newUser.password);
+        const user = userCredential.user;
 
-      // Create User Document in Main Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        email: newUser.email,
-        nom: newUser.nom,
-        prenom: newUser.prenom,
-        role: newUser.role,
-        active: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
+        // Update profile on the Auth object
+        await updateProfile(user, {
+          displayName: `${newUser.nom} ${newUser.prenom}`
+        });
 
-      toast.success('Utilisateur créé avec succès');
+        // Create User Document in Main Firestore
+        await setDoc(doc(db, 'users', user.uid), {
+          email: newUser.email,
+          nom: newUser.nom,
+          prenom: newUser.prenom,
+          role: newUser.role,
+          active: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+        
+        // deleteApp(secondaryApp); // Cleanup if possible
+        toast.success('Utilisateur créé avec succès');
+      }
+
       setIsModalOpen(false);
+      setEditingUser(null);
       setNewUser({ email: '', password: '', nom: '', prenom: '', role: 'livreur' });
       fetchUsers();
       
-      // Cleanup secondary app (not strictly necessary but good practice)
-      // deleteApp(secondaryApp); 
     } catch (error: any) {
-      console.error('Error creating user:', error);
+      console.error('Error saving user:', error);
       toast.error(`Erreur: ${error.message}`);
     } finally {
       setLoading(false);
@@ -125,7 +159,7 @@ export const GestionUtilisateurs: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
-        <Button onClick={() => setIsModalOpen(true)}>
+        <Button onClick={() => handleOpenModal()}>
           <Icon icon="mdi:account-plus" className="mr-2" />
           Nouvel Utilisateur
         </Button>
@@ -158,7 +192,18 @@ export const GestionUtilisateurs: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:text-red-900">
+                    <button 
+                      onClick={() => handleOpenModal(user)} 
+                      className="text-blue-600 hover:text-blue-900 mr-3"
+                      title="Modifier"
+                    >
+                      <Icon icon="mdi:pencil" className="text-xl" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteUser(user.id)} 
+                      className="text-red-600 hover:text-red-900"
+                      title="Supprimer"
+                    >
                       <Icon icon="mdi:trash-can" className="text-xl" />
                     </button>
                   </td>
@@ -169,7 +214,11 @@ export const GestionUtilisateurs: React.FC = () => {
         </div>
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Ajouter un utilisateur">
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        title={editingUser ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}
+      >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Input 
@@ -187,14 +236,18 @@ export const GestionUtilisateurs: React.FC = () => {
             label="Email" 
             type="email" 
             value={newUser.email} 
-            onChange={(e) => setNewUser({...newUser, email: e.target.value})} 
+            onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+            disabled={!!editingUser} // Read-only in edit mode
+            className={editingUser ? "bg-gray-100" : ""}
           />
-          <Input 
-            label="Mot de passe" 
-            type="password" 
-            value={newUser.password} 
-            onChange={(e) => setNewUser({...newUser, password: e.target.value})} 
-          />
+          {!editingUser && (
+            <Input 
+              label="Mot de passe" 
+              type="password" 
+              value={newUser.password} 
+              onChange={(e) => setNewUser({...newUser, password: e.target.value})} 
+            />
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
             <select 
@@ -210,7 +263,9 @@ export const GestionUtilisateurs: React.FC = () => {
             </select>
           </div>
           <div className="flex justify-end pt-4">
-            <Button onClick={handleCreateUser} isLoading={loading}>Créer l'utilisateur</Button>
+            <Button onClick={handleSaveUser} isLoading={loading}>
+              {editingUser ? "Enregistrer les modifications" : "Créer l'utilisateur"}
+            </Button>
           </div>
         </div>
       </Modal>

@@ -20,6 +20,16 @@ export interface Client {
   typeClient: 'client' | 'boutique'; // Type pour déterminer le prix à appliquer
   livreurId?: string; // Livreur assigné à ce client
   conditionsPaiement?: string; // Conditions spécifiques au client (ex: "Payable à 15 jours", "Comptant")
+  commandeType?: Array<{
+    produitId: string;
+    quantiteCommandee: number;
+    prixUnitaire?: number; // Optionnel, car le prix peut évoluer
+    repartitionCars?: {
+      car1_matin: number | string;
+      car2_matin: number | string;
+      car_soir: number | string;
+    };
+  }>;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;

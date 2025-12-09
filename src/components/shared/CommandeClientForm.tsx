@@ -5,6 +5,8 @@ import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 
 import type { Produit, Client, CommandeClient } from '../../types';
+import { useProductionStore } from '../../store'; // Import store
+import toast from 'react-hot-toast';
 
 interface CommandeClientFormProps {
   produits: Produit[];
@@ -112,6 +114,44 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
       setProduitsCommandes([]);
     }
   }, [commande]);
+
+  // Ajouter la fonction sauvegarderCommandeType depuis le store
+  const { sauvegarderCommandeType } = useProductionStore();
+
+  // Auto-fill commande type
+  useEffect(() => {
+    if (selectedClientId && mode === 'create' && produitsCommandes.length === 0) {
+      const client = clients.find(c => c.id === selectedClientId);
+      if (client?.commandeType && client.commandeType.length > 0) {
+        setProduitsCommandes(client.commandeType.map(p => ({
+            ...p,
+            repartitionCars: p.repartitionCars || { car1_matin: '', car2_matin: '', car_soir: '' }
+        })));
+        toast.success("📋 Commande type chargée !");
+      }
+    }
+  }, [selectedClientId]);
+
+  const handleSauvegarderType = async () => {
+      if (!selectedClientId || produitsCommandes.length === 0) return;
+      try {
+        // Nettoyer les données avant sauvegarde
+        const produitsClean = produitsCommandes.map(p => ({
+            produitId: p.produitId,
+            quantiteCommandee: p.quantiteCommandee,
+            repartitionCars: {
+                car1_matin: p.repartitionCars?.car1_matin || 0,
+                car2_matin: p.repartitionCars?.car2_matin || 0,
+                car_soir: p.repartitionCars?.car_soir || 0
+            }
+        }));
+        
+        await sauvegarderCommandeType(selectedClientId, produitsClean);
+        toast.success("💾 Commande type sauvegardée pour ce client !");
+      } catch (error) {
+          toast.error("Erreur lors de la sauvegarde de la commande type");
+      }
+  };
 
   // Recalculer les prix quand on change le type de prix
   useEffect(() => {
@@ -577,6 +617,26 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
              'Créer la commande'}
           </Button>
         </div>
+        
+        {/* Bouton Commande Type (visible seulement en création/édition si des produits sont présents) */}
+        {mode !== 'editSpecific' && produitsCommandes.length > 0 && selectedClientId && (
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h4 className="text-sm font-semibold text-blue-900">Commande Type</h4>
+                        <p className="text-xs text-blue-700">Sauvegarder cette configuration pour ce client ?</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleSauvegarderType}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm hover:shadow-md text-sm font-medium"
+                    >
+                        <Icon icon="mdi:content-save-settings" className="text-lg" />
+                        Définir comme commande type
+                    </button>
+                </div>
+            </div>
+        )}
       </form>
     </div>
   );

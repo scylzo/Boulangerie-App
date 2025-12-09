@@ -427,12 +427,12 @@ export const ProgrammeProduction: React.FC = () => {
             <div className="relative">
               <button
                 onClick={handleEnvoyerAuBoulanger}
-                disabled={!programmeActuel || programmeActuel.statut === 'envoye' || isLoading}
+                disabled={!programmeActuel || isLoading}
                 className="flex items-center gap-2 px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
               >
-                <Icon icon="mdi:send" className="text-lg" />
+                <Icon icon={programmeActuel?.statut === 'envoye' ? "mdi:update" : "mdi:send"} className="text-lg" />
                 <span className="font-medium">
-                  {programmeActuel?.statut === 'envoye' ? 'Déjà envoyé' : 'Envoyer au Boulanger'}
+                  {programmeActuel?.statut === 'envoye' ? 'Mettre à jour la vue boulangers' : 'Envoyer au Boulanger'}
                 </span>
               </button>
 
