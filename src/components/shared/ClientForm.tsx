@@ -29,6 +29,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     typeClient: 'client' as 'client' | 'boutique',
     livreurId: '',
     conditionsPaiement: '',
+    eligibleRistourne: false,
     active: true
   });
 
@@ -46,6 +47,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         typeClient: client.typeClient,
         livreurId: client.livreurId || '',
         conditionsPaiement: client.conditionsPaiement || '',
+        eligibleRistourne: client.eligibleRistourne || false,
         active: client.active
       });
     }
@@ -65,6 +67,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           typeClient: 'client',
           livreurId: '',
           conditionsPaiement: '',
+          eligibleRistourne: false,
           active: true
         });
       }
@@ -139,6 +142,28 @@ export const ClientForm: React.FC<ClientFormProps> = ({
             <p className="text-xs text-gray-500 mt-1">
               Définit le type de tarification
             </p>
+
+            {formData.typeClient === 'boutique' && (
+              <div className="mt-3 flex items-start">
+                <div className="flex items-center h-5">
+                  <input
+                    id="eligibleRistourne"
+                    type="checkbox"
+                    checked={formData.eligibleRistourne}
+                    onChange={(e) => setFormData({ ...formData, eligibleRistourne: e.target.checked })}
+                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <label htmlFor="eligibleRistourne" className="font-medium text-gray-700">
+                    Éligible à la Ristourne (Cashback)
+                  </label>
+                  <p className="text-gray-500 text-xs">
+                    Le client paie le prix boutique, mais cumule la différence avec le prix client.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div>

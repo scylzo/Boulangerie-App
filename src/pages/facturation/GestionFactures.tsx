@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { FactureDetailsModal } from '../../components/factures/FactureDetailsModal';
+import { CalculateurRistourneModal } from '../../components/factures/CalculateurRistourneModal';
 import { useFacturationStore } from '../../store/facturationStore';
 import { useProductionStore } from '../../store/productionStore';
 import { useLivraisonStore } from '../../store/livraisonStore';
@@ -24,6 +25,7 @@ export const GestionFactures: React.FC = () => {
     envoyerFacture,
     marquerPayee,
     annulerFacture,
+    supprimerFacture,
     setFactureActive,
     actualiserStatutsFactures
   } = useFacturationStore();
@@ -37,6 +39,7 @@ export const GestionFactures: React.FC = () => {
   );
   const [filtreStatut, setFiltreStatut] = useState<string>('tous');
   const [showFactureDetails, setShowFactureDetails] = useState(false);
+  const [showRistourneModal, setShowRistourneModal] = useState(false);
 
   useEffect(() => {
     const initialiser = async () => {
@@ -220,6 +223,21 @@ export const GestionFactures: React.FC = () => {
           }
           break;
         }
+
+        case 'supprimer': {
+            const confirmationSuppression = await confirmModal.confirm({
+              title: 'Supprimer la facture',
+              message: `ATTENTION : Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT la facture ${facture.numeroFacture} ?\n\nCette action supprimera la facture de la base de données.`,
+              confirmText: 'Supprimer définitivement',
+              cancelText: 'Annuler',
+              type: 'danger'
+            });
+            if (confirmationSuppression) {
+              await supprimerFacture(facture.id);
+              toast.success(`🗑️ Facture ${facture.numeroFacture} supprimée`);
+            }
+            break;
+          }
       }
     } catch (error) {
       console.error('Erreur lors de l\'action:', error);
@@ -334,18 +352,21 @@ export const GestionFactures: React.FC = () => {
     switch (facture.statut) {
       case 'en_attente_retours':
         // Aucune action supplémentaire - attendre que les retours soient finalisés
+        actions.push({ key: 'supprimer', label: 'Supprimer', icon: 'mdi:trash-can-outline', color: 'text-red-500 hover:bg-red-50' });
         break;
 
       case 'validee':
         actions.push({ key: 'pdf', label: 'Télécharger PDF', icon: 'mdi:download', color: 'text-gray-600' });
         actions.push({ key: 'envoyer', label: 'Envoyer au client', icon: 'mdi:send', color: 'text-indigo-600' });
         actions.push({ key: 'annuler', label: 'Annuler', icon: 'mdi:cancel', color: 'text-red-600' });
+        actions.push({ key: 'supprimer', label: 'Supprimer', icon: 'mdi:trash-can-outline', color: 'text-red-500 hover:bg-red-50' });
         break;
 
       case 'envoyee':
         actions.push({ key: 'pdf', label: 'Télécharger PDF', icon: 'mdi:download', color: 'text-gray-600' });
         actions.push({ key: 'relancer', label: 'Relancer client', icon: 'mdi:email-send', color: 'text-orange-600' });
         actions.push({ key: 'payer', label: 'Marquer payée', icon: 'mdi:cash-check', color: 'text-green-600' });
+        // Pas de suppression pour les factures envoyées par sécurité, ou alors on l'ajoute si demandé expressément.
         break;
 
       case 'payee':
@@ -354,6 +375,7 @@ export const GestionFactures: React.FC = () => {
 
       case 'annulee':
         // Seule consultation possible
+        actions.push({ key: 'supprimer', label: 'Supprimer', icon: 'mdi:trash-can-outline', color: 'text-red-500 hover:bg-red-50' });
         break;
     }
 
@@ -378,6 +400,16 @@ export const GestionFactures: React.FC = () => {
               </p>
             </div>
           </div>
+          
+          {/* Bouton Calculateur de Ristourne */}
+          <Button 
+                onClick={() => setShowRistourneModal(true)} 
+                variant="outline"
+                className="flex items-center gap-2 border-orange-200 text-orange-700 hover:bg-orange-50 hover:border-orange-300"
+            >
+                <Icon icon="mdi:calculator" className="text-xl" />
+                <span>Calculer Ristournes</span>
+            </Button>
         </div>
       </div>
 
@@ -634,6 +666,11 @@ export const GestionFactures: React.FC = () => {
           setShowFactureDetails(false);
           setFactureActive(null);
         }}
+      />
+      
+      <CalculateurRistourneModal 
+        isOpen={showRistourneModal} 
+        onClose={() => setShowRistourneModal(false)}
       />
     </div>
   );

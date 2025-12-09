@@ -20,6 +20,7 @@ export interface Client {
   typeClient: 'client' | 'boutique'; // Type pour déterminer le prix à appliquer
   livreurId?: string; // Livreur assigné à ce client
   conditionsPaiement?: string; // Conditions spécifiques au client (ex: "Payable à 15 jours", "Comptant")
+  eligibleRistourne?: boolean; // Si true, le client accumule une ristourne (Différence Prix Boutique - Prix Client)
   commandeType?: Array<{
     produitId: string;
     quantiteCommandee: number;

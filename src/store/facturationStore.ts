@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, updateDoc, doc, setDoc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, updateDoc, doc, setDoc, deleteDoc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient } from '../types';
 
@@ -21,6 +21,7 @@ interface FacturationStore {
   annulerFacture: (factureId: string, motif?: string) => Promise<void>;
   actualiserStatutsFactures: () => Promise<void>;
   modifierTauxTVA: (factureId: string, nouveauTaux: number) => Promise<void>;
+  supprimerFacture: (factureId: string) => Promise<void>;
 
   // Actions Paramètres
   chargerParametres: () => Promise<void>;
@@ -476,6 +477,21 @@ export const useFacturationStore = create<FacturationStore>((set, get) => ({
 
     } catch (error) {
       console.error('❌ Erreur lors de l\'annulation:', error);
+      throw error;
+    }
+  },
+
+  supprimerFacture: async (factureId: string) => {
+    try {
+      await deleteDoc(doc(db, 'factures', factureId));
+
+      set(state => ({
+        factures: state.factures.filter(f => f.id !== factureId),
+        factureActive: state.factureActive?.id === factureId ? null : state.factureActive
+      }));
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la suppression:', error);
       throw error;
     }
   },
