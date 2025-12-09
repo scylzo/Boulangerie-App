@@ -19,7 +19,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
   onCancel,
   isLoading = false
 }) => {
-  const { livreurs, chargerLivreurs, getLivreursActifs } = useLivreurStore();
+  const { chargerLivreurs, getLivreursActifs } = useLivreurStore();
 
   const [formData, setFormData] = useState({
     nom: '',

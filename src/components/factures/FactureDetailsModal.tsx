@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
+import logo from '../../assets/logo.png';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../utils/currency';
@@ -82,7 +83,8 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
         <div className="border-b border-gray-200 pb-4">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-3">
+                <img src={logo} alt="Logo" className="h-8 w-auto" />
                 {facture.numeroFacture}
               </h3>
               <p className="text-sm text-gray-600 mt-1">

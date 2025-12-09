@@ -2,15 +2,15 @@ import React, { useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { Card } from '../ui/Card';
 import { Select } from '../ui/Select';
-import { Button } from '../ui/Button';
+
 import { CardLoader } from '../ui/Loader';
 import { useReferentielStore } from '../../store/referentielStore';
 import { useLivreurStore } from '../../store/livreurStore';
-import type { Client, Livreur } from '../../types';
+
 
 export const AssignationClientLivreur: React.FC = () => {
   const { clients, chargerClients, modifierClient, isLoadingClients } = useReferentielStore();
-  const { livreurs, chargerLivreurs, getLivreursActifs, isLoadingLivreurs } = useLivreurStore();
+  const { chargerLivreurs, getLivreursActifs, isLoadingLivreurs } = useLivreurStore();
 
   useEffect(() => {
     chargerClients().catch(console.error);

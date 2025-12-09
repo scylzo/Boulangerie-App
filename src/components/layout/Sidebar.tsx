@@ -15,6 +15,7 @@ const navigation = [
   { name: 'Gestion Produits', href: '/admin/produits', roles: ['admin'] },
   { name: 'Gestion Clients', href: '/admin/clients', roles: ['admin'] },
   { name: 'Gestion Livreurs', href: '/admin/livreurs', roles: ['admin'] },
+  { name: 'Gestion Utilisateurs', href: '/admin/users', roles: ['admin'] },
 ];
 
 const navigationIcons = {
@@ -28,6 +29,7 @@ const navigationIcons = {
   'Gestion Produits': 'mdi:bread-slice',
   'Gestion Clients': 'mdi:account-group',
   'Gestion Livreurs': 'mdi:motorbike',
+  'Gestion Utilisateurs': 'mdi:account-key',
 };
 
 export const Sidebar: React.FC = () => {

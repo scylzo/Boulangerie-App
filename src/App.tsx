@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from './firebase/config';
 import { Layout } from './components/layout/Layout';
 import { Login } from './pages/auth/Login';
 import { ProgrammeProduction } from './pages/production/ProgrammeProduction';
@@ -11,6 +14,7 @@ import { RapportJournalier } from './pages/rapport/RapportJournalier';
 import { GestionProduits } from './pages/admin/GestionProduits';
 import { GestionClients } from './pages/admin/GestionClients';
 import { GestionLivreurs } from './pages/admin/GestionLivreurs';
+import { GestionUtilisateurs } from './pages/admin/GestionUtilisateurs';
 import { GestionFactures } from './pages/facturation/GestionFactures';
 import { useAuthStore } from './store';
 
@@ -25,6 +29,57 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 function App() {
+  const { setUser, setLoading } = useAuthStore();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
+      if (user) {
+        try {
+          // Récupérer le profil utilisateur depuis Firestore
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUser({
+              id: user.uid,
+              email: user.email || '',
+              nom: userData.nom || '',
+              prenom: userData.prenom || '',
+              role: (userData.role as any) || 'admin',
+              active: userData.active ?? true,
+              createdAt: userData.createdAt?.toDate() || new Date(),
+              updatedAt: userData.updatedAt?.toDate() || new Date()
+            });
+          } else {
+            // Cas spécial: Premier admin ou utilisateur sans profil
+            // On donne un accès minimal ou admin temporaire si c'est l'email connu
+            console.warn('Profil utilisateur introuvable dans Firestore');
+            setUser({
+              id: user.uid,
+              email: user.email || '',
+              nom: '', 
+              prenom: '',
+              role: 'admin', // Fallback en admin pour le premier setup
+              active: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            });
+          }
+        } catch (error) {
+          console.error('Erreur lors de la récupération du profil:', error);
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [setUser, setLoading]);
+
   return (
     <Router>
       <Routes>
@@ -81,6 +136,12 @@ function App() {
         <Route path="/admin/livreurs" element={
           <ProtectedRoute>
             <GestionLivreurs />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/users" element={
+          <ProtectedRoute>
+            <GestionUtilisateurs />
           </ProtectedRoute>
         } />
 

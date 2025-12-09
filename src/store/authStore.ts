@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from '../firebase/config';
 import type { User, AuthState } from '../types';
 
 interface AuthStore extends AuthState {
@@ -9,24 +11,15 @@ interface AuthStore extends AuthState {
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
-  user: {
-    id: 'dev-user',
-    email: 'admin@boulangerie.com',
-    nom: 'Admin',
-    prenom: 'Test',
-    role: 'admin',
-    active: true,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
+  user: null,
   isLoading: false,
-  isAuthenticated: true, // Temporaire pour développement
+  isAuthenticated: false,
 
   login: async (email: string, password: string) => {
     set({ isLoading: true });
     try {
-      // TODO: Implement Firebase authentication
-      console.log('Login:', email, password);
+      await signInWithEmailAndPassword(auth, email, password);
+      // Le state sera mis à jour via le listener onAuthStateChanged dans App.tsx
       set({ isLoading: false });
     } catch (error) {
       set({ isLoading: false });
@@ -36,7 +29,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   logout: async () => {
     try {
-      // TODO: Implement Firebase logout
+      await signOut(auth);
       set({ user: null, isAuthenticated: false });
     } catch (error) {
       console.error('Logout error:', error);

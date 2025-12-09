@@ -2,6 +2,16 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Facture } from '../types';
 import { formatCurrencyCompact } from './currency';
+import logoUrl from '../assets/logo.png';
+
+const loadImage = (url: string): Promise<HTMLImageElement> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = url;
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+  });
+};
 
 export const generateFacturePDF = async (facture: Facture) => {
   const doc = new jsPDF();
@@ -12,15 +22,22 @@ export const generateFacturePDF = async (facture: Facture) => {
   const lightGrayColor: [number, number, number] = [243, 244, 246];
 
   // En-tête - Logo et informations de l'entreprise
+  try {
+    const logoImg = await loadImage(logoUrl);
+    doc.addImage(logoImg, 'PNG', 20, 15, 25, 25);
+  } catch (error) {
+    console.error('Erreur chargement logo', error);
+  }
+
   doc.setFontSize(24);
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.text('BOULANGERIE', 20, 25);
+  doc.text('BOULANGERIE', 55, 25);
 
   doc.setFontSize(10);
   doc.setTextColor(grayColor[0], grayColor[1], grayColor[2]);
-  doc.text('Adresse de la boulangerie', 20, 32);
-  doc.text('Tél: +221 77 575 41 59 / +221 78 582 27 72', 20, 37);
-  doc.text('Email: contact@boulangerie.sn', 20, 42);
+  doc.text('Adresse de la boulangerie', 55, 32);
+  doc.text('Tél: +221 77 575 41 59 / +221 78 582 27 72', 55, 37);
+  doc.text('Email: contact@boulangerie.sn', 55, 42);
 
   // Titre FACTURE
   doc.setFontSize(28);
