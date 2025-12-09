@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import type { RapportJournalier, IndicateursPerformance, Produit } from '../types';
+import type { RapportJournalier, IndicateursPerformance } from '../types';
 import { useProductionStore } from './productionStore';
 import { useBoutiqueStore } from './boutiqueStore';
 import { useLivraisonStore } from './livraisonStore';
@@ -111,7 +111,7 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
 
       console.log('🔍 Debug - Données récupérées:', {
         'programme': programme,
-        'programme.produits': programme?.produits,
+        // 'programme.produits': programme?.produits,
         'ventesJour': ventesJour,
         'invendusClients': invendusClients,
         'commandesClients': commandesClients,
@@ -193,7 +193,7 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
           .filter(p => p.produitId === progProduit.produitId)
           .reduce((sum, p) => {
             const total = Object.values(p.repartitionCars || {})
-              .reduce((carSum, qte) => carSum + (parseInt(qte as string) || 0), 0);
+              .reduce((carSum, qte) => carSum + (Number(qte) || 0), 0);
             return sum + total;
           }, 0);
 

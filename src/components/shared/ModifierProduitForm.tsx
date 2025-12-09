@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -209,7 +209,7 @@ export const ModifierProduitForm: React.FC<ModifierProduitFormProps> = ({
             <Button
               type="submit"
               disabled={!isValid || isLoading}
-              loading={isLoading}
+              isLoading={isLoading}
             >
               <Icon icon="mdi:content-save" className="text-lg mr-2" />
               Modifier le produit

@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
-import { Card } from '../ui/Card';
+
 import type { Produit, Client, CommandeClient } from '../../types';
 
 interface CommandeClientFormProps {
@@ -186,9 +186,9 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
     // Si on modifie les répartitions, calculer la quantité totale
     if (field === 'repartitionCars') {
       const repartition = value;
-      const total = (parseInt(repartition?.car1_matin) || 0) +
-                   (parseInt(repartition?.car2_matin) || 0) +
-                   (parseInt(repartition?.car_soir) || 0);
+      const total = (Number(repartition?.car1_matin) || 0) +
+                   (Number(repartition?.car2_matin) || 0) +
+                   (Number(repartition?.car_soir) || 0);
       nouveauxProduits[index].quantiteCommandee = total;
     }
 
@@ -210,9 +210,9 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
     };
 
     // Calculer la nouvelle quantité totale
-    const newTotal = (parseInt(newRepartition.car1_matin) || 0) +
-                     (parseInt(newRepartition.car2_matin) || 0) +
-                     (parseInt(newRepartition.car_soir) || 0);
+    const newTotal = (Number(newRepartition.car1_matin) || 0) +
+                     (Number(newRepartition.car2_matin) || 0) +
+                     (Number(newRepartition.car_soir) || 0);
 
     nouveauxProduits[index] = {
       ...nouveauxProduits[index],
@@ -232,9 +232,9 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
     }
 
     const commandeValide = produitsCommandes.filter(p => {
-      const total = (parseInt(p.repartitionCars?.car1_matin) || 0) +
-                   (parseInt(p.repartitionCars?.car2_matin) || 0) +
-                   (parseInt(p.repartitionCars?.car_soir) || 0);
+      const total = (Number(p.repartitionCars?.car1_matin) || 0) +
+                   (Number(p.repartitionCars?.car2_matin) || 0) +
+                   (Number(p.repartitionCars?.car_soir) || 0);
       return p.produitId && total > 0;
     });
 
@@ -243,12 +243,21 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
       return;
     }
 
+    const produitsFormat = commandeValide.map(p => ({
+      ...p,
+      repartitionCars: {
+        car1_matin: Number(p.repartitionCars?.car1_matin) || 0,
+        car2_matin: Number(p.repartitionCars?.car2_matin) || 0,
+        car_soir: Number(p.repartitionCars?.car_soir) || 0
+      }
+    }));
+
     const commande: Omit<CommandeClient, 'id' | 'createdAt' | 'updatedAt'> = {
       clientId: selectedClientId,
       dateLivraison: new Date(dateLivraison),
       dateCommande: new Date(),
       statut: 'prevue',
-      produits: commandeValide
+      produits: produitsFormat
     };
 
     onSave(commande);
@@ -392,9 +401,9 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
             <div className="space-y-4">
               {produitsCommandes.map((item, index) => {
                 const produitSelectionne = produits.find(p => p.id === item.produitId);
-                const repartitionTotal = (parseInt(item.repartitionCars?.car1_matin) || 0) +
-                                       (parseInt(item.repartitionCars?.car2_matin) || 0) +
-                                       (parseInt(item.repartitionCars?.car_soir) || 0);
+                const repartitionTotal = (Number(item.repartitionCars?.car1_matin) || 0) +
+                                       (Number(item.repartitionCars?.car2_matin) || 0) +
+                                       (Number(item.repartitionCars?.car_soir) || 0);
 
                 return (
                   <div

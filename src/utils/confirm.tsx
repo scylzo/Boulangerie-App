@@ -61,7 +61,7 @@ export const confirmAction = (options: Omit<ConfirmToastProps, 'onCancel'> & { o
   return new Promise((resolve) => {
     const { onCancel, ...restOptions } = options;
 
-    toast.custom((t) => (
+    toast.custom((_t) => (
       <ConfirmToast
         {...restOptions}
         onConfirm={() => resolve(true)}

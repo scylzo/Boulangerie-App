@@ -204,7 +204,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
       if (programmeActuel.id.startsWith('prog_')) {
         // Nouveau programme, l'ajouter
-        const { id } = programmeAEnregistrer;
+
         const { id: _, ...dataToSave } = programmeAEnregistrer;
         const docRef = await firestoreService.create('productionPrograms', dataToSave);
 
@@ -452,14 +452,14 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
         // Calculer la quantité totale du produit depuis les répartitions
         const quantiteTotale = item.quantiteCommandee ||
-          ((parseInt(item.repartitionCars?.car1_matin as string) || 0) +
-            (parseInt(item.repartitionCars?.car2_matin as string) || 0) +
-            (parseInt(item.repartitionCars?.car_soir as string) || 0));
+          ((Number(item.repartitionCars?.car1_matin) || 0) +
+            (Number(item.repartitionCars?.car2_matin) || 0) +
+            (Number(item.repartitionCars?.car_soir) || 0));
 
         // Ajouter les répartitions par car
-        const car1Matin = parseInt(item.repartitionCars?.car1_matin as string) || 0;
-        const car2Matin = parseInt(item.repartitionCars?.car2_matin as string) || 0;
-        const carSoir = parseInt(item.repartitionCars?.car_soir as string) || 0;
+        const car1Matin = Number(item.repartitionCars?.car1_matin) || 0;
+        const car2Matin = Number(item.repartitionCars?.car2_matin) || 0;
+        const carSoir = Number(item.repartitionCars?.car_soir) || 0;
 
         totauxMap.set(item.produitId, {
           totalClient: current.totalClient + quantiteTotale,
@@ -520,7 +520,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     }));
   },
 
-  modifierRepartitionProduit: (produitId, car1Matin, car2Matin, carSoir) => {
+  modifierRepartitionProduit: (_produitId, _car1Matin, _car2Matin, _carSoir) => {
     // Cette fonction est maintenant obsolète car les répartitions sont calculées
     // automatiquement depuis les commandes clients individuelles.
     // On la garde pour la compatibilité mais elle ne fait plus rien.

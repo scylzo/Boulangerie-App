@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, setDoc, getDocs, query, where, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { LivraisonClient, InvendusClient, Client, Produit } from '../types';
 

@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
-import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
 import { useRapportStore } from '../../store';
 
 export const RapportJournalier: React.FC = () => {
@@ -45,12 +42,7 @@ export const RapportJournalier: React.FC = () => {
     chargerRapport(new Date(dateSelectionnee));
   }, [dateSelectionnee, chargerRapport]);
 
-  // Fonction pour obtenir la couleur selon le taux de vente
-  const getTauxVenteColor = (taux: number) => {
-    if (taux >= 90) return 'from-green-500 to-emerald-600';
-    if (taux >= 75) return 'from-yellow-500 to-orange-500';
-    return 'from-red-500 to-rose-600';
-  };
+
 
   const getTauxVenteBadgeColor = (taux: number) => {
     if (taux >= 90) return 'bg-green-100 text-green-800';

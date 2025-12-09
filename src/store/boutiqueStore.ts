@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { StockBoutique, EquipeBoutique, VentesBoutique, Produit } from '../types';
 
@@ -45,7 +45,7 @@ interface BoutiqueStore {
 }
 
 // Debounce pour la sauvegarde automatique
-let saveTimeout: NodeJS.Timeout | null = null;
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
   // État initial
@@ -310,10 +310,10 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
           produits: state.equipeMatin.produits.map(p =>
             p.produitId === produitId
               ? {
-                  ...p,
-                  vendu,
-                  reste: p.stockDebut - vendu
-                }
+                ...p,
+                vendu,
+                reste: p.stockDebut - vendu
+              }
               : p
           ),
           updatedAt: new Date()
@@ -343,10 +343,10 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
           produits: state.equipeSoir.produits.map(p =>
             p.produitId === produitId
               ? {
-                  ...p,
-                  vendu,
-                  reste: p.stockDebut - vendu // reste = invendu boutique
-                }
+                ...p,
+                vendu,
+                reste: p.stockDebut - vendu // reste = invendu boutique
+              }
               : p
           ),
           updatedAt: new Date()

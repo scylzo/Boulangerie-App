@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Produit, Client } from '../types';
 import { firestoreService } from '../firebase/collections';
-import { produitsInitiaux, clientsInitiaux } from '../data/produits-initiaux';
+
 
 interface ReferentielStore {
   // État Produits

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, updateDoc, doc, setDoc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient } from '../types';
 
@@ -154,7 +154,7 @@ export const useFacturationStore = create<FacturationStore>((set, get) => ({
 
             // Quantité totale livrée pour ce produit
             const quantiteLivree = Object.values(produitCmd.repartitionCars || {})
-              .reduce((sum, qte) => sum + (parseInt(qte as string) || 0), 0);
+              .reduce((sum, qte) => sum + (Number(qte) || 0), 0);
 
 
             if (quantiteLivree > 0) {
@@ -600,7 +600,7 @@ export const useFacturationStore = create<FacturationStore>((set, get) => ({
 
         const retoursData = retours.docs.map(doc => ({
           id: doc.id,
-          ...doc.data(),
+          ...doc.data() as any,
           dateLivraison: doc.data().dateLivraison.toDate(),
           createdAt: doc.data().createdAt.toDate(),
           updatedAt: doc.data().updatedAt.toDate()

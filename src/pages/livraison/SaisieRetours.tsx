@@ -6,13 +6,11 @@ import { useLivraisonStore } from '../../store/livraisonStore';
 import { useProductionStore } from '../../store/productionStore';
 import { useReferentielStore } from '../../store/referentielStore';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
-import type { InvendusClient } from '../../types';
 
 export const SaisieRetours: React.FC = () => {
   const {
     invendusClients,
     chargerInvendusDuJour,
-    sauvegarderInvendus,
     marquerAucunRetourClient,
     sauvegarderRetoursClient,
     isLoading
@@ -101,76 +99,7 @@ export const SaisieRetours: React.FC = () => {
     }));
   };
 
-  const sauvegarderTousLesRetours = async () => {
-    try {
-      const dateActuelle = new Date(dateSelectionnee);
 
-      // Créer les objets InvendusClient pour tous les clients avec des commandes
-      const nouveauxInvendus: InvendusClient[] = clientsAvecCommandes
-        .map(client => {
-          // Récupérer les invendus existants depuis Firebase
-          const invendusExistants = invendusClients.find(inv => inv.clientId === client.id);
-
-          // Récupérer tous les produits avec leurs invendus
-          const produitsPourClient = client.produits.map(p => {
-            // Priorité: invendus locaux > invendus Firebase > 0
-            const invendusLocauxQty = invendusLocaux[client.id!]?.[p.produitId];
-            const produitInvendus = invendusExistants?.produits.find(prod => prod.produitId === p.produitId);
-            const invendusFirebase = produitInvendus?.invendus || 0;
-            
-            // Utiliser les invendus locaux si définis (même si 0), sinon garder ceux de Firebase
-            const invendusQty = invendusLocauxQty !== undefined ? invendusLocauxQty : invendusFirebase;
-            
-            return {
-              produitId: p.produitId,
-              produit: p.produit,
-              quantiteLivree: p.quantiteLivree,
-              invendus: invendusQty,
-              vendu: p.quantiteLivree - invendusQty
-            };
-          });
-
-          return {
-            id: invendusExistants?.id || `inv_${client.id}_${Date.now()}`,
-            clientId: client.id!,
-            client: client,
-            dateLivraison: dateActuelle,
-            produits: produitsPourClient,
-            createdAt: invendusExistants?.createdAt || new Date(),
-            updatedAt: new Date()
-          };
-        });
-
-      if (nouveauxInvendus.length === 0) {
-        toast.error('Aucune donnée à sauvegarder');
-        return;
-      }
-
-      // Mettre à jour le store avec les nouvelles données
-      useLivraisonStore.setState(state => ({
-        invendusClients: [
-          ...state.invendusClients.filter(inv =>
-            !nouveauxInvendus.some(nouv => nouv.clientId === inv.clientId)
-          ),
-          ...nouveauxInvendus
-        ]
-      }));
-
-      await sauvegarderInvendus();
-
-      toast.success('✅ Retours sauvegardés avec succès !');
-
-      // Réinitialiser l'état local
-      setInvendusLocaux({});
-
-      // Recharger les données
-      await chargerInvendusDuJour(dateActuelle);
-
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      toast.error('Erreur lors de la sauvegarde');
-    }
-  };
 
   const handleAucunRetour = async (clientId: string) => {
     const client = clients.find(c => c.id === clientId);

@@ -28,7 +28,7 @@ export class PDFService {
 
 
   generateDeliveryReport(
-    livreurId: string,
+    _livreurId: string,
     dataLivreur: DataLivreur,
     dateSelectionnee: string
   ): void {
@@ -152,7 +152,7 @@ export class PDFService {
     yPosition += 20;
 
     // Tableau récapitulatif par livreur
-    const tableData = commandesOrganisees.map(([livreurId, data]) => {
+    const tableData = commandesOrganisees.map(([_livreurId, data]) => {
       const livreurNom = data.livreur?.nom || 'Non assigné';
       const nbCars = data.commandesParCar.size;
       const nbLivraisons = Array.from(data.commandesParCar.values())
