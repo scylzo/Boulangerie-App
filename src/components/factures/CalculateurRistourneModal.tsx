@@ -17,8 +17,8 @@ interface Props {
 }
 
 export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { factures, chargerFactures } = useFacturationStore();
-  const { clients, chargerClients } = useReferentielStore();
+  const { chargerFactures } = useFacturationStore();
+  const { chargerClients } = useReferentielStore();
   
   const [mois, setMois] = useState(new Date().getMonth()); // 0-11
   const [annee, setAnnee] = useState(new Date().getFullYear());
@@ -153,7 +153,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
      const finalY = (doc as any).lastAutoTable.finalY || 50;
      
      doc.setFontSize(12);
-     doc.setFont(undefined, 'bold');
+     doc.setFont('helvetica', 'bold');
      doc.text(`Total à reverser : ${formatCurrency(totalGeneral)}`, 14, finalY + 15);
 
      doc.save(`ristournes_${annee}_${mois+1}.pdf`);
@@ -169,10 +169,10 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
             <div className="flex-1">
                 <Select
                     label="Mois"
-                    value={mois}
+                    value={mois.toString()}
                     onChange={(e) => setMois(parseInt(e.target.value))}
                     options={Array.from({length: 12}, (_, i) => ({
-                        value: i,
+                        value: i.toString(),
                         label: new Date(2000, i, 1).toLocaleString('fr-FR', { month: 'long' })
                     }))}
                 />
@@ -180,11 +180,11 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
             <div className="flex-1">
                 <Select
                     label="Année"
-                    value={annee}
+                    value={annee.toString()}
                     onChange={(e) => setAnnee(parseInt(e.target.value))}
                     options={[
-                        { value: 2024, label: '2024' },
-                        { value: 2025, label: '2025' }
+                        { value: '2024', label: '2024' },
+                        { value: '2025', label: '2025' }
                     ]}
                 />
             </div>
