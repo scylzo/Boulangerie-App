@@ -123,10 +123,31 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
     if (selectedClientId && mode === 'create' && produitsCommandes.length === 0) {
       const client = clients.find(c => c.id === selectedClientId);
       if (client?.commandeType && client.commandeType.length > 0) {
-        setProduitsCommandes(client.commandeType.map(p => ({
-            ...p,
-            repartitionCars: p.repartitionCars || { car1_matin: '', car2_matin: '', car_soir: '' }
-        })));
+        setProduitsCommandes(client.commandeType.map(p => {
+            // 1. Récupération du prix (Si 0 ou manquant, on prend le prix actuel du catalogue)
+            let prix = p.prixUnitaire;
+            if (!prix) {
+                const productInfo = produits.find(prod => prod.id === p.produitId);
+                // Si boutique, prix boutique. Sinon, prix client.
+                prix = client.typeClient === 'boutique' ? productInfo?.prixBoutique : productInfo?.prixClient;
+            }
+
+            // 2. Migration / Fallback : Si pas de répartition mais une quantité totale (vieux format)
+            let repartition = p.repartitionCars;
+            if (!repartition && p.quantiteCommandee > 0) {
+                repartition = {
+                    car1_matin: p.quantiteCommandee,
+                    car2_matin: '',
+                    car_soir: ''
+                };
+            }
+
+            return {
+                ...p,
+                prixUnitaire: prix || 0,
+                repartitionCars: repartition || { car1_matin: '', car2_matin: '', car_soir: '' }
+            };
+        }));
         toast.success("📋 Commande type chargée !");
       }
     }
@@ -140,9 +161,9 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
             produitId: p.produitId,
             quantiteCommandee: p.quantiteCommandee,
             repartitionCars: {
-                car1_matin: p.repartitionCars?.car1_matin || 0,
-                car2_matin: p.repartitionCars?.car2_matin || 0,
-                car_soir: p.repartitionCars?.car_soir || 0
+                car1_matin: Number(p.repartitionCars?.car1_matin) || 0,
+                car2_matin: Number(p.repartitionCars?.car2_matin) || 0,
+                car_soir: Number(p.repartitionCars?.car_soir) || 0
             }
         }));
         
@@ -283,14 +304,25 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
       return;
     }
 
-    const produitsFormat = commandeValide.map(p => ({
-      ...p,
-      repartitionCars: {
-        car1_matin: Number(p.repartitionCars?.car1_matin) || 0,
-        car2_matin: Number(p.repartitionCars?.car2_matin) || 0,
-        car_soir: Number(p.repartitionCars?.car_soir) || 0
-      }
-    }));
+    const produitsFormat = commandeValide.map(p => {
+        // Sécurité : Si le prix est à 0, on le récupère du catalogue
+        let prix = p.prixUnitaire;
+        if (!prix) {
+            const productInfo = produits.find(prod => prod.id === p.produitId);
+            const client = clients.find(c => c.id === selectedClientId);
+            prix = client?.typeClient === 'boutique' ? productInfo?.prixBoutique : productInfo?.prixClient;
+        }
+
+        return {
+          ...p,
+          prixUnitaire: prix || 0,
+          repartitionCars: {
+            car1_matin: Number(p.repartitionCars?.car1_matin) || 0,
+            car2_matin: Number(p.repartitionCars?.car2_matin) || 0,
+            car_soir: Number(p.repartitionCars?.car_soir) || 0
+          }
+        };
+    });
 
     const commande: Omit<CommandeClient, 'id' | 'createdAt' | 'updatedAt'> = {
       clientId: selectedClientId,
@@ -310,11 +342,9 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
 
   const calculerTotal = () => {
     return produitsCommandes.reduce((total, item) => {
-      const produit = produits.find(p => p.id === item.produitId);
-      if (produit && item.quantiteCommandee) {
-        return total + (produit.prixUnitaire || 0) * item.quantiteCommandee;
-      }
-      return total;
+      // Priorité au prix enregistré dans la ligne, sinon prix catalogue
+      const prix = item.prixUnitaire || produits.find(p => p.id === item.produitId)?.prixUnitaire || 0;
+      return total + (prix * (item.quantiteCommandee || 0));
     }, 0);
   };
 

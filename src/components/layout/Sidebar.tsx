@@ -26,7 +26,7 @@ const navigationIcons = {
   'Retours Clients': 'mdi:keyboard-return',
   'Boutique': 'mdi:store',
   'Facturation': 'mdi:file-document',
-  'Stocks Check-in': 'lucide:package-open',
+  'Stocks': 'mdi:warehouse',
   'Rapport Journalier': 'mdi:chart-bar',
   'Gestion Produits': 'mdi:bread-slice',
   'Gestion Clients': 'mdi:account-group',

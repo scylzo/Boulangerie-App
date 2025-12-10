@@ -7,13 +7,22 @@ export const MouvementsList: React.FC = () => {
   const { mouvements, matieres } = useStockStore();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Enrichir les mouvements avec le nom de la matière
+  // Enrichir les mouvements avec le nom de la matière et la valeur estimée
   const enrichedMouvements = mouvements.map(m => {
     const matiere = matieres.find(mat => mat.id === m.matiereId);
+    
+    // Si pas de prix total enregistré (ancien historique), on l'estime avec le PMP actuel
+    // uniquement pour consommation/perte pour être cohérent avec le dashboard
+    let displayPrice = m.prixTotal;
+    if (!displayPrice && matiere && ['consommation', 'perte'].includes(m.type)) {
+        displayPrice = Math.abs(m.quantite) * matiere.prixMoyenPondere;
+    }
+
     return {
       ...m,
       matiereNom: matiere ? matiere.nom : 'Article Inconnu',
-      matiereUnite: matiere ? matiere.unite : ''
+      matiereUnite: matiere ? matiere.unite : '',
+      displayPrice // Nouvelle propriété pour l'affichage
     };
   });
 
@@ -96,7 +105,9 @@ export const MouvementsList: React.FC = () => {
                   {m.quantite} <span className="text-gray-500 font-normal">{m.matiereUnite}</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
-                  {m.prixTotal ? `${m.prixTotal.toLocaleString()} FCFA` : '-'}
+                  {m.displayPrice ? `${m.displayPrice.toLocaleString()} FCFA` : '-'}
+                  {/* Indicateur si c'est une estimation */}
+                  {!m.prixTotal && m.displayPrice && <span className="text-xs text-gray-400 ml-1">(est.)</span>}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
                   <div className="flex flex-col">

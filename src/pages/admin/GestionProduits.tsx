@@ -20,7 +20,7 @@ export const GestionProduits: React.FC = () => {
 
   const [showForm, setShowForm] = useState(false);
 
-  const { matieres, chargerDonnees: chargerStock } = useStockStore();
+  const { chargerDonnees: chargerStock } = useStockStore();
 
   useEffect(() => {
     chargerProduits();

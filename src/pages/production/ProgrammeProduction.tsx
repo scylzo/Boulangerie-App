@@ -173,20 +173,8 @@ export const ProgrammeProduction: React.FC = () => {
         const indexExistant = produitsExistants.findIndex(p => p.produitId === nouveauProduit.produitId);
 
         if (indexExistant >= 0) {
-          // Produit existe déjà, additionner les quantités
-          const produitExistant = produitsExistants[indexExistant];
-          const repartitionExistante = produitExistant.repartitionCars;
-          const nouvelleRepartition = nouveauProduit.repartitionCars;
-
-          produitsExistants[indexExistant] = {
-            ...produitExistant,
-            quantiteCommandee: produitExistant.quantiteCommandee + nouveauProduit.quantiteCommandee,
-            repartitionCars: {
-              car1_matin: (repartitionExistante?.car1_matin || 0) + (nouvelleRepartition?.car1_matin || 0),
-              car2_matin: (repartitionExistante?.car2_matin || 0) + (nouvelleRepartition?.car2_matin || 0),
-              car_soir: (repartitionExistante?.car_soir || 0) + (nouvelleRepartition?.car_soir || 0)
-            }
-          };
+          // Produit existe déjà, remplacer par la nouvelle version (comportement d'édition)
+           produitsExistants[indexExistant] = nouveauProduit;
         } else {
           // Nouveau produit, l'ajouter
           produitsExistants.push(nouveauProduit);
@@ -216,20 +204,8 @@ export const ProgrammeProduction: React.FC = () => {
           const indexExistant = produitsExistants.findIndex(p => p.produitId === nouveauProduit.produitId);
 
           if (indexExistant >= 0) {
-            // Produit existe déjà, additionner les quantités
-            const produitExistant = produitsExistants[indexExistant];
-            const repartitionExistante = produitExistant.repartitionCars;
-            const nouvelleRepartition = nouveauProduit.repartitionCars;
-
-            produitsExistants[indexExistant] = {
-              ...produitExistant,
-              quantiteCommandee: produitExistant.quantiteCommandee + nouveauProduit.quantiteCommandee,
-              repartitionCars: {
-                car1_matin: (repartitionExistante?.car1_matin || 0) + (nouvelleRepartition?.car1_matin || 0),
-                car2_matin: (repartitionExistante?.car2_matin || 0) + (nouvelleRepartition?.car2_matin || 0),
-                car_soir: (repartitionExistante?.car_soir || 0) + (nouvelleRepartition?.car_soir || 0)
-              }
-            };
+            // Produit existe déjà, remplacer par la nouvelle version
+            produitsExistants[indexExistant] = nouveauProduit;
           } else {
             // Nouveau produit, l'ajouter
             produitsExistants.push(nouveauProduit);

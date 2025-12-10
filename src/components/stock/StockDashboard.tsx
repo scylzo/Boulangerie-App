@@ -6,7 +6,7 @@ import { useFacturationStore } from '../../store/facturationStore';
 import { TrendingUp, TrendingDown, AlertCircle, Package } from 'lucide-react';
 
 export const StockDashboard: React.FC = () => {
-  const { matieres, getDepensesPeriode } = useStockStore();
+  const { matieres, getDepensesPeriode, getValeurConsommationPeriode } = useStockStore();
   
   const { factures, chargerFactures } = useFacturationStore();
   
@@ -16,14 +16,17 @@ export const StockDashboard: React.FC = () => {
 
   // Calculs Stock
   const valeurTotaleStock = matieres.reduce((sum, m) => sum + m.valeurTotale, 0);
-  const lowStockCount = matieres.filter(m => m.stockActuel <= m.stockMinimum).length;
 
   // Calculs Période (Mois en cours)
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   
-  // Dépenses (Matières Premières)
+  // Coût des Matières Consommées (COGS) pour le mois
+  // C'est ce qu'il faut déduire des ventes pour avoir la Marge Brute
+  const coutMatieresConsommees = getValeurConsommationPeriode(startOfMonth, now);
+
+  // On garde aussi les dépenses (Cash out) pour info
   const depensesMois = getDepensesPeriode(startOfMonth, now);
 
   React.useEffect(() => {
@@ -73,7 +76,9 @@ export const StockDashboard: React.FC = () => {
     .reduce((sum, f) => sum + f.totalTTC, 0);
 
   const totalVentes = ventesFactures + ventesBoutiqueTotal;
-  const margeBrute = totalVentes - depensesMois;
+  
+  // MARGE BRUTE = VENTES - COUT MATIERES CONSOMMEES (pas les achats !)
+  const margeBrute = totalVentes - coutMatieresConsommees;
   const tauxMarge = totalVentes > 0 ? (margeBrute / totalVentes) * 100 : 0;
 
   return (
@@ -95,11 +100,11 @@ export const StockDashboard: React.FC = () => {
       <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-sm font-medium text-gray-500">Dépenses du Mois</p>
+            <p className="text-sm font-medium text-gray-500">Flux de Trésorerie (Achats)</p>
             <h3 className="text-2xl font-bold text-gray-900 mt-1">
               {Math.round(depensesMois).toLocaleString()} FCFA
             </h3>
-            <p className="text-xs text-gray-500 mt-1">Achats matières premières</p>
+            <p className="text-xs text-gray-500 mt-1">Achats du mois</p>
           </div>
           <div className="p-3 bg-orange-50 rounded-lg text-orange-600">
             <TrendingDown size={24} />
@@ -110,13 +115,13 @@ export const StockDashboard: React.FC = () => {
       <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-sm font-medium text-gray-500">Alertes Stock</p>
-            <h3 className={`text-2xl font-bold mt-1 ${lowStockCount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-              {lowStockCount}
+            <p className="text-sm font-medium text-gray-500">Coût Production</p>
+            <h3 className="text-2xl font-bold text-gray-900 mt-1 text-orange-600">
+              {Math.round(coutMatieresConsommees).toLocaleString()} FCFA
             </h3>
-            <p className="text-xs text-gray-500 mt-1">Produits sous seuil min.</p>
+            <p className="text-xs text-gray-500 mt-1">Matières consommées</p>
           </div>
-          <div className={`p-3 rounded-lg ${lowStockCount > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+          <div className="p-3 bg-orange-50 rounded-lg text-orange-600">
             <AlertCircle size={24} />
           </div>
         </div>
@@ -125,7 +130,7 @@ export const StockDashboard: React.FC = () => {
        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-sm font-medium text-gray-500">Marge Brute (Est.)</p>
+            <p className="text-sm font-medium text-gray-500">Marge Brute (Comptable)</p>
             {isLoadingStats ? (
                  <h3 className="text-2xl font-bold text-gray-300 mt-1 animate-pulse">...</h3>
             ) : (
@@ -137,7 +142,7 @@ export const StockDashboard: React.FC = () => {
                         <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${tauxMarge > 30 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                             {tauxMarge.toFixed(1)}%
                         </span>
-                        <p className="text-xs text-gray-500">Ventes - Achats</p>
+                        <p className="text-xs text-gray-500">Ventes - Conso.</p>
                     </div>
                 </>
             )}

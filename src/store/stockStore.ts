@@ -40,6 +40,7 @@ interface StockState {
     getMatiere: (id: string) => MatierePremiere | undefined;
     getMouvementsByMatiere: (matiereId: string) => MouvementStock[];
     getDepensesPeriode: (debut: Date, fin: Date) => number;
+    getValeurConsommationPeriode: (debut: Date, fin: Date) => number;
 }
 
 export const useStockStore = create<StockState>((set, get) => ({
@@ -188,9 +189,24 @@ export const useStockStore = create<StockState>((set, get) => ({
 
                 // 3. Préparer le mouvement à créer
                 const newMouvementRef = doc(collection(db, 'mouvements'));
+
+                // Calculer la valeur du mouvement pour les sorties (Consommation / Perte)
+                // C'est important pour le calcul de rentabilité (Cout de revient)
+                let valeurMouvement = mouvementData.prixTotal;
+
+                if (mouvementData.type !== 'achat' && !valeurMouvement) {
+                    // Pour une sortie, la valeur est : Quantité * PMP à l'instant T
+                    // On utilise Math.abs car la quantité mouvement peut être positive dans l'input mais stockée négativement ou l'inverse
+                    // Ici quantity est signée dans mouvementData ou non ?
+                    // Dans le bloc else plus haut : "signedQuantity = Math.abs(mouvementData.quantite); if (...) signedQuantity = -signedQuantity;"
+                    // Donc on prend la valeur absolue de la quantité impliquée
+                    valeurMouvement = Math.abs(mouvementData.quantite) * newPMP;
+                }
+
                 const newMouvement: any = {
                     id: newMouvementRef.id,
                     ...mouvementData,
+                    prixTotal: valeurMouvement, // On sauvegarde la valorisation
                     createdAt: new Date(),
                     date: mouvementData.date || new Date(),
                 };
@@ -284,5 +300,29 @@ export const useStockStore = create<StockState>((set, get) => ({
                 return m.type === 'achat' && date >= debut && date <= fin;
             })
             .reduce((total, m) => total + (m.prixTotal || 0), 0);
+    },
+
+    getValeurConsommationPeriode: (debut: Date, fin: Date) => {
+        const { mouvements, matieres } = get();
+        return mouvements
+            .filter(m => {
+                const date = new Date(m.date);
+                // On prend tout ce qui est sortie de stock (Consommation, Perte)
+                // SAUF retour fournisseur (qui est un remboursement / avoir)
+                // Et correction ? Si correction négative, c'est une perte sèche.
+                return ['consommation', 'perte'].includes(m.type) && date >= debut && date <= fin;
+            })
+            .reduce((total, m) => {
+                // Si la valeur est historisée (nouveau système)
+                if (m.prixTotal) {
+                    return total + m.prixTotal;
+                }
+
+                // FALLBACK pour données historiques : utiliser le PMP actuel de la matière
+                // C'est approximatif mais mieux que 0
+                const matiere = matieres.find(mat => mat.id === m.matiereId);
+                const pmpActuel = matiere?.prixMoyenPondere || 0;
+                return total + (Math.abs(m.quantite) * pmpActuel);
+            }, 0);
     }
 }));
