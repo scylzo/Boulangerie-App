@@ -11,6 +11,7 @@ const navigation = [
   { name: 'Retours Clients', href: '/retours', roles: ['admin', 'livreur'] },
   { name: 'Boutique', href: '/boutique', roles: ['admin', 'vendeuse'] },
   { name: 'Facturation', href: '/facturation', roles: ['admin', 'gestionnaire'] },
+  { name: 'Stocks', href: '/stocks', roles: ['admin', 'gestionnaire'] }, // Use "Stocks" or "Économat"
   { name: 'Rapport Journalier', href: '/rapport', roles: ['admin', 'gestionnaire'] },
   { name: 'Gestion Produits', href: '/admin/produits', roles: ['admin'] },
   { name: 'Gestion Clients', href: '/admin/clients', roles: ['admin'] },
@@ -25,6 +26,7 @@ const navigationIcons = {
   'Retours Clients': 'mdi:keyboard-return',
   'Boutique': 'mdi:store',
   'Facturation': 'mdi:file-document',
+  'Stocks Check-in': 'lucide:package-open',
   'Rapport Journalier': 'mdi:chart-bar',
   'Gestion Produits': 'mdi:bread-slice',
   'Gestion Clients': 'mdi:account-group',

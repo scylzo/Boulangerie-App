@@ -44,6 +44,7 @@ export const ProgrammeProduction: React.FC = () => {
     setCommandeEnEdition,
     updateFormulaireCommande,
     resetFormulaireCommande,
+    validerProduction,
     isLoading
   } = useProductionStore();
 
@@ -394,6 +395,25 @@ export const ProgrammeProduction: React.FC = () => {
     }
   };
 
+  const handleValiderProduction = async () => {
+    const confirmation = await confirmModal.confirm({
+        title: 'Valider la production',
+        message: `🏭 Êtes-vous sûr de vouloir valider la production ?\n\nCela va :\n1. Changer le statut en "Produit"\n2. 📉 Déduire AUTOMATIQUEMENT les matières premières du stock selon les recettes.\n\nAssurez-vous que les quantités produites sont correctes.`,
+        confirmText: 'Valider et Déduire Stock',
+        cancelText: 'Annuler',
+        type: 'warning'
+    });
+
+    if (confirmation) {
+        try {
+            await validerProduction();
+            toast.success('✅ Production validée et stocks mis à jour !');
+        } catch (error) {
+            toast.error('❌ Erreur lors de la validation');
+        }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header moderne type Odoo */}
@@ -428,13 +448,25 @@ export const ProgrammeProduction: React.FC = () => {
               <button
                 onClick={handleEnvoyerAuBoulanger}
                 disabled={!programmeActuel || isLoading}
-                className="flex items-center gap-2 px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                className={`flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md ${programmeActuel?.statut === 'envoye' ? 'opacity-50' : ''}`}
               >
-                <Icon icon={programmeActuel?.statut === 'envoye' ? "mdi:update" : "mdi:send"} className="text-lg" />
+                <Icon icon={programmeActuel?.statut === 'envoye' ? "mdi:check" : "mdi:send"} className="text-lg" />
                 <span className="font-medium">
-                  {programmeActuel?.statut === 'envoye' ? 'Mettre à jour la vue boulangers' : 'Envoyer au Boulanger'}
+                  {programmeActuel?.statut === 'envoye' ? 'Envoyé au boulanger' : 'Envoyer au Boulanger'}
                 </span>
               </button>
+
+              {/* Bouton Valider Production (visible si Envoyé) */}
+              {programmeActuel?.statut === 'envoye' && (
+                  <button
+                    onClick={handleValiderProduction}
+                    disabled={isLoading}
+                    className="ml-2 flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 shadow-md hover:shadow-lg animate-pulse"
+                  >
+                    <Icon icon="mdi:factory" className="text-lg" />
+                    <span className="font-medium">Valider Production (& Stock)</span>
+                  </button>
+              )}
 
               {/* Modal de confirmation positionné près du bouton */}
               <ConfirmModal

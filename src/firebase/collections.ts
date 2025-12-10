@@ -28,6 +28,10 @@ export const collectionsRef = {
   dailyReports: collection(db, 'dailyReports'),
   factures: collection(db, 'factures'),
   parametres: collection(db, 'parametres'),
+  // Stock
+  matieres: collection(db, 'matieres'),
+  mouvements: collection(db, 'mouvements'),
+  fournisseurs: collection(db, 'fournisseurs'),
 };
 
 // Utilitaires pour la conversion Date <-> Timestamp

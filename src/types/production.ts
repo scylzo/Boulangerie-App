@@ -1,3 +1,8 @@
+export interface Ingredient {
+  matiereId: string;
+  quantite: number; // Quantité de matière première nécessaire pour 1 unité de produit
+}
+
 export interface Produit {
   id: string;
   nom: string;
@@ -6,6 +11,7 @@ export interface Produit {
   prixClient?: number; // Prix avec réduction pour les clients
   prixBoutique?: number; // Prix normal pour la boutique
   prixUnitaire?: number; // Pour compatibilité avec l'ancien code (à supprimer progressivement)
+  recette?: Ingredient[]; // Liste des ingrédients nécessaires
   active: boolean;
   createdAt: Date;
   updatedAt: Date;

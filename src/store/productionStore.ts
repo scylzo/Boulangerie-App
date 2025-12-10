@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useStockStore } from './stockStore';
 import type { ProgrammeProduction, CommandeClient, QuantiteBoutique, Produit, Client } from '../types';
 import { firestoreService, businessQueries, dateToTimestamp, timestampToDate } from '../firebase/collections';
 import type { Timestamp } from 'firebase/firestore';
@@ -39,6 +40,7 @@ interface ProductionStore {
   chargerProgramme: (date: Date) => Promise<void>;
   sauvegarderProgramme: () => Promise<void>;
   envoyerAuBoulanger: () => Promise<void>;
+  validerProduction: () => Promise<void>; // Action pour déduire les stocks
 
   // Actions Commandes Clients
   ajouterCommandeClient: (commande: Omit<CommandeClient, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -226,6 +228,87 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  validerProduction: async () => {
+    const { programmeActuel, produits } = get();
+    if (!programmeActuel) return;
+
+    set({ isLoading: true });
+    try {
+      console.log('🏭 Validation de la production et déduction des stocks...');
+
+      // 1. Calculer les consommations de stock
+      const mouvementsStock: any[] = [];
+      let logDetails: string[] = [];
+
+      if (programmeActuel.totauxParProduit) {
+        programmeActuel.totauxParProduit.forEach(total => {
+          const produit = produits.find(p => p.id === total.produitId);
+          // Si le produit a une recette définie
+          if (produit?.recette && produit.recette.length > 0) {
+
+            logDetails.push(`Produit: ${produit.nom} (Total: ${total.totalGlobal})`);
+
+            // Pour chaque ingrédient de la recette
+            produit.recette.forEach(ing => {
+              const qteTotale = Number((ing.quantite * total.totalGlobal).toFixed(3));
+              if (qteTotale > 0) {
+                mouvementsStock.push({
+                  matiereId: ing.matiereId,
+                  quantite: qteTotale,
+                  type: 'consommation', // Type mouvement
+                  motif: `Production: ${produit.nom} (${total.totalGlobal} p.)`,
+                  auteur: 'Système',
+                  responsable: 'Système (Auto)',
+                  referenceDocument: `PROD-${new Date(programmeActuel.date).toLocaleDateString()}`
+                });
+                logDetails.push(`  - Ingrédient ${ing.matiereId}: ${qteTotale}`);
+              }
+            });
+          }
+        });
+      }
+
+      console.log('📦 Mouvements à générer:', mouvementsStock.length);
+      console.log(logDetails.join('\n'));
+
+      // 2. Appliquer les mouvements de stock via le StockStore
+      // On utilise getState() car on est hors d'un composant React
+      const stockStore = useStockStore.getState();
+
+      for (const mvt of mouvementsStock) {
+        await stockStore.addMouvement({
+          ...mvt,
+          date: new Date(),
+          userId: 'system' // ID système
+        });
+      }
+
+      // 3. Mettre à jour le statut du programme
+      const programmeValide = {
+        ...programmeActuel,
+        statut: 'produit' as const,
+        updatedAt: new Date()
+      };
+
+      await firestoreService.update('productionPrograms', programmeActuel.id, {
+        statut: 'produit',
+        updatedAt: new Date()
+      });
+
+      set({
+        programmeActuel: programmeValide,
+        isLoading: false
+      });
+
+      console.log('✅ Production validée et stocks déduits !');
+
+    } catch (error) {
+      console.error('Erreur validation production:', error);
       set({ isLoading: false });
       throw error;
     }

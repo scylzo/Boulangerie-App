@@ -5,3 +5,4 @@ export { useBoutiqueStore } from './boutiqueStore';
 export { useRapportStore } from './rapportStore';
 export { useReferentielStore } from './referentielStore';
 export { useFacturationStore } from './facturationStore';
+export * from './stockStore';

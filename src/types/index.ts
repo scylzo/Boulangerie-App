@@ -6,7 +6,8 @@ export type {
   QuantiteBoutique,
   ProgrammeProduction,
   Livreur,
-  CarLivraison
+  CarLivraison,
+  Ingredient
 } from './production';
 
 // Livraison types
@@ -41,3 +42,12 @@ export type {
   LigneFacture,
   ParametresFacturation
 } from './facturation';
+
+// Stock types
+export type {
+  MatierePremiere,
+  MouvementStock,
+  Fournisseur,
+  UniteMesure,
+  TypeMouvement
+} from './stock';

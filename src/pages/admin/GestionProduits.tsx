@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import { TableLoader } from '../../components/ui/Loader';
 import { ProduitForm } from '../../components/shared/ProduitForm';
 import { useReferentielStore } from '../../store/referentielStore';
+import { useStockStore } from '../../store/stockStore'; // Import stock store
 import type { Produit } from '../../types';
 
 export const GestionProduits: React.FC = () => {
@@ -19,9 +20,12 @@ export const GestionProduits: React.FC = () => {
 
   const [showForm, setShowForm] = useState(false);
 
+  const { matieres, chargerDonnees: chargerStock } = useStockStore();
+
   useEffect(() => {
     chargerProduits();
-  }, [chargerProduits]);
+    chargerStock();
+  }, [chargerProduits, chargerStock]);
 
   const handleAjouter = async (produitData: Omit<Produit, 'id' | 'createdAt' | 'updatedAt'>) => {
     await ajouterProduit(produitData);
@@ -210,6 +214,33 @@ export const GestionProduits: React.FC = () => {
                         </div>
                       </div>
                     </div>
+
+                     {/* Marge Estimée */}
+                    {(() => {
+                        const { matieres } = useStockStore.getState(); // Utiliser getState pour éviter les problèmes de hook dans la boucle si possible, mais ici on est dans le render.
+                        // Calcul du coût de revient
+                        if (!produit.recette || produit.recette.length === 0) return null;
+
+                        const coutRevient = produit.recette.reduce((total, ing) => {
+                            const matiere = matieres.find(m => m.id === ing.matiereId);
+                            return total + (ing.quantite * (matiere?.prixMoyenPondere || 0));
+                        }, 0);
+
+                        const margeBoutique = produit.prixBoutique ? produit.prixBoutique - coutRevient : 0;
+                        const tauxMarge = produit.prixBoutique ? (margeBoutique / produit.prixBoutique) * 100 : 0;
+
+                        return (
+                             <div className="mb-4 bg-gray-50 rounded-lg p-2 flex items-center justify-between border border-gray-100">
+                                <div className="flex items-center gap-1.5">
+                                    <Icon icon="mdi:finance" className="text-orange-500 text-sm" />
+                                    <span className="text-xs font-medium text-gray-600">Marge Est.</span>
+                                </div>
+                                <div className={`text-sm font-bold ${tauxMarge >= 50 ? 'text-green-600' : tauxMarge >= 30 ? 'text-orange-600' : 'text-red-600'}`}>
+                                    {Math.round(margeBoutique).toLocaleString()} F <span className="text-xs font-normal opacity-80">({tauxMarge.toFixed(0)}%)</span>
+                                </div>
+                            </div>
+                        );
+                    })()}
 
                     {/* Actions */}
                     <div className="flex gap-2">
