@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
+import { Modal } from '../../components/ui/Modal';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { LivreurForm } from '../../components/shared/LivreurForm';
 import { useLivreurStore } from '../../store/livreurStore';
 import type { Livreur } from '../../types';
@@ -17,6 +19,11 @@ export const GestionLivreurs: React.FC = () => {
   } = useLivreurStore();
 
   const [showForm, setShowForm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; livreurId: string; livreurNom: string }>({
+    isOpen: false,
+    livreurId: '',
+    livreurNom: ''
+  });
 
   useEffect(() => {
     chargerLivreurs();
@@ -35,10 +42,17 @@ export const GestionLivreurs: React.FC = () => {
     }
   };
 
-  const handleSupprimer = async (livreur: Livreur) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${livreur.nom}" ?`)) {
-      await supprimerLivreur(livreur.id);
-    }
+  const handleSupprimer = (livreur: Livreur) => {
+    setDeleteConfirm({
+      isOpen: true,
+      livreurId: livreur.id,
+      livreurNom: livreur.nom
+    });
+  };
+
+  const confirmSupprimer = async () => {
+    await supprimerLivreur(deleteConfirm.livreurId);
+    setDeleteConfirm({ isOpen: false, livreurId: '', livreurNom: '' });
   };
 
   const handleAnnuler = () => {
@@ -88,14 +102,22 @@ export const GestionLivreurs: React.FC = () => {
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
 
-      {/* Formulaire */}
+      {/* Modal d'ajout/modification */}
       {showForm && (
-        <LivreurForm
-          livreur={livreurEnEdition}
-          onSave={livreurEnEdition ? handleModifier : handleAjouter}
-          onCancel={handleAnnuler}
-          isLoading={isLoadingLivreurs}
-        />
+        <Modal
+          isOpen={showForm}
+          onClose={handleAnnuler}
+          title={livreurEnEdition ? 'Modifier le livreur' : 'Nouveau livreur'}
+          position="center"
+          size="lg"
+        >
+          <LivreurForm
+            livreur={livreurEnEdition}
+            onSave={livreurEnEdition ? handleModifier : handleAjouter}
+            onCancel={handleAnnuler}
+            isLoading={isLoadingLivreurs}
+          />
+        </Modal>
       )}
 
         {/* Section Liste des livreurs */}
@@ -220,6 +242,18 @@ export const GestionLivreurs: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, livreurId: '', livreurNom: '' })}
+        onConfirm={confirmSupprimer}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer le livreur "${deleteConfirm.livreurNom}" ?\n\nCette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+        position="center"
+      />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStockStore } from '../../store/stockStore';
 import { Plus, Edit2, Trash2, AlertTriangle, ArrowRightLeft } from 'lucide-react';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import type { MatierePremiere, UniteMesure } from '../../types';
 
 interface MatiereListProps {
@@ -11,6 +12,11 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
   const { matieres, addMatiere, updateMatiere, deleteMatiere } = useStockStore();
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; matiereId: string; matiereNom: string }>({
+    isOpen: false,
+    matiereId: '',
+    matiereNom: ''
+  });
   
   // Form state
   const [formData, setFormData] = useState<{
@@ -61,10 +67,17 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette matière première ?')) {
-      deleteMatiere(id);
-    }
+  const handleDelete = (id: string, nom: string) => {
+    setDeleteConfirm({
+      isOpen: true,
+      matiereId: id,
+      matiereNom: nom
+    });
+  };
+
+  const confirmDelete = () => {
+    deleteMatiere(deleteConfirm.matiereId);
+    setDeleteConfirm({ isOpen: false, matiereId: '', matiereNom: '' });
   };
 
   return (
@@ -222,7 +235,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                         <Edit2 size={18} />
                       </button>
                       <button
-                        onClick={() => handleDelete(matiere.id)}
+                        onClick={() => handleDelete(matiere.id, matiere.nom)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                         title="Supprimer"
                       >
@@ -243,6 +256,18 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, matiereId: '', matiereNom: '' })}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer la matière première "${deleteConfirm.matiereNom}" ?\n\nCette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+        position="center"
+      />
     </div>
   );
 };

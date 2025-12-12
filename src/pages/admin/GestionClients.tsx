@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { TableLoader } from '../../components/ui/Loader';
+import { Modal } from '../../components/ui/Modal';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { ClientForm } from '../../components/shared/ClientForm';
 import { useReferentielStore } from '../../store/referentielStore';
 import { useLivreurStore } from '../../store/livreurStore';
@@ -21,6 +23,11 @@ export const GestionClients: React.FC = () => {
   const {  chargerLivreurs, getLivreurById } = useLivreurStore();
 
   const [showForm, setShowForm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; clientId: string; clientNom: string }>({
+    isOpen: false,
+    clientId: '',
+    clientNom: ''
+  });
 
   useEffect(() => {
     chargerClients();
@@ -40,10 +47,17 @@ export const GestionClients: React.FC = () => {
     }
   };
 
-  const handleSupprimer = async (client: Client) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${client.nom}" ?`)) {
-      await supprimerClient(client.id);
-    }
+  const handleSupprimer = (client: Client) => {
+    setDeleteConfirm({
+      isOpen: true,
+      clientId: client.id,
+      clientNom: client.nom
+    });
+  };
+
+  const confirmSupprimer = async () => {
+    await supprimerClient(deleteConfirm.clientId);
+    setDeleteConfirm({ isOpen: false, clientId: '', clientNom: '' });
   };
 
   const handleAnnuler = () => {
@@ -93,14 +107,22 @@ export const GestionClients: React.FC = () => {
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
 
-      {/* Formulaire d'ajout/modification */}
+      {/* Modal d'ajout/modification */}
       {showForm && (
-        <ClientForm
-          client={clientEnEdition}
-          onSave={clientEnEdition ? handleModifier : handleAjouter}
-          onCancel={handleAnnuler}
-          isLoading={isLoadingClients}
-        />
+        <Modal
+          isOpen={showForm}
+          onClose={handleAnnuler}
+          title={clientEnEdition ? 'Modifier le client' : 'Nouveau client'}
+          position="center"
+          size="lg"
+        >
+          <ClientForm
+            client={clientEnEdition}
+            onSave={clientEnEdition ? handleModifier : handleAjouter}
+            onCancel={handleAnnuler}
+            isLoading={isLoadingClients}
+          />
+        </Modal>
       )}
 
         {/* Section Liste des clients */}
@@ -277,6 +299,18 @@ export const GestionClients: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, clientId: '', clientNom: '' })}
+        onConfirm={confirmSupprimer}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer le client "${deleteConfirm.clientNom}" ?\n\nCette action supprimera également toutes les commandes associées à ce client.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+        position="center"
+      />
     </div>
   );
 };

@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { useStockStore } from '../../store/stockStore';
 import { Plus, Edit2, Trash2, Phone, MapPin, User, Tag } from 'lucide-react';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import type { Fournisseur } from '../../types';
 
 export const FournisseurList: React.FC = () => {
   const { fournisseurs, addFournisseur, updateFournisseur, deleteFournisseur } = useStockStore();
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; fournisseurId: string; fournisseurNom: string }>({
+    isOpen: false,
+    fournisseurId: '',
+    fournisseurNom: ''
+  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -60,10 +66,17 @@ export const FournisseurList: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) {
-      await deleteFournisseur(id);
-    }
+  const handleDelete = (id: string, nom: string) => {
+    setDeleteConfirm({
+      isOpen: true,
+      fournisseurId: id,
+      fournisseurNom: nom
+    });
+  };
+
+  const confirmDelete = async () => {
+    await deleteFournisseur(deleteConfirm.fournisseurId);
+    setDeleteConfirm({ isOpen: false, fournisseurId: '', fournisseurNom: '' });
   };
 
   return (
@@ -176,7 +189,7 @@ export const FournisseurList: React.FC = () => {
                   <Edit2 size={16} />
                 </button>
                 <button
-                  onClick={() => handleDelete(fournisseur.id)}
+                  onClick={() => handleDelete(fournisseur.id, fournisseur.nom)}
                   className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <Trash2 size={16} />
@@ -226,6 +239,18 @@ export const FournisseurList: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, fournisseurId: '', fournisseurNom: '' })}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer le fournisseur "${deleteConfirm.fournisseurNom}" ?\n\nCette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+        position="center"
+      />
     </div>
   );
 };

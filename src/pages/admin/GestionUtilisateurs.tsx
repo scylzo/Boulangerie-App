@@ -6,6 +6,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'; /
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Input } from '../../components/ui/Input';
 import toast from 'react-hot-toast';
 
@@ -48,8 +49,12 @@ export const GestionUtilisateurs: React.FC = () => {
     role: 'livreur'
   });
   const [loading, setLoading] = useState(false);
-
   const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; userId: string; userNom: string }>({
+    isOpen: false,
+    userId: '',
+    userNom: ''
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -140,16 +145,23 @@ export const GestionUtilisateurs: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
-    
+  const handleDeleteUser = (userId: string, userNom: string) => {
+    setDeleteConfirm({
+      isOpen: true,
+      userId,
+      userNom
+    });
+  };
+
+  const confirmDeleteUser = async () => {
     try {
-      // Note: We can only delete from Firestore here. 
+      // Note: We can only delete from Firestore here.
       // Deleting from Auth requires Admin SDK or the user to be signed in.
       // We will just mark as inactive or delete from Firestore.
-      await deleteDoc(doc(db, 'users', userId));
+      await deleteDoc(doc(db, 'users', deleteConfirm.userId));
       toast.success('Utilisateur supprimé (Firestore uniquement)');
       fetchUsers();
+      setDeleteConfirm({ isOpen: false, userId: '', userNom: '' });
     } catch (error) {
        toast.error('Erreur lors de la suppression');
     }
@@ -199,8 +211,8 @@ export const GestionUtilisateurs: React.FC = () => {
                     >
                       <Icon icon="mdi:pencil" className="text-xl" />
                     </button>
-                    <button 
-                      onClick={() => handleDeleteUser(user.id)} 
+                    <button
+                      onClick={() => handleDeleteUser(user.id, `${user.nom} ${user.prenom}`)}
                       className="text-red-600 hover:text-red-900"
                       title="Supprimer"
                     >
@@ -214,10 +226,12 @@ export const GestionUtilisateurs: React.FC = () => {
         </div>
       </Card>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title={editingUser ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}
+        position="center"
+        size="lg"
       >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -269,6 +283,18 @@ export const GestionUtilisateurs: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, userId: '', userNom: '' })}
+        onConfirm={confirmDeleteUser}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer l'utilisateur "${deleteConfirm.userNom}" ?\n\nCette action supprimera uniquement les données Firestore. Le compte Auth Firebase restera actif.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+        position="center"
+      />
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { TableLoader } from '../../components/ui/Loader';
+import { Modal } from '../../components/ui/Modal';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { ProduitForm } from '../../components/shared/ProduitForm';
 import { useReferentielStore } from '../../store/referentielStore';
 import { useStockStore } from '../../store/stockStore'; // Import stock store
@@ -19,6 +21,11 @@ export const GestionProduits: React.FC = () => {
   } = useReferentielStore();
 
   const [showForm, setShowForm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; produitId: string; produitNom: string }>({
+    isOpen: false,
+    produitId: '',
+    produitNom: ''
+  });
 
   const { chargerDonnees: chargerStock } = useStockStore();
 
@@ -40,10 +47,17 @@ export const GestionProduits: React.FC = () => {
     }
   };
 
-  const handleSupprimer = async (produit: Produit) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${produit.nom}" ?`)) {
-      await supprimerProduit(produit.id);
-    }
+  const handleSupprimer = (produit: Produit) => {
+    setDeleteConfirm({
+      isOpen: true,
+      produitId: produit.id,
+      produitNom: produit.nom
+    });
+  };
+
+  const confirmSupprimer = async () => {
+    await supprimerProduit(deleteConfirm.produitId);
+    setDeleteConfirm({ isOpen: false, produitId: '', produitNom: '' });
   };
 
   const handleAnnuler = () => {
@@ -103,14 +117,22 @@ export const GestionProduits: React.FC = () => {
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
 
-      {/* Formulaire d'ajout/modification */}
+      {/* Modal d'ajout/modification */}
       {showForm && (
-        <ProduitForm
-          produit={produitEnEdition}
-          onSave={produitEnEdition ? handleModifier : handleAjouter}
-          onCancel={handleAnnuler}
-          isLoading={isLoadingProduits}
-        />
+        <Modal
+          isOpen={showForm}
+          onClose={handleAnnuler}
+          title={produitEnEdition ? 'Modifier le produit' : 'Nouveau produit'}
+          position="center"
+          size="lg"
+        >
+          <ProduitForm
+            produit={produitEnEdition}
+            onSave={produitEnEdition ? handleModifier : handleAjouter}
+            onCancel={handleAnnuler}
+            isLoading={isLoadingProduits}
+          />
+        </Modal>
       )}
 
         {/* Section Liste des produits */}
@@ -267,6 +289,18 @@ export const GestionProduits: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, produitId: '', produitNom: '' })}
+        onConfirm={confirmSupprimer}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer le produit "${deleteConfirm.produitNom}" ?\n\nCette action supprimera également toutes les données liées (recettes, historique, etc.).`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+        position="center"
+      />
     </div>
   );
 };
