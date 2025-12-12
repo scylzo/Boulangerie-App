@@ -38,7 +38,6 @@ export const ProgrammeProduction: React.FC = () => {
     annulerCommandeClient,
     supprimerProduitDeCommande,
     ajouterQuantiteBoutique,
-    modifierQuantiteBoutique,
     supprimerQuantiteBoutique,
     chargerProduits,
     chargerClients,

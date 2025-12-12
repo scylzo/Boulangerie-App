@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { CommandeClient, Client, Produit, Livreur, ProgrammeProduction, QuantiteBoutique } from '../types';
+import type { CommandeClient, Client, Produit, Livreur, ProgrammeProduction } from '../types';
 import type { CarLivraison } from '../types';
 import { CARS_LIVRAISON } from '../types/production';
 
@@ -208,7 +208,7 @@ export class PDFService {
     yPosition += 15;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text(this.formatDate(programme.date.toISOString()), pageWidth / 2, yPosition, { align: 'center' });
+    doc.text(this.formatDate(programme.dateProduction.toISOString()), pageWidth / 2, yPosition, { align: 'center' });
 
     // Statut
     yPosition += 10;
@@ -359,7 +359,7 @@ export class PDFService {
     doc.text('Boulangerie App - Programme de Production', pageWidth / 2, footerY + 5, { align: 'center' });
 
     // Télécharger le PDF
-    const dateString = programme.date.toISOString().split('T')[0];
+    const dateString = programme.dateProduction.toISOString().split('T')[0];
     const fileName = `programme_production_${dateString}.pdf`;
     doc.save(fileName);
   }

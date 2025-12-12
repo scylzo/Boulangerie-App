@@ -43,6 +43,7 @@ interface ProductionStore {
   sauvegarderEtRecharger: () => Promise<void>; // Sauvegarde + rechargement pour éviter les conflits
   envoyerAuBoulanger: () => Promise<void>;
   validerProduction: () => Promise<void>; // Action pour déduire les stocks
+  marquerCommeModifie: () => void; // Marquer le programme comme modifié après envoi
 
   // Actions Commandes Clients
   ajouterCommandeClient: (commande: Omit<CommandeClient, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -114,7 +115,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   creerNouveauProgramme: (date: Date) => {
     const nouveauProgramme: ProgrammeProduction = {
       id: `prog_${Date.now()}`,
-      date,
+      dateProduction: date,
+      dateCreation: new Date(),
       statut: 'brouillon',
       commandesClients: [],
       quantitesBoutique: [],
@@ -148,7 +150,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         // Convertir les timestamps en dates
         const programmeConverti: ProgrammeProduction = {
           ...programme,
-          date: programme.date instanceof Date ? programme.date : timestampToDate(programme.date as Timestamp),
+          dateProduction: programme.dateProduction instanceof Date ? programme.dateProduction : timestampToDate(programme.dateProduction as Timestamp),
+          dateCreation: programme.dateCreation instanceof Date ? programme.dateCreation : timestampToDate(programme.dateCreation as Timestamp),
           createdAt: programme.createdAt instanceof Date ? programme.createdAt : timestampToDate(programme.createdAt as Timestamp),
           updatedAt: programme.updatedAt instanceof Date ? programme.updatedAt : timestampToDate(programme.updatedAt as Timestamp),
           // Convertir les dates dans les commandes clients
@@ -174,7 +177,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
         const nouveauProgramme: ProgrammeProduction = {
           id: `prog_${Date.now()}`,
-          date,
+          dateProduction: date,
+          dateCreation: new Date(),
           statut: 'brouillon',
           commandesClients: [],
           quantitesBoutique: [],
@@ -209,7 +213,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         ...programmeActuel,
         commandesClients,
         quantitesBoutique,
-        date: dateToTimestamp(programmeActuel.date),
+        dateProduction: dateToTimestamp(programmeActuel.dateProduction),
+        dateCreation: dateToTimestamp(programmeActuel.dateCreation),
         createdAt: dateToTimestamp(programmeActuel.createdAt),
         updatedAt: dateToTimestamp(new Date())
       };
@@ -250,7 +255,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       await get().sauvegarderProgramme();
 
       // 2. Recharger ensuite pour récupérer les données fraîches
-      await get().chargerProgramme(programmeActuel.date);
+      await get().chargerProgramme(programmeActuel.dateProduction);
 
       console.log('✅ Programme sauvegardé et rechargé pour éviter les conflits');
     } catch (error) {
@@ -290,7 +295,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
                   motif: `Production: ${produit.nom} (${total.totalGlobal} p.)`,
                   auteur: 'Système',
                   responsable: 'Système (Auto)',
-                  referenceDocument: `PROD-${new Date(programmeActuel.date).toLocaleDateString()}`
+                  referenceDocument: `PROD-${new Date(programmeActuel.dateProduction).toLocaleDateString()}`
                 });
                 logDetails.push(`  - Ingrédient ${ing.matiereId}: ${qteTotale}`);
               }
@@ -785,8 +790,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       // Grouper par date pour identifier les doublons
       const programsParDate = new Map<string, any[]>();
 
-      programmes.forEach(prog => {
-        const dateKey = prog.date?.toDate ? prog.date.toDate().toDateString() : new Date(prog.date).toDateString();
+      programmes.forEach((prog: any) => {
+        const dateKey = prog.dateProduction?.toDate ? prog.dateProduction.toDate().toDateString() : new Date(prog.dateProduction).toDateString();
         if (!programsParDate.has(dateKey)) {
           programsParDate.set(dateKey, []);
         }

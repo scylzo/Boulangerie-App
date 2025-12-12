@@ -373,7 +373,7 @@ export const VueBoulanger: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print:grid-cols-3 print:gap-4">
                   {programmeActuel.quantitesBoutique.map(quantite => {
-                    const produit = programmeActuel.produits?.find(p => p.id === quantite.produitId);
+                    const produit = produits?.find((p: any) => p.id === quantite.produitId);
                     const repartition = quantite.repartitionCars;
 
                     return (

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { CommandeClient, Client, Produit, Livreur, ProgrammeProduction, QuantiteBoutique } from '../types';
+import type { CommandeClient, Client, Produit, Livreur, ProgrammeProduction } from '../types';
 import type { CarLivraison } from '../types';
 import { CARS_LIVRAISON } from '../types/production';
 
@@ -993,7 +993,7 @@ export class HTMLPrintService {
               <img src="/src/assets/logo.png" alt="Boulangerie Chez Mina" />
             </div>
             <h1>🥖 Programme de Production</h1>
-            <div class="date">${this.formatDate((programme.dateProduction || programme.date).toISOString())}</div>
+            <div class="date">${this.formatDate(programme.dateProduction.toISOString())}</div>
             <div class="status">${statutText}</div>
           </div>
 

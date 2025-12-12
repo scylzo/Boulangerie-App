@@ -123,7 +123,7 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
       if (programme) {
         console.log('📋 Structure détaillée du programme:', {
           'programme.id': programme.id,
-          'programme.date': programme.date,
+          'programme.dateProduction': programme.dateProduction,
           'programme keys': Object.keys(programme),
           'programme complet': JSON.stringify(programme, null, 2)
         });
