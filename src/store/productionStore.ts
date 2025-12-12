@@ -17,6 +17,7 @@ interface ProductionStore {
   showCommandeForm: boolean;
   showQuantiteBoutiqueForm: boolean;
   commandeEnEdition: CommandeClient | null;
+  quantiteBoutiqueEnEdition: QuantiteBoutique | null;
 
   // État du formulaire commande (pour éviter la perte des produits en cours de saisie)
   formulaireCommande: {
@@ -39,6 +40,7 @@ interface ProductionStore {
   creerNouveauProgramme: (date: Date) => void;
   chargerProgramme: (date: Date) => Promise<void>;
   sauvegarderProgramme: () => Promise<void>;
+  sauvegarderEtRecharger: () => Promise<void>; // Sauvegarde + rechargement pour éviter les conflits
   envoyerAuBoulanger: () => Promise<void>;
   validerProduction: () => Promise<void>; // Action pour déduire les stocks
 
@@ -70,6 +72,7 @@ interface ProductionStore {
   setShowCommandeForm: (show: boolean) => void;
   setShowQuantiteBoutiqueForm: (show: boolean) => void;
   setCommandeEnEdition: (commande: CommandeClient | null) => void;
+  setQuantiteBoutiqueEnEdition: (quantite: QuantiteBoutique | null) => void;
 
   // Actions État Formulaire Commande
   updateFormulaireCommande: (updates: Partial<ProductionStore['formulaireCommande']>) => void;
@@ -77,6 +80,10 @@ interface ProductionStore {
 
   // Setters
   setLoading: (loading: boolean) => void;
+
+  // Fonction de débogage (à supprimer après nettoyage)
+  nettoyerProgrammesEnDouble: () => Promise<void>;
+  debugTotaux: () => void;
 }
 
 export const useProductionStore = create<ProductionStore>((set, get) => ({
@@ -92,6 +99,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   showCommandeForm: false,
   showQuantiteBoutiqueForm: false,
   commandeEnEdition: null,
+  quantiteBoutiqueEnEdition: null,
 
   // État du formulaire commande
   formulaireCommande: {
@@ -233,6 +241,24 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     }
   },
 
+  sauvegarderEtRecharger: async () => {
+    const { programmeActuel } = get();
+    if (!programmeActuel) return;
+
+    try {
+      // 1. Sauvegarder d'abord
+      await get().sauvegarderProgramme();
+
+      // 2. Recharger ensuite pour récupérer les données fraîches
+      await get().chargerProgramme(programmeActuel.date);
+
+      console.log('✅ Programme sauvegardé et rechargé pour éviter les conflits');
+    } catch (error) {
+      console.error('Erreur lors de sauvegarde+rechargement:', error);
+      throw error;
+    }
+  },
+
   validerProduction: async () => {
     const { programmeActuel, produits } = get();
     if (!programmeActuel) return;
@@ -314,6 +340,20 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     }
   },
 
+  // Helper pour marquer le programme comme modifié après envoi
+  marquerCommeModifie: () => {
+    const { programmeActuel } = get();
+    if (programmeActuel && programmeActuel.statut === 'envoye') {
+      set({
+        programmeActuel: {
+          ...programmeActuel,
+          statut: 'modifie' as const,
+          updatedAt: new Date()
+        }
+      });
+    }
+  },
+
   envoyerAuBoulanger: async () => {
     const { programmeActuel } = get();
     if (!programmeActuel) return;
@@ -352,13 +392,12 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
     // Recalculer et auto-sauvegarder immédiatement après l'ajout
     setTimeout(() => {
+      get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
       get().calculerTotauxParProduit();
-      // Auto-sauvegarde pour éviter la perte de données
-      if (get().programmeActuel?.statut === 'brouillon') {
-        get().sauvegarderProgramme().catch(error => {
-          console.warn('Auto-sauvegarde échouée:', error);
-        });
-      }
+      // Auto-sauvegarde avec rechargement pour éviter les conflits
+      get().sauvegarderEtRecharger().catch(error => {
+        console.warn('Auto-sauvegarde échouée:', error);
+      });
     }, 100);
   },
 
@@ -372,10 +411,9 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     }));
     // Recalculer et auto-sauvegarder après la modification
     setTimeout(() => {
+      get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
       get().calculerTotauxParProduit();
-      if (get().programmeActuel?.statut === 'brouillon') {
-        get().sauvegarderProgramme().catch(console.warn);
-      }
+      get().sauvegarderEtRecharger().catch(console.warn);
     }, 100);
   },
 
@@ -385,10 +423,9 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     }));
     // Recalculer et sauvegarder immédiatement après la suppression
     setTimeout(() => {
+      get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
       get().calculerTotauxParProduit();
-      if (get().programmeActuel?.statut === 'brouillon') {
-        get().sauvegarderProgramme().catch(console.warn);
-      }
+      get().sauvegarderEtRecharger().catch(console.warn);
     }, 0);
   },
 
@@ -417,7 +454,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     setTimeout(() => {
       get().calculerTotauxParProduit();
       if (get().programmeActuel?.statut === 'brouillon') {
-        get().sauvegarderProgramme().catch(console.warn);
+        get().sauvegarderEtRecharger().catch(console.warn);
       }
     }, 0);
   },
@@ -460,7 +497,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     setTimeout(() => {
       get().calculerTotauxParProduit();
       if (get().programmeActuel?.statut === 'brouillon') {
-        get().sauvegarderProgramme().catch(console.warn);
+        get().sauvegarderEtRecharger().catch(console.warn);
       }
     }, 100);
   },
@@ -508,9 +545,10 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         };
       }
     });
+    get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
     get().calculerTotauxParProduit();
     // Sauvegarder automatiquement en base
-    setTimeout(() => get().sauvegarderProgramme().catch(console.error), 0);
+    setTimeout(() => get().sauvegarderEtRecharger().catch(console.error), 0);
   },
 
   modifierQuantiteBoutique: (produitId, quantite) => {
@@ -521,18 +559,20 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           : q
       )
     }));
+    get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
     get().calculerTotauxParProduit();
     // Sauvegarder automatiquement en base
-    setTimeout(() => get().sauvegarderProgramme().catch(console.error), 0);
+    setTimeout(() => get().sauvegarderEtRecharger().catch(console.error), 0);
   },
 
   supprimerQuantiteBoutique: (produitId) => {
     set((state) => ({
       quantitesBoutique: state.quantitesBoutique.filter(q => q.produitId !== produitId)
     }));
+    get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
     get().calculerTotauxParProduit();
     // Sauvegarder automatiquement en base
-    setTimeout(() => get().sauvegarderProgramme().catch(console.error), 0);
+    setTimeout(() => get().sauvegarderEtRecharger().catch(console.error), 0);
   },
 
   // Actions Calculs
@@ -580,7 +620,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       });
     });
 
-    // Ajouter totaux boutique (répartition par défaut pour la boutique)
+    // Ajouter totaux boutique avec répartition définie ou par défaut
     quantitesBoutique.forEach(item => {
       const current = totauxMap.get(item.produitId) || {
         totalClient: 0,
@@ -590,10 +630,19 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         repartitionCarSoir: 0
       };
 
-      // Répartition par défaut de la boutique (35%/35%/30%)
-      const boutiqueCar1Matin = Math.ceil(item.quantite * 0.35);
-      const boutiqueCar2Matin = Math.ceil(item.quantite * 0.35);
-      const boutiqueCarSoir = item.quantite - boutiqueCar1Matin - boutiqueCar2Matin;
+      let boutiqueCar1Matin, boutiqueCar2Matin, boutiqueCarSoir;
+
+      if (item.repartitionCars) {
+        // Utiliser la répartition définie par l'utilisateur
+        boutiqueCar1Matin = item.repartitionCars.car1_matin;
+        boutiqueCar2Matin = item.repartitionCars.car2_matin;
+        boutiqueCarSoir = item.repartitionCars.car_soir;
+      } else {
+        // Répartition par défaut de la boutique (35%/35%/30%)
+        boutiqueCar1Matin = Math.ceil(item.quantite * 0.35);
+        boutiqueCar2Matin = Math.ceil(item.quantite * 0.35);
+        boutiqueCarSoir = item.quantite - boutiqueCar1Matin - boutiqueCar2Matin;
+      }
 
       totauxMap.set(item.produitId, {
         totalClient: current.totalClient,
@@ -694,6 +743,10 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     set({ commandeEnEdition: commande });
   },
 
+  setQuantiteBoutiqueEnEdition: (quantite) => {
+    set({ quantiteBoutiqueEnEdition: quantite });
+  },
+
   // Actions État Formulaire Commande
   updateFormulaireCommande: (updates) => {
     set((state) => ({
@@ -718,5 +771,92 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   // Setters
   setLoading: (loading) => {
     set({ isLoading: loading });
+  },
+
+  // Fonction de débogage temporaire pour nettoyer les doublons
+  nettoyerProgrammesEnDouble: async () => {
+    try {
+      console.log('🧹 Nettoyage des programmes en double...');
+
+      // Récupérer tous les programmes
+      const programmes = await firestoreService.getAll('productionPrograms');
+      console.log(`📊 ${programmes.length} programmes trouvés`);
+
+      // Grouper par date pour identifier les doublons
+      const programsParDate = new Map<string, any[]>();
+
+      programmes.forEach(prog => {
+        const dateKey = prog.date?.toDate ? prog.date.toDate().toDateString() : new Date(prog.date).toDateString();
+        if (!programsParDate.has(dateKey)) {
+          programsParDate.set(dateKey, []);
+        }
+        programsParDate.get(dateKey)!.push(prog);
+      });
+
+      // Supprimer les doublons (garder le plus récent)
+      let suppressions = 0;
+      for (const [date, progs] of programsParDate) {
+        if (progs.length > 1) {
+          console.log(`🔄 ${progs.length} programmes trouvés pour ${date}`);
+
+          // Trier par updatedAt (garder le plus récent)
+          progs.sort((a, b) => {
+            const dateA = a.updatedAt?.toDate ? a.updatedAt.toDate() : new Date(a.updatedAt);
+            const dateB = b.updatedAt?.toDate ? b.updatedAt.toDate() : new Date(b.updatedAt);
+            return dateB.getTime() - dateA.getTime();
+          });
+
+          // Supprimer tous sauf le premier (plus récent)
+          for (let i = 1; i < progs.length; i++) {
+            await firestoreService.delete('productionPrograms', progs[i].id);
+            suppressions++;
+            console.log(`🗑️ Programme ${progs[i].id} supprimé`);
+          }
+        }
+      }
+
+      console.log(`✅ Nettoyage terminé - ${suppressions} programmes supprimés`);
+
+    } catch (error) {
+      console.error('Erreur lors du nettoyage:', error);
+      throw error;
+    }
+  },
+
+  debugTotaux: () => {
+    const { commandesClients, quantitesBoutique, programmeActuel } = get();
+
+    console.log('=== DEBUG TOTAUX ===');
+    console.log('📦 Commandes clients:', commandesClients.length);
+    commandesClients.forEach((cmd, i) => {
+      console.log(`  Commande ${i+1}:`, cmd.produits.map(p => ({
+        produit: p.produit?.nom,
+        quantite: p.quantiteCommandee,
+        repartition: p.repartitionCars
+      })));
+    });
+
+    console.log('🏪 Quantités boutique:', quantitesBoutique.length);
+    quantitesBoutique.forEach((qb, i) => {
+      console.log(`  Boutique ${i+1}:`, {
+        produit: qb.produit?.nom,
+        quantite: qb.quantite,
+        repartition: qb.repartitionCars
+      });
+    });
+
+    console.log('🎯 Totaux calculés:', programmeActuel?.totauxParProduit);
+
+    if (programmeActuel?.totauxParProduit) {
+      const car1Total = programmeActuel.totauxParProduit.reduce((sum, p) => sum + (p.repartitionCar1Matin || 0), 0);
+      const car2Total = programmeActuel.totauxParProduit.reduce((sum, p) => sum + (p.repartitionCar2Matin || 0), 0);
+      const carSoirTotal = programmeActuel.totauxParProduit.reduce((sum, p) => sum + (p.repartitionCarSoir || 0), 0);
+
+      console.log('🚚 Totaux par car:');
+      console.log(`  Car 1 Matin: ${car1Total}`);
+      console.log(`  Car 2 Matin: ${car2Total}`);
+      console.log(`  Car Soir: ${carSoirTotal}`);
+      console.log(`  TOTAL: ${car1Total + car2Total + carSoirTotal}`);
+    }
   },
 }));

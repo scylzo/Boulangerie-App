@@ -175,6 +175,7 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
       console.log('Produits chargés:', Array.from(produitsMap.keys()));
 
       // Créer le stock boutique basé sur les quantités boutique définies
+      // Note: On ignore les quantités sans repartitionCars (anciennes données)
       const stockProduits = quantitesBoutique.map((qte: any) => {
         console.log('Traitement quantité:', qte);
         const produit = produitsMap.get(qte.produitId);
@@ -183,9 +184,10 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
         return {
           produitId: qte.produitId,
           stockDebut: qte.quantite,
-          produit: produit || { nom: 'Produit inconnu' }
+          produit: produit || { nom: 'Produit inconnu' },
+          repartitionCars: qte.repartitionCars || null
         };
-      }).filter((p: any) => p.stockDebut > 0);
+      }).filter((p: any) => p.stockDebut > 0 && p.repartitionCars !== null); // Filtrer les anciennes données
 
       console.log('Stock produits final:', stockProduits);
 

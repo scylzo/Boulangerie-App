@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
+import { FileText, Plus, Ban, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
@@ -11,6 +12,7 @@ import { ModifierProduitForm } from '../../components/shared/ModifierProduitForm
 import { QuantiteBoutiqueForm } from '../../components/shared/QuantiteBoutiqueForm';
 import { useProductionStore } from '../../store';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
+import { htmlPrintService } from '../../services/htmlPrintService';
 import type { CommandeClient } from '../../types';
 
 
@@ -24,6 +26,7 @@ export const ProgrammeProduction: React.FC = () => {
     showCommandeForm,
     showQuantiteBoutiqueForm,
     commandeEnEdition,
+    quantiteBoutiqueEnEdition,
     formulaireCommande,
     creerNouveauProgramme,
     chargerProgramme,
@@ -35,6 +38,7 @@ export const ProgrammeProduction: React.FC = () => {
     annulerCommandeClient,
     supprimerProduitDeCommande,
     ajouterQuantiteBoutique,
+    modifierQuantiteBoutique,
     supprimerQuantiteBoutique,
     chargerProduits,
     chargerClients,
@@ -42,6 +46,7 @@ export const ProgrammeProduction: React.FC = () => {
     setShowCommandeForm,
     setShowQuantiteBoutiqueForm,
     setCommandeEnEdition,
+    setQuantiteBoutiqueEnEdition,
     updateFormulaireCommande,
     resetFormulaireCommande,
     validerProduction,
@@ -56,6 +61,16 @@ export const ProgrammeProduction: React.FC = () => {
   const [modeFormulaire, setModeFormulaire] = useState<'create' | 'edit' | 'addProducts'>('create');
   const [indexProduitEnEdition, setIndexProduitEnEdition] = useState<number | null>(null);
   const [showModifierProduitForm, setShowModifierProduitForm] = useState(false);
+  const [rechercheClient, setRechercheClient] = useState('');
+
+  // Filtrer les commandes selon la recherche
+  const commandesFiltrees = commandesClients.filter(commande => {
+    if (!rechercheClient.trim()) return true;
+    const client = clients.find(c => c.id === commande.clientId);
+    const nomClient = client?.nom?.toLowerCase() || '';
+    const rechercheNormalisee = rechercheClient.toLowerCase().trim();
+    return nomClient.includes(rechercheNormalisee);
+  });
 
   useEffect(() => {
     // Charger les données depuis Firebase
@@ -419,30 +434,70 @@ export const ProgrammeProduction: React.FC = () => {
               <span className="font-medium">Sauvegarder</span>
             </button>
 
-            {/* Conteneur relatif pour le bouton d'envoi et son modal */}
+            {/* Section Actions Programme avec statuts améliorés */}
             <div className="relative">
-              <button
-                onClick={handleEnvoyerAuBoulanger}
-                disabled={!programmeActuel || isLoading}
-                className={`flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md ${programmeActuel?.statut === 'envoye' ? 'opacity-50' : ''}`}
-              >
-                <Icon icon={programmeActuel?.statut === 'envoye' ? "mdi:check" : "mdi:send"} className="text-lg" />
-                <span className="font-medium">
-                  {programmeActuel?.statut === 'envoye' ? 'Envoyé au boulanger' : 'Envoyer au Boulanger'}
-                </span>
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                {/* Indicateur de statut */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border">
+                  <Icon
+                    icon={
+                      programmeActuel?.statut === 'brouillon' ? "mdi:file-document-edit" :
+                      programmeActuel?.statut === 'modifie' ? "mdi:file-document-alert" :
+                      programmeActuel?.statut === 'envoye' ? "mdi:send-check" :
+                      "mdi:factory"
+                    }
+                    className={`text-lg ${
+                      programmeActuel?.statut === 'brouillon' ? 'text-gray-500' :
+                      programmeActuel?.statut === 'modifie' ? 'text-orange-500' :
+                      programmeActuel?.statut === 'envoye' ? 'text-blue-500' :
+                      'text-green-500'
+                    }`}
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    {programmeActuel?.statut === 'brouillon' && 'Brouillon'}
+                    {programmeActuel?.statut === 'modifie' && 'Modifié (à renvoyer)'}
+                    {programmeActuel?.statut === 'envoye' && 'Envoyé au boulanger'}
+                    {programmeActuel?.statut === 'produit' && 'Production terminée'}
+                  </span>
+                </div>
 
-              {/* Bouton Valider Production (visible si Envoyé) */}
-              {programmeActuel?.statut === 'envoye' && (
-                  <button
-                    onClick={handleValiderProduction}
-                    disabled={isLoading}
-                    className="ml-2 flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 shadow-md hover:shadow-lg animate-pulse"
-                  >
-                    <Icon icon="mdi:factory" className="text-lg" />
-                    <span className="font-medium">Valider Production (& Stock)</span>
-                  </button>
-              )}
+                {/* Boutons d'action selon le statut */}
+                <div className="flex gap-2">
+                  {/* Bouton Envoyer/Renvoyer */}
+                  {(programmeActuel?.statut === 'brouillon' || programmeActuel?.statut === 'modifie') && (
+                    <button
+                      onClick={handleEnvoyerAuBoulanger}
+                      disabled={!programmeActuel || isLoading}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                    >
+                      <Icon icon="mdi:send" className="text-lg" />
+                      <span className="font-medium">
+                        {programmeActuel?.statut === 'modifie' ? 'Renvoyer au Boulanger' : 'Envoyer au Boulanger'}
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Bouton Valider Production */}
+                  {(programmeActuel?.statut === 'envoye' || programmeActuel?.statut === 'modifie') && (
+                    <button
+                      onClick={handleValiderProduction}
+                      disabled={isLoading}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
+                    >
+                      <Icon icon="mdi:factory" className="text-lg" />
+                      <span className="font-medium">Valider Production</span>
+                    </button>
+                  )}
+
+                  {/* Indicateur si production terminée */}
+                  {programmeActuel?.statut === 'produit' && (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
+                      <Icon icon="mdi:check-circle" className="text-lg" />
+                      <span className="font-medium">Production terminée</span>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* Modal de confirmation positionné près du bouton */}
               <ConfirmModal
@@ -543,53 +598,110 @@ export const ProgrammeProduction: React.FC = () => {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
           {/* Header de la section */}
           <div className="px-6 py-4 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Icon icon="mdi:account-group" className="text-lg text-green-600" />
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="mdi:account-group" className="text-lg text-green-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Commandes Clients</h2>
+                    <p className="text-sm text-gray-500">Ajoutez les commandes des clients pour le jour sélectionné</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Commandes Clients</h2>
-                  <p className="text-sm text-gray-500">Ajoutez les commandes des clients pour le jour sélectionné</p>
-                </div>
+
+                <button
+                  onClick={() => handleAjouterCommande()}
+                  disabled={showCommandeForm}
+                  className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 shadow-md"
+                >
+                  <Icon icon="mdi:plus" className="text-lg" />
+                  <span className="font-medium">Nouvelle commande</span>
+                </button>
               </div>
 
-              <button
-                onClick={() => handleAjouterCommande()}
-                disabled={showCommandeForm}
-                className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 shadow-md"
-              >
-                <Icon icon="mdi:plus" className="text-lg" />
-                <span className="font-medium">Nouvelle commande</span>
-              </button>
+              {/* Barre de recherche */}
+              {commandesClients.length > 0 && (
+                <div className="flex items-center gap-4">
+                  <div className="relative flex-1 max-w-md">
+                    <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Rechercher un client..."
+                      value={rechercheClient}
+                      onChange={(e) => setRechercheClient(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                    />
+                    {rechercheClient && (
+                      <button
+                        onClick={() => setRechercheClient('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <Icon icon="mdi:close" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {commandesFiltrees.length === commandesClients.length
+                      ? `${commandesClients.length} commande(s)`
+                      : `${commandesFiltrees.length} sur ${commandesClients.length} commande(s)`
+                    }
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Contenu de la section */}
           <div className="p-6">
 
-            {commandesClients.length === 0 ? (
+            {commandesFiltrees.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Icon icon="mdi:clipboard-outline" className="text-3xl text-gray-400" />
+                  <Icon icon={rechercheClient ? "mdi:magnify" : "mdi:clipboard-outline"} className="text-3xl text-gray-400" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Aucune commande client
+                  {rechercheClient
+                    ? `Aucun client trouvé pour "${rechercheClient}"`
+                    : "Aucune commande client"
+                  }
                 </h3>
                 <p className="text-gray-500 mb-6">
-                  Commencez par ajouter une commande client pour ce jour de production
+                  {rechercheClient
+                    ? "Essayez avec d'autres termes de recherche ou ajoutez une nouvelle commande"
+                    : "Commencez par ajouter une commande client pour ce jour de production"
+                  }
                 </p>
-                <button
-                  onClick={() => handleAjouterCommande()}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-md"
-                >
-                  <Icon icon="mdi:plus" className="text-lg" />
-                  <span className="font-medium">Ajouter la première commande</span>
-                </button>
+                {rechercheClient ? (
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      onClick={() => setRechercheClient('')}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                    >
+                      <Icon icon="mdi:close" className="text-lg" />
+                      <span className="font-medium">Effacer la recherche</span>
+                    </button>
+                    <button
+                      onClick={() => handleAjouterCommande()}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-md"
+                    >
+                      <Icon icon="mdi:plus" className="text-lg" />
+                      <span className="font-medium">Nouvelle commande</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleAjouterCommande()}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-md"
+                  >
+                    <Icon icon="mdi:plus" className="text-lg" />
+                    <span className="font-medium">Ajouter la première commande</span>
+                  </button>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
-                {commandesClients.map((commande) => {
+                {commandesFiltrees.map((commande) => {
                 const client = clients.find(c => c.id === commande.clientId);
                 const totalCommande = commande.produits.reduce((total, item) =>
                   total + (item.prixUnitaire || 0) * item.quantiteCommandee, 0
@@ -612,7 +724,7 @@ export const ProgrammeProduction: React.FC = () => {
                 return (
                   <div
                     key={commande.id}
-                    className="bg-linear-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 hover:border-green-300 hover:shadow-xl transition-all duration-300 group"
+                    className="relative bg-linear-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 hover:border-green-300 hover:shadow-xl transition-all duration-300 group"
                   >
                     {/* En-tête de la commande */}
                     <div className="flex items-start justify-between mb-6">
@@ -649,54 +761,6 @@ export const ProgrammeProduction: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    {/* Actions de la commande */}
-                    {commande.statut !== 'annulee' && (
-                      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                        {/* Bouton principal : Ajouter des produits */}
-                        <button
-                          onClick={() => handleAjouterCommande(commande.clientId)}
-                          className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all shadow-sm hover:shadow-md"
-                          title="Ajouter des produits à cette commande"
-                        >
-                          <Icon icon="mdi:plus-circle" className="text-lg" />
-                          <span className="font-medium">Ajouter des produits</span>
-                        </button>
-
-                        {/* Actions secondaires - avec labels */}
-                        <div className="flex gap-2">
-                          <ConfirmButton
-                            onConfirm={() => {
-                              annulerCommandeClient(commande.id);
-                              toast.success(`Commande de ${client?.nom || 'le client'} annulée`);
-                            }}
-                            title="Annuler la commande"
-                            message={`Êtes-vous sûr de vouloir annuler la commande de "${client?.nom || 'Client inconnu'}" ?\n\nCette action supprimera la commande du programme.`}
-                            confirmText="Annuler la commande"
-                            cancelText="Conserver"
-                            type="warning"
-                            className="flex items-center gap-1.5 px-3 py-2 text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 hover:border-amber-300 rounded-lg transition-all shadow-sm hover:shadow-md text-sm"
-                          >
-                            <Icon icon="mdi:pause-circle" className="text-base" />
-                            <span className="font-medium">Annuler</span>
-                          </ConfirmButton>
-                          <ConfirmButton
-                            onConfirm={() => {
-                              supprimerCommandeClient(commande.id);
-                              toast.success(`Commande de ${client?.nom || 'le client'} supprimée`);
-                            }}
-                            message={`Êtes-vous sûr de vouloir supprimer définitivement la commande de "${client?.nom || 'Client inconnu'}" ?\n\nCette action est irréversible.`}
-                            confirmText="Supprimer définitivement"
-                            cancelText="Annuler"
-                            type="danger"
-                            className="flex items-center gap-1.5 px-3 py-2 text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-lg transition-all shadow-sm hover:shadow-md text-sm"
-                            title="Supprimer définitivement la commande"
-                          >
-                            <Icon icon="mdi:delete-outline" className="text-base" />
-                            <span className="font-medium">Supprimer</span>
-                          </ConfirmButton>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Liste des produits commandés */}
                     <div className="space-y-4">
@@ -708,6 +772,50 @@ export const ProgrammeProduction: React.FC = () => {
                         <span className="ml-auto text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">
                           {commande.produits.length} item{commande.produits.length > 1 ? 's' : ''}
                         </span>
+
+                        {/* Boutons d'action avec icônes Lucide */}
+                        <div className="flex gap-1 ml-2">
+                          <button
+                            onClick={() => {
+                              htmlPrintService.generateDeliveryReceiptHTML(commande, client, produits);
+                            }}
+                            className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-md transition-colors"
+                            title="Bon de livraison"
+                          >
+                            <FileText size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleAjouterCommande(commande.clientId)}
+                            className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-100 rounded-md transition-colors"
+                            title="Ajouter des produits"
+                          >
+                            <Plus size={16} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              annulerCommandeClient(commande.id);
+                              toast.success(`Commande de ${client?.nom || 'le client'} annulée`);
+                            }}
+                            className="p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-100 rounded-md transition-colors"
+                            title="Annuler la commande"
+                          >
+                            <Ban size={16} />
+                          </button>
+                          <ConfirmButton
+                            onConfirm={() => {
+                              supprimerCommandeClient(commande.id);
+                              toast.success(`Commande de ${client?.nom || 'le client'} supprimée`);
+                            }}
+                            message={`Êtes-vous sûr de vouloir supprimer définitivement la commande de "${client?.nom || 'Client inconnu'}" ?\n\nCette action est irréversible.`}
+                            confirmText="Supprimer définitivement"
+                            cancelText="Annuler"
+                            type="danger"
+                            className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-md transition-colors"
+                            title="Supprimer définitivement"
+                          >
+                            <Trash2 size={16} />
+                          </ConfirmButton>
+                        </div>
                       </div>
                       <div className="grid gap-4 md:grid-cols-2">
                         {commande.produits.map((item, index) => {
@@ -838,19 +946,29 @@ export const ProgrammeProduction: React.FC = () => {
       {/* Formulaire quantités boutique inline */}
       <Modal
         isOpen={showQuantiteBoutiqueForm}
-        onClose={() => setShowQuantiteBoutiqueForm(false)}
-        title="Ajouter un Produit pour la Boutique"
-        size="lg"
-        inline={true}
+        onClose={() => {
+          setShowQuantiteBoutiqueForm(false);
+          setQuantiteBoutiqueEnEdition(null);
+        }}
+        title={quantiteBoutiqueEnEdition ? "Modifier Produit Boutique" : "Ajouter un Produit pour la Boutique"}
+        size="xl"
       >
         <QuantiteBoutiqueForm
           produits={produits}
           quantitesActuelles={quantitesBoutique}
+          quantiteEnEdition={quantiteBoutiqueEnEdition}
           onSave={(quantite) => {
+            // Dans tous les cas, utiliser ajouterQuantiteBoutique qui gère à la fois création et modification
+            // Cette fonction remplace automatiquement si le produit existe déjà
+            console.log('🔄 Sauvegarde quantité boutique avec répartition:', quantite);
             ajouterQuantiteBoutique(quantite);
             setShowQuantiteBoutiqueForm(false);
+            setQuantiteBoutiqueEnEdition(null);
           }}
-          onCancel={() => setShowQuantiteBoutiqueForm(false)}
+          onCancel={() => {
+            setShowQuantiteBoutiqueForm(false);
+            setQuantiteBoutiqueEnEdition(null);
+          }}
         />
       </Modal>
 
@@ -910,7 +1028,7 @@ export const ProgrammeProduction: React.FC = () => {
                       key={item.produitId}
                       className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 hover:shadow-md transition-all group"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center shadow-md">
                             <Icon icon="mdi:storefront" className="text-lg text-white" />
@@ -926,20 +1044,78 @@ export const ProgrammeProduction: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <button
-                          onClick={() => supprimerQuantiteBoutique(item.produitId)}
-                          className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                        >
-                          <Icon icon="mdi:delete-outline" className="text-lg" />
-                        </button>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => {
+                              setQuantiteBoutiqueEnEdition(item);
+                              setShowQuantiteBoutiqueForm(true);
+                            }}
+                            className="p-2 text-orange-500 hover:text-orange-700 hover:bg-orange-100 rounded-lg transition-colors"
+                            title="Modifier"
+                          >
+                            <Icon icon="mdi:pencil-outline" className="text-lg" />
+                          </button>
+                          <button
+                            onClick={() => supprimerQuantiteBoutique(item.produitId)}
+                            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors"
+                            title="Supprimer"
+                          >
+                            <Icon icon="mdi:delete-outline" className="text-lg" />
+                          </button>
+                        </div>
                       </div>
+
+                      {/* Répartition par cars pour la boutique */}
+                      {item.repartitionCars && (
+                        <div className="border-t border-gray-200 pt-3">
+                          <div className="text-xs font-medium text-gray-600 mb-2 flex items-center gap-1">
+                            <Icon icon="mdi:truck-delivery" className="text-gray-500" />
+                            Répartition par cars
+                          </div>
+                          <div className="space-y-2">
+                            {item.repartitionCars.car1_matin > 0 && (
+                              <div className="flex items-center justify-between p-2 bg-orange-50 border border-orange-200 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Icon icon="mdi:truck" className="text-orange-600 text-sm" />
+                                  <span className="text-xs font-medium text-orange-800">Car 1M</span>
+                                </div>
+                                <span className="text-xs font-bold text-orange-800">
+                                  {item.repartitionCars.car1_matin}
+                                </span>
+                              </div>
+                            )}
+                            {item.repartitionCars.car2_matin > 0 && (
+                              <div className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Icon icon="mdi:truck-outline" className="text-blue-600 text-sm" />
+                                  <span className="text-xs font-medium text-blue-800">Car 2M</span>
+                                </div>
+                                <span className="text-xs font-bold text-blue-800">
+                                  {item.repartitionCars.car2_matin}
+                                </span>
+                              </div>
+                            )}
+                            {item.repartitionCars.car_soir > 0 && (
+                              <div className="flex items-center justify-between p-2 bg-purple-50 border border-purple-200 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Icon icon="mdi:truck-fast" className="text-purple-600 text-sm" />
+                                  <span className="text-xs font-medium text-purple-800">Car S</span>
+                                </div>
+                                <span className="text-xs font-bold text-purple-800">
+                                  {item.repartitionCars.car_soir}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                   })}
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4 mt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-gray-900">
                         {quantitesBoutique.length}
@@ -951,6 +1127,24 @@ export const ProgrammeProduction: React.FC = () => {
                         {quantitesBoutique.reduce((total, item) => total + item.quantite, 0)}
                       </div>
                       <div className="text-sm text-gray-500">Total pièces</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-orange-600">
+                        {quantitesBoutique.reduce((total, item) => total + (item.repartitionCars?.car1_matin || 0), 0)}
+                      </div>
+                      <div className="text-xs text-gray-500">Car 1M</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-blue-600">
+                        {quantitesBoutique.reduce((total, item) => total + (item.repartitionCars?.car2_matin || 0), 0)}
+                      </div>
+                      <div className="text-xs text-gray-500">Car 2M</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-purple-600">
+                        {quantitesBoutique.reduce((total, item) => total + (item.repartitionCars?.car_soir || 0), 0)}
+                      </div>
+                      <div className="text-xs text-gray-500">Car S</div>
                     </div>
                   </div>
                 </div>
@@ -1220,6 +1414,19 @@ export const ProgrammeProduction: React.FC = () => {
         )}
 
       </div>
+
+      {/* Bouton d'action flottant pour Boutique */}
+      <button
+        onClick={() => setShowQuantiteBoutiqueForm(true)}
+        disabled={showQuantiteBoutiqueForm}
+        className="fixed bottom-6 right-6 w-16 h-16 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 disabled:opacity-50 z-50 flex items-center justify-center group"
+        title="Ajouter un produit boutique"
+      >
+        <div className="relative">
+          <Icon icon="mdi:storefront-plus" className="text-2xl transition-transform group-hover:scale-110" />
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+        </div>
+      </button>
     </div>
   );
 };

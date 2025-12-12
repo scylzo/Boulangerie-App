@@ -1,15 +1,147 @@
 import React, { useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { useProductionStore } from '../../store';
+import { htmlPrintService } from '../../services/htmlPrintService';
+
+const printStyles = `
+  @media print {
+    @page {
+      margin: 0.5in;
+      size: A4;
+    }
+
+    body {
+      font-size: 12pt;
+      line-height: 1.4;
+    }
+
+    .print\\:break-inside-avoid {
+      break-inside: avoid;
+    }
+
+    .print\\:break-before-page {
+      break-before: page;
+    }
+
+    .print\\:bg-white {
+      background-color: white !important;
+    }
+
+    .print\\:text-black {
+      color: black !important;
+    }
+
+    .print\\:border-black {
+      border-color: black !important;
+    }
+
+    .print\\:shadow-none {
+      box-shadow: none !important;
+    }
+
+    .print\\:rounded-none {
+      border-radius: 0 !important;
+    }
+
+    .print\\:hidden {
+      display: none !important;
+    }
+
+    .print\\:block {
+      display: block !important;
+    }
+
+    .print\\:grid-cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .print\\:gap-4 {
+      gap: 1rem !important;
+    }
+
+    .print\\:p-4 {
+      padding: 1rem !important;
+    }
+
+    .print\\:max-w-none {
+      max-width: none !important;
+    }
+
+    .print\\:space-y-6 > * + * {
+      margin-top: 1.5rem !important;
+    }
+
+    .print\\:mb-4 {
+      margin-bottom: 1rem !important;
+    }
+
+    .print\\:mt-8 {
+      margin-top: 2rem !important;
+    }
+
+    .print\\:text-lg {
+      font-size: 1.125rem !important;
+    }
+
+    .print\\:text-2xl {
+      font-size: 1.5rem !important;
+    }
+
+    .print\\:text-sm {
+      font-size: 0.875rem !important;
+    }
+
+    .print\\:border-2 {
+      border-width: 2px !important;
+    }
+
+    .print\\:bg-gray-200 {
+      background-color: #e5e7eb !important;
+    }
+  }
+`;
+
 
 export const VueBoulanger: React.FC = () => {
-  const { programmeActuel, chargerProgramme } = useProductionStore();
+  const { programmeActuel, chargerProgramme, produits } = useProductionStore();
+
+  // Fonction pour générer le document HTML d'impression
+  const handleGenerateHTML = () => {
+    console.log('🖨️ Bouton impression cliqué');
+    console.log('📋 Programme actuel:', programmeActuel);
+    console.log('🥖 Produits:', produits?.length, 'produits disponibles');
+
+    if (programmeActuel && produits) {
+      console.log('✅ Génération du rapport HTML...');
+      try {
+        htmlPrintService.generateProductionReportHTML(programmeActuel, produits);
+        console.log('✅ Rapport généré avec succès');
+      } catch (error) {
+        console.error('❌ Erreur lors de la génération:', error);
+      }
+    } else {
+      console.warn('❌ Données manquantes:');
+      console.warn('  - Programme actuel:', !!programmeActuel);
+      console.warn('  - Produits:', !!produits, `(${produits?.length || 0} éléments)`);
+    }
+  };
 
   useEffect(() => {
     // Charger le programme du jour
     const aujourd_hui = new Date();
     chargerProgramme(aujourd_hui);
   }, [chargerProgramme]);
+
+  // Injecter les styles d'impression
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = printStyles;
+    document.head.appendChild(styleElement);
+
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   const totauxParProduit = programmeActuel?.totauxParProduit || [];
 
@@ -28,9 +160,21 @@ export const VueBoulanger: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 print:bg-white print:text-black">
+      {/* En-tête pour impression uniquement */}
+      <div className="hidden print:block print:mb-4">
+        <div className="text-center border-b-2 border-black pb-4 mb-6">
+          <h1 className="text-2xl font-bold mb-2">🥖 PROGRAMME DE PRODUCTION</h1>
+          <div className="flex justify-between items-center text-sm">
+            <span>Date: {new Date().toLocaleDateString('fr-FR')}</span>
+            <span>Statut: {programmeActuel?.statut === 'envoye' ? '✅ Confirmé' : '⏳ En attente'}</span>
+            <span>Imprimé le: {new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+        </div>
+      </div>
+
       {/* Header sobre */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-6 py-4 print:hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
@@ -45,25 +189,38 @@ export const VueBoulanger: React.FC = () => {
               </p>
             </div>
           </div>
-          {/* Statut simple */}
-          {programmeActuel && (
-             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border ${
-               programmeActuel.statut === 'envoye'
-                 ? 'bg-green-50 text-green-700 border-green-200'
-                 : 'bg-gray-50 text-gray-700 border-gray-200'
-             }`}>
-               <Icon
-                 icon={programmeActuel.statut === 'envoye' ? 'mdi:check-circle' : 'mdi:clock-outline'}
-                 className="text-sm"
-               />
-               {programmeActuel.statut === 'envoye' ? 'Confirmé' : 'En attente'}
-             </div>
-          )}
+          <div className="flex items-center gap-3">
+            {/* Bouton d'impression HTML */}
+            {programmeActuel && (
+              <button
+                onClick={handleGenerateHTML}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <Icon icon="mdi:printer" className="text-lg" />
+                <span className="font-medium">Imprimer le document</span>
+              </button>
+            )}
+
+            {/* Statut simple */}
+            {programmeActuel && (
+               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border ${
+                 programmeActuel.statut === 'envoye'
+                   ? 'bg-green-50 text-green-700 border-green-200'
+                   : 'bg-gray-50 text-gray-700 border-gray-200'
+               }`}>
+                 <Icon
+                   icon={programmeActuel.statut === 'envoye' ? 'mdi:check-circle' : 'mdi:clock-outline'}
+                   className="text-sm"
+                 />
+                 {programmeActuel.statut === 'envoye' ? 'Confirmé' : 'En attente'}
+               </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Contenu principal */}
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
+      <div className="max-w-7xl mx-auto p-6 space-y-8 print:max-w-none print:p-4 print:space-y-6">
         {!programmeActuel || totauxParProduit.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -89,21 +246,21 @@ export const VueBoulanger: React.FC = () => {
         ) : (
           <>
             {/* Résumé Total Journée */}
-            <div className="bg-gray-700 text-white rounded-xl p-6 shadow-sm flex items-center justify-between">
+            <div className="bg-gray-700 text-white rounded-xl p-6 shadow-sm flex items-center justify-between print:bg-white print:text-black print:border-2 print:border-black print:shadow-none print:rounded-none">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-gray-600 rounded-lg">
+                <div className="p-3 bg-gray-600 rounded-lg print:bg-gray-200 print:text-black">
                   <Icon icon="mdi:sigma" className="text-2xl" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">Total Journée</h2>
-                  <p className="text-gray-400 text-sm">Production globale (Matin + Soir)</p>
+                  <h2 className="text-xl font-bold print:text-lg">Total Journée</h2>
+                  <p className="text-gray-400 text-sm print:text-black print:text-sm">Production globale (Clients + Boutique)</p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-bold">
-                  {totauxParProduit.reduce((acc, p) => acc + (p.repartitionCar1Matin || 0) + (p.repartitionCar2Matin || 0) + (p.repartitionCarSoir || 0), 0)}
+                <div className="text-4xl font-bold print:text-2xl">
+                  {totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0)}
                 </div>
-                <div className="text-gray-400 text-sm font-medium">pièces</div>
+                <div className="text-gray-400 text-sm font-medium print:text-black">pièces au total</div>
               </div>
             </div>
 
@@ -114,10 +271,10 @@ export const VueBoulanger: React.FC = () => {
                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                       <Icon icon="wi:sunrise" className="text-xl text-gray-500" />
                    </div>
-                   <h2 className="text-2xl font-bold text-gray-700">Production du Matin</h2>
+                   <h2 className="text-2xl font-bold text-gray-700">Production Clients - Matin</h2>
                  </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print:grid-cols-3 print:gap-4">
                    {totauxParProduit
                      .filter(p => (p.repartitionCar1Matin + p.repartitionCar2Matin) > 0)
                      .map(produit => {
@@ -126,7 +283,7 @@ export const VueBoulanger: React.FC = () => {
                        const total = car1 + car2;
                        
                        return (
-                         <div key={`matin-${produit.produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-600 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all">
+                         <div key={`matin-${produit.produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-600 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
                            <div className="absolute top-3 right-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Matin</div>
                            
                            {/* En-tête Produit */}
@@ -173,16 +330,16 @@ export const VueBoulanger: React.FC = () => {
                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                       <Icon icon="wi:sunset" className="text-xl text-gray-600" />
                    </div>
-                   <h2 className="text-2xl font-bold text-gray-600">Production du Soir</h2>
+                   <h2 className="text-2xl font-bold text-gray-600">Production Clients - Soir</h2>
                  </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print:grid-cols-3 print:gap-4">
                    {totauxParProduit
                      .filter(p => p.repartitionCarSoir > 0)
                      .map(produit => {
                        const total = produit.repartitionCarSoir;
                        return (
-                         <div key={`soir-${produit.produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-300 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all">
+                         <div key={`soir-${produit.produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-300 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
                            <div className="absolute top-3 right-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Soir</div>
                            <div className="flex items-center gap-4 mb-8 pt-2">
                              <div className="w-16 h-16 bg-gray-400 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
@@ -203,12 +360,115 @@ export const VueBoulanger: React.FC = () => {
                  </div>
               </section>
             )}
-            
-            {!totauxParProduit.some(p => (p.repartitionCar1Matin + p.repartitionCar2Matin) > 0) && !totauxParProduit.some(p => p.repartitionCarSoir > 0) && (
+
+            {/* Section Production pour Boutique */}
+            {programmeActuel?.quantitesBoutique && programmeActuel.quantitesBoutique.length > 0 && (
+              <section className="pt-8 border-t border-gray-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Icon icon="mdi:storefront" className="text-xl text-blue-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-blue-700">Production pour Boutique</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print:grid-cols-3 print:gap-4">
+                  {programmeActuel.quantitesBoutique.map(quantite => {
+                    const produit = programmeActuel.produits?.find(p => p.id === quantite.produitId);
+                    const repartition = quantite.repartitionCars;
+
+                    return (
+                      <div key={`boutique-${quantite.produitId}`} className="relative bg-white border-2 border-blue-200 rounded-xl p-6 hover:shadow-lg transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
+                        <div className="absolute top-3 right-4 text-xs font-bold text-blue-500 uppercase tracking-widest">Boutique</div>
+
+                        {/* En-tête Produit */}
+                        <div className="flex items-center gap-4 mb-6 pt-2">
+                          <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                            <Icon icon={getProductIcon(produit?.nom || '')} className="text-2xl text-white" />
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 leading-tight">
+                            {produit?.nom || 'Produit'}
+                          </h3>
+                        </div>
+
+                        {/* Total Boutique */}
+                        <div className="bg-blue-50 rounded-lg p-4 mb-4 text-center">
+                          <div className="text-sm font-bold text-blue-600 uppercase mb-1">Total Boutique</div>
+                          <div className="text-4xl font-bold text-blue-800">{quantite.quantite}</div>
+                          <div className="text-sm text-blue-600">pièces</div>
+                        </div>
+
+                        {/* Répartition par cars si disponible */}
+                        {repartition && (
+                          <div className="space-y-2">
+                            <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">
+                              Répartition par cars:
+                            </div>
+
+                            {repartition.car1_matin > 0 && (
+                              <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
+                                <span className="text-sm font-medium text-gray-700">Car 1 Matin</span>
+                                <span className="font-bold text-gray-800">{repartition.car1_matin}</span>
+                              </div>
+                            )}
+
+                            {repartition.car2_matin > 0 && (
+                              <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
+                                <span className="text-sm font-medium text-gray-700">Car 2 Matin</span>
+                                <span className="font-bold text-gray-800">{repartition.car2_matin}</span>
+                              </div>
+                            )}
+
+                            {repartition.car_soir > 0 && (
+                              <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
+                                <span className="text-sm font-medium text-gray-700">Car Soir</span>
+                                <span className="font-bold text-gray-800">{repartition.car_soir}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {!totauxParProduit.some(p => (p.repartitionCar1Matin + p.repartitionCar2Matin) > 0) &&
+             !totauxParProduit.some(p => p.repartitionCarSoir > 0) &&
+             (!programmeActuel?.quantitesBoutique || programmeActuel.quantitesBoutique.length === 0) && (
                <div className="text-center py-12 text-gray-500">
                   <p>Aucune quantité à produire trouvée dans le programme.</p>
                </div>
             )}
+
+            {/* Résumé pour impression uniquement */}
+            <div className="hidden print:block print:break-before-page print:mt-8">
+              <div className="border-t-2 border-black pt-4">
+                <h3 className="text-lg font-bold mb-4">📋 RÉSUMÉ DE PRODUCTION</h3>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="border border-black p-3">
+                    <div className="font-bold mb-2">👥 PRODUCTION CLIENTS</div>
+                    <div>Matin: {totauxParProduit.reduce((acc, p) => acc + (p.repartitionCar1Matin || 0) + (p.repartitionCar2Matin || 0), 0)} pièces</div>
+                    <div>Soir: {totauxParProduit.reduce((acc, p) => acc + (p.repartitionCarSoir || 0), 0)} pièces</div>
+                    <div className="font-bold">Total: {totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0)} pièces</div>
+                  </div>
+                  <div className="border border-black p-3">
+                    <div className="font-bold mb-2">🏪 PRODUCTION BOUTIQUE</div>
+                    <div>Total: {totauxParProduit.reduce((acc, p) => acc + p.totalBoutique, 0)} pièces</div>
+                    <div>Produits: {totauxParProduit.filter(p => p.totalBoutique > 0).length}</div>
+                  </div>
+                  <div className="border border-black p-3">
+                    <div className="font-bold mb-2">📊 TOTAL GÉNÉRAL</div>
+                    <div className="text-xl font-bold">
+                      {totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0)} pièces
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 text-xs text-center border-t border-gray-300 pt-2">
+                  Document généré automatiquement - Boulangerie App - {new Date().toLocaleDateString('fr-FR')}
+                </div>
+              </div>
+            </div>
           </>
         )}
       </div>

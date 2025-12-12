@@ -7,6 +7,12 @@ export interface StockBoutique {
     produitId: string;
     produit?: Produit;
     stockDebut: number; // quantité reçue de la production
+    // Répartition par car de livraison pour la boutique
+    repartitionCars?: {
+      car1_matin: number;
+      car2_matin: number;
+      car_soir: number;
+    };
   }>;
   createdAt: Date;
   updatedAt: Date;

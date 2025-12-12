@@ -227,36 +227,54 @@ export const PageBoutique: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {stockJour.produits.map((produit) => (
-                    <div
-                      key={produit.produitId}
-                      className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 hover:border-green-300 hover:shadow-md transition-all"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
-                          <Icon
-                            icon={getProductIcon(produit.produit?.nom || '')}
-                            className="text-xl text-white"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 mb-1">
-                            {produit.produit?.nom || produit.produitId}
-                          </h4>
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg font-bold text-green-600">{produit.stockDebut}</span>
-                            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">pièces</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                {/* Tableau simple et clair */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700">Produit</th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-700">Quantité</th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-700">Car 1M</th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-700">Car 2M</th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-700">Car S</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stockJour.produits.map((produit) => (
+                        <tr key={produit.produitId} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              <Icon
+                                icon={getProductIcon(produit.produit?.nom || '')}
+                                className="text-gray-600"
+                              />
+                              <span className="font-medium text-gray-900">
+                                {produit.produit?.nom || produit.produitId}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="text-center py-3 px-4">
+                            <span className="font-bold text-gray-900">{produit.stockDebut}</span>
+                          </td>
+                          <td className="text-center py-3 px-4 text-gray-600">
+                            {produit.repartitionCars?.car1_matin || '—'}
+                          </td>
+                          <td className="text-center py-3 px-4 text-gray-600">
+                            {produit.repartitionCars?.car2_matin || '—'}
+                          </td>
+                          <td className="text-center py-3 px-4 text-gray-600">
+                            {produit.repartitionCars?.car_soir || '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
         )}
+
 
         {/* Flux des 2 équipes */}
         {stockJour && (
@@ -277,36 +295,42 @@ export const PageBoutique: React.FC = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-4">
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium ${
-                      !equipeMatin ? 'bg-gray-200 text-gray-600' :
-                      equipeMatin.statut === 'en_cours' ? 'bg-orange-100 text-orange-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      <Icon icon="wi:sunrise" className="text-sm" />
-                      Matin
-                      {equipeMatin?.statut === 'en_cours' && <Icon icon="mdi:clock-outline" className="text-sm animate-pulse" />}
-                      {equipeMatin?.statut === 'termine' && <Icon icon="mdi:check" className="text-sm" />}
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Icon icon="wi:sunrise" className="text-gray-600" />
+                      <span>Équipe Matin:</span>
+                      <span className={
+                        !equipeMatin ? 'text-gray-500' :
+                        equipeMatin.statut === 'en_cours' ? 'text-blue-600' :
+                        'text-green-600'
+                      }>
+                        {!equipeMatin ? 'Non commencée' :
+                         equipeMatin.statut === 'en_cours' ? 'En cours' :
+                         'Terminée'}
+                      </span>
                     </div>
 
-                    <Icon icon="mdi:arrow-right" className="text-gray-400" />
+                    <div className="w-px h-6 bg-gray-300"></div>
 
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium ${
-                      !equipeSoir ? 'bg-gray-200 text-gray-600' :
-                      equipeSoir.statut === 'en_cours' ? 'bg-indigo-100 text-indigo-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      <Icon icon="wi:sunset" className="text-sm" />
-                      Soir
-                      {equipeSoir?.statut === 'en_cours' && <Icon icon="mdi:clock-outline" className="text-sm animate-pulse" />}
-                      {equipeSoir?.statut === 'termine' && <Icon icon="mdi:check" className="text-sm" />}
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Icon icon="wi:sunset" className="text-gray-600" />
+                      <span>Équipe Soir:</span>
+                      <span className={
+                        !equipeSoir ? 'text-gray-500' :
+                        equipeSoir.statut === 'en_cours' ? 'text-blue-600' :
+                        'text-green-600'
+                      }>
+                        {!equipeSoir ? 'Non commencée' :
+                         equipeSoir.statut === 'en_cours' ? 'En cours' :
+                         'Terminée'}
+                      </span>
                     </div>
                   </div>
 
                   {ventesJour && (
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Journée terminée</p>
-                      <p className="text-lg font-bold text-green-600">
-                        {ventesJour.produits.reduce((total, p) => total + p.venduTotal, 0)} ventes totales
+                      <p className="text-sm text-gray-600">Total vendu</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {ventesJour.produits.reduce((total, p) => total + p.venduTotal, 0)} pièces
                       </p>
                     </div>
                   )}

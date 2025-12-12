@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "drop-db": "node scripts/drop-collections.js"
+    "drop-db": "node scripts/drop-collections.js",
+    "clear-boutique": "node scripts/clear-boutique-data.js",
+    "clear-production": "node scripts/clear-production-data.js"
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",

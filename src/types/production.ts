@@ -88,11 +88,18 @@ export interface QuantiteBoutique {
   produitId: string;
   produit?: Produit;
   quantite: number;
+  // Répartition par car de livraison pour la boutique
+  repartitionCars?: {
+    car1_matin: number;
+    car2_matin: number;
+    car_soir: number;
+  };
 }
 
 export interface ProgrammeProduction {
   id: string;
-  date: Date;
+  dateProduction: Date; // Date effective de production (lendemain de la création)
+  dateCreation: Date;   // Date de création du programme (sans heure)
   commandesClients: CommandeClient[];
   quantitesBoutique: QuantiteBoutique[];
   totauxParProduit: Array<{
@@ -106,7 +113,7 @@ export interface ProgrammeProduction {
     repartitionCar2Matin: number;
     repartitionCarSoir: number;
   }>;
-  statut: 'brouillon' | 'envoye' | 'produit';
+  statut: 'brouillon' | 'envoye' | 'modifie' | 'produit';
   createdAt: Date;
   updatedAt: Date;
 }
