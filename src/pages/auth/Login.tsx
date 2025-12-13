@@ -19,7 +19,7 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-orange-50 via-amber-50 to-yellow-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-4">
         {/* Logo et titre - Version moderne Odoo */}
         <div className="text-center">
@@ -30,14 +30,14 @@ export const Login: React.FC = () => {
               className="w-full h-full object-contain"
             />
           </div>
-          <div className="w-32 h-1 bg-gradient-to-r from-amber-600 to-orange-600 mx-auto rounded-full"></div>
+          <div className="w-32 h-1 bg-linear-to-r from-amber-600 to-orange-600 mx-auto rounded-full"></div>
         </div>
 
         {/* Formulaire de connexion - Design moderne */}
         <div className="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100 backdrop-blur-sm">
           <div className="mb-8">
             <div className="flex items-center gap-3 justify-center mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-amber-600 to-orange-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-linear-to-r from-amber-600 to-orange-600 rounded-lg flex items-center justify-center">
                 <Icon icon="mdi:account-circle" className="text-white text-lg" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900">
@@ -100,7 +100,7 @@ export const Login: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transform transition-all hover:scale-105 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-linear-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transform transition-all hover:scale-105 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               <div className="flex items-center justify-center gap-2">
                 {isLoading ? (

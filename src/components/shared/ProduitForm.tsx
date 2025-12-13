@@ -36,7 +36,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
 
   const [newIngredient, setNewIngredient] = useState({
     matiereId: '',
-    quantite: '' as number | ''
+    quantite: '' as string
   });
 
   useEffect(() => {
@@ -52,18 +52,19 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
   }, [produit]);
 
   const handleAddIngredient = () => {
-    if (newIngredient.matiereId && newIngredient.quantite) {
+    const quantiteNum = parseFloat(newIngredient.quantite);
+    if (newIngredient.matiereId && newIngredient.quantite && !isNaN(quantiteNum) && quantiteNum > 0) {
       const existingIndex = formData.recette.findIndex(i => i.matiereId === newIngredient.matiereId);
-      
+
       let updatedRecette = [...formData.recette];
       if (existingIndex >= 0) {
         // Update existing
-        updatedRecette[existingIndex].quantite = Number(newIngredient.quantite);
+        updatedRecette[existingIndex].quantite = quantiteNum;
       } else {
         // Add new
         updatedRecette.push({
           matiereId: newIngredient.matiereId,
-          quantite: Number(newIngredient.quantite)
+          quantite: quantiteNum
         });
       }
 
@@ -188,9 +189,9 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                             type="number"
                             step="0.001"
                             min="0"
-                            placeholder="Ex: 0.250"
+                            placeholder="Ex: 0.250, 1.5, 50"
                             value={newIngredient.quantite}
-                            onChange={(e) => setNewIngredient({ ...newIngredient, quantite: parseFloat(e.target.value) || '' })}
+                            onChange={(e) => setNewIngredient({ ...newIngredient, quantite: e.target.value })}
                             className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 outline-none"
                         />
                     </div>
@@ -198,7 +199,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                         <button
                             type="button"
                             onClick={handleAddIngredient}
-                            disabled={!newIngredient.matiereId || !newIngredient.quantite}
+                            disabled={!newIngredient.matiereId || !newIngredient.quantite || isNaN(parseFloat(newIngredient.quantite)) || parseFloat(newIngredient.quantite) <= 0}
                             className="w-full py-2 px-3 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             <Icon icon="mdi:plus-circle" />
@@ -239,17 +240,28 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                     </div>
                 )}
             </div>
-            <p className="text-xs text-gray-500">
-                Définissez la quantité nécessaire pour fabriquer <b>1 seule pièce</b> de ce produit.
-            </p>
+            <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="flex items-start gap-2">
+                    <Icon icon="mdi:information" className="text-blue-600 text-lg mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                        <p className="font-medium mb-1">Comment utiliser :</p>
+                        <ul className="space-y-1 text-xs">
+                            <li>• <b>Quantité par unité</b> = quantité nécessaire pour <b>1 pièce</b></li>
+                            <li>• Exemples: 50g de farine → <code>0.050</code>, 2 œufs → <code>2</code>, 1,5L de lait → <code>1.5</code></li>
+                            <li>• Le système calcule automatiquement coût et marge</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
         {/* Section Analyse de Rentabilité */}
         {formData.recette.length > 0 && (
             <div className="space-y-4 pt-2 border-t border-gray-100">
                 <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                    <Icon icon="mdi:finance" className="text-orange-600" />
-                    Analyse de Rentabilité (Estimée)
+                    <Icon icon="mdi:calculator" className="text-green-600" />
+                    Calcul Automatique des Coûts & Rentabilité
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">Temps réel</span>
                 </h4>
 
                 <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-xs space-y-4">

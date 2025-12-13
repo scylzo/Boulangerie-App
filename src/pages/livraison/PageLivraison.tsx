@@ -364,6 +364,11 @@ export const PageLivraison: React.FC = () => {
                 <div className="p-6">
                   <div className="space-y-8">
                     {(Array.from(data.commandesParCar.entries()) as [CarLivraison, any][])
+                      .sort(([carA], [carB]) => {
+                        // Ordre fixe : car1_matin, car2_matin, car_soir
+                        const ordre: CarLivraison[] = ['car1_matin', 'car2_matin', 'car_soir'];
+                        return ordre.indexOf(carA) - ordre.indexOf(carB);
+                      })
                       .filter(([car]) => carSelectionne === 'tous' || carSelectionne === car)
                       .map(([car, livraisons]) => {
                         const colors = getCarColors();

@@ -2,6 +2,7 @@
 import type { CommandeClient, Client, Produit, Livreur, ProgrammeProduction } from '../types';
 import type { CarLivraison } from '../types';
 import { CARS_LIVRAISON } from '../types/production';
+import logoImg from '../assets/logo.png';
 
 interface LivraisonData {
   commande: CommandeClient;
@@ -16,6 +17,30 @@ interface DataLivreur {
 }
 
 export class HTMLPrintService {
+  private getLogoUrl(): string {
+    console.log('🖼️ URL du logo importée:', logoImg);
+
+    // Vérifier si l'URL importée est valide
+    if (logoImg && logoImg.length > 0) {
+      console.log('✅ URL du logo valide, utilisation directe');
+      return logoImg;
+    } else {
+      console.log('⚠️ URL du logo invalide, utilisation du SVG de fallback');
+      // SVG de fallback avec le logo de la boulangerie
+      return 'data:image/svg+xml;base64,' + btoa(`
+        <svg width="100" height="60" viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100" height="60" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+          <text x="50" y="25" text-anchor="middle" fill="white" font-size="14" font-family="Arial" font-weight="bold">
+            🥖 BOULANGERIE
+          </text>
+          <text x="50" y="45" text-anchor="middle" fill="white" font-size="12" font-family="Arial" font-weight="bold">
+            CHEZ MINA
+          </text>
+        </svg>
+      `);
+    }
+  }
+
   private formatDate(date: string): string {
     return new Date(date).toLocaleDateString('fr-FR', {
       weekday: 'long',
@@ -23,6 +48,31 @@ export class HTMLPrintService {
       month: 'long',
       day: 'numeric'
     });
+  }
+
+  private formatDateWithCorrection(dateCreation: Date, dateProduction: Date): string {
+    // Logique de correction des dates identique à VueBoulanger
+    const sameDay = dateCreation.toDateString() === dateProduction.toDateString();
+
+    if (sameDay) {
+      // Corriger en ajoutant 1 jour à la date de production
+      const correctedDate = new Date(dateProduction);
+      correctedDate.setDate(correctedDate.getDate() + 1);
+      return correctedDate.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } else {
+      // Nouvelle logique, afficher dateProduction telle quelle
+      return dateProduction.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    }
   }
 
   private getCarColor(car: CarLivraison): string {
@@ -87,8 +137,8 @@ export class HTMLPrintService {
         
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-          font-size: 14px;
-          line-height: 1.4;
+          font-size: 16px;
+          line-height: 1.5;
           color: #1f2937;
           background: white;
           padding: 12px;
@@ -107,14 +157,14 @@ export class HTMLPrintService {
         }
         
         .header h1 {
-          font-size: 20px;
+          font-size: 24px;
           font-weight: 700;
           color: #111827;
           margin-bottom: 2px;
         }
         
         .header .date {
-          font-size: 11px;
+          font-size: 14px;
           color: #6b7280;
           font-weight: 500;
         }
@@ -132,14 +182,14 @@ export class HTMLPrintService {
         }
         
         .livreur-header h2 {
-          font-size: 13px;
+          font-size: 16px;
           font-weight: 600;
           color: #111827;
           margin-bottom: 2px;
         }
         
         .livreur-header .info {
-          font-size: 10px;
+          font-size: 12px;
           color: #6b7280;
         }
         
@@ -153,9 +203,9 @@ export class HTMLPrintService {
         
         .car-header {
           color: white;
-          padding: 5px 8px;
+          padding: 6px 10px;
           font-weight: 600;
-          font-size: 11px;
+          font-size: 14px;
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -172,18 +222,18 @@ export class HTMLPrintService {
         
         th {
           background: #f3f4f6;
-          padding: 4px 6px;
+          padding: 6px 8px;
           text-align: left;
           font-weight: 600;
-          font-size: 9px;
+          font-size: 12px;
           color: #374151;
           border-bottom: 1px solid #d1d5db;
         }
         
         td {
-          padding: 4px 6px;
+          padding: 6px 8px;
           border-bottom: 1px solid #e5e7eb;
-          font-size: 9px;
+          font-size: 12px;
           vertical-align: top;
         }
         
@@ -204,7 +254,7 @@ export class HTMLPrintService {
         }
         
         .summary h4 {
-          font-size: 10px;
+          font-size: 13px;
           font-weight: 600;
           margin-bottom: 4px;
         }
@@ -218,9 +268,9 @@ export class HTMLPrintService {
         .summary-item {
           background: white;
           color: #111827;
-          padding: 3px 6px;
+          padding: 4px 8px;
           border-radius: 3px;
-          font-size: 9px;
+          font-size: 11px;
           font-weight: 500;
           display: inline-flex;
           align-items: center;
@@ -313,6 +363,7 @@ export class HTMLPrintService {
     dateSelectionnee: string
   ): void {
     const livreurNom = dataLivreur.livreur?.nom || 'Clients non assignés';
+    const logoUrl = this.getLogoUrl();
 
     let html = `
       <!DOCTYPE html>
@@ -327,7 +378,7 @@ export class HTMLPrintService {
         <div class="container">
           <div class="header">
             <div class="logo">
-              <img src="/src/assets/logo.png" alt="Boulangerie Chez Mina" style="height: 60px; margin: 0 auto 8px auto; display: block;" />
+              <img src="${logoUrl}" alt="Boulangerie Chez Mina" style="height: 60px; margin: 0 auto 8px auto; display: block;" />
             </div>
             <h1>📦 Programme de Livraison</h1>
             <div class="date">${this.formatDate(dateSelectionnee)}</div>
@@ -497,6 +548,8 @@ export class HTMLPrintService {
       )
     )).length;
 
+    const logoUrl = this.getLogoUrl();
+
     let html = `
       <!DOCTYPE html>
       <html lang="fr">
@@ -510,7 +563,7 @@ export class HTMLPrintService {
         <div class="container">
           <div class="header">
             <div class="logo">
-              <img src="/src/assets/logo.png" alt="Boulangerie Chez Mina" style="height: 60px; margin: 0 auto 8px auto; display: block;" />
+              <img src="${logoUrl}" alt="Boulangerie Chez Mina" style="height: 60px; margin: 0 auto 8px auto; display: block;" />
             </div>
             <h1>🍞 Rapport Global de Livraison</h1>
             <div class="date">${this.formatDate(dateSelectionnee)}</div>
@@ -694,22 +747,81 @@ export class HTMLPrintService {
     programme: ProgrammeProduction,
     produits: Produit[]
   ): void {
-    // Calcul des totaux (totauxParProduit contient déjà clients + boutique)
-    const totalClients = programme.totauxParProduit?.reduce((acc, p) => acc + p.totalClient, 0) || 0;
-    const totalBoutique = programme.totauxParProduit?.reduce((acc, p) => acc + p.totalBoutique, 0) || 0;
+    // Calcul des répartitions clients uniquement (sans boutique)
+    const calculerRepartitionsClients = () => {
+      if (!programme?.commandesClients) return new Map();
+
+      const repartitionsClients = new Map<string, {
+        car1Matin: number;
+        car2Matin: number;
+        carSoir: number;
+      }>();
+
+      // Parcourir uniquement les commandes clients (exclure boutique)
+      programme.commandesClients
+        .filter(commande => commande.statut !== 'annulee')
+        .forEach(commande => {
+          commande.produits.forEach(item => {
+            const current = repartitionsClients.get(item.produitId) || {
+              car1Matin: 0,
+              car2Matin: 0,
+              carSoir: 0
+            };
+
+            const car1Matin = Number(item.repartitionCars?.car1_matin) || 0;
+            const car2Matin = Number(item.repartitionCars?.car2_matin) || 0;
+            const carSoir = Number(item.repartitionCars?.car_soir) || 0;
+
+            repartitionsClients.set(item.produitId, {
+              car1Matin: current.car1Matin + car1Matin,
+              car2Matin: current.car2Matin + car2Matin,
+              carSoir: current.carSoir + carSoir
+            });
+          });
+        });
+
+      return repartitionsClients;
+    };
+
+    const repartitionsClients = calculerRepartitionsClients();
+
+    // Calcul des totaux corrects
+    const totalClients = programme.totauxParProduit?.reduce((acc, p) => acc + (p.totalClient || 0), 0) || 0;
+    const totalBoutique = programme.totauxParProduit?.reduce((acc, p) => acc + (p.totalBoutique || 0), 0) || 0;
     const totalGeneral = programme.totauxParProduit?.reduce((acc, p) => acc + p.totalGlobal, 0) || 0;
 
-    // Produits avec quantités matin
-    const produitsMatin = programme.totauxParProduit?.filter(p =>
-      (p.repartitionCar1Matin + p.repartitionCar2Matin) > 0) || [];
+    // Produits clients avec quantités matin (calculé depuis repartitionsClients)
+    const produitsMatin = Array.from(repartitionsClients.entries())
+      .filter(([_, repartition]) => (repartition.car1Matin + repartition.car2Matin) > 0)
+      .map(([produitId]) => {
+        const produit = produits.find(p => p.id === produitId);
+        const repartition = repartitionsClients.get(produitId)!;
+        return {
+          produitId,
+          produit,
+          car1Matin: repartition.car1Matin,
+          car2Matin: repartition.car2Matin
+        };
+      });
 
-    // Produits avec quantités soir
-    const produitsSoir = programme.totauxParProduit?.filter(p =>
-      p.repartitionCarSoir > 0) || [];
+    // Produits clients avec quantités soir (calculé depuis repartitionsClients)
+    const produitsSoir = Array.from(repartitionsClients.entries())
+      .filter(([_, repartition]) => repartition.carSoir > 0)
+      .map(([produitId]) => {
+        const produit = produits.find(p => p.id === produitId);
+        const repartition = repartitionsClients.get(produitId)!;
+        return {
+          produitId,
+          produit,
+          carSoir: repartition.carSoir
+        };
+      });
 
     const statutText = programme.statut === 'envoye' ? '✅ CONFIRMÉ' :
                       programme.statut === 'modifie' ? '🔄 MODIFIÉ' :
                       programme.statut === 'produit' ? '✅ PRODUIT' : '⏳ BROUILLON';
+
+    const logoUrl = this.getLogoUrl();
 
     let html = `
       <!DOCTYPE html>
@@ -885,6 +997,13 @@ export class HTMLPrintService {
 
           .product-body {
             padding: 12px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 40px);
+          }
+
+          .product-content {
+            flex: 1;
           }
 
           .car-row {
@@ -990,34 +1109,11 @@ export class HTMLPrintService {
         <div class="container">
           <div class="header">
             <div class="logo">
-              <img src="/src/assets/logo.png" alt="Boulangerie Chez Mina" />
+              <img src="${logoUrl}" alt="Boulangerie Chez Mina" />
             </div>
             <h1>🥖 Programme de Production</h1>
             <div class="date">
-              Production : ${(() => {
-                // Correction pour les anciens programmes
-                const dateCreation = programme.dateCreation;
-                const dateProduction = programme.dateProduction;
-                const sameDay = dateCreation.toDateString() === dateProduction.toDateString();
-
-                if (sameDay) {
-                  const correctedDate = new Date(dateProduction);
-                  correctedDate.setDate(correctedDate.getDate() + 1);
-                  return correctedDate.toLocaleDateString('fr-FR', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                  });
-                } else {
-                  return dateProduction.toLocaleDateString('fr-FR', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                  });
-                }
-              })()}
+              Production : ${this.formatDateWithCorrection(programme.dateCreation, programme.dateProduction)}
             </div>
             <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
               Programme créé le ${programme.dateCreation.toLocaleDateString('fr-FR')} à ${programme.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
@@ -1054,26 +1150,42 @@ export class HTMLPrintService {
             <div class="products-grid">
       `;
 
-      produitsMatin.forEach(produitTotal => {
-        const produit = produits.find(p => p.id === produitTotal.produitId);
-        const car1 = produitTotal.repartitionCar1Matin;
-        const car2 = produitTotal.repartitionCar2Matin;
+      produitsMatin.forEach(produitData => {
+        const car1 = produitData.car1Matin;
+        const car2 = produitData.car2Matin;
         const total = car1 + car2;
 
         html += `
               <div class="product-card">
-                <div class="product-header matin">${produit?.nom || 'Produit'}</div>
+                <div class="product-header matin">${produitData.produit?.nom || 'Produit'}</div>
                 <div class="product-body">
-                  <div class="car-row">
-                    <span class="car-label">Car 1</span>
-                    <span class="car-value">${car1}</span>
-                  </div>
-                  <div class="car-row">
-                    <span class="car-label">Car 2</span>
-                    <span class="car-value">${car2}</span>
+                  <div class="product-content">
+        `;
+
+        // Afficher Car 1 seulement si > 0
+        if (car1 > 0) {
+          html += `
+                    <div class="car-row">
+                      <span class="car-label">Car 1 Matin</span>
+                      <span class="car-value">${car1}</span>
+                    </div>
+          `;
+        }
+
+        // Afficher Car 2 seulement si > 0
+        if (car2 > 0) {
+          html += `
+                    <div class="car-row">
+                      <span class="car-label">Car 2 Matin</span>
+                      <span class="car-value">${car2}</span>
+                    </div>
+          `;
+        }
+
+        html += `
                   </div>
                   <div class="total-row">
-                    <span class="total-label">Total Matin</span>
+                    <span class="total-label">Total Matin Clients</span>
                     <span class="total-value">${total}</span>
                   </div>
                 </div>
@@ -1097,17 +1209,16 @@ export class HTMLPrintService {
             <div class="products-grid">
       `;
 
-      produitsSoir.forEach(produitTotal => {
-        const produit = produits.find(p => p.id === produitTotal.produitId);
-        const total = produitTotal.repartitionCarSoir;
+      produitsSoir.forEach(produitData => {
+        const total = produitData.carSoir;
 
         html += `
               <div class="product-card">
-                <div class="product-header soir">${produit?.nom || 'Produit'}</div>
+                <div class="product-header soir">${produitData.produit?.nom || 'Produit'}</div>
                 <div class="product-body">
                   <div class="soir-total">
                     <div class="value">${total}</div>
-                    <div class="label">pièces</div>
+                    <div class="label">pièces clients</div>
                   </div>
                 </div>
               </div>
@@ -1251,6 +1362,7 @@ export class HTMLPrintService {
 
     const currentDate = new Date();
     const dateLivraison = new Date(commande.dateLivraison);
+    const logoUrl = this.getLogoUrl();
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -1463,7 +1575,7 @@ export class HTMLPrintService {
         <div class="container">
           <div class="delivery-header">
             <div class="logo">
-              <img src="/src/assets/logo.png" alt="Boulangerie Chez Mina" style="height: 50px; margin-bottom: 10px;" />
+              <img src="${logoUrl}" alt="Boulangerie Chez Mina" style="height: 50px; margin-bottom: 10px;" />
             </div>
             <h1><i data-lucide="clipboard-list" class="icon"></i>BON DE LIVRAISON</h1>
             <p>N° ${commande.id.slice(-8).toUpperCase()}</p>

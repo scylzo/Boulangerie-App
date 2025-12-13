@@ -105,6 +105,44 @@ const printStyles = `
 export const VueBoulanger: React.FC = () => {
   const { programmeActuel, chargerProgramme, produits } = useProductionStore();
 
+  // Calculer les répartitions clients uniquement (sans boutique)
+  const calculerRepartitionsClients = () => {
+    if (!programmeActuel?.commandesClients) return [];
+
+    const repartitionsClients = new Map<string, {
+      car1Matin: number;
+      car2Matin: number;
+      carSoir: number;
+    }>();
+
+    // Parcourir uniquement les commandes clients (exclure boutique)
+    programmeActuel.commandesClients
+      .filter(commande => commande.statut !== 'annulee')
+      .forEach(commande => {
+        commande.produits.forEach(item => {
+          const current = repartitionsClients.get(item.produitId) || {
+            car1Matin: 0,
+            car2Matin: 0,
+            carSoir: 0
+          };
+
+          const car1Matin = Number(item.repartitionCars?.car1_matin) || 0;
+          const car2Matin = Number(item.repartitionCars?.car2_matin) || 0;
+          const carSoir = Number(item.repartitionCars?.car_soir) || 0;
+
+          repartitionsClients.set(item.produitId, {
+            car1Matin: current.car1Matin + car1Matin,
+            car2Matin: current.car2Matin + car2Matin,
+            carSoir: current.carSoir + carSoir
+          });
+        });
+      });
+
+    return repartitionsClients;
+  };
+
+  const repartitionsClients = calculerRepartitionsClients();
+
   // Fonction pour générer le document HTML d'impression
   const handleGenerateHTML = () => {
     console.log('🖨️ Bouton impression cliqué');
@@ -340,28 +378,84 @@ export const VueBoulanger: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Résumé Total Journée */}
-            <div className="bg-gray-700 text-white rounded-xl p-6 shadow-sm flex items-center justify-between print:bg-white print:text-black print:border-2 print:border-black print:shadow-none print:rounded-none">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gray-600 rounded-lg print:bg-gray-200 print:text-black">
-                  <Icon icon="mdi:sigma" className="text-2xl" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold print:text-lg">Total Journée</h2>
-                  <p className="text-gray-400 text-sm print:text-black print:text-sm">Production globale (Clients + Boutique)</p>
+            {/* Résumé Production Journée */}
+            <div className="space-y-4">
+              {/* Total Général */}
+              <div className="bg-gray-700 text-white rounded-xl p-6 shadow-sm print:bg-white print:text-black print:border-2 print:border-black print:shadow-none print:rounded-none">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gray-600 rounded-lg print:bg-gray-200 print:text-black">
+                      <Icon icon="mdi:sigma" className="text-2xl" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold print:text-lg">TOTAL GÉNÉRAL</h2>
+                      <p className="text-gray-400 text-sm print:text-black print:text-sm">Production complète (Clients + Boutique)</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-4xl font-bold print:text-2xl">
+                      {totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0)}
+                    </div>
+                    <div className="text-gray-400 text-sm font-medium print:text-black">pièces au total</div>
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-4xl font-bold print:text-2xl">
-                  {totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0)}
-                </div>
-                <div className="text-gray-400 text-sm font-medium print:text-black">pièces au total</div>
+
+              {/* Sous-totaux détaillés */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Sous-total Clients - uniquement si > 0 */}
+                {totauxParProduit.reduce((acc, p) => acc + (p.totalClient || 0), 0) > 0 && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm print:border-black print:shadow-none print:rounded-none">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <Icon icon="mdi:account-group" className="text-lg text-gray-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">Production Clients</h3>
+                          <p className="text-xs text-gray-500">Commandes clients uniquement</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-gray-800">
+                          {totauxParProduit.reduce((acc, p) => acc + (p.totalClient || 0), 0)}
+                        </div>
+                        <div className="text-xs text-gray-500">pièces</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sous-total Boutique - uniquement si > 0 */}
+                {totauxParProduit.reduce((acc, p) => acc + (p.totalBoutique || 0), 0) > 0 && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm print:border-black print:shadow-none print:rounded-none">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Icon icon="mdi:storefront" className="text-lg text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">Production Boutique</h3>
+                          <p className="text-xs text-gray-500">Vente directe uniquement</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {totauxParProduit.reduce((acc, p) => acc + (p.totalBoutique || 0), 0)}
+                        </div>
+                        <div className="text-xs text-gray-500">pièces</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Section Matin */}
-            {totauxParProduit.some(p => (p.repartitionCar1Matin + p.repartitionCar2Matin) > 0) && (
-              <section>
+            {/* Section Matin - Clients uniquement */}
+            {Array.from(repartitionsClients.entries()).some(([_, repartition]) =>
+              (repartition.car1Matin + repartition.car2Matin) > 0
+            ) && (
+              <section data-section="production-matin">
                  <div className="flex items-center gap-3 mb-6">
                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                       <Icon icon="wi:sunrise" className="text-xl text-gray-500" />
@@ -370,45 +464,54 @@ export const VueBoulanger: React.FC = () => {
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print:grid-cols-3 print:gap-4">
-                   {totauxParProduit
-                     .filter(p => (p.repartitionCar1Matin + p.repartitionCar2Matin) > 0)
-                     .map(produit => {
-                       const car1 = produit.repartitionCar1Matin;
-                       const car2 = produit.repartitionCar2Matin;
+                   {Array.from(repartitionsClients.entries())
+                     .filter(([_, repartition]) => (repartition.car1Matin + repartition.car2Matin) > 0)
+                     .map(([produitId, repartition]) => {
+                       const produit = totauxParProduit.find(p => p.produitId === produitId)?.produit;
+                       const car1 = repartition.car1Matin;
+                       const car2 = repartition.car2Matin;
                        const total = car1 + car2;
-                       
+
                        return (
-                         <div key={`matin-${produit.produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-600 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
+                         <div key={`matin-${produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-600 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid flex flex-col h-full">
                            <div className="absolute top-3 right-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Matin</div>
-                           
+
                            {/* En-tête Produit */}
                            <div className="flex items-center gap-4 mb-6 pt-2">
                              <div className="w-14 h-14 bg-gray-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
-                               <Icon icon={getProductIcon(produit.produit?.nom || '')} className="text-2xl text-white" />
+                               <Icon icon={getProductIcon(produit?.nom || '')} className="text-2xl text-white" />
                              </div>
                              <h3 className="text-xl font-bold text-gray-900 leading-tight">
-                               {produit.produit?.nom || 'Produit'}
+                               {produit?.nom || 'Produit'}
                              </h3>
                            </div>
-                           
-                           {/* Détail Car 1 / Car 2 */}
-                           <div className="grid grid-cols-2 gap-4 mb-4">
-                             <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-                               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Car 1</div>
-                               <div className="text-3xl font-bold text-gray-700">{car1}</div>
+
+                           {/* Détail Car 1 / Car 2 - masquer si 0 */}
+                           <div className="flex-1">
+                             <div className="space-y-3 mb-4">
+                               {car1 > 0 && (
+                                 <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+                                   <div className="text-xs font-bold text-gray-500 uppercase mb-1">Car 1 Matin</div>
+                                   <div className="text-3xl font-bold text-gray-700">{car1}</div>
+                                   <div className="text-xs text-gray-500">pièces</div>
+                                 </div>
+                               )}
+                               {car2 > 0 && (
+                                 <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+                                   <div className="text-xs font-bold text-gray-500 uppercase mb-1">Car 2 Matin</div>
+                                   <div className="text-3xl font-bold text-gray-700">{car2}</div>
+                                   <div className="text-xs text-gray-500">pièces</div>
+                                 </div>
+                               )}
                              </div>
-                             <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-                               <div className="text-xs font-bold text-gray-400 uppercase mb-1">Car 2</div>
-                               <div className="text-3xl font-bold text-gray-700">{car2}</div>
-                             </div>
-                           </div>
-                           
-                           {/* Total Matin */}
-                           <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                             <span className="text-sm font-medium text-gray-500">Total Matin</span>
-                             <div className="flex items-baseline gap-1">
-                               <span className="text-2xl font-bold text-gray-800">{total}</span>
-                               <span className="text-sm text-gray-500">pc</span>
+
+                             {/* Total Matin - toujours en bas */}
+                             <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-auto">
+                               <span className="text-sm font-medium text-gray-500">Total Matin Clients</span>
+                               <div className="flex items-baseline gap-1">
+                                 <span className="text-2xl font-bold text-gray-800">{total}</span>
+                                 <span className="text-sm text-gray-500">pc</span>
+                               </div>
                              </div>
                            </div>
                          </div>
@@ -418,9 +521,9 @@ export const VueBoulanger: React.FC = () => {
               </section>
             )}
 
-            {/* Section Soir */}
-            {totauxParProduit.some(p => p.repartitionCarSoir > 0) && (
-              <section className="pt-8 border-t border-gray-200">
+            {/* Section Soir - Clients uniquement */}
+            {Array.from(repartitionsClients.entries()).some(([_, repartition]) => repartition.carSoir > 0) && (
+              <section className="pt-8 border-t border-gray-200" data-section="production-soir">
                  <div className="flex items-center gap-3 mb-6">
                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                       <Icon icon="wi:sunset" className="text-xl text-gray-600" />
@@ -429,25 +532,27 @@ export const VueBoulanger: React.FC = () => {
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print:grid-cols-3 print:gap-4">
-                   {totauxParProduit
-                     .filter(p => p.repartitionCarSoir > 0)
-                     .map(produit => {
-                       const total = produit.repartitionCarSoir;
+                   {Array.from(repartitionsClients.entries())
+                     .filter(([_, repartition]) => repartition.carSoir > 0)
+                     .map(([produitId, repartition]) => {
+                       const produit = totauxParProduit.find(p => p.produitId === produitId)?.produit;
+                       const total = repartition.carSoir;
+
                        return (
-                         <div key={`soir-${produit.produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-300 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
+                         <div key={`soir-${produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-300 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
                            <div className="absolute top-3 right-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Soir</div>
                            <div className="flex items-center gap-4 mb-8 pt-2">
                              <div className="w-16 h-16 bg-gray-400 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
-                               <Icon icon={getProductIcon(produit.produit?.nom || '')} className="text-3xl text-white" />
+                               <Icon icon={getProductIcon(produit?.nom || '')} className="text-3xl text-white" />
                              </div>
                              <h3 className="text-xl font-bold text-gray-900 leading-tight">
-                               {produit.produit?.nom || 'Produit'}
+                               {produit?.nom || 'Produit'}
                              </h3>
                            </div>
-                           
+
                            <div className="text-center mb-2">
                              <div className="text-7xl font-bold text-gray-800 tracking-tight leading-none">{total}</div>
-                             <div className="text-lg text-gray-500 font-medium mt-1">pièces</div>
+                             <div className="text-lg text-gray-500 font-medium mt-1">pièces clients</div>
                            </div>
                          </div>
                        );
@@ -458,7 +563,7 @@ export const VueBoulanger: React.FC = () => {
 
             {/* Section Production pour Boutique */}
             {programmeActuel?.quantitesBoutique && programmeActuel.quantitesBoutique.length > 0 && (
-              <section className="pt-8 border-t border-gray-200">
+              <section className="pt-8 border-t border-gray-200" data-section="production-boutique">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                     <Icon icon="mdi:storefront" className="text-xl text-blue-600" />
@@ -528,8 +633,8 @@ export const VueBoulanger: React.FC = () => {
               </section>
             )}
 
-            {!totauxParProduit.some(p => (p.repartitionCar1Matin + p.repartitionCar2Matin) > 0) &&
-             !totauxParProduit.some(p => p.repartitionCarSoir > 0) &&
+            {!Array.from(repartitionsClients.entries()).some(([_, repartition]) =>
+               (repartition.car1Matin + repartition.car2Matin + repartition.carSoir) > 0) &&
              (!programmeActuel?.quantitesBoutique || programmeActuel.quantitesBoutique.length === 0) && (
                <div className="text-center py-12 text-gray-500">
                   <p>Aucune quantité à produire trouvée dans le programme.</p>
@@ -543,9 +648,9 @@ export const VueBoulanger: React.FC = () => {
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div className="border border-black p-3">
                     <div className="font-bold mb-2">👥 PRODUCTION CLIENTS</div>
-                    <div>Matin: {totauxParProduit.reduce((acc, p) => acc + (p.repartitionCar1Matin || 0) + (p.repartitionCar2Matin || 0), 0)} pièces</div>
-                    <div>Soir: {totauxParProduit.reduce((acc, p) => acc + (p.repartitionCarSoir || 0), 0)} pièces</div>
-                    <div className="font-bold">Total: {totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0)} pièces</div>
+                    <div>Matin: {Array.from(repartitionsClients.entries()).reduce((acc, [_, repartition]) => acc + repartition.car1Matin + repartition.car2Matin, 0)} pièces</div>
+                    <div>Soir: {Array.from(repartitionsClients.entries()).reduce((acc, [_, repartition]) => acc + repartition.carSoir, 0)} pièces</div>
+                    <div className="font-bold">Total: {totauxParProduit.reduce((acc, p) => acc + (p.totalClient || 0), 0)} pièces</div>
                   </div>
                   <div className="border border-black p-3">
                     <div className="font-bold mb-2">🏪 PRODUCTION BOUTIQUE</div>
@@ -567,6 +672,24 @@ export const VueBoulanger: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Bouton flottant pour aller à la section Production */}
+      {programmeActuel && (
+        <button
+          onClick={() => {
+            const productionSection = document.querySelector('[data-section="production-matin"]') ||
+                                     document.querySelector('[data-section="production-soir"]') ||
+                                     document.querySelector('[data-section="production-boutique"]');
+            if (productionSection) {
+              productionSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }}
+          className="fixed bottom-6 right-6 z-10 bg-gray-800 text-white rounded-full p-4 shadow-lg hover:bg-gray-700 transition-all duration-300 hover:scale-105 print:hidden"
+          title="Aller à la section Production"
+        >
+          <Icon icon="mdi:arrow-down-bold" className="text-xl" />
+        </button>
+      )}
     </div>
   );
 };
