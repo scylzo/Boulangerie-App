@@ -528,20 +528,48 @@ export const ProgrammeProduction: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900">Date de production</h2>
           </div>
 
-          <div className="flex items-center gap-4">
-            <input
-              type="date"
-              value={dateSelectionnee}
-              onChange={(e) => handleDateChange(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 font-medium"
-            />
-            <div className="text-sm text-gray-500">
-              Programme pour {new Date(dateSelectionnee).toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+          <div className="flex items-center justify-between">
+            {/* Sélecteur de date à gauche */}
+            <div className="flex items-center gap-3">
+              <input
+                type="date"
+                value={dateSelectionnee}
+                onChange={(e) => handleDateChange(e.target.value)}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 font-medium shadow-sm hover:border-gray-400 transition-all"
+              />
+            </div>
+
+            {/* Carte d'information de production à droite */}
+            <div className="bg-gradient-to-l from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm min-w-[320px]">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 text-right">
+                  <div className="flex items-center justify-end gap-2 mb-1">
+                    <span className="text-sm font-medium text-green-700">Production programmée</span>
+                    <Icon icon="mdi:calendar-check" className="text-green-600" />
+                  </div>
+                  <div className="text-lg font-bold text-gray-900">
+                    {(() => {
+                      const dateProduction = new Date(dateSelectionnee);
+                      dateProduction.setDate(dateProduction.getDate() + 1); // Lendemain
+                      return dateProduction.toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      });
+                    })()}
+                  </div>
+                  {programmeActuel && (
+                    <div className="flex items-center justify-end gap-1 mt-1 text-xs text-gray-600">
+                      <span>Créé le {programmeActuel.dateCreation.toLocaleDateString('fr-FR')} à {programmeActuel.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                      <Icon icon="mdi:clock-outline" className="text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <Icon icon="mdi:factory" className="text-2xl text-white" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
