@@ -166,10 +166,40 @@ export const VueBoulanger: React.FC = () => {
         <div className="text-center border-b-2 border-black pb-4 mb-6">
           <h1 className="text-2xl font-bold mb-2">🥖 PROGRAMME DE PRODUCTION</h1>
           <div className="flex justify-between items-center text-sm">
-            <span>Date: {new Date().toLocaleDateString('fr-FR')}</span>
+            <span>
+              Production: {programmeActuel ? (() => {
+                // Correction pour les anciens programmes
+                const dateCreation = programmeActuel.dateCreation;
+                const dateProduction = programmeActuel.dateProduction;
+                const sameDay = dateCreation.toDateString() === dateProduction.toDateString();
+
+                if (sameDay) {
+                  const correctedDate = new Date(dateProduction);
+                  correctedDate.setDate(correctedDate.getDate() + 1);
+                  return correctedDate.toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  });
+                } else {
+                  return dateProduction.toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  });
+                }
+              })() : new Date().toLocaleDateString('fr-FR')}
+            </span>
             <span>Statut: {programmeActuel?.statut === 'envoye' ? '✅ Confirmé' : '⏳ En attente'}</span>
             <span>Imprimé le: {new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
+          {programmeActuel && (
+            <div className="text-xs text-gray-600 mt-2">
+              Programme créé le {programmeActuel.dateCreation.toLocaleDateString('fr-FR')} à {programmeActuel.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -214,6 +244,71 @@ export const VueBoulanger: React.FC = () => {
                  />
                  {programmeActuel.statut === 'envoye' ? 'Confirmé' : 'En attente'}
                </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Section Date de Production */}
+      <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 print:hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Icon icon="mdi:calendar-clock" className="text-lg text-blue-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Programme de Production</h2>
+            </div>
+
+            {/* Carte d'information de production à droite */}
+            {programmeActuel && (
+              <div className="bg-gradient-to-l from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm min-w-[320px]">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 text-right">
+                    <div className="flex items-center justify-end gap-2 mb-1">
+                      <span className="text-sm font-medium text-blue-700">Production programmée</span>
+                      <Icon icon="mdi:calendar-check" className="text-blue-600" />
+                    </div>
+                    <div className="text-lg font-bold text-gray-900">
+                      {(() => {
+                        // Vérifier si dateProduction est la même que dateCreation (ancien système)
+                        const dateCreation = programmeActuel.dateCreation;
+                        const dateProduction = programmeActuel.dateProduction;
+
+                        // Si les dates sont identiques (même jour), c'est un ancien programme
+                        const sameDay = dateCreation.toDateString() === dateProduction.toDateString();
+
+                        if (sameDay) {
+                          // Corriger en ajoutant 1 jour à la date de production
+                          const correctedDate = new Date(dateProduction);
+                          correctedDate.setDate(correctedDate.getDate() + 1);
+                          return correctedDate.toLocaleDateString('fr-FR', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          });
+                        } else {
+                          // Nouvelle logique, afficher dateProduction telle quelle
+                          return dateProduction.toLocaleDateString('fr-FR', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          });
+                        }
+                      })()}
+                    </div>
+                    <div className="flex items-center justify-end gap-1 mt-1 text-xs text-gray-600">
+                      <span>Créé le {programmeActuel.dateCreation.toLocaleDateString('fr-FR')} à {programmeActuel.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                      <Icon icon="mdi:clock-outline" className="text-gray-400" />
+                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                    <Icon icon="mdi:factory" className="text-2xl text-white" />
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>

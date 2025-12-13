@@ -121,10 +121,15 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   // Actions Programme
 
   creerNouveauProgramme: (date: Date) => {
+    // La date passée est la date de création (veille au soir)
+    // La date de production est le lendemain
+    const dateProduction = new Date(date);
+    dateProduction.setDate(dateProduction.getDate() + 1);
+
     const nouveauProgramme: ProgrammeProduction = {
       id: `prog_${Date.now()}`,
-      dateProduction: date,
-      dateCreation: new Date(),
+      dateProduction: dateProduction,
+      dateCreation: date, // Date réelle de création
       statut: 'brouillon',
       commandesClients: [],
       quantitesBoutique: [],
@@ -183,10 +188,15 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         // Aucun programme trouvé, créer un nouveau programme automatiquement
         console.log('❌ Aucun programme trouvé, création automatique...');
 
+        // La date passée est la date de création (veille au soir)
+        // La date de production est le lendemain
+        const dateProduction = new Date(date);
+        dateProduction.setDate(dateProduction.getDate() + 1);
+
         const nouveauProgramme: ProgrammeProduction = {
           id: `prog_${Date.now()}`,
-          dateProduction: date,
-          dateCreation: new Date(),
+          dateProduction: dateProduction,
+          dateCreation: date, // Date réelle de création
           statut: 'brouillon',
           commandesClients: [],
           quantitesBoutique: [],
@@ -259,10 +269,15 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         // Aucun programme trouvé, créer un nouveau programme
         console.log('❌ Aucun programme trouvé via listener, création automatique...');
 
+        // La date passée est la date de création (veille au soir)
+        // La date de production est le lendemain
+        const dateProduction = new Date(date);
+        dateProduction.setDate(dateProduction.getDate() + 1);
+
         const nouveauProgramme: ProgrammeProduction = {
           id: `prog_${Date.now()}`,
-          dateProduction: date,
-          dateCreation: new Date(),
+          dateProduction: dateProduction,
+          dateCreation: date, // Date réelle de création
           statut: 'brouillon',
           commandesClients: [],
           quantitesBoutique: [],

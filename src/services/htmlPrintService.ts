@@ -993,7 +993,35 @@ export class HTMLPrintService {
               <img src="/src/assets/logo.png" alt="Boulangerie Chez Mina" />
             </div>
             <h1>🥖 Programme de Production</h1>
-            <div class="date">${this.formatDate(programme.dateProduction.toISOString())}</div>
+            <div class="date">
+              Production : ${(() => {
+                // Correction pour les anciens programmes
+                const dateCreation = programme.dateCreation;
+                const dateProduction = programme.dateProduction;
+                const sameDay = dateCreation.toDateString() === dateProduction.toDateString();
+
+                if (sameDay) {
+                  const correctedDate = new Date(dateProduction);
+                  correctedDate.setDate(correctedDate.getDate() + 1);
+                  return correctedDate.toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  });
+                } else {
+                  return dateProduction.toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  });
+                }
+              })()}
+            </div>
+            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+              Programme créé le ${programme.dateCreation.toLocaleDateString('fr-FR')} à ${programme.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            </div>
             <div class="status">${statutText}</div>
           </div>
 
