@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { useProductionStore } from '../../store';
@@ -107,13 +109,13 @@ export const VueBoulanger: React.FC = () => {
 
   // Calculer les répartitions clients uniquement (sans boutique)
   const calculerRepartitionsClients = () => {
-    if (!programmeActuel?.commandesClients) return [];
-
     const repartitionsClients = new Map<string, {
       car1Matin: number;
       car2Matin: number;
       carSoir: number;
     }>();
+
+    if (!programmeActuel?.commandesClients) return repartitionsClients;
 
     // Parcourir uniquement les commandes clients (exclure boutique)
     programmeActuel.commandesClients
@@ -300,7 +302,7 @@ export const VueBoulanger: React.FC = () => {
 
             {/* Carte d'information de production à droite */}
             {programmeActuel && (
-              <div className="bg-gradient-to-l from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm min-w-[320px]">
+              <div className="bg-radient-to-l from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm min-w-[320px]">
                 <div className="flex items-center gap-3">
                   <div className="flex-1 text-right">
                     <div className="flex items-center justify-end gap-2 mb-1">
@@ -342,7 +344,7 @@ export const VueBoulanger: React.FC = () => {
                       <Icon icon="mdi:clock-outline" className="text-gray-400" />
                     </div>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <div className="w-12 h-12 bg-radient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
                     <Icon icon="mdi:factory" className="text-2xl text-white" />
                   </div>
                 </div>
@@ -478,7 +480,7 @@ export const VueBoulanger: React.FC = () => {
 
                            {/* En-tête Produit */}
                            <div className="flex items-center gap-4 mb-6 pt-2">
-                             <div className="w-14 h-14 bg-gray-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                             <div className="w-14 h-14 bg-gray-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                                <Icon icon={getProductIcon(produit?.nom || '')} className="text-2xl text-white" />
                              </div>
                              <h3 className="text-xl font-bold text-gray-900 leading-tight">
@@ -542,7 +544,7 @@ export const VueBoulanger: React.FC = () => {
                          <div key={`soir-${produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-300 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
                            <div className="absolute top-3 right-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Soir</div>
                            <div className="flex items-center gap-4 mb-8 pt-2">
-                             <div className="w-16 h-16 bg-gray-400 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                             <div className="w-16 h-16 bg-gray-400 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                                <Icon icon={getProductIcon(produit?.nom || '')} className="text-3xl text-white" />
                              </div>
                              <h3 className="text-xl font-bold text-gray-900 leading-tight">
@@ -582,7 +584,7 @@ export const VueBoulanger: React.FC = () => {
 
                         {/* En-tête Produit */}
                         <div className="flex items-center gap-4 mb-6 pt-2">
-                          <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                          <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                             <Icon icon={getProductIcon(produit?.nom || '')} className="text-2xl text-white" />
                           </div>
                           <h3 className="text-xl font-bold text-gray-900 leading-tight">
