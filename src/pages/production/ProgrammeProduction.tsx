@@ -29,7 +29,6 @@ export const ProgrammeProduction: React.FC = () => {
     quantiteBoutiqueEnEdition,
     formulaireCommande,
     creerNouveauProgramme,
-    chargerProgramme,
     chargerProgrammeAvecListener,
     nettoyerListeners,
     sauvegarderProgramme,
