@@ -30,6 +30,8 @@ export const ProgrammeProduction: React.FC = () => {
     formulaireCommande,
     creerNouveauProgramme,
     chargerProgramme,
+    chargerProgrammeAvecListener,
+    nettoyerListeners,
     sauvegarderProgramme,
     envoyerAuBoulanger,
     ajouterCommandeClient,
@@ -79,9 +81,9 @@ export const ProgrammeProduction: React.FC = () => {
         await chargerProduits();
         await chargerClients();
 
-        // Charger ou créer le programme pour la date sélectionnée
+        // Configurer listener temps réel pour la date sélectionnée
         const dateSelectionneeObj = new Date(dateSelectionnee);
-        await chargerProgramme(dateSelectionneeObj);
+        chargerProgrammeAvecListener(dateSelectionneeObj);
       } catch (error) {
         console.error('Erreur lors de l\'initialisation:', error);
         // En cas d'erreur, créer un programme vide
@@ -91,7 +93,12 @@ export const ProgrammeProduction: React.FC = () => {
     };
 
     initialiser();
-  }, [dateSelectionnee, chargerProduits, chargerClients, chargerProgramme, creerNouveauProgramme]);
+
+    // Nettoyer les listeners quand le composant se démonte ou la date change
+    return () => {
+      nettoyerListeners();
+    };
+  }, [dateSelectionnee, chargerProduits, chargerClients, chargerProgrammeAvecListener, creerNouveauProgramme, nettoyerListeners]);
 
   // Rafraîchir les données quand le composant redevient visible
   useEffect(() => {
@@ -106,14 +113,9 @@ export const ProgrammeProduction: React.FC = () => {
   }, [rafraichirDonnees]);
 
   // Fonction pour changer de date
-  const handleDateChange = async (nouvelleDate: string) => {
+  const handleDateChange = (nouvelleDate: string) => {
     setDateSelectionnee(nouvelleDate);
-    try {
-      const dateObj = new Date(nouvelleDate);
-      await chargerProgramme(dateObj);
-    } catch (error) {
-      console.error('Erreur lors du changement de date:', error);
-    }
+    // Le listener sera automatiquement mis à jour par le useEffect
   };
 
   // Fonctions de gestion des commandes

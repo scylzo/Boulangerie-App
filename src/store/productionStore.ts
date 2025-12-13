@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { useStockStore } from './stockStore';
 import type { ProgrammeProduction, CommandeClient, QuantiteBoutique, Produit, Client } from '../types';
-import { firestoreService, businessQueries, dateToTimestamp, timestampToDate } from '../firebase/collections';
+import { firestoreService, businessQueries, realTimeListeners, dateToTimestamp, timestampToDate } from '../firebase/collections';
 import type { Timestamp } from 'firebase/firestore';
 
 interface ProductionStore {
@@ -12,6 +12,9 @@ interface ProductionStore {
   produits: Produit[];
   clients: Client[];
   isLoading: boolean;
+
+  // Listener unsubscribe functions
+  programListener: (() => void) | null;
 
   // État des formulaires (pour éviter la perte lors des changements d'onglet)
   showCommandeForm: boolean;
@@ -39,11 +42,13 @@ interface ProductionStore {
   // Actions Programme
   creerNouveauProgramme: (date: Date) => void;
   chargerProgramme: (date: Date) => Promise<void>;
+  chargerProgrammeAvecListener: (date: Date) => void; // Nouvelle méthode avec listener temps réel
   sauvegarderProgramme: () => Promise<void>;
   sauvegarderEtRecharger: () => Promise<void>; // Sauvegarde + rechargement pour éviter les conflits
   envoyerAuBoulanger: () => Promise<void>;
   validerProduction: () => Promise<void>; // Action pour déduire les stocks
   marquerCommeModifie: () => void; // Marquer le programme comme modifié après envoi
+  nettoyerListeners: () => void; // Nettoyer les listeners
 
   // Actions Commandes Clients
   ajouterCommandeClient: (commande: Omit<CommandeClient, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -95,6 +100,9 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   produits: [],
   clients: [],
   isLoading: false,
+
+  // Listeners
+  programListener: null,
 
   // État des formulaires
   showCommandeForm: false,
@@ -200,6 +208,90 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       console.error('Erreur lors du chargement du programme:', error);
       set({ isLoading: false });
       throw error;
+    }
+  },
+
+  chargerProgrammeAvecListener: (date: Date) => {
+    console.log('📡 Configuration listener temps réel pour:', date);
+
+    // Nettoyer le listener précédent s'il existe
+    const { programListener } = get();
+    if (programListener) {
+      programListener();
+    }
+
+    set({ isLoading: true });
+
+    // Configurer le nouveau listener
+    const unsubscribe = realTimeListeners.subscribeToProgram(date, (programmes) => {
+      console.log('🔄 Mise à jour temps réel - programmes reçus:', programmes.length);
+
+      if (programmes.length > 0) {
+        console.log('✅ Programme existant trouvé via listener, chargement...');
+        const programme = programmes[0] as any;
+
+        // Convertir les timestamps en dates
+        const programmeConverti: ProgrammeProduction = {
+          ...programme,
+          dateProduction: programme.dateProduction instanceof Date ? programme.dateProduction : timestampToDate(programme.dateProduction as Timestamp),
+          dateCreation: programme.dateCreation instanceof Date ? programme.dateCreation : timestampToDate(programme.dateCreation as Timestamp),
+          createdAt: programme.createdAt instanceof Date ? programme.createdAt : timestampToDate(programme.createdAt as Timestamp),
+          updatedAt: programme.updatedAt instanceof Date ? programme.updatedAt : timestampToDate(programme.updatedAt as Timestamp),
+          // Convertir les dates dans les commandes clients
+          commandesClients: (programme.commandesClients || []).map((cmd: any) => ({
+            ...cmd,
+            dateCommande: cmd.dateCommande instanceof Date ? cmd.dateCommande : timestampToDate(cmd.dateCommande as Timestamp),
+            dateLivraison: cmd.dateLivraison instanceof Date ? cmd.dateLivraison : timestampToDate(cmd.dateLivraison as Timestamp),
+            createdAt: cmd.createdAt instanceof Date ? cmd.createdAt : timestampToDate(cmd.createdAt as Timestamp),
+            updatedAt: cmd.updatedAt instanceof Date ? cmd.updatedAt : timestampToDate(cmd.updatedAt as Timestamp),
+          })),
+        };
+
+        set({
+          programmeActuel: programmeConverti,
+          commandesClients: programmeConverti.commandesClients || [],
+          quantitesBoutique: programmeConverti.quantitesBoutique || [],
+          isLoading: false
+        });
+
+        console.log('🔄 Programme synchronisé avec', programmeConverti.commandesClients?.length || 0, 'commandes');
+      } else {
+        // Aucun programme trouvé, créer un nouveau programme
+        console.log('❌ Aucun programme trouvé via listener, création automatique...');
+
+        const nouveauProgramme: ProgrammeProduction = {
+          id: `prog_${Date.now()}`,
+          dateProduction: date,
+          dateCreation: new Date(),
+          statut: 'brouillon',
+          commandesClients: [],
+          quantitesBoutique: [],
+          totauxParProduit: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        set({
+          programmeActuel: nouveauProgramme,
+          commandesClients: [],
+          quantitesBoutique: [],
+          isLoading: false
+        });
+
+        console.log('✨ Nouveau programme créé automatiquement via listener pour', date.toLocaleDateString('fr-FR'));
+      }
+    });
+
+    // Stocker la fonction de nettoyage
+    set({ programListener: unsubscribe });
+  },
+
+  nettoyerListeners: () => {
+    const { programListener } = get();
+    if (programListener) {
+      programListener();
+      set({ programListener: null });
+      console.log('🧹 Listeners nettoyés');
     }
   },
 

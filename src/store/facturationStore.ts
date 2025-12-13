@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { collection, updateDoc, doc, setDoc, deleteDoc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { realTimeListeners } from '../firebase/collections';
 import { db } from '../firebase/config';
 import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient } from '../types';
 
@@ -11,9 +12,13 @@ interface FacturationStore {
   parametres: ParametresFacturation | null;
   isLoading: boolean;
 
+  // Listener unsubscribe functions
+  facturesListener: (() => void) | null;
+
   // Actions Factures
   genererFacturesDepuisLivraisons: (date: Date, commandesClients: CommandeClient[], retoursClients: InvendusClient[]) => Promise<void>;
   chargerFactures: (dateDebut?: Date, dateFin?: Date) => Promise<void>;
+  chargerFacturesAvecListener: (dateDebut?: Date, dateFin?: Date) => void;
   chargerFacture: (factureId: string) => Promise<void>;
   validerFacture: (factureId: string) => Promise<void>;
   envoyerFacture: (factureId: string) => Promise<void>;
@@ -31,6 +36,7 @@ interface FacturationStore {
   calculerTotauxFacture: (lignes: LigneFacture[], tauxTVA: number) => { totalHT: number; montantTVA: number; totalTTC: number };
   genererNumeroFacture: (date: Date) => string;
   verifierRetoursCompletes: (clientId: string, date: Date, retoursClients: InvendusClient[]) => boolean;
+  nettoyerListeners: () => void;
 
   // Setters
   setLoading: (loading: boolean) => void;
@@ -43,6 +49,9 @@ export const useFacturationStore = create<FacturationStore>((set, get) => ({
   factureActive: null,
   parametres: null,
   isLoading: false,
+
+  // Listeners
+  facturesListener: null,
 
   // Actions Factures
   genererFacturesDepuisLivraisons: async (date: Date, commandesClients: CommandeClient[], retoursClients: InvendusClient[]) => {
@@ -347,6 +356,30 @@ export const useFacturationStore = create<FacturationStore>((set, get) => ({
       console.error('❌ Erreur lors du chargement des factures:', error);
       throw error;
     }
+  },
+
+  chargerFacturesAvecListener: (dateDebut?: Date, dateFin?: Date) => {
+    console.log('📡 Configuration listener temps réel pour factures');
+
+    // Nettoyer le listener précédent s'il existe
+    const { facturesListener } = get();
+    if (facturesListener) {
+      facturesListener();
+    }
+
+    set({ isLoading: true });
+
+    // Configurer le nouveau listener
+    const unsubscribe = realTimeListeners.subscribeToFactures((factures) => {
+      console.log('🔄 Mise à jour temps réel - factures reçues:', factures.length);
+      set({
+        factures,
+        isLoading: false
+      });
+    }, dateDebut, dateFin);
+
+    // Stocker la fonction de nettoyage
+    set({ facturesListener: unsubscribe });
   },
 
   chargerFacture: async (factureId: string) => {
@@ -683,6 +716,15 @@ export const useFacturationStore = create<FacturationStore>((set, get) => ({
     } catch (error) {
       console.error('❌ Erreur lors de la modification du taux TVA:', error);
       throw error;
+    }
+  },
+
+  nettoyerListeners: () => {
+    const { facturesListener } = get();
+    if (facturesListener) {
+      facturesListener();
+      set({ facturesListener: null });
+      console.log('🧹 Listeners factures nettoyés');
     }
   },
 }));

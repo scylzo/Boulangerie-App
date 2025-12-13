@@ -9,6 +9,7 @@ import {
   query,
   where,
   orderBy,
+  onSnapshot,
   Timestamp
 } from 'firebase/firestore';
 import { db } from './config';
@@ -105,8 +106,8 @@ export const businessQueries = {
     dateEnd.setHours(23, 59, 59, 999);
 
     return await firestoreService.getByQuery('productionPrograms', [
-      where('date', '>=', dateToTimestamp(dateStart)),
-      where('date', '<=', dateToTimestamp(dateEnd))
+      where('dateProduction', '>=', dateToTimestamp(dateStart)),
+      where('dateProduction', '<=', dateToTimestamp(dateEnd))
     ]);
   },
 
@@ -163,5 +164,91 @@ export const businessQueries = {
       where('active', '==', true),
       orderBy('nom')
     ]);
+  }
+};
+
+// Fonctions de listener en temps réel
+export const realTimeListeners = {
+  // Listener pour les programmes de production par date
+  subscribeToProgram(date: Date, callback: (programs: any[]) => void) {
+    const dateStart = new Date(date);
+    dateStart.setHours(0, 0, 0, 0);
+    const dateEnd = new Date(date);
+    dateEnd.setHours(23, 59, 59, 999);
+
+    const q = query(
+      collectionsRef.productionPrograms,
+      where('dateProduction', '>=', dateToTimestamp(dateStart)),
+      where('dateProduction', '<=', dateToTimestamp(dateEnd))
+    );
+
+    return onSnapshot(q, (querySnapshot) => {
+      const programs = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      callback(programs);
+    }, (error) => {
+      console.error('❌ Erreur listener programme:', error);
+    });
+  },
+
+  // Listener pour les factures
+  subscribeToFactures(callback: (factures: any[]) => void, dateDebut?: Date, dateFin?: Date) {
+    let q;
+
+    if (dateDebut && dateFin) {
+      q = query(
+        collectionsRef.factures,
+        where('dateLivraison', '>=', dateToTimestamp(dateDebut)),
+        where('dateLivraison', '<=', dateToTimestamp(dateFin)),
+        orderBy('dateLivraison', 'desc')
+      );
+    } else {
+      q = query(
+        collectionsRef.factures,
+        orderBy('dateFacture', 'desc')
+      );
+    }
+
+    return onSnapshot(q, (querySnapshot) => {
+      const factures = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          dateLivraison: timestampToDate(data.dateLivraison as Timestamp),
+          dateFacture: timestampToDate(data.dateFacture as Timestamp),
+          createdAt: timestampToDate(data.createdAt as Timestamp),
+          updatedAt: timestampToDate(data.updatedAt as Timestamp),
+          validatedAt: data.validatedAt ? timestampToDate(data.validatedAt as Timestamp) : undefined,
+          paidAt: data.paidAt ? timestampToDate(data.paidAt as Timestamp) : undefined,
+        };
+      });
+      callback(factures);
+    }, (error) => {
+      console.error('❌ Erreur listener factures:', error);
+    });
+  },
+
+  // Listener générique pour une collection
+  subscribeToCollection<T>(
+    collectionName: keyof typeof collectionsRef,
+    callback: (data: T[]) => void,
+    constraints: any[] = []
+  ) {
+    const q = constraints.length > 0
+      ? query(collectionsRef[collectionName], ...constraints)
+      : collectionsRef[collectionName];
+
+    return onSnapshot(q, (querySnapshot) => {
+      const data = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as T));
+      callback(data);
+    }, (error) => {
+      console.error(`❌ Erreur listener ${collectionName}:`, error);
+    });
   }
 };
