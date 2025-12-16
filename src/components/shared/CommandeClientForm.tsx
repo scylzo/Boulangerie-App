@@ -110,7 +110,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
     } else {
       // Reset pour un nouveau formulaire
       setSelectedClientId('');
-      setDateLivraison(new Date().toISOString().split('T')[0]);
+      setDateLivraison(formulaireState?.dateLivraison || new Date().toISOString().split('T')[0]);
       setProduitsCommandes([]);
     }
   }, [commande]);

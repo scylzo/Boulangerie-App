@@ -121,15 +121,13 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   // Actions Programme
 
   creerNouveauProgramme: (date: Date) => {
-    // La date passée est la date de création (veille au soir)
-    // La date de production est le lendemain
+    // La date passée EST la date de production
     const dateProduction = new Date(date);
-    dateProduction.setDate(dateProduction.getDate() + 1);
 
     const nouveauProgramme: ProgrammeProduction = {
       id: `prog_${Date.now()}`,
       dateProduction: dateProduction,
-      dateCreation: date, // Date réelle de création
+      dateCreation: new Date(), // Date réelle de création (maintenant)
       statut: 'brouillon',
       commandesClients: [],
       quantitesBoutique: [],
@@ -185,18 +183,16 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         });
         console.log('📋 Programme chargé avec', programmeConverti.commandesClients?.length || 0, 'commandes');
       } else {
-        // Aucun programme trouvé, créer un nouveau programme automatiquement
+        // Aucun programme trouvé, créer un nouveau programme automatiquement pour cette date
         console.log('❌ Aucun programme trouvé, création automatique...');
 
-        // La date passée est la date de création (veille au soir)
-        // La date de production est le lendemain
+        // La date passée EST la date de production
         const dateProduction = new Date(date);
-        dateProduction.setDate(dateProduction.getDate() + 1);
 
         const nouveauProgramme: ProgrammeProduction = {
           id: `prog_${Date.now()}`,
           dateProduction: dateProduction,
-          dateCreation: date, // Date réelle de création
+          dateCreation: new Date(), // Date réelle de création (maintenant)
           statut: 'brouillon',
           commandesClients: [],
           quantitesBoutique: [],
@@ -269,15 +265,13 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         // Aucun programme trouvé, créer un nouveau programme
         console.log('❌ Aucun programme trouvé via listener, création automatique...');
 
-        // La date passée est la date de création (veille au soir)
-        // La date de production est le lendemain
+        // La date passée EST la date de production
         const dateProduction = new Date(date);
-        dateProduction.setDate(dateProduction.getDate() + 1);
 
         const nouveauProgramme: ProgrammeProduction = {
           id: `prog_${Date.now()}`,
           dateProduction: dateProduction,
-          dateCreation: date, // Date réelle de création
+          dateCreation: new Date(), // Date réelle de création (maintenant)
           statut: 'brouillon',
           commandesClients: [],
           quantitesBoutique: [],
@@ -941,7 +935,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     console.log('=== DEBUG TOTAUX ===');
     console.log('📦 Commandes clients:', commandesClients.length);
     commandesClients.forEach((cmd, i) => {
-      console.log(`  Commande ${i+1}:`, cmd.produits.map(p => ({
+      console.log(`  Commande ${i + 1}:`, cmd.produits.map(p => ({
         produit: p.produit?.nom,
         quantite: p.quantiteCommandee,
         repartition: p.repartitionCars
@@ -950,7 +944,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
     console.log('🏪 Quantités boutique:', quantitesBoutique.length);
     quantitesBoutique.forEach((qb, i) => {
-      console.log(`  Boutique ${i+1}:`, {
+      console.log(`  Boutique ${i + 1}:`, {
         produit: qb.produit?.nom,
         quantite: qb.quantite,
         repartition: qb.repartitionCars

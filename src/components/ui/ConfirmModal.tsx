@@ -7,7 +7,7 @@ interface ConfirmModalProps {
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   type?: 'info' | 'warning' | 'danger' | 'success';
@@ -71,7 +71,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <Icon icon={config.icon} className={`text-3xl ${config.iconColor}`} />
           </div>
           <div className="flex-1">
-            <div className="text-gray-700 whitespace-pre-line">
+            <div className="text-gray-700">
               {message}
             </div>
           </div>

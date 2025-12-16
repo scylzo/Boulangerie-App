@@ -134,13 +134,20 @@ export const ProgrammeProduction: React.FC = () => {
         // Créer une nouvelle commande pour ce client
         setCommandeEnEdition(null);
         setModeFormulaire('create');
-        // Pré-remplir le client dans le formulaire
-        updateFormulaireCommande({ selectedClientId: clientId });
+        // Pré-remplir le client et la date dans le formulaire
+        updateFormulaireCommande({
+          selectedClientId: clientId,
+          dateLivraison: dateSelectionnee
+        });
       }
     } else {
       // Mode création normale
       setCommandeEnEdition(null);
       setModeFormulaire('create');
+      // Pré-remplir la date
+      updateFormulaireCommande({
+        dateLivraison: dateSelectionnee
+      });
     }
     setShowCommandeForm(true);
   };
@@ -369,7 +376,33 @@ export const ProgrammeProduction: React.FC = () => {
     } else {
       const confirmation = await confirmModal.confirm({
         title: 'Confirmer l\'envoi',
-        message: `📤 Êtes-vous sûr de vouloir envoyer ce programme au boulanger ?\n\n📋 ${commandesValides.length} commande(s) client(s)\n📦 ${programmeActuel.totauxParProduit.length} produit(s) différent(s)\n🏪 ${quantitesBoutique.length} produit(s) pour la boutique\n\n⚠️ Une fois envoyé, le programme ne pourra plus être modifié.`,
+        message: (
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Êtes-vous sûr de vouloir envoyer ce programme au boulanger ?
+            </p>
+            
+            <div className="bg-blue-50/50 rounded-lg p-3 space-y-2 border border-blue-100">
+              <div className="flex items-center gap-2 text-gray-700">
+                <Icon icon="mdi:script-text-outline" className="text-blue-500" />
+                <span className="font-medium text-sm">{commandesValides.length} commandes clients</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <Icon icon="mdi:bread" className="text-orange-500" />
+                <span className="font-medium text-sm">{programmeActuel.totauxParProduit.length} types de produits</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <Icon icon="mdi:store" className="text-purple-500" />
+                <span className="font-medium text-sm">{quantitesBoutique.length} produits boutique</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500 flex items-start gap-1.5 bg-gray-50 p-2 rounded">
+              <Icon icon="mdi:information-outline" className="text-blue-500 mt-0.5" />
+              <span>Vous pourrez toujours modifier le programme et le renvoyer si nécessaire.</span>
+            </p>
+          </div>
+        ),
         confirmText: 'Envoyer au Boulanger',
         cancelText: 'Annuler',
         type: 'info'
@@ -424,94 +457,81 @@ export const ProgrammeProduction: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleSauvegarderProgramme}
-              disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              <Icon icon="mdi:content-save" className="text-lg" />
-              <span className="font-medium">Sauvegarder</span>
-            </button>
-
-            {/* Section Actions Programme avec statuts améliorés */}
-            <div className="relative">
-              <div className="flex flex-col sm:flex-row gap-3">
-                {/* Indicateur de statut */}
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border">
-                  <Icon
-                    icon={
-                      programmeActuel?.statut === 'brouillon' ? "mdi:file-document-edit" :
-                      programmeActuel?.statut === 'modifie' ? "mdi:file-document-alert" :
-                      programmeActuel?.statut === 'envoye' ? "mdi:send-check" :
-                      "mdi:factory"
-                    }
-                    className={`text-lg ${
-                      programmeActuel?.statut === 'brouillon' ? 'text-gray-500' :
-                      programmeActuel?.statut === 'modifie' ? 'text-orange-500' :
-                      programmeActuel?.statut === 'envoye' ? 'text-blue-500' :
-                      'text-green-500'
-                    }`}
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    {programmeActuel?.statut === 'brouillon' && 'Brouillon'}
-                    {programmeActuel?.statut === 'modifie' && 'Modifié (à renvoyer)'}
-                    {programmeActuel?.statut === 'envoye' && 'Envoyé au boulanger'}
-                    {programmeActuel?.statut === 'produit' && 'Production terminée'}
-                  </span>
-                </div>
-
-                {/* Boutons d'action selon le statut */}
-                <div className="flex gap-2">
-                  {/* Bouton Envoyer/Renvoyer */}
-                  {(programmeActuel?.statut === 'brouillon' || programmeActuel?.statut === 'modifie') && (
-                    <button
-                      onClick={handleEnvoyerAuBoulanger}
-                      disabled={!programmeActuel || isLoading}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
-                    >
-                      <Icon icon="mdi:send" className="text-lg" />
-                      <span className="font-medium">
-                        {programmeActuel?.statut === 'modifie' ? 'Renvoyer au Boulanger' : 'Envoyer au Boulanger'}
-                      </span>
-                    </button>
-                  )}
-
-                  {/* Bouton Valider Production */}
-                  {(programmeActuel?.statut === 'envoye' || programmeActuel?.statut === 'modifie') && (
-                    <button
-                      onClick={handleValiderProduction}
-                      disabled={isLoading}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
-                    >
-                      <Icon icon="mdi:factory" className="text-lg" />
-                      <span className="font-medium">Valider Production</span>
-                    </button>
-                  )}
-
-                  {/* Indicateur si production terminée */}
-                  {programmeActuel?.statut === 'produit' && (
-                    <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
-                      <Icon icon="mdi:check-circle" className="text-lg" />
-                      <span className="font-medium">Production terminée</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Modal de confirmation positionné près du bouton */}
-              <ConfirmModal
-                isOpen={confirmModal.isOpen}
-                onClose={confirmModal.handleCancel}
-                onConfirm={confirmModal.handleConfirm}
-                title={confirmModal.title}
-                message={confirmModal.message}
-                confirmText={confirmModal.confirmText}
-                cancelText={confirmModal.cancelText}
-                type={confirmModal.type}
-                position="relative"
+          <div className="flex items-center gap-4">
+            {/* Indicateur de statut visible */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium ${
+              programmeActuel?.statut === 'brouillon' ? 'bg-gray-100 text-gray-600 border-gray-200' :
+              programmeActuel?.statut === 'modifie' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+              programmeActuel?.statut === 'envoye' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+              'bg-green-50 text-green-700 border-green-200'
+            }`}>
+              <Icon
+                icon={
+                  programmeActuel?.statut === 'brouillon' ? "mdi:file-document-edit" :
+                  programmeActuel?.statut === 'modifie' ? "mdi:file-document-alert" :
+                  programmeActuel?.statut === 'envoye' ? "mdi:send-check" :
+                  "mdi:factory"
+                }
+                className="text-lg"
               />
+              <span>
+                {programmeActuel?.statut === 'brouillon' && 'Brouillon'}
+                {programmeActuel?.statut === 'modifie' && 'Modifié'}
+                {programmeActuel?.statut === 'envoye' && 'Envoyé'}
+                {programmeActuel?.statut === 'produit' && 'Terminé'}
+              </span>
             </div>
+
+            <div className="h-8 w-px bg-gray-200 mx-2 hidden sm:block"></div>
+
+            {/* Actions Toolbar */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSauvegarderProgramme}
+                disabled={isLoading}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
+              >
+                <Icon icon="mdi:content-save" className="text-lg" />
+                <span className="hidden sm:inline font-medium">Sauvegarder</span>
+              </button>
+
+              {/* Bouton Envoyer/Renvoyer */}
+              {(programmeActuel?.statut === 'brouillon' || programmeActuel?.statut === 'modifie') && (
+                <button
+                  onClick={handleEnvoyerAuBoulanger}
+                  disabled={!programmeActuel || isLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                >
+                  <Icon icon="mdi:send" className="text-lg" />
+                  <span className="font-medium">
+                    {programmeActuel?.statut === 'modifie' ? 'Renvoyer' : 'Envoyer'}
+                  </span>
+                </button>
+              )}
+
+              {/* Bouton Valider Production */}
+              {(programmeActuel?.statut === 'envoye' || programmeActuel?.statut === 'modifie') && (
+                <button
+                  onClick={handleValiderProduction}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
+                >
+                  <Icon icon="mdi:factory" className="text-lg" />
+                  <span className="font-medium">Valider</span>
+                </button>
+              )}
+            </div>
+
+            <ConfirmModal
+              isOpen={confirmModal.isOpen}
+              onClose={confirmModal.handleCancel}
+              onConfirm={confirmModal.handleConfirm}
+              title={confirmModal.title}
+              message={confirmModal.message}
+              confirmText={confirmModal.confirmText}
+              cancelText={confirmModal.cancelText}
+              type={confirmModal.type}
+            />
           </div>
         </div>
       </div>
@@ -550,7 +570,7 @@ export const ProgrammeProduction: React.FC = () => {
                   <div className="text-lg font-bold text-gray-900">
                     {(() => {
                       const dateProduction = new Date(dateSelectionnee);
-                      dateProduction.setDate(dateProduction.getDate() + 1); // Lendemain
+                      // La date de production EST la date sélectionnée
                       return dateProduction.toLocaleDateString('fr-FR', {
                         weekday: 'long',
                         day: 'numeric',

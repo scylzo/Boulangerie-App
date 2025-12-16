@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useProductionStore } from '../../store';
 import { htmlPrintService } from '../../services/htmlPrintService';
@@ -106,6 +106,7 @@ const printStyles = `
 
 export const VueBoulanger: React.FC = () => {
   const { programmeActuel, chargerProgramme, produits } = useProductionStore();
+  const [dateSelectionnee, setDateSelectionnee] = useState(new Date().toISOString().split('T')[0]);
 
   // Calculer les répartitions clients uniquement (sans boutique)
   const calculerRepartitionsClients = () => {
@@ -167,10 +168,10 @@ export const VueBoulanger: React.FC = () => {
   };
 
   useEffect(() => {
-    // Charger le programme du jour
-    const aujourd_hui = new Date();
-    chargerProgramme(aujourd_hui);
-  }, [chargerProgramme]);
+    // Charger le programme pour la date sélectionnée
+    const dateObj = new Date(dateSelectionnee);
+    chargerProgramme(dateObj);
+  }, [chargerProgramme, dateSelectionnee]);
 
   // Injecter les styles d'impression
   useEffect(() => {
@@ -208,28 +209,13 @@ export const VueBoulanger: React.FC = () => {
           <div className="flex justify-between items-center text-sm">
             <span>
               Production: {programmeActuel ? (() => {
-                // Correction pour les anciens programmes
-                const dateCreation = programmeActuel.dateCreation;
                 const dateProduction = programmeActuel.dateProduction;
-                const sameDay = dateCreation.toDateString() === dateProduction.toDateString();
-
-                if (sameDay) {
-                  const correctedDate = new Date(dateProduction);
-                  correctedDate.setDate(correctedDate.getDate() + 1);
-                  return correctedDate.toLocaleDateString('fr-FR', {
+                return dateProduction.toLocaleDateString('fr-FR', {
                     weekday: 'long',
                     day: 'numeric',
                     month: 'long',
                     year: 'numeric'
                   });
-                } else {
-                  return dateProduction.toLocaleDateString('fr-FR', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                  });
-                }
               })() : new Date().toLocaleDateString('fr-FR')}
             </span>
             <span>Statut: {programmeActuel?.statut === 'envoye' ? '✅ Confirmé' : '⏳ En attente'}</span>
@@ -260,6 +246,17 @@ export const VueBoulanger: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {/* Date Picker Helper */}
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                <Icon icon="mdi:calendar" className="text-gray-500" />
+                <input
+                    type="date"
+                    value={dateSelectionnee}
+                    onChange={(e) => setDateSelectionnee(e.target.value)}
+                    className="bg-transparent border-none text-sm text-gray-700 font-medium focus:ring-0 cursor-pointer outline-none"
+                />
+            </div>
+
             {/* Bouton d'impression HTML */}
             {programmeActuel && (
               <button
@@ -311,24 +308,7 @@ export const VueBoulanger: React.FC = () => {
                     </div>
                     <div className="text-lg font-bold text-gray-900">
                       {(() => {
-                        // Vérifier si dateProduction est la même que dateCreation (ancien système)
-                        const dateCreation = programmeActuel.dateCreation;
-                        const dateProduction = programmeActuel.dateProduction;
-
-                        // Si les dates sont identiques (même jour), c'est un ancien programme
-                        const sameDay = dateCreation.toDateString() === dateProduction.toDateString();
-
-                        if (sameDay) {
-                          // Corriger en ajoutant 1 jour à la date de production
-                          const correctedDate = new Date(dateProduction);
-                          correctedDate.setDate(correctedDate.getDate() + 1);
-                          return correctedDate.toLocaleDateString('fr-FR', {
-                            weekday: 'long',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          });
-                        } else {
+                          const dateProduction = programmeActuel.dateProduction;
                           // Nouvelle logique, afficher dateProduction telle quelle
                           return dateProduction.toLocaleDateString('fr-FR', {
                             weekday: 'long',
@@ -336,7 +316,6 @@ export const VueBoulanger: React.FC = () => {
                             month: 'long',
                             year: 'numeric'
                           });
-                        }
                       })()}
                     </div>
                     <div className="flex items-center justify-end gap-1 mt-1 text-xs text-gray-600">
@@ -369,8 +348,8 @@ export const VueBoulanger: React.FC = () => {
             </p>
             <button 
               onClick={() => {
-                const aujourd_hui = new Date();
-                chargerProgramme(aujourd_hui);
+                const dateObj = new Date(dateSelectionnee);
+                chargerProgramme(dateObj);
               }}
               className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >

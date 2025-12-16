@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { dateToTimestamp } from '../firebase/collections';
 import type { StockBoutique, EquipeBoutique, VentesBoutique, Produit } from '../types';
 
 interface BoutiqueStore {
@@ -75,13 +76,17 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
   chargerStockJour: async (date: Date) => {
     set({ isLoading: true });
     try {
-      const dateStr = date.toISOString().split('T')[0];
-      console.log('Recherche stock pour date:', dateStr);
+      const dateStart = new Date(date);
+      dateStart.setHours(0, 0, 0, 0);
+      const dateEnd = new Date(date);
+      dateEnd.setHours(23, 59, 59, 999);
+
+      console.log('Recherche stock pour date (local):', dateStart.toLocaleString());
 
       const stockQuery = query(
         collection(db, 'shopStock'),
-        where('date', '>=', new Date(dateStr)),
-        where('date', '<', new Date(new Date(dateStr).getTime() + 24 * 60 * 60 * 1000))
+        where('date', '>=', dateToTimestamp(dateStart)),
+        where('date', '<=', dateToTimestamp(dateEnd))
       );
 
       const stockSnapshot = await getDocs(stockQuery);
@@ -117,19 +122,18 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     set({ isLoading: true });
     try {
       // Récupérer le programme de production du jour
-      const dateStr = date.toISOString().split('T')[0];
-      console.log('Recherche programme pour date:', dateStr);
+      // Utiliser les bornes locales pour correspondre à la création du programme
+      const dateStart = new Date(date);
+      dateStart.setHours(0, 0, 0, 0);
+      const dateEnd = new Date(date);
+      dateEnd.setHours(23, 59, 59, 999);
 
-      // Créer les bornes de date correctement
-      const startDate = new Date(dateStr + 'T00:00:00.000Z');
-      const endDate = new Date(dateStr + 'T23:59:59.999Z');
-
-      console.log('Plage de recherche:', startDate, 'à', endDate);
+      console.log('Plage de recherche production:', dateStart.toLocaleString(), 'à', dateEnd.toLocaleString());
 
       const programmeQuery = query(
         collection(db, 'productionPrograms'),
-        where('date', '>=', startDate),
-        where('date', '<=', endDate)
+        where('dateProduction', '>=', dateToTimestamp(dateStart)),
+        where('dateProduction', '<=', dateToTimestamp(dateEnd))
       );
 
       const programmeSnapshot = await getDocs(programmeQuery);
@@ -187,7 +191,7 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
           produit: produit || { nom: 'Produit inconnu' },
           repartitionCars: qte.repartitionCars || null
         };
-      }).filter((p: any) => p.stockDebut > 0 && p.repartitionCars !== null); // Filtrer les anciennes données
+      }).filter((p: any) => p.stockDebut > 0);
 
       console.log('Stock produits final:', stockProduits);
 
@@ -216,8 +220,8 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
           // Trouver et supprimer l'ancien stock
           const oldStockQuery = query(
             collection(db, 'shopStock'),
-            where('date', '>=', startDate),
-            where('date', '<=', endDate)
+            where('date', '>=', dateToTimestamp(dateStart)),
+            where('date', '<=', dateToTimestamp(dateEnd))
           );
           const oldStockSnapshot = await getDocs(oldStockQuery);
           for (const doc of oldStockSnapshot.docs) {
