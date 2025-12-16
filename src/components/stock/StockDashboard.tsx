@@ -1,5 +1,5 @@
 import React from 'react';
-import { collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useStockStore } from '../../store/stockStore';
 import { useFacturationStore } from '../../store/facturationStore';
@@ -94,42 +94,7 @@ export const StockDashboard: React.FC = () => {
     });
   }, [totalVentes, coutMatieresConsommees, margeBrute, factures, ventesFactures, ventesBoutiqueTotal]);
 
-  // Fonction de nettoyage pour supprimer les données parasites
-  const nettoyerDonnees = async () => {
-    if (!confirm('⚠️ Voulez-vous vraiment nettoyer toutes les données de ventes et factures ? Cette action est irréversible.')) {
-      return;
-    }
 
-    try {
-      // 1. Supprimer toutes les factures
-      const facturesQuery = query(collection(db, 'factures'));
-      const facturesSnapshot = await getDocs(facturesQuery);
-
-      console.log(`🧹 Suppression de ${facturesSnapshot.docs.length} factures...`);
-      for (const doc of facturesSnapshot.docs) {
-        await deleteDoc(doc.ref);
-      }
-
-      // 2. Supprimer toutes les ventes boutique
-      const ventesQuery = query(collection(db, 'shopSales'));
-      const ventesSnapshot = await getDocs(ventesQuery);
-
-      console.log(`🧹 Suppression de ${ventesSnapshot.docs.length} ventes boutique...`);
-      for (const doc of ventesSnapshot.docs) {
-        await deleteDoc(doc.ref);
-      }
-
-      // 3. Recharger les données
-      await chargerFactures(startOfMonth, endOfMonth);
-      setVentesBoutiqueTotal(0);
-
-      alert('✅ Nettoyage terminé ! Toutes les données de ventes ont été supprimées.');
-
-    } catch (error) {
-      console.error('❌ Erreur lors du nettoyage:', error);
-      alert('❌ Erreur lors du nettoyage des données.');
-    }
-  };
 
   return (
     <>
@@ -205,26 +170,7 @@ export const StockDashboard: React.FC = () => {
       </div>
     </div>
 
-    {/* Bouton de nettoyage temporaire */}
-    {(margeBrute !== 0 || totalVentes !== 0 || coutMatieresConsommees !== 0) && (
-      <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-sm font-medium text-red-800">🧹 Nettoyage des données</h4>
-            <p className="text-xs text-red-600">
-              Des données parasites affectent le calcul de la marge brute.
-              Vous pouvez les supprimer si elles ne correspondent pas à de vraies ventes.
-            </p>
-          </div>
-          <button
-            onClick={nettoyerDonnees}
-            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Nettoyer les données
-          </button>
-        </div>
-      </div>
-    )}
+
     </>
   );
 };

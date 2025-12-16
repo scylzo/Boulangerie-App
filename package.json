@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "drop-db": "node scripts/drop-collections.js",
     "clear-boutique": "node scripts/clear-boutique-data.js",
-    "clear-production": "node scripts/clear-production-data.js"
+    "clear-production": "node scripts/clear-production-data.js",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",

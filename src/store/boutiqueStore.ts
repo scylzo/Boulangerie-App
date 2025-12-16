@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { dateToTimestamp } from '../firebase/collections';
 import type { StockBoutique, EquipeBoutique, VentesBoutique, Produit } from '../types';

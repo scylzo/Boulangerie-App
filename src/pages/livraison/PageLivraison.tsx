@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 
 export const PageLivraison: React.FC = () => {
-  const { commandesClients, programmeActuel, chargerProgramme, supprimerCommandesLivreur } = useProductionStore();
+  const { commandesClients, chargerProgramme, supprimerCommandesLivreur } = useProductionStore();
   const { livreurs, chargerLivreurs } = useLivreurStore();
   const { clients, produits: produitsRef, chargerProduits, chargerClients } = useReferentielStore();
 
