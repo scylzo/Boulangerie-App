@@ -247,8 +247,8 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                         <p className="font-medium mb-1">Comment utiliser :</p>
                         <ul className="space-y-1 text-xs">
                             <li>• <b>Quantité par unité</b> = quantité nécessaire pour <b>1 pièce</b></li>
-                            <li>• Exemples: 50g de farine → <code>0.050</code>, 2 œufs → <code>2</code>, 1,5L de lait → <code>1.5</code></li>
-                            <li>• Le système calcule automatiquement coût et marge</li>
+                            <li>• <b>Important :</b> Respectez l'unité affichée à côté de l'ingrédient choisi (ex: kg, g, L, pièce).</li>
+                            <li>• Le système calcule automatiquement le coût de revient et la marge.</li>
                         </ul>
                     </div>
                 </div>

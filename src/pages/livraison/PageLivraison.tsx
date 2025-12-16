@@ -20,6 +20,7 @@ export const PageLivraison: React.FC = () => {
     new Date().toISOString().split('T')[0]
   );
   const [carSelectionne, setCarSelectionne] = useState<CarLivraison | 'tous'>('tous');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const initialiser = async () => {
@@ -41,10 +42,6 @@ export const PageLivraison: React.FC = () => {
   const organiserCommandesParLivreur = () => {
     const commandesParLivreur = new Map();
 
-    console.log('Debug livraisons:');
-    console.log('Nombre de commandes clients:', commandesClients.length);
-    console.log('Nombre de clients:', clients.length);
-
     commandesClients.forEach(commande => {
       const client = clients.find(c => c.id === commande.clientId);
 
@@ -57,8 +54,22 @@ export const PageLivraison: React.FC = () => {
       const livreurId = client?.livreurId || 'non-assigne';
 
       if (!commandesParLivreur.has(livreurId)) {
+        let livreurTrouve = livreurs.find(l => l.id === livreurId);
+        
+        // Si on a un ID mais pas de livreur trouvé, créer un objet temporaire
+        if (!livreurTrouve && livreurId !== 'non-assigne') {
+          console.warn(`⚠️ Livreur ID ${livreurId} non trouvé dans la liste pour client ${client?.nom}`);
+          livreurTrouve = {
+            id: livreurId,
+            nom: `Livreur (ID: ${livreurId.substring(0, 6)}...)`,
+            active: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          } as any;
+        }
+
         commandesParLivreur.set(livreurId, {
-          livreur: livreurs.find(l => l.id === livreurId),
+          livreur: livreurTrouve,
           commandesParCar: new Map()
         });
       }
@@ -187,7 +198,21 @@ export const PageLivraison: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900">Filtres</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Rechercher</label>
+              <div className="relative">
+                <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Client..."
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 font-medium"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Date de livraison</label>
               <input
@@ -419,7 +444,12 @@ export const PageLivraison: React.FC = () => {
                                   });
                                 });
 
-                                return Array.from(livraisonsParClient.values()).map((clientData, idx) => (
+                                return Array.from(livraisonsParClient.values())
+                                  .filter(clientData => 
+                                    searchTerm === '' || 
+                                    (clientData.client?.nom?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+                                  )
+                                  .map((clientData, idx) => (
                                   <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-sm transition-all">
                                     <div className="flex items-start gap-3 mb-3">
                                       <div className={`w-10 h-10 ${colors.accent} rounded-lg flex items-center justify-center`}>

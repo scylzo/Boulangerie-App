@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, setDoc, getDocs, query, where, doc } from 'firebase/firestore';
+import { collection, setDoc, getDocs, query, where, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { LivraisonClient, InvendusClient, Client, Produit } from '../types';
 
@@ -23,6 +23,7 @@ interface LivraisonStore {
   sauvegarderInvendus: () => Promise<void>;
   marquerAucunRetourClient: (clientId: string, date: Date) => Promise<void>;
   sauvegarderRetoursClient: (clientId: string, date: Date, produits: Array<{ produitId: string; produit: any; quantiteLivree: number; invendus: number; vendu: number }>) => Promise<void>;
+  marquerTousSansRetour: (clientIds: string[], date: Date) => Promise<void>;
 
   // Actions utilitaires
   getLivraisonByClientId: (clientId: string) => LivraisonClient | undefined;
@@ -331,6 +332,56 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
     } catch (error) {
       set({ isLoading: false });
       console.error('❌ Erreur lors de la sauvegarde des retours client:', error);
+      throw error;
+    }
+  },
+
+  marquerTousSansRetour: async (clientIds: string[], date: Date) => {
+    set({ isLoading: true });
+    try {
+      console.log('🚀 Marquage groupé "aucun retour" pour', clientIds.length, 'clients');
+      const dateStr = date.toISOString().split('T')[0];
+      const batch = writeBatch(db);
+      const nouveauxRetours: InvendusClient[] = [];
+
+      // Préparer les opérations batch
+      clientIds.forEach(clientId => {
+        const docId = `retours_${clientId}_${dateStr}`;
+        const docRef = doc(db, 'clientReturns', docId);
+
+        const retourVide: InvendusClient = {
+          clientId,
+          dateLivraison: date,
+          produits: [], // Aucun produit avec retours
+          retoursCompletes: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        batch.set(docRef, retourVide, { merge: true });
+        nouveauxRetours.push(retourVide);
+      });
+
+      // Exécuter le batch
+      await batch.commit();
+
+      // Mettre à jour l'état local
+      set(state => {
+        // Supprimer les anciens enregistrements pour ces clients à cette date
+        const invendusFiltered = state.invendusClients.filter(inv =>
+          !(clientIds.includes(inv.clientId) && inv.dateLivraison.toDateString() === date.toDateString())
+        );
+
+        return {
+          invendusClients: [...invendusFiltered, ...nouveauxRetours],
+          isLoading: false
+        };
+      });
+
+      console.log('✅ Batch "Aucun retour" exécuté avec succès');
+    } catch (error) {
+      set({ isLoading: false });
+      console.error('❌ Erreur lors du batch "aucun retour":', error);
       throw error;
     }
   },

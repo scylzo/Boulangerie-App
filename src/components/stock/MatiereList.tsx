@@ -34,6 +34,42 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
     stockActuel: '',
     valeurTotale: 0
   });
+  // Conversion state
+  const { convertMatiereUnit } = useStockStore();
+  const [conversionState, setConversionState] = useState<{
+      isOpen: boolean;
+      matiere?: MatierePremiere;
+      factor: string;
+      targetUnit: UniteMesure;
+  }>({
+      isOpen: false,
+      factor: '1',
+      targetUnit: 'kg'
+  });
+
+  const openConversion = (matiere: MatierePremiere) => {
+      setConversionState({
+          isOpen: true,
+          matiere,
+          factor: '1',
+          targetUnit: 'kg'
+      });
+  };
+
+  const handleConversion = async () => {
+      if (!conversionState.matiere || !conversionState.factor) return;
+
+      const factor = parseFloat(conversionState.factor);
+      if (isNaN(factor) || factor <= 0) return;
+
+      await convertMatiereUnit(
+          conversionState.matiere.id,
+          factor,
+          conversionState.targetUnit
+      );
+
+      setConversionState({ isOpen: false, factor: '1', targetUnit: 'kg' });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,13 +116,13 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
     setDeleteConfirm({ isOpen: false, matiereId: '', matiereNom: '' });
   };
 
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-800">Matières Premières</h2>
         <button
           onClick={() => {
-            setIsEditing(null);
             setIsEditing(null);
             setFormData({ nom: '', unite: 'kg', stockMinimum: '', prixMoyenPondere: '', stockActuel: '', valeurTotale: 0 });
             setShowForm(!showForm);
@@ -180,6 +216,85 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
         </form>
       )}
 
+      {/* Conversion Modal */}
+      {conversionState.isOpen && conversionState.matiere && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+              <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+                  <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                      <h3 className="font-bold text-gray-800">
+                          Convertir l'unité : {conversionState.matiere.nom}
+                      </h3>
+                      <button 
+                          onClick={() => setConversionState({ ...conversionState, isOpen: false })}
+                          className="text-gray-400 hover:text-gray-600"
+                      >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </button>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                      <p className="text-sm text-gray-500 mb-2">
+                          Convertir de <b>{conversionState.matiere.unite}</b> vers :
+                      </p>
+
+                      <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Nouvelle Unité</label>
+                          <select
+                              value={conversionState.targetUnit}
+                              onChange={(e) => setConversionState({ ...conversionState, targetUnit: e.target.value as UniteMesure })}
+                              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                          >
+                              <option value="kg">Kilogramme (kg)</option>
+                              <option value="g">Gramme (g)</option>
+                              <option value="l">Litre (l)</option>
+                          </select>
+                      </div>
+
+                      <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Facteur de conversion : 1 {conversionState.matiere.unite} = ? {conversionState.targetUnit}
+                          </label>
+                          <input
+                              type="number"
+                              min="0.1"
+                              step="0.1"
+                              value={conversionState.factor}
+                              onChange={(e) => setConversionState({ ...conversionState, factor: e.target.value })}
+                              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none font-bold"
+                              placeholder="Ex: 50"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                              Exemple: Si 1 sac = 50kg, entrez <b>50</b>.
+                          </p>
+                      </div>
+
+                      <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
+                          <p className="font-medium">Aperçu du résultat :</p>
+                          <ul className="list-disc list-inside mt-1 space-y-1 text-xs">
+                              <li>Stock : {conversionState.matiere.stockActuel} → <b>{((conversionState.matiere.stockActuel || 0) * parseFloat(conversionState.factor || '0')).toLocaleString()} {conversionState.targetUnit}</b></li>
+                              <li>Prix : {Math.round(conversionState.matiere.prixMoyenPondere || 0).toLocaleString()} → <b>{Math.round((conversionState.matiere.prixMoyenPondere || 0) / parseFloat(conversionState.factor || '1')).toLocaleString()} FCFA / {conversionState.targetUnit}</b></li>
+                          </ul>
+                      </div>
+                  </div>
+
+                  <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3 border-t border-gray-100">
+                      <button
+                          onClick={() => setConversionState({ ...conversionState, isOpen: false })}
+                          className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
+                      >
+                          Annuler
+                      </button>
+                      <button
+                          onClick={handleConversion}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm"
+                      >
+                          Confirmer la conversion
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full">
           <thead>
@@ -194,6 +309,9 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
           <tbody className="divide-y divide-gray-100">
             {matieres.map((matiere) => {
               const isLowStock = matiere.stockActuel <= matiere.stockMinimum;
+              // Check if unit is convertible (sac)
+              const isConvertible = matiere.unite.includes('sac');
+
               return (
                 <tr key={matiere.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
@@ -220,6 +338,17 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end space-x-2">
+                       {/* Conversion quick action */}
+                       {isConvertible && (
+                           <button
+                                onClick={() => openConversion(matiere)}
+                                className="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100 mr-2"
+                                title="Convertir en kg"
+                           >
+                               Convertir kg
+                           </button>
+                       )}
+
                        <button
                         onClick={() => onAddMouvement(matiere)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"

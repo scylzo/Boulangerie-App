@@ -27,6 +27,7 @@ interface StockState {
     addMatiere: (matiere: Omit<MatierePremiere, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
     updateMatiere: (id: string, updates: Partial<MatierePremiere>) => Promise<void>;
     deleteMatiere: (id: string) => Promise<void>;
+    convertMatiereUnit: (id: string, factor: number, newUnit: string) => Promise<void>;
 
     // Actions Mouvements
     addMouvement: (mouvement: Omit<MouvementStock, 'id' | 'createdAt'>) => Promise<void>;
@@ -123,6 +124,37 @@ export const useStockStore = create<StockState>((set, get) => ({
             }));
         } catch (error) {
             console.error('Erreur suppression matière:', error);
+        }
+    },
+
+    convertMatiereUnit: async (id, factor, newUnit) => {
+        set({ isLoading: true });
+        try {
+            const matiere = get().matieres.find(m => m.id === id);
+            if (!matiere) throw new Error("Matière introuvable");
+
+            // Conversion stricte pour TypeScript
+            const unite = newUnit as any;
+
+            const updates = {
+                unite: unite,
+                stockActuel: matiere.stockActuel * factor, // Ex: 1 sac * 50 = 50 kg
+                prixMoyenPondere: matiere.prixMoyenPondere / factor, // Ex: 15000 / 50 = 300 FCFA/kg
+                stockMinimum: matiere.stockMinimum * factor,
+                updatedAt: new Date()
+            };
+
+            await firestoreService.update('matieres', id, updates);
+
+            set(state => ({
+                matieres: state.matieres.map(m => m.id === id ? { ...m, ...updates } as MatierePremiere : m),
+                isLoading: false
+            }));
+
+            console.log(`✅ Conversion réussie: ${matiere.nom} (x${factor}) -> ${newUnit}`);
+        } catch (error: any) {
+            console.error('Erreur conversion unité:', error);
+            set({ isLoading: false, error: error.message });
         }
     },
 

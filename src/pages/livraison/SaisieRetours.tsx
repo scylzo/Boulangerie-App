@@ -13,6 +13,7 @@ export const SaisieRetours: React.FC = () => {
     chargerInvendusDuJour,
     marquerAucunRetourClient,
     sauvegarderRetoursClient,
+    marquerTousSansRetour,
     isLoading
   } = useLivraisonStore();
 
@@ -23,6 +24,7 @@ export const SaisieRetours: React.FC = () => {
   const [dateSelectionnee, setDateSelectionnee] = useState(
     new Date().toISOString().split('T')[0]
   );
+  const [searchTerm, setSearchTerm] = useState('');
 
   // État local pour les invendus en cours de saisie
   const [invendusLocaux, setInvendusLocaux] = useState<Record<string, Record<string, number>>>({});
@@ -84,7 +86,11 @@ export const SaisieRetours: React.FC = () => {
       commande,
       produits: produitsLivres
     };
-  }).filter((client): client is NonNullable<typeof client> => client !== null);
+  }).filter((client): client is NonNullable<typeof client> => client !== null)
+    .filter(client => 
+      searchTerm === '' || 
+      client.nom.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const handleSaisirInvendus = (clientId: string, produitId: string, invendus: string) => {
     const invendusNum = parseInt(invendus) || 0;
@@ -213,23 +219,50 @@ export const SaisieRetours: React.FC = () => {
           </div>
 
           <div className="flex gap-3">
-            <button
+             <button
               onClick={async () => {
-                await Promise.all([
-                  chargerClients(),
-                  chargerProduits(),
-                  chargerProgramme(new Date(dateSelectionnee))
-                ]);
-                await chargerInvendusDuJour(new Date(dateSelectionnee));
-                toast.success('Données rechargées depuis la base !');
+                const clientsSansRetours = clientsAvecCommandes.filter(c => !clientARetoursCompletes(c.id!));
+                
+                if (clientsSansRetours.length === 0) {
+                  toast.success('Tous les clients ont déjà des retours finalisés !');
+                  return;
+                }
+
+                const confirmation = await confirmModal.confirm({
+                  title: 'Tout marquer sans retour',
+                  message: `Vous allez marquer "Aucun retour" pour ${clientsSansRetours.length} clients restants.\n\nÊtes-vous sûr de vouloir continuer ?`,
+                  confirmText: 'Oui, tout valider',
+                  cancelText: 'Annuler',
+                  type: 'warning'
+                });
+
+                if (confirmation) {
+                   const clientIds = clientsSansRetours.map(c => c.id!);
+                   await marquerTousSansRetour(clientIds, new Date(dateSelectionnee));
+                   toast.success(`✅ ${clientIds.length} clients marqués sans retour !`);
+                }
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-md"
-              disabled={isLoading}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-all shadow-md shrink-0"
+              disabled={isLoading || clientsAvecCommandes.every(c => clientARetoursCompletes(c.id!))}
             >
-              <Icon icon="mdi:refresh" className="text-lg" />
-              <span>Recharger</span>
+              <Icon icon="mdi:check-all" className="text-lg" />
+              <span className="hidden sm:inline">Tout marquer sans retour</span>
             </button>
           </div>
+        </div>
+
+        {/* Barre de recherche intégrée au header */}
+        <div className="mt-4 max-w-md ml-auto">
+             <div className="relative">
+                <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Rechercher un client..."
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                />
+             </div>
         </div>
       </div>
 

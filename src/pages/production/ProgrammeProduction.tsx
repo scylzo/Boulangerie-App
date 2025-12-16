@@ -13,6 +13,7 @@ import { QuantiteBoutiqueForm } from '../../components/shared/QuantiteBoutiqueFo
 import { useProductionStore } from '../../store';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
 import { htmlPrintService } from '../../services/htmlPrintService';
+import { useLivreurStore } from '../../store/livreurStore'; // Ajout Import
 import type { CommandeClient } from '../../types';
 
 
@@ -31,7 +32,6 @@ export const ProgrammeProduction: React.FC = () => {
     creerNouveauProgramme,
     chargerProgrammeAvecListener,
     nettoyerListeners,
-    sauvegarderProgramme,
     envoyerAuBoulanger,
     ajouterCommandeClient,
     modifierCommandeClient,
@@ -52,6 +52,8 @@ export const ProgrammeProduction: React.FC = () => {
     validerProduction,
     isLoading
   } = useProductionStore();
+
+  const { livreurs, chargerLivreurs } = useLivreurStore(); // Utilisation store Livreur
 
   const confirmModal = useConfirmModal();
 
@@ -79,6 +81,7 @@ export const ProgrammeProduction: React.FC = () => {
         // Charger les produits et clients depuis Firebase
         await chargerProduits();
         await chargerClients();
+        await chargerLivreurs(); // Charger les livreurs
 
         // Configurer listener temps réel pour la date sélectionnée
         const dateSelectionneeObj = new Date(dateSelectionnee);
@@ -97,7 +100,7 @@ export const ProgrammeProduction: React.FC = () => {
     return () => {
       nettoyerListeners();
     };
-  }, [dateSelectionnee, chargerProduits, chargerClients, chargerProgrammeAvecListener, creerNouveauProgramme, nettoyerListeners]);
+  }, [dateSelectionnee, chargerProduits, chargerClients, chargerLivreurs, chargerProgrammeAvecListener, creerNouveauProgramme, nettoyerListeners]);
 
   // Rafraîchir les données quand le composant redevient visible
   useEffect(() => {
@@ -163,7 +166,7 @@ export const ProgrammeProduction: React.FC = () => {
     }
   };
 
-  const handleSauvegarderProduitSpecifique = (produitModifie: any) => {
+  const handleSauvegarderProduitSpecifique = (produitModifie: CommandeClient['produits'][0]) => {
     if (commandeEnEdition && indexProduitEnEdition !== null) {
       const nouveauxProduits = [...commandeEnEdition.produits];
       nouveauxProduits[indexProduitEnEdition] = produitModifie;
@@ -324,15 +327,7 @@ export const ProgrammeProduction: React.FC = () => {
   //   }
   // };
 
-  const handleSauvegarderProgramme = async () => {
-    try {
-      await sauvegarderProgramme();
-      toast.success('📋 Programme de production sauvegardé avec succès');
-    } catch (error) {
-      console.log(error)
-      toast.error('❌ Erreur lors de la sauvegarde du programme');
-    }
-  };
+
 
   const handleEnvoyerAuBoulanger = async () => {
     if (!programmeActuel) {
@@ -486,25 +481,16 @@ export const ProgrammeProduction: React.FC = () => {
 
             {/* Actions Toolbar */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleSauvegarderProgramme}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm"
-              >
-                <Icon icon="mdi:content-save" className="text-lg" />
-                <span className="hidden sm:inline font-medium">Sauvegarder</span>
-              </button>
-
-              {/* Bouton Envoyer/Renvoyer */}
-              {(programmeActuel?.statut === 'brouillon' || programmeActuel?.statut === 'modifie') && (
+              {/* Bouton Envoyer/Renvoyer - Toujours visible pour permettre le renvoi */}
+              {programmeActuel && (
                 <button
                   onClick={handleEnvoyerAuBoulanger}
-                  disabled={!programmeActuel || isLoading}
+                  disabled={isLoading}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
                 >
                   <Icon icon="mdi:send" className="text-lg" />
                   <span className="font-medium">
-                    {programmeActuel?.statut === 'modifie' ? 'Renvoyer' : 'Envoyer'}
+                    {programmeActuel.statut === 'brouillon' ? 'Envoyer' : 'Renvoyer'}
                   </span>
                 </button>
               )}
@@ -825,7 +811,13 @@ export const ProgrammeProduction: React.FC = () => {
                         <div className="flex gap-1 ml-2">
                           <button
                             onClick={() => {
-                              htmlPrintService.generateDeliveryReceiptHTML(commande, client, produits);
+                              // Résoudre le nom du livreur
+                              const livreurAssigne = livreurs.find(l => l.id === client?.livreurId);
+                              const clientAvecLivreur = {
+                                ...client,
+                                livreur: livreurAssigne ? livreurAssigne.nom : client?.livreurId ? `Livreur (ID: ${client.livreurId.substring(0, 6)}...)` : 'Non assigné'
+                              };
+                              htmlPrintService.generateDeliveryReceiptHTML(commande, clientAvecLivreur, produits);
                             }}
                             className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-md transition-colors"
                             title="Bon de livraison"
@@ -1475,6 +1467,50 @@ export const ProgrammeProduction: React.FC = () => {
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
         </div>
       </button>
+
+      {/* Bouton pour descendre/monter */}
+      {programmeActuel?.totauxParProduit && programmeActuel.totauxParProduit.length > 0 && (
+        <ScrollButton />
+      )}
     </div>
   );
+};
+
+// Composant interne pour gérer l'état du scroll
+const ScrollButton = () => {
+    const [isAtBottom, setIsAtBottom] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+             // On considère qu'on est en bas si on est proche de la fin (marge de 100px)
+            const isBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+            setIsAtBottom(isBottom);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const handleClick = () => {
+        if (isAtBottom) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+    };
+
+    return (
+        <button
+            onClick={handleClick}
+            className={`fixed bottom-24 right-6 w-12 h-12 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center group border ${
+                isAtBottom ? 'bg-gray-700 hover:bg-gray-600 border-gray-500' : 'bg-gray-800 hover:bg-gray-700 border-gray-600'
+            }`}
+            title={isAtBottom ? "Remonter en haut" : "Voir le Programme de Production (Totaux)"}
+        >
+            <Icon 
+                icon={isAtBottom ? "mdi:arrow-up" : "mdi:arrow-down"} 
+                className={`text-xl transition-transform ${isAtBottom ? 'group-hover:-translate-y-1' : 'group-hover:translate-y-1'}`} 
+            />
+        </button>
+    );
 };

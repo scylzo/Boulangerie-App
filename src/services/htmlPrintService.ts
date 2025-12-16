@@ -50,29 +50,14 @@ export class HTMLPrintService {
     });
   }
 
-  private formatDateWithCorrection(dateCreation: Date, dateProduction: Date): string {
-    // Logique de correction des dates identique à VueBoulanger
-    const sameDay = dateCreation.toDateString() === dateProduction.toDateString();
-
-    if (sameDay) {
-      // Corriger en ajoutant 1 jour à la date de production
-      const correctedDate = new Date(dateProduction);
-      correctedDate.setDate(correctedDate.getDate() + 1);
-      return correctedDate.toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-    } else {
-      // Nouvelle logique, afficher dateProduction telle quelle
-      return dateProduction.toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-    }
+  private formatDateWithCorrection(dateProduction: Date): string {
+    // Retourner la date de production telle quelle, sans correction
+    return dateProduction.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
   }
 
   private getCarColor(car: CarLivraison): string {
@@ -151,8 +136,8 @@ export class HTMLPrintService {
         
         .header {
           text-align: center;
-          margin-bottom: 8px;
-          padding-bottom: 6px;
+          margin-bottom: 2px;
+          padding-bottom: 2px;
           border-bottom: 1px solid #e5e7eb;
         }
         
@@ -170,7 +155,7 @@ export class HTMLPrintService {
         }
         
         .livreur-section {
-          margin-bottom: 12px;
+          margin-bottom: 6px;
           page-break-inside: avoid;
         }
         
@@ -178,7 +163,7 @@ export class HTMLPrintService {
           background: #f9fafb;
           padding: 6px 8px;
           border-left: 3px solid #4b5563;
-          margin-bottom: 8px;
+          margin-bottom: 2px;
         }
         
         .livreur-header h2 {
@@ -350,7 +335,7 @@ export class HTMLPrintService {
           }
           
           @page {
-            margin: 8mm;
+            margin: 5mm;
             size: A4;
           }
         }
@@ -378,7 +363,7 @@ export class HTMLPrintService {
         <div class="container">
           <div class="header">
             <div class="logo">
-              <img src="${logoUrl}" alt="Boulangerie Chez Mina" style="height: 60px; margin: 0 auto 8px auto; display: block;" />
+              <img src="${logoUrl}" alt="Boulangerie Chez Mina" style="height: 60px; margin: 0 auto 2px auto; display: block;" />
             </div>
             <h1>📦 Programme de Livraison</h1>
             <div class="date">${this.formatDate(dateSelectionnee)}</div>
@@ -792,7 +777,7 @@ export class HTMLPrintService {
 
     // Produits clients avec quantités matin (calculé depuis repartitionsClients)
     const produitsMatin = Array.from(repartitionsClients.entries())
-      .filter(([_, repartition]) => (repartition.car1Matin + repartition.car2Matin) > 0)
+      .filter(([, repartition]) => (repartition.car1Matin + repartition.car2Matin) > 0)
       .map(([produitId]) => {
         const produit = produits.find(p => p.id === produitId);
         const repartition = repartitionsClients.get(produitId)!;
@@ -806,7 +791,7 @@ export class HTMLPrintService {
 
     // Produits clients avec quantités soir (calculé depuis repartitionsClients)
     const produitsSoir = Array.from(repartitionsClients.entries())
-      .filter(([_, repartition]) => repartition.carSoir > 0)
+      .filter(([, repartition]) => repartition.carSoir > 0)
       .map(([produitId]) => {
         const produit = produits.find(p => p.id === produitId);
         const repartition = repartitionsClients.get(produitId)!;
@@ -818,8 +803,8 @@ export class HTMLPrintService {
       });
 
     const statutText = programme.statut === 'envoye' ? '✅ CONFIRMÉ' :
-                      programme.statut === 'modifie' ? '🔄 MODIFIÉ' :
-                      programme.statut === 'produit' ? '✅ PRODUIT' : '⏳ BROUILLON';
+      programme.statut === 'modifie' ? '🔄 MODIFIÉ' :
+        programme.statut === 'produit' ? '✅ PRODUIT' : '⏳ BROUILLON';
 
     const logoUrl = this.getLogoUrl();
 
@@ -1113,7 +1098,7 @@ export class HTMLPrintService {
             </div>
             <h1>🥖 Programme de Production</h1>
             <div class="date">
-              Production : ${this.formatDateWithCorrection(programme.dateCreation, programme.dateProduction)}
+              Production : ${this.formatDateWithCorrection(programme.dateProduction)}
             </div>
             <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
               Programme créé le ${programme.dateCreation.toLocaleDateString('fr-FR')} à ${programme.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
@@ -1607,9 +1592,9 @@ export class HTMLPrintService {
             </thead>
             <tbody>
               ${commande.produits.map((item: any) => {
-                const produit = produits.find(p => p.id === item.produitId);
-                const sousTotal = item.quantiteCommandee * (item.prixUnitaire || 0);
-                return `
+      const produit = produits.find(p => p.id === item.produitId);
+      const sousTotal = item.quantiteCommandee * (item.prixUnitaire || 0);
+      return `
                   <tr>
                     <td><strong>${produit?.nom || 'Produit inconnu'}</strong></td>
                     <td style="text-align: center">${item.quantiteCommandee}</td>
@@ -1617,7 +1602,7 @@ export class HTMLPrintService {
                     <td style="text-align: right"><strong>${sousTotal.toLocaleString('fr-FR')} FCFA</strong></td>
                   </tr>
                 `;
-              }).join('')}
+    }).join('')}
             </tbody>
           </table>
 

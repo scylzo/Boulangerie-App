@@ -318,12 +318,13 @@ export const VueBoulanger: React.FC = () => {
                           });
                       })()}
                     </div>
+
                     <div className="flex items-center justify-end gap-1 mt-1 text-xs text-gray-600">
                       <span>Créé le {programmeActuel.dateCreation.toLocaleDateString('fr-FR')} à {programmeActuel.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
                       <Icon icon="mdi:clock-outline" className="text-gray-400" />
                     </div>
                   </div>
-                  <div className="w-12 h-12 bg-radient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                  <div className="w-12 h-12 bg-gray-700 rounded-xl flex items-center justify-center shadow-lg shrink-0">
                     <Icon icon="mdi:factory" className="text-2xl text-white" />
                   </div>
                 </div>

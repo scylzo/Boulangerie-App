@@ -11,7 +11,6 @@ export const PageBoutique: React.FC = () => {
     isLoading,
     chargerStockJour,
     creerStockDepuisProduction,
-    mettreAJourStockBoutique,
     commencerEquipeMatin,
     commencerEquipeSoir,
     saisirVenteMatin,
@@ -201,29 +200,6 @@ export const PageBoutique: React.FC = () => {
                         {' • Mis à jour le '} {stockJour.updatedAt.toLocaleString('fr-FR')}
                       </span>
                     )}
-                  </div>
-                  <button
-                    onClick={() => mettreAJourStockBoutique(dateActuelle)}
-                    disabled={isLoading}
-                    className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-                  >
-                    {!isLoading && <Icon icon="mdi:refresh" className="text-sm" />}
-                    {isLoading ? 'Mise à jour...' : 'Actualiser stock'}
-                  </button>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Icon icon="mdi:information" className="text-white" />
-                    </div>
-                    <div>
-                      <p className="text-blue-800 font-semibold mb-1">Actualisation du stock :</p>
-                      <p className="text-blue-700 text-sm">
-                        Si vous avez ajouté de nouveaux produits dans le programme de production après avoir créé ce stock,
-                        cliquez sur "Actualiser stock" pour récupérer les nouveaux produits.
-                      </p>
-                    </div>
                   </div>
                 </div>
 

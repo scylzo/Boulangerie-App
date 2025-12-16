@@ -92,18 +92,10 @@ export const GestionFactures: React.FC = () => {
 
       // Si des factures existent, demander confirmation
       if (facturesExistantes.length > 0) {
-        const facturesEnAttente = facturesExistantes.filter(f => f.statut === 'en_attente_retours').length;
 
         const confirmation = await confirmModal.confirm({
           title: 'Mise à jour des factures',
-          message: `Il existe déjà ${facturesExistantes.length} facture(s) pour le ${new Date(dateSelectionnee).toLocaleDateString('fr-FR')} :\n` +
-                   `• ${facturesEnAttente} facture(s) en attente de retours\n` +
-                   `• ${facturesExistantes.length - facturesEnAttente} facture(s) déjà validée(s)\n\n` +
-                   'Cette action va :\n' +
-                   '✅ Vérifier l\'état des retours clients\n' +
-                   '✅ Mettre à jour automatiquement les statuts\n' +
-                   '✅ Passer en "Validée" si retours complétés\n' +
-                   '❌ NE créera PAS de doublons',
+          message: `Mettre à jour les factures du ${new Date(dateSelectionnee).toLocaleDateString('fr-FR')} ?\n\nCela actualisera les statuts et validera celles dont les retours sont complétés. Aucun doublon ne sera créé.`,
           confirmText: 'Mettre à jour',
           cancelText: 'Annuler',
           type: 'warning'
@@ -245,46 +237,7 @@ export const GestionFactures: React.FC = () => {
     }
   };
 
-  const handleActualiserStatuts = async () => {
-    // Filtrer par factures de la date sélectionnée ET en attente de retours
-    const facturesDateSelectionne = factures.filter(facture => {
-      const dateLivraisonStr = facture.dateLivraison.toISOString().split('T')[0];
-      return dateLivraisonStr === dateSelectionnee && facture.statut === 'en_attente_retours';
-    });
 
-    if (facturesDateSelectionne.length === 0) {
-      toast(`ℹ️ Aucune facture en attente de retours pour le ${new Date(dateSelectionnee).toLocaleDateString('fr-FR')}.`, {
-        icon: '💡',
-        duration: 3000,
-      });
-      return;
-    }
-
-    const confirmation = await confirmModal.confirm({
-      title: 'Actualisation des statuts',
-      message: `${facturesDateSelectionne.length} facture(s) en attente de retours trouvée(s) pour le ${new Date(dateSelectionnee).toLocaleDateString('fr-FR')}.\n\n` +
-               'Cette action va :\n' +
-               '🔍 Vérifier l\'état des retours pour chaque client\n' +
-               '⚡ Mettre à jour automatiquement les statuts\n' +
-               '✅ Valider les factures si retours complétés',
-      confirmText: 'Actualiser',
-      cancelText: 'Annuler',
-      type: 'info'
-    });
-
-    if (!confirmation) {
-      return;
-    }
-
-    try {
-      await actualiserStatutsFactures();
-      await chargerFactures();
-      toast.success(`✅ Statuts des factures du ${new Date(dateSelectionnee).toLocaleDateString('fr-FR')} actualisés`);
-    } catch (error) {
-      console.error('Erreur lors de l\'actualisation:', error);
-      toast.error(`❌ Erreur lors de l'actualisation: ${error}`);
-    }
-  };
 
   // Filtrer les factures par date de livraison et statut
   const facturesFiltrees = factures.filter(facture => {
@@ -508,15 +461,7 @@ export const GestionFactures: React.FC = () => {
               ? 'Mettre à jour factures'
               : 'Générer nouvelles factures'} du {new Date(dateSelectionnee).toLocaleDateString('fr-FR')}
           </Button>
-          <Button
-            onClick={handleActualiserStatuts}
-            isLoading={isLoading}
-            variant="secondary"
-            className="flex items-center gap-2"
-          >
-            {!isLoading && <Icon icon="mdi:sync" className="text-sm" />}
-            Synchroniser avec retours
-          </Button>
+
             </div>
           </div>
         </div>
