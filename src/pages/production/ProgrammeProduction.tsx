@@ -436,17 +436,17 @@ export const ProgrammeProduction: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header moderne type Odoo */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-linear-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-              <Icon icon="mdi:clipboard-text" className="text-2xl text-white" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-linear-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+              <Icon icon="mdi:clipboard-text" className="text-xl text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-lg font-semibold text-gray-900">
                 Programme de Production
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs text-gray-500">
                 Gestion des commandes clients et quantités boutique
               </p>
             </div>
@@ -523,11 +523,11 @@ export const ProgrammeProduction: React.FC = () => {
       </div>
 
       {/* Contenu principal */}
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-4 space-y-4">
 
         {/* Widget de sélection de date moderne */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <div className="flex items-center gap-3 mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
               <Icon icon="mdi:calendar" className="text-lg text-blue-600" />
             </div>
@@ -546,14 +546,14 @@ export const ProgrammeProduction: React.FC = () => {
             </div>
 
             {/* Carte d'information de production à droite */}
-            <div className="bg-gradient-to-l from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm min-w-[320px]">
+            <div className="bg-gradient-to-l from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 shadow-sm min-w-[300px]">
               <div className="flex items-center gap-3">
                 <div className="flex-1 text-right">
                   <div className="flex items-center justify-end gap-2 mb-1">
-                    <span className="text-sm font-medium text-green-700">Production programmée</span>
-                    <Icon icon="mdi:calendar-check" className="text-green-600" />
+                    <span className="text-xs font-medium text-green-700">Production programmée</span>
+                    <Icon icon="mdi:calendar-check" className="text-green-600 text-sm" />
                   </div>
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-base font-bold text-gray-900">
                     {(() => {
                       const dateProduction = new Date(dateSelectionnee);
                       // La date de production EST la date sélectionnée
@@ -572,8 +572,8 @@ export const ProgrammeProduction: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                  <Icon icon="mdi:factory" className="text-2xl text-white" />
+                <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <Icon icon="mdi:factory" className="text-xl text-white" />
                 </div>
               </div>
             </div>
@@ -758,16 +758,16 @@ export const ProgrammeProduction: React.FC = () => {
                 return (
                   <div
                     key={commande.id}
-                    className="relative bg-linear-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 hover:border-green-300 hover:shadow-xl transition-all duration-300 group"
+                    className="relative bg-linear-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-4 hover:border-green-300 hover:shadow-xl transition-all duration-300 group"
                   >
                     {/* En-tête de la commande */}
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-14 h-14 bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                          <Icon icon="mdi:account" className="text-2xl text-white" />
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                          <Icon icon="mdi:account" className="text-xl text-white" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-xl text-gray-900 mb-1">
+                          <h3 className="font-bold text-lg text-gray-900 mb-0.5">
                             {client?.nom || 'Client inconnu'}
                           </h3>
                           <div className="flex items-center gap-3">
@@ -785,7 +785,7 @@ export const ProgrammeProduction: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-gray-800">
+                        <div className="text-xl font-bold text-gray-800">
                           {totalCommande.toLocaleString('fr-FR')}
                         </div>
                         <div className="text-xs text-gray-400 font-medium">FCFA</div>
@@ -861,16 +861,16 @@ export const ProgrammeProduction: React.FC = () => {
                         {commande.produits.map((item, index) => {
                           const produit = produits.find(p => p.id === item.produitId);
                           return (
-                            <div key={index} className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 hover:shadow-md transition-all group">
-                              <div className="flex items-center gap-3 mb-3">
-                                <div className="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center shadow-md">
+                            <div key={index} className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-3 hover:border-gray-300 hover:shadow-md transition-all group">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="w-9 h-9 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center shadow-md">
                                   <Icon
                                     icon={getProductIcon(produit?.nom || '')}
-                                    className="text-lg text-white"
+                                    className="text-base text-white"
                                   />
                                 </div>
                                 <div className="flex-1">
-                                  <h5 className="font-semibold text-gray-900">
+                                  <h5 className="font-semibold text-sm text-gray-900">
                                     {produit?.nom || 'Produit inconnu'}
                                   </h5>
                                   <div className="flex items-center justify-between mt-1">
@@ -878,7 +878,7 @@ export const ProgrammeProduction: React.FC = () => {
                                       x{item.quantiteCommandee}
                                     </span>
                                     <div className="flex items-center gap-2">
-                                      <div className="text-lg font-bold text-gray-800">
+                                      <div className="text-base font-bold text-gray-800">
                                         {((item.prixUnitaire || 0) * item.quantiteCommandee).toLocaleString('fr-FR')} F
                                       </div>
                                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -967,7 +967,7 @@ export const ProgrammeProduction: React.FC = () => {
                       <div className="text-sm text-gray-500">Articles</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">
+                      <div className="text-xl font-bold text-green-600">
                         {commandesClients.reduce((total, cmd) =>
                           total + cmd.produits.reduce((subtotal, item) =>
                             subtotal + (item.prixUnitaire || 0) * item.quantiteCommandee, 0
@@ -1208,23 +1208,23 @@ export const ProgrammeProduction: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-4">
               {/* KPI Cards - Style Odoo moderne */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-linear-to-br from-gray-700 to-gray-800 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                      <Icon icon="mdi:truck-delivery" className="text-2xl text-white" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="bg-linear-to-br from-gray-700 to-gray-800 rounded-2xl p-4 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <Icon icon="mdi:truck-delivery" className="text-xl text-white" />
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold">
+                      <div className="text-2xl font-bold">
                         {programmeActuel.totauxParProduit.reduce((sum, p) => sum + (p.repartitionCar1Matin || 0), 0)}
                       </div>
                       <div className="text-gray-300 text-xs">pièces</div>
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <div className="text-lg font-semibold">Car 1 - Matin</div>
+                  <div className="space-y-0.5">
+                    <div className="text-base font-semibold">Car 1 - Matin</div>
                     <div className="flex items-center gap-2 text-gray-300">
                       <Icon icon="mdi:clock-time-eight" className="text-sm" />
                       <span className="text-sm">06:00 - 10:00</span>
@@ -1232,20 +1232,20 @@ export const ProgrammeProduction: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-linear-to-br from-gray-600 to-gray-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                      <Icon icon="mdi:truck-delivery-outline" className="text-2xl text-white" />
+                <div className="bg-linear-to-br from-gray-600 to-gray-700 rounded-2xl p-4 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <Icon icon="mdi:truck-delivery-outline" className="text-xl text-white" />
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold">
+                      <div className="text-2xl font-bold">
                         {programmeActuel.totauxParProduit.reduce((sum, p) => sum + (p.repartitionCar2Matin || 0), 0)}
                       </div>
                       <div className="text-gray-300 text-xs">pièces</div>
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <div className="text-lg font-semibold">Car 2 - Matin</div>
+                  <div className="space-y-0.5">
+                    <div className="text-base font-semibold">Car 2 - Matin</div>
                     <div className="flex items-center gap-2 text-gray-300">
                       <Icon icon="mdi:clock-time-nine" className="text-sm" />
                       <span className="text-sm">08:00 - 12:00</span>
@@ -1253,20 +1253,20 @@ export const ProgrammeProduction: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-linear-to-br from-gray-700 to-gray-800 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                      <Icon icon="mdi:truck-fast" className="text-2xl text-white" />
+                <div className="bg-linear-to-br from-gray-700 to-gray-800 rounded-2xl p-4 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <Icon icon="mdi:truck-fast" className="text-xl text-white" />
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold">
+                      <div className="text-2xl font-bold">
                         {programmeActuel.totauxParProduit.reduce((sum, p) => sum + (p.repartitionCarSoir || 0), 0)}
                       </div>
                       <div className="text-gray-300 text-xs">pièces</div>
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <div className="text-lg font-semibold">Car - Soir</div>
+                  <div className="space-y-0.5">
+                    <div className="text-base font-semibold">Car - Soir</div>
                     <div className="flex items-center gap-2 text-gray-300">
                       <Icon icon="mdi:clock-time-five" className="text-sm" />
                       <span className="text-sm">15:00 - 19:00</span>
@@ -1274,20 +1274,20 @@ export const ProgrammeProduction: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-linear-to-br from-gray-600 to-gray-800 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                      <Icon icon="mdi:package-variant" className="text-2xl text-white" />
+                <div className="bg-linear-to-br from-gray-600 to-gray-800 rounded-2xl p-4 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <Icon icon="mdi:package-variant" className="text-xl text-white" />
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold">
+                      <div className="text-2xl font-bold">
                         {programmeActuel.totauxParProduit.reduce((sum, p) => sum + p.totalGlobal, 0)}
                       </div>
                       <div className="text-gray-100 text-xs">pièces</div>
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <div className="text-lg font-semibold">Total Général</div>
+                  <div className="space-y-0.5">
+                    <div className="text-base font-semibold">Total Général</div>
                     <div className="flex items-center gap-2 text-gray-200">
                       <Icon icon="mdi:sigma" className="text-sm" />
                       <span className="text-sm">Toutes livraisons</span>
@@ -1307,7 +1307,7 @@ export const ProgrammeProduction: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
                   {programmeActuel.totauxParProduit.map((total) => {
                     // Fonction pour obtenir l'icône du produit basé sur son nom
                     const getProductIcon = (productName: string): string => {
@@ -1326,23 +1326,23 @@ export const ProgrammeProduction: React.FC = () => {
                     return (
                       <div
                         key={total.produitId}
-                        className="bg-linear-to-br from-white to-gray-50 border border-gray-200 rounded-2xl p-6 hover:border-purple-300 hover:shadow-2xl transition-all duration-300 group"
+                        className="bg-linear-to-br from-white to-gray-50 border border-gray-200 rounded-2xl p-4 hover:border-purple-300 hover:shadow-2xl transition-all duration-300 group"
                       >
                         {/* En-tête du produit */}
-                        <div className="flex items-center gap-4 mb-6">
-                          <div className="w-16 h-16 bg-slate-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 bg-slate-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
                             <Icon
                               icon={getProductIcon(total.produit?.nom || '')}
-                              className="text-2xl text-white"
+                              className="text-xl text-white"
                             />
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-bold text-xl text-gray-900 mb-1">
+                            <h4 className="font-bold text-lg text-gray-900 mb-0.5">
                               {total.produit?.nom || total.produitId}
                             </h4>
                             <div className="flex items-center gap-2">
-                              <span className="text-2xl font-bold text-gray-800">{total.totalGlobal}</span>
-                              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">pièces</span>
+                              <span className="text-xl font-bold text-gray-800">{total.totalGlobal}</span>
+                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-lg">pièces</span>
                             </div>
                           </div>
                         </div>

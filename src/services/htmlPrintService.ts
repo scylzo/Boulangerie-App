@@ -156,7 +156,7 @@ export class HTMLPrintService {
         
         .livreur-section {
           margin-bottom: 6px;
-          page-break-inside: avoid;
+          /* page-break-inside: avoid; removed to prevent forcing start on new page */
         }
         
         .livreur-header {

@@ -38,6 +38,7 @@ export const GestionFactures: React.FC = () => {
     new Date().toISOString().split('T')[0]
   );
   const [filtreStatut, setFiltreStatut] = useState<string>('tous');
+  const [searchTerm, setSearchTerm] = useState('');
   const [showFactureDetails, setShowFactureDetails] = useState(false);
   const [showRistourneModal, setShowRistourneModal] = useState(false);
 
@@ -250,7 +251,13 @@ export const GestionFactures: React.FC = () => {
     // Filtrer par statut
     const matchStatut = filtreStatut === 'tous' || facture.statut === filtreStatut;
 
-    return matchDate && matchStatut;
+    // Filtrer par recherche (Client ou N° Facture)
+    const term = searchTerm.toLowerCase();
+    const matchSearch = 
+      (facture.client?.nom?.toLowerCase() || '').includes(term) ||
+      (facture.numeroFacture?.toLowerCase() || '').includes(term);
+
+    return matchDate && matchStatut && matchSearch;
   });
 
   // Factures de la date sélectionnée pour les statistiques
@@ -480,24 +487,54 @@ export const GestionFactures: React.FC = () => {
             </div>
           </div>
           <div className="p-6">
-            <div className="mb-4 flex flex-wrap gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Filtrer par statut
-            </label>
-            <select
-              value={filtreStatut}
-              onChange={(e) => setFiltreStatut(e.target.value)}
-              className="block rounded-lg border border-gray-300 px-3 py-2 focus:border-orange-500 focus:ring-orange-500 focus:ring-1 sm:text-sm transition-colors bg-white"
-            >
-              <option value="tous">Tous</option>
-              <option value="en_attente_retours">En attente retours</option>
-              <option value="validee">Validées</option>
-              <option value="envoyee">Envoyées</option>
-              <option value="payee">Payées</option>
-              <option value="annulee">Annulées</option>
-            </select>
-          </div>
+            {/* Filtres et Recherche */}
+            <div className="mb-4 flex flex-wrap gap-4 items-end justify-between">
+              <div className="flex gap-4 items-end flex-wrap">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Filtrer par statut
+                  </label>
+                  <select
+                    value={filtreStatut}
+                    onChange={(e) => setFiltreStatut(e.target.value)}
+                    className="block rounded-lg border border-gray-300 px-3 py-2 focus:border-orange-500 focus:ring-orange-500 focus:ring-1 sm:text-sm transition-colors bg-white w-48"
+                  >
+                    <option value="tous">Tous</option>
+                    <option value="en_attente_retours">En attente retours</option>
+                    <option value="validee">Validées</option>
+                    <option value="envoyee">Envoyées</option>
+                    <option value="payee">Payées</option>
+                    <option value="annulee">Annulées</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Barre de recherche */}
+              <div className="w-full md:w-64">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Rechercher
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Icon icon="mdi:search" className="text-gray-400 text-lg" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Client ou N° Facture..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      <Icon icon="mdi:close" className="text-lg" />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Tableau des factures */}

@@ -230,17 +230,17 @@ export const VueBoulanger: React.FC = () => {
       </div>
 
       {/* Header sobre */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 print:hidden">
+      <div className="bg-white border-b border-gray-200 px-4 py-3 print:hidden">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
-              <Icon icon="mdi:chef-hat" className="text-2xl text-white" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-gray-700 rounded-lg flex items-center justify-center">
+              <Icon icon="mdi:chef-hat" className="text-xl text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-lg font-semibold text-gray-900">
                 Vue Boulanger
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs text-gray-500">
                 Programme de production journalier
               </p>
             </div>
@@ -287,7 +287,7 @@ export const VueBoulanger: React.FC = () => {
       </div>
 
       {/* Section Date de Production */}
-      <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 print:hidden">
+      <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 print:hidden">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -363,22 +363,22 @@ export const VueBoulanger: React.FC = () => {
             {/* Résumé Production Journée */}
             <div className="space-y-4">
               {/* Total Général */}
-              <div className="bg-gray-700 text-white rounded-xl p-6 shadow-sm print:bg-white print:text-black print:border-2 print:border-black print:shadow-none print:rounded-none">
+              <div className="bg-gray-700 text-white rounded-xl p-4 shadow-sm print:bg-white print:text-black print:border-2 print:border-black print:shadow-none print:rounded-none">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gray-600 rounded-lg print:bg-gray-200 print:text-black">
-                      <Icon icon="mdi:sigma" className="text-2xl" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gray-600 rounded-lg print:bg-gray-200 print:text-black">
+                      <Icon icon="mdi:sigma" className="text-xl" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold print:text-lg">TOTAL GÉNÉRAL</h2>
-                      <p className="text-gray-400 text-sm print:text-black print:text-sm">Production complète (Clients + Boutique)</p>
+                      <h2 className="text-lg font-bold print:text-lg">TOTAL GÉNÉRAL</h2>
+                      <p className="text-gray-400 text-xs print:text-black print:text-sm">Production complète (Clients + Boutique)</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-4xl font-bold print:text-2xl">
+                    <div className="text-3xl font-bold print:text-2xl">
                       {totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0)}
                     </div>
-                    <div className="text-gray-400 text-sm font-medium print:text-black">pièces au total</div>
+                    <div className="text-gray-400 text-xs font-medium print:text-black">pièces au total</div>
                   </div>
                 </div>
               </div>
@@ -437,15 +437,15 @@ export const VueBoulanger: React.FC = () => {
             {Array.from(repartitionsClients.entries()).some(([_, repartition]) =>
               (repartition.car1Matin + repartition.car2Matin) > 0
             ) && (
-              <section data-section="production-matin">
-                 <div className="flex items-center gap-3 mb-6">
-                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                      <Icon icon="wi:sunrise" className="text-xl text-gray-500" />
-                   </div>
-                   <h2 className="text-2xl font-bold text-gray-700">Production Clients - Matin</h2>
-                 </div>
+               <section data-section="production-matin">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                       <Icon icon="wi:sunrise" className="text-xl text-gray-500" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-700">Production Clients - Matin</h2>
+                  </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print:grid-cols-3 print:gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 print:grid-cols-3 print:gap-4">
                    {Array.from(repartitionsClients.entries())
                      .filter(([_, repartition]) => (repartition.car1Matin + repartition.car2Matin) > 0)
                      .map(([produitId, repartition]) => {
@@ -454,44 +454,44 @@ export const VueBoulanger: React.FC = () => {
                        const car2 = repartition.car2Matin;
                        const total = car1 + car2;
 
-                       return (
-                         <div key={`matin-${produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-600 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid flex flex-col h-full">
-                           <div className="absolute top-3 right-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Matin</div>
+                        return (
+                          <div key={`matin-${produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-600 rounded-xl p-4 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid flex flex-col h-full">
+                            <div className="absolute top-3 right-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Matin</div>
 
-                           {/* En-tête Produit */}
-                           <div className="flex items-center gap-4 mb-6 pt-2">
-                             <div className="w-14 h-14 bg-gray-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                               <Icon icon={getProductIcon(produit?.nom || '')} className="text-2xl text-white" />
-                             </div>
-                             <h3 className="text-xl font-bold text-gray-900 leading-tight">
-                               {produit?.nom || 'Produit'}
-                             </h3>
-                           </div>
+                            {/* En-tête Produit */}
+                            <div className="flex items-center gap-3 mb-4 pt-2">
+                              <div className="w-12 h-12 bg-gray-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                                <Icon icon={getProductIcon(produit?.nom || '')} className="text-xl text-white" />
+                              </div>
+                              <h3 className="text-lg font-bold text-gray-900 leading-tight">
+                                {produit?.nom || 'Produit'}
+                              </h3>
+                            </div>
 
-                           {/* Détail Car 1 / Car 2 - masquer si 0 */}
-                           <div className="flex-1">
-                             <div className="space-y-3 mb-4">
-                               {car1 > 0 && (
-                                 <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-                                   <div className="text-xs font-bold text-gray-500 uppercase mb-1">Car 1 Matin</div>
-                                   <div className="text-3xl font-bold text-gray-700">{car1}</div>
-                                   <div className="text-xs text-gray-500">pièces</div>
-                                 </div>
-                               )}
-                               {car2 > 0 && (
-                                 <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
-                                   <div className="text-xs font-bold text-gray-500 uppercase mb-1">Car 2 Matin</div>
-                                   <div className="text-3xl font-bold text-gray-700">{car2}</div>
-                                   <div className="text-xs text-gray-500">pièces</div>
-                                 </div>
-                               )}
+                            {/* Détail Car 1 / Car 2 - masquer si 0 */}
+                            <div className="flex-1">
+                              <div className="space-y-2 mb-3">
+                                {car1 > 0 && (
+                                  <div className="bg-gray-50 rounded-lg p-2 text-center border border-gray-100">
+                                    <div className="text-xs font-bold text-gray-500 uppercase mb-0.5">Car 1 Matin</div>
+                                    <div className="text-2xl font-bold text-gray-700">{car1}</div>
+                                    <div className="text-xs text-gray-500">pièces</div>
+                                  </div>
+                                )}
+                                {car2 > 0 && (
+                                  <div className="bg-gray-50 rounded-lg p-2 text-center border border-gray-100">
+                                    <div className="text-xs font-bold text-gray-500 uppercase mb-0.5">Car 2 Matin</div>
+                                    <div className="text-2xl font-bold text-gray-700">{car2}</div>
+                                    <div className="text-xs text-gray-500">pièces</div>
+                                  </div>
+                                )}
                              </div>
 
                              {/* Total Matin - toujours en bas */}
-                             <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-auto">
-                               <span className="text-sm font-medium text-gray-500">Total Matin Clients</span>
-                               <div className="flex items-baseline gap-1">
-                                 <span className="text-2xl font-bold text-gray-800">{total}</span>
+                              <div className="flex justify-between items-center pt-2 border-t border-gray-100 mt-auto">
+                                <span className="text-xs font-medium text-gray-500">Total Matin Clients</span>
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-xl font-bold text-gray-800">{total}</span>
                                  <span className="text-sm text-gray-500">pc</span>
                                </div>
                              </div>
@@ -520,23 +520,23 @@ export const VueBoulanger: React.FC = () => {
                        const produit = totauxParProduit.find(p => p.produitId === produitId)?.produit;
                        const total = repartition.carSoir;
 
-                       return (
-                         <div key={`soir-${produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-300 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
-                           <div className="absolute top-3 right-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Soir</div>
-                           <div className="flex items-center gap-4 mb-8 pt-2">
-                             <div className="w-16 h-16 bg-gray-400 rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                               <Icon icon={getProductIcon(produit?.nom || '')} className="text-3xl text-white" />
-                             </div>
-                             <h3 className="text-xl font-bold text-gray-900 leading-tight">
-                               {produit?.nom || 'Produit'}
-                             </h3>
-                           </div>
+                        return (
+                          <div key={`soir-${produitId}`} className="relative bg-white border border-gray-200 border-t-4 border-t-gray-300 rounded-xl p-4 hover:border-gray-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
+                            <div className="absolute top-3 right-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Soir</div>
+                            <div className="flex items-center gap-3 mb-6 pt-2">
+                              <div className="w-14 h-14 bg-gray-400 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                                <Icon icon={getProductIcon(produit?.nom || '')} className="text-2xl text-white" />
+                              </div>
+                              <h3 className="text-lg font-bold text-gray-900 leading-tight">
+                                {produit?.nom || 'Produit'}
+                              </h3>
+                            </div>
 
-                           <div className="text-center mb-2">
-                             <div className="text-7xl font-bold text-gray-800 tracking-tight leading-none">{total}</div>
-                             <div className="text-lg text-gray-500 font-medium mt-1">pièces clients</div>
-                           </div>
-                         </div>
+                            <div className="text-center mb-2">
+                              <div className="text-6xl font-bold text-gray-800 tracking-tight leading-none">{total}</div>
+                              <div className="text-base text-gray-500 font-medium mt-1">pièces clients</div>
+                            </div>
+                          </div>
                        );
                      })}
                  </div>
@@ -559,24 +559,24 @@ export const VueBoulanger: React.FC = () => {
                     const repartition = quantite.repartitionCars;
 
                     return (
-                      <div key={`boutique-${quantite.produitId}`} className="relative bg-white border-2 border-blue-200 rounded-xl p-6 hover:shadow-lg transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
+                      <div key={`boutique-${quantite.produitId}`} className="relative bg-white border-2 border-blue-200 rounded-xl p-4 hover:shadow-lg transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
                         <div className="absolute top-3 right-4 text-xs font-bold text-blue-500 uppercase tracking-widest">Boutique</div>
 
                         {/* En-tête Produit */}
-                        <div className="flex items-center gap-4 mb-6 pt-2">
-                          <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                            <Icon icon={getProductIcon(produit?.nom || '')} className="text-2xl text-white" />
+                        <div className="flex items-center gap-3 mb-4 pt-2">
+                          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                            <Icon icon={getProductIcon(produit?.nom || '')} className="text-xl text-white" />
                           </div>
-                          <h3 className="text-xl font-bold text-gray-900 leading-tight">
+                          <h3 className="text-lg font-bold text-gray-900 leading-tight">
                             {produit?.nom || 'Produit'}
                           </h3>
                         </div>
 
                         {/* Total Boutique */}
-                        <div className="bg-blue-50 rounded-lg p-4 mb-4 text-center">
-                          <div className="text-sm font-bold text-blue-600 uppercase mb-1">Total Boutique</div>
-                          <div className="text-4xl font-bold text-blue-800">{quantite.quantite}</div>
-                          <div className="text-sm text-blue-600">pièces</div>
+                        <div className="bg-blue-50 rounded-lg p-3 mb-3 text-center">
+                          <div className="text-xs font-bold text-blue-600 uppercase mb-0.5">Total Boutique</div>
+                          <div className="text-3xl font-bold text-blue-800">{quantite.quantite}</div>
+                          <div className="text-xs text-blue-600">pièces</div>
                         </div>
 
                         {/* Répartition par cars si disponible */}
