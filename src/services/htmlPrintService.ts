@@ -1290,6 +1290,96 @@ export class HTMLPrintService {
       `;
     }
 
+    // --- DEBUT NOUVELLE SECTION RAPPORT PAR CAR ---
+    // Calcul des totaux par car (Clients + Boutique)
+    const totauxCar1Matin = new Map<string, number>();
+    const totauxCar2Matin = new Map<string, number>();
+    const totauxCarSoir = new Map<string, number>();
+
+    // 1. Ajouter les quantités Clients
+    Array.from(repartitionsClients.entries()).forEach(([produitId, repartition]) => {
+      if (repartition.car1Matin > 0) totauxCar1Matin.set(produitId, (totauxCar1Matin.get(produitId) || 0) + repartition.car1Matin);
+      if (repartition.car2Matin > 0) totauxCar2Matin.set(produitId, (totauxCar2Matin.get(produitId) || 0) + repartition.car2Matin);
+      if (repartition.carSoir > 0) totauxCarSoir.set(produitId, (totauxCarSoir.get(produitId) || 0) + repartition.carSoir);
+    });
+
+    // 2. Ajouter les quantités Boutique
+    if (programme.quantitesBoutique) {
+      programme.quantitesBoutique.forEach(q => {
+        const repartition = q.repartitionCars;
+        if (repartition) {
+          if (repartition.car1_matin > 0) totauxCar1Matin.set(q.produitId, (totauxCar1Matin.get(q.produitId) || 0) + repartition.car1_matin);
+          if (repartition.car2_matin > 0) totauxCar2Matin.set(q.produitId, (totauxCar2Matin.get(q.produitId) || 0) + repartition.car2_matin);
+          if (repartition.car_soir > 0) totauxCarSoir.set(q.produitId, (totauxCarSoir.get(q.produitId) || 0) + repartition.car_soir);
+        }
+      });
+    }
+
+    // Générer HTML pour le récapitulatif par Car
+    const hasCar1 = totauxCar1Matin.size > 0;
+    const hasCar2 = totauxCar2Matin.size > 0;
+    const hasCarSoir = totauxCarSoir.size > 0;
+
+    if (hasCar1 || hasCar2 || hasCarSoir) {
+      html += `
+          <div class="section" style="break-before: page; margin-top: 20px; PT-4 border-t-2 border-gray-300">
+            <div class="section-header" style="background: #374151; color: white; border-left: none;">
+               <h2 style="color: white; justify-content: center;">🚚 Récapitulatif Global par Car</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+       `;
+
+      // Helper pour générer une colonne de car
+      const generateCarColumn = (title: string, dataMap: Map<string, number>, color: string, bgColor: string) => {
+        if (dataMap.size === 0) return '';
+
+        const carEntries = Array.from(dataMap.entries());
+        const totalGeneral = carEntries.reduce((acc, [, qty]) => acc + qty, 0);
+
+        let colHtml = `
+            <div style="border: 2px solid ${color}; border-radius: 8px; overflow: hidden; background: white;">
+               <div style="background: ${bgColor}; padding: 10px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+                 <h3 style="font-size: 14px; font-weight: 800; color: #111827; margin: 0; text-transform: uppercase;">${title}</h3>
+                 <div style="font-size: 10px; color: #6b7280; margin-top: 2px;">Clients + Boutique</div>
+               </div>
+               <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                 <tbody>
+         `;
+
+        carEntries.forEach(([produitId, qty]) => {
+          const produit = produits.find(p => p.id === produitId);
+          colHtml += `
+                 <tr style="border-bottom: 1px solid #f3f4f6;">
+                   <td style="padding: 6px 10px; color: #374151;">${produit?.nom || 'Inconnu'}</td>
+                   <td style="padding: 6px 10px; text-align: right; font-weight: 700;">${qty}</td>
+                 </tr>
+            `;
+        });
+
+        colHtml += `
+                 <tr style="background: ${bgColor}; border-top: 2px solid ${color};">
+                    <td style="padding: 8px 10px; font-weight: 800; text-transform: uppercase;">TOTAL</td>
+                    <td style="padding: 8px 10px; text-align: right; font-weight: 900; font-size: 13px;">${totalGeneral}</td>
+                 </tr>
+                 </tbody>
+               </table>
+            </div>
+         `;
+        return colHtml;
+      };
+
+      html += generateCarColumn('Car 1 - Matin', totauxCar1Matin, '#f97316', '#fff7ed'); // Orange
+      html += generateCarColumn('Car 2 - Matin', totauxCar2Matin, '#f97316', '#fff7ed'); // Orange
+      html += generateCarColumn('Car - Soir', totauxCarSoir, '#4b5563', '#f3f4f6');     // Gray
+
+      html += `
+            </div>
+          </div>
+       `;
+    }
+    // --- FIN NOUVELLE SECTION ---
+
     const currentDate = new Date();
     html += `
           <div class="footer">

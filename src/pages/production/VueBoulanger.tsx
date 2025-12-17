@@ -105,8 +105,16 @@ const printStyles = `
 
 
 export const VueBoulanger: React.FC = () => {
-  const { programmeActuel, chargerProgramme, produits } = useProductionStore();
+  const { programmeActuel, chargerProgramme, chargerProduits, produits } = useProductionStore();
   const [dateSelectionnee, setDateSelectionnee] = useState(new Date().toISOString().split('T')[0]);
+
+  // Chargement initial des données
+  useEffect(() => {
+    const initialiser = async () => {
+      await chargerProduits();
+    };
+    initialiser();
+  }, [chargerProduits]);
 
   // Calculer les répartitions clients uniquement (sans boutique)
   const calculerRepartitionsClients = () => {
@@ -615,13 +623,109 @@ export const VueBoulanger: React.FC = () => {
               </section>
             )}
 
-            {!Array.from(repartitionsClients.entries()).some(([_, repartition]) =>
-               (repartition.car1Matin + repartition.car2Matin + repartition.carSoir) > 0) &&
-             (!programmeActuel?.quantitesBoutique || programmeActuel.quantitesBoutique.length === 0) && (
-               <div className="text-center py-12 text-gray-500">
-                  <p>Aucune quantité à produire trouvée dans le programme.</p>
-               </div>
-            )}
+            {/* Section Récapitulatif par Car (Clients + Boutique) */}
+            <section className="pt-8 border-t border-gray-200 break-before-page" data-section="recap-cars">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                   <Icon icon="mdi:truck-delivery" className="text-xl text-orange-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">Récapitulatif Global par Car</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4">
+                {['car1_matin', 'car2_matin', 'car_soir'].map((carKey) => {
+                  const carLabel = carKey === 'car1_matin' ? 'Car 1 Matin' : 
+                                  carKey === 'car2_matin' ? 'Car 2 Matin' : 'Car Soir';
+                  const carColor = carKey === 'car_soir' ? 'border-gray-600' : 'border-orange-500';
+                  const carBg = carKey === 'car_soir' ? 'bg-gray-50' : 'bg-orange-50';
+                  
+                  // Calculer les totaux pour ce car (Clients + Boutique)
+                  const totauxCar = new Map<string, number>();
+                  
+                  // 1. Ajouter les quantités Clients
+                  Array.from(repartitionsClients.entries()).forEach(([produitId, repartition]) => {
+                    const qty = carKey === 'car1_matin' ? repartition.car1Matin :
+                               carKey === 'car2_matin' ? repartition.car2Matin :
+                               repartition.carSoir;
+                    if (qty > 0) {
+                      totauxCar.set(produitId, (totauxCar.get(produitId) || 0) + qty);
+                    }
+                  });
+
+                  // 2. Ajouter les quantités Boutique
+                  if (programmeActuel?.quantitesBoutique) {
+                    programmeActuel.quantitesBoutique.forEach(q => {
+                       const qty = carKey === 'car1_matin' ? (q.repartitionCars?.car1_matin || 0) :
+                                  carKey === 'car2_matin' ? (q.repartitionCars?.car2_matin || 0) :
+                                  (q.repartitionCars?.car_soir || 0);
+                       if (qty > 0) {
+                         totauxCar.set(q.produitId, (totauxCar.get(q.produitId) || 0) + qty);
+                       }
+                    });
+                  }
+
+                  const produitsDuCar = Array.from(totauxCar.entries());
+                  
+                  if (produitsDuCar.length === 0) return null;
+
+                  return (
+                    <div key={carKey} className={`bg-white border-t-4 ${carColor} rounded-xl shadow-sm overflow-hidden print:border print:border-black print:shadow-none print:rounded-none h-full`}>
+                       <div className={`${carBg} p-3 border-b border-gray-100 print:bg-gray-100 print:border-black`}>
+                         <h3 className="text-lg font-bold text-gray-900 text-center uppercase tracking-wide">{carLabel}</h3>
+                         <div className="text-center text-xs text-gray-500 font-medium print:text-black mt-1">
+                           Clients + Boutique
+                         </div>
+                       </div>
+                       
+                       <div className="p-0">
+                         <table className="w-full text-sm">
+                           <thead className="bg-white border-b border-gray-100">
+                             <tr>
+                               <th className="px-4 py-2 text-left font-semibold text-gray-600 print:text-black">Produit</th>
+                               <th className="px-4 py-2 text-right font-semibold text-gray-600 print:text-black">Total</th>
+                             </tr>
+                           </thead>
+                           <tbody className="divide-y divide-gray-50">
+                             {produitsDuCar.map(([produitId, total]) => {
+                               // Chercher d'abord dans totauxParProduit, sinon dans la liste globale des produits
+                               let produit = totauxParProduit.find(p => p.produitId === produitId)?.produit;
+                               if (!produit && produits) {
+                                 produit = produits.find(p => p.id === produitId);
+                               }
+                               
+                               return (
+                                 <tr key={produitId} className="hover:bg-gray-50/50">
+                                   <td className="px-4 py-2.5 text-gray-800 font-medium">
+                                     {produit?.nom || 'Inconnu'}
+                                   </td>
+                                   <td className="px-4 py-2.5 text-right font-bold text-gray-900 text-base">
+                                     {total}
+                                   </td>
+                                 </tr>
+                               );
+                             })}
+                             <tr className="bg-gray-50 border-t-2 border-gray-100 print:border-black print:bg-gray-100">
+                               <td className="px-4 py-3 text-left font-bold text-gray-900 uppercase text-xs">Total Général</td>
+                               <td className="px-4 py-3 text-right font-black text-gray-900 text-lg">
+                                 {produitsDuCar.reduce((acc, [, t]) => acc + t, 0)}
+                               </td>
+                             </tr>
+                           </tbody>
+                         </table>
+                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+             {!Array.from(repartitionsClients.entries()).some(([_, repartition]) =>
+                (repartition.car1Matin + repartition.car2Matin + repartition.carSoir) > 0) &&
+              (!programmeActuel?.quantitesBoutique || programmeActuel.quantitesBoutique.length === 0) && (
+                <div className="text-center py-12 text-gray-500">
+                   <p>Aucune quantité à produire trouvée dans le programme.</p>
+                </div>
+             )}
 
             {/* Résumé pour impression uniquement */}
             <div className="hidden print:block print:break-before-page print:mt-8">
