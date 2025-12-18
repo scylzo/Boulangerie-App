@@ -5,7 +5,9 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { useLivraisonStore } from '../../store/livraisonStore';
 import { useProductionStore } from '../../store/productionStore';
 import { useReferentielStore } from '../../store/referentielStore';
+import { useFacturationStore } from '../../store/facturationStore';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
+import { ScrollToTopBottom } from '../../components/ui/ScrollToTopBottom';
 
 export const SaisieRetours: React.FC = () => {
   const {
@@ -14,8 +16,11 @@ export const SaisieRetours: React.FC = () => {
     marquerAucunRetourClient,
     sauvegarderRetoursClient,
     marquerTousSansRetour,
+    annulerValidationRetours,
     isLoading
   } = useLivraisonStore();
+  
+  const { genererFacturesDepuisLivraisons } = useFacturationStore();
 
   const { commandesClients, chargerProgramme } = useProductionStore();
   const { clients, produits, chargerClients, chargerProduits } = useReferentielStore();
@@ -122,11 +127,43 @@ export const SaisieRetours: React.FC = () => {
       if (confirmation) {
         await marquerAucunRetourClient(clientId, new Date(dateSelectionnee));
         await chargerInvendusDuJour(new Date(dateSelectionnee));
+        
+        // Mettre à jour la facture (silencieusement)
+        const invendusUpdated = useLivraisonStore.getState().invendusClients;
+        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error(err));
+
         toast.success(`✅ Aucun retour confirmé pour ${client?.nom || 'le client'}`);
       }
     } catch (error) {
       console.error('Erreur lors du marquage "aucun retour":', error);
       toast.error('❌ Erreur lors du marquage "aucun retour"');
+    }
+  };
+
+  const handleAnnulerValidation = async (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+
+    try {
+      const confirmation = await confirmModal.confirm({
+        title: 'Modifier les retours',
+        message: `Souhaitez-vous modifier les retours pour "${client?.nom}" ?\n\nCela annulera la validation actuelle et vous permettra de changer les quantités.`,
+        confirmText: 'Modifier',
+        cancelText: 'Annuler',
+        type: 'warning'
+      });
+
+      if (confirmation) {
+        await annulerValidationRetours(clientId, new Date(dateSelectionnee));
+        
+        // Mettre à jour la facture (pour la repasser en attente)
+        const invendusUpdated = useLivraisonStore.getState().invendusClients;
+        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error(err));
+
+        toast.success(`✏️ Retours déverrouillés pour ${client?.nom}`);
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation de la validation:', error);
+      toast.error('❌ Erreur lors de l\'annulation de la validation');
     }
   };
 
@@ -170,6 +207,10 @@ export const SaisieRetours: React.FC = () => {
         await sauvegarderRetoursClient(clientId, new Date(dateSelectionnee), produitsAvecRetours);
         await chargerInvendusDuJour(new Date(dateSelectionnee));
         
+        // Mettre à jour la facture IMMÉDIATEMENT
+        const invendusUpdated = useLivraisonStore.getState().invendusClients;
+        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error("Erreur update facture", err));
+
         // Réinitialiser l'état local pour ce client
         setInvendusLocaux(prev => {
           const newState = { ...prev };
@@ -269,28 +310,45 @@ export const SaisieRetours: React.FC = () => {
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
 
-        {/* Widget de sélection de date moderne */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-              <Icon icon="mdi:calendar" className="text-lg text-red-600" />
+        {/* Widget de sélection de date moderne et visible */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+             {/* Sélecteur de date à gauche */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <Icon icon="mdi:calendar" className="text-xl text-red-600" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Date de livraison</h2>
+                <input
+                  type="date"
+                  value={dateSelectionnee}
+                  onChange={(e) => setDateSelectionnee(e.target.value)}
+                  className="mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 font-medium shadow-sm hover:border-gray-400 transition-all cursor-pointer"
+                />
+              </div>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Date de livraison</h2>
-          </div>
-          <div className="flex items-center gap-4">
-            <input
-              type="date"
-              value={dateSelectionnee}
-              onChange={(e) => setDateSelectionnee(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 font-medium"
-            />
-            <div className="text-sm text-gray-500">
-              Retours pour {new Date(dateSelectionnee).toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+
+            {/* Affichage GROS de la date à droite */}
+            <div className="flex-1 max-w-lg bg-gradient-to-r from-red-50 to-rose-50 border border-red-100 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center gap-4">
+                 <div className="hidden sm:flex w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl items-center justify-center text-white shadow-md transform rotate-3">
+                    <Icon icon="mdi:calendar-check" className="text-2xl" />
+                 </div>
+                 <div>
+                    <div className="text-xs font-bold text-red-600 uppercase tracking-widest mb-1">
+                      Retours du
+                    </div>
+                    <div className="text-xl sm:text-2xl font-black text-gray-800 capitalize leading-tight">
+                      {new Date(dateSelectionnee).toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </div>
+                 </div>
+              </div>
             </div>
           </div>
         </div>
@@ -417,9 +475,20 @@ export const SaisieRetours: React.FC = () => {
                     </div>
 
                     {clientARetoursCompletes(client.id!) ? (
-                      <div className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                        <Icon icon="mdi:check-circle" className="text-sm" />
-                        <span className="text-sm font-medium">Retours finalisés</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                          <Icon icon="mdi:check-circle" className="text-sm" />
+                          <span className="text-sm font-medium">Retours finalisés</span>
+                        </div>
+                        <button
+                          onClick={() => handleAnnulerValidation(client.id!)}
+                          disabled={isLoading}
+                          className="flex items-center gap-2 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all text-sm"
+                          title="Modifier les retours"
+                        >
+                          <Icon icon="mdi:pencil" className="text-sm" />
+                          <span>Modifier</span>
+                        </button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
@@ -496,7 +565,8 @@ export const SaisieRetours: React.FC = () => {
                                     e.target.value
                                   )
                                 }
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                disabled={clientARetoursCompletes(client.id!)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                 placeholder="0"
                               />
                             </div>
@@ -556,6 +626,8 @@ export const SaisieRetours: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ScrollToTopBottom />
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}

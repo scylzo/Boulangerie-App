@@ -66,47 +66,17 @@ export const useFacturationStore = create<FacturationStore>((set, get) => ({
 
       if (!commandesClients || commandesClients.length === 0) {
         set({ isLoading: false });
+        // S'il n'y a pas de commandes, on ne fait rien
         return;
       }
 
 
-      const nouvelles: Facture[] = [];
-
-      // Vérifier s'il existe déjà des factures pour cette date
+      // Récupérer les factures existantes pour cette date
       const { factures } = get();
       const dateStr = date.toISOString().split('T')[0];
       const facturesExistantes = factures.filter(facture =>
         facture.dateLivraison.toISOString().split('T')[0] === dateStr
       );
-
-      if (facturesExistantes.length > 0) {
-        // Mettre à jour les statuts des factures existantes
-        for (const facture of facturesExistantes) {
-          const retoursCompletes = get().verifierRetoursCompletes(facture.clientId, date, retoursClients);
-
-          if (retoursCompletes && facture.statut === 'en_attente_retours') {
-            // Mettre à jour dans Firebase
-            await updateDoc(doc(db, 'factures', facture.id), {
-              statut: 'validee',
-              retoursCompletes: true,
-              validatedAt: new Date(),
-              updatedAt: new Date()
-            });
-
-            // Mettre à jour dans le state local
-            set(state => ({
-              factures: state.factures.map(f =>
-                f.id === facture.id
-                  ? { ...f, statut: 'validee' as const, retoursCompletes: true, validatedAt: new Date(), updatedAt: new Date() }
-                  : f
-              )
-            }));
-          }
-        }
-
-        set({ isLoading: false });
-        return;
-      }
 
       // Grouper les commandes par client
       const commandesParClient = new Map<string, CommandeClient[]>();
@@ -118,13 +88,23 @@ export const useFacturationStore = create<FacturationStore>((set, get) => ({
         commandesParClient.get(clientId)!.push(commande);
       });
 
-      // Créer une facture pour chaque client
+      const nouvelles: Facture[] = [];
+      const misesAJour: Facture[] = [];
+
+      // Traiter chaque client ayant une commande
       for (const [clientId, commandesClient] of commandesParClient) {
 
-        // Récupérer les informations du client depuis le store référentiel si nécessaire
+        // Vérifier si une facture existe déjà pour ce client
+        const factureExistante = facturesExistantes.find(f => f.clientId === clientId);
+
+        // Si la facture existe et est bloquée (payée, envoyée, annulée), on ne la touche pas
+        if (factureExistante && ['payee', 'envoyee', 'annulee'].includes(factureExistante.statut)) {
+          continue;
+        }
+
+        // Récupérer les informations du client
         let clientInfo = commandesClient[0]?.client;
         if (!clientInfo) {
-          // Essayer de récupérer le client depuis Firebase
           try {
             const clientDoc = await getDoc(doc(db, 'clients', clientId));
             if (clientDoc.exists()) {
@@ -143,59 +123,53 @@ export const useFacturationStore = create<FacturationStore>((set, get) => ({
 
         for (const commande of commandesClient) {
           for (const produitCmd of commande.produits) {
-            // Récupérer les informations complètes du produit depuis Firebase si elles manquent
+            // Récupérer les informations complètes du produit
             if (!produitCmd.produit && produitCmd.produitId) {
               try {
+                // Récupérer depuis Firestore si manquant
                 const produitDoc = await getDoc(doc(db, 'produits', produitCmd.produitId));
                 if (produitDoc.exists()) {
+                  const data = produitDoc.data();
                   produitCmd.produit = {
                     id: produitDoc.id,
-                    ...produitDoc.data(),
-                    createdAt: produitDoc.data().createdAt?.toDate(),
-                    updatedAt: produitDoc.data().updatedAt?.toDate()
+                    ...data,
+                    prixClient: data.prixClient || 0,
+                    prixBoutique: data.prixBoutique || 0,
+                    prixUnitaire: data.prixUnitaire || 0,
+                    createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+                    updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date()
                   } as any;
-                } else {
-                  console.warn(`⚠️ Produit ${produitCmd.produitId} non trouvé dans Firebase`);
                 }
-              } catch (error) {
-                console.error(`❌ Erreur récupération produit ${produitCmd.produitId}:`, error);
+              } catch (e) {
+                console.warn('Erreur récupération produit:', e);
               }
             }
 
-            // Quantité totale livrée pour ce produit
+            // Fallback produit
+            const produitFull: any = produitCmd.produit || { id: produitCmd.produitId, nom: 'Produit Inconnu', prixUnitaire: 0, prixClient: 0, prixBoutique: 0 };
+
+
+            // Quantité totale livrée
             const quantiteLivree = Object.values(produitCmd.repartitionCars || {})
               .reduce((sum, qte) => sum + (Number(qte) || 0), 0);
 
 
             if (quantiteLivree > 0) {
-              // Quantité retournée pour ce produit
+              // Quantité retournée
               const produitRetour = retoursClient?.produits.find(p => p.produitId === produitCmd.produitId);
               const quantiteRetournee = produitRetour?.invendus || 0;
-              const quantiteFacturee = quantiteLivree - quantiteRetournee;
+              const quantiteFacturee = Math.max(0, quantiteLivree - quantiteRetournee);
 
-              console.log(`📊 Calcul facture pour ${produitCmd.produit?.nom || produitCmd.produitId}:`, {
-                clientId,
-                clientNom: clientInfo?.nom,
-                produitId: produitCmd.produitId,
-                quantiteLivree,
-                quantiteRetournee,
-                quantiteFacturee,
-                retoursClientTrouve: !!retoursClient,
-                produitRetourTrouve: !!produitRetour,
-                produitsRetours: retoursClient?.produits.map(p => ({ id: p.produitId, invendus: p.invendus }))
-              });
-
-              // Prix à utiliser (client ou boutique selon le type de client)
+              // Prix
               const prixUnitaire = (clientInfo?.typeClient === 'client' || commande.client?.typeClient === 'client')
-                ? (produitCmd.produit?.prixClient || produitCmd.produit?.prixUnitaire || 0)
-                : (produitCmd.produit?.prixBoutique || produitCmd.produit?.prixUnitaire || 0);
-
+                ? (produitFull.prixClient || produitFull.prixUnitaire || 0)
+                : (produitFull.prixBoutique || produitFull.prixUnitaire || 0);
 
               const montantLigne = quantiteFacturee * prixUnitaire;
 
               lignes.push({
                 produitId: produitCmd.produitId,
-                produit: produitCmd.produit,
+                produit: produitFull,
                 quantiteLivree,
                 quantiteRetournee,
                 quantiteFacturee,
@@ -210,101 +184,108 @@ export const useFacturationStore = create<FacturationStore>((set, get) => ({
           // Calculer les totaux
           const totaux = get().calculerTotauxFacture(lignes, parametres.tauxTVADefaut);
 
-          const facture: Facture = {
-            id: `facture_${clientId}_${Date.now()}`,
-            numeroFacture: get().genererNumeroFacture(date),
-            clientId,
-            client: clientInfo,
-            dateLivraison: date,
-            dateFacture: new Date(),
-            lignes,
-            ...totaux,
-            tauxTVA: parametres.tauxTVADefaut,
-            statut: retoursCompletes ? 'validee' : 'en_attente_retours',
-            retoursCompletes,
-            conditionsPaiement: clientInfo?.conditionsPaiement || parametres.conditionsPaiementDefaut,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-
-          nouvelles.push(facture);
-
-          // Sauvegarder en Firebase - nettoyer tous les objets
-          const lignesClean = facture.lignes.map(ligne => {
-            const ligneClean: any = {
+          // Préparer l'objet facture pour Firestore (nettoyage)
+          const lignesClean = lignes.map(ligne => {
+            // ... nettoyage similaire à l'original ...
+            const p = ligne.produit as any;
+            return {
               produitId: ligne.produitId,
               quantiteLivree: ligne.quantiteLivree,
               quantiteRetournee: ligne.quantiteRetournee,
               quantiteFacturee: ligne.quantiteFacturee,
               prixUnitaire: ligne.prixUnitaire,
-              montantLigne: ligne.montantLigne
+              montantLigne: ligne.montantLigne,
+              produit: p ? {
+                id: p.id, nom: p.nom, prixUnitaire: p.prixUnitaire || 0, prixClient: p.prixClient || 0, prixBoutique: p.prixBoutique || 0
+              } : null
             };
-
-            // Ajouter le produit seulement s'il existe
-            if (ligne.produit) {
-              ligneClean.produit = {
-                id: ligne.produit.id,
-                nom: ligne.produit.nom,
-                description: ligne.produit.description || '',
-                unite: ligne.produit.unite,
-                prixClient: ligne.produit.prixClient || 0,
-                prixBoutique: ligne.produit.prixBoutique || 0,
-                prixUnitaire: ligne.produit.prixUnitaire || 0,
-                active: ligne.produit.active !== false
-              };
-            }
-
-            return ligneClean;
           });
 
-          const factureForFirebase: any = {
-            id: facture.id,
-            numeroFacture: facture.numeroFacture,
-            clientId: facture.clientId,
-            dateLivraison: facture.dateLivraison,
-            dateFacture: facture.dateFacture,
-            lignes: lignesClean,
-            totalHT: facture.totalHT,
-            tauxTVA: facture.tauxTVA,
-            montantTVA: facture.montantTVA,
-            totalTTC: facture.totalTTC,
-            statut: facture.statut,
-            retoursCompletes: facture.retoursCompletes,
-            conditionsPaiement: facture.conditionsPaiement,
-            createdAt: facture.createdAt,
-            updatedAt: facture.updatedAt
-          };
+          const clientClean = clientInfo ? {
+            id: clientInfo.id,
+            nom: clientInfo.nom,
+            adresse: clientInfo.adresse || '',
+            telephone: clientInfo.telephone || '',
+            email: clientInfo.email || '',
+            typeClient: clientInfo.typeClient,
+          } : null;
 
-          // Ajouter le client seulement s'il existe et nettoyer les timestamps Firebase
-          if (facture.client) {
-            // Nettoyer l'objet client en retirant les timestamps Firebase
-            const clientClean = {
-              id: facture.client.id,
-              nom: facture.client.nom,
-              adresse: facture.client.adresse || '',
-              telephone: facture.client.telephone || '',
-              email: facture.client.email || '',
-              typeClient: facture.client.typeClient,
-              active: facture.client.active
+
+          if (factureExistante) {
+            // MISE À JOUR FACTURE EXISTANTE
+            const updates = {
+              lignes: lignesClean,
+              ...totaux,
+              statut: retoursCompletes ? 'validee' : 'en_attente_retours', // Mise à jour du statut basée sur les retours actuels
+              retoursCompletes,
+              updatedAt: new Date()
+            } as any;
+
+            // Si elle passe à validée, on met la date
+            if (retoursCompletes && factureExistante.statut !== 'validee') {
+              updates.validatedAt = new Date();
+            }
+
+            await updateDoc(doc(db, 'factures', factureExistante.id), updates);
+
+            // Mise à jour state local
+            misesAJour.push({
+              ...factureExistante,
+              lignes, // Avec les objets complets pour l'UI
+              ...totaux,
+              statut: updates.statut,
+              retoursCompletes,
+              updatedAt: updates.updatedAt,
+              validatedAt: updates.validatedAt || factureExistante.validatedAt
+            });
+
+          } else {
+            // CRÉATION NOUVELLE FACTURE
+            const nouvelleFacture: Facture = {
+              id: `facture_${clientId}_${Date.now()}`,
+              numeroFacture: get().genererNumeroFacture(date),
+              clientId,
+              client: clientInfo,
+              dateLivraison: date,
+              dateFacture: new Date(),
+              lignes,
+              ...totaux,
+              tauxTVA: parametres.tauxTVADefaut,
+              statut: retoursCompletes ? 'validee' : 'en_attente_retours',
+              retoursCompletes,
+              conditionsPaiement: clientInfo?.conditionsPaiement || parametres.conditionsPaiementDefaut,
+              createdAt: new Date(),
+              updatedAt: new Date()
             };
-            factureForFirebase.client = clientClean;
+
+            // Sauvegarde Firestore
+            const factureFirebase = {
+              ...nouvelleFacture,
+              lignes: lignesClean,
+              client: clientClean
+              // ... autres champs
+            };
+            await setDoc(doc(db, 'factures', nouvelleFacture.id), factureFirebase, { merge: true });
+            nouvelles.push(nouvelleFacture);
           }
-
-
-          const docRef = doc(db, 'factures', facture.id);
-          await setDoc(docRef, factureForFirebase, { merge: true });
         }
       }
 
       set(state => ({
-        factures: [...state.factures, ...nouvelles],
+        factures: [
+          ...state.factures.map(f => {
+            const updated = misesAJour.find(u => u.id === f.id);
+            return updated || f;
+          }),
+          ...nouvelles
+        ],
         isLoading: false
       }));
 
 
     } catch (error) {
       set({ isLoading: false });
-      console.error('❌ Erreur lors de la génération des factures:', error);
+      console.error('❌ Erreur lors de la génération/mise à jour des factures:', error);
       throw error;
     }
   },

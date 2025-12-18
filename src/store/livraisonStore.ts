@@ -24,6 +24,7 @@ interface LivraisonStore {
   marquerAucunRetourClient: (clientId: string, date: Date) => Promise<void>;
   sauvegarderRetoursClient: (clientId: string, date: Date, produits: Array<{ produitId: string; produit: any; quantiteLivree: number; invendus: number; vendu: number }>) => Promise<void>;
   marquerTousSansRetour: (clientIds: string[], date: Date) => Promise<void>;
+  annulerValidationRetours: (clientId: string, date: Date) => Promise<void>;
 
   // Actions utilitaires
   getLivraisonByClientId: (clientId: string) => LivraisonClient | undefined;
@@ -382,6 +383,35 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
     } catch (error) {
       set({ isLoading: false });
       console.error('❌ Erreur lors du batch "aucun retour":', error);
+      throw error;
+    }
+  },
+
+  annulerValidationRetours: async (clientId: string, date: Date) => {
+    set({ isLoading: true });
+    try {
+      console.log('🔄 Annulation validaton retours pour client:', clientId);
+      const dateStr = date.toISOString().split('T')[0];
+      const docId = `retours_${clientId}_${dateStr}`;
+
+      // 1. Mettre à jour Firestore
+      const docRef = doc(db, 'clientReturns', docId);
+      await setDoc(docRef, { retoursCompletes: false, updatedAt: new Date() }, { merge: true });
+
+      // 2. Mettre à jour le state local
+      set(state => ({
+        invendusClients: state.invendusClients.map(inv =>
+          (inv.clientId === clientId && inv.dateLivraison.toDateString() === date.toDateString())
+            ? { ...inv, retoursCompletes: false, updatedAt: new Date() }
+            : inv
+        ),
+        isLoading: false
+      }));
+
+      console.log('✅ Validation retours annulée avec succès');
+    } catch (error) {
+      set({ isLoading: false });
+      console.error('❌ Erreur lors de l\'annulation de la validation:', error);
       throw error;
     }
   },

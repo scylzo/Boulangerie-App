@@ -60,17 +60,8 @@ export class HTMLPrintService {
     });
   }
 
-  private getCarColor(car: CarLivraison): string {
-    switch (car) {
-      case 'car1_matin':
-        return '#374151'; // gray-700
-      case 'car2_matin':
-        return '#4b5563'; // gray-600
-      case 'car_soir':
-        return '#1f2937'; // gray-800
-      default:
-        return '#4b5563'; // gray-600
-    }
+  private getCarColor(_car: CarLivraison): string {
+    return '#000000'; // Tous les en-têtes en noir pour B&W
   }
 
   private getSigleProduit(nomProduit: string): string {
@@ -121,12 +112,12 @@ export class HTMLPrintService {
         }
         
         body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-          font-size: 16px;
-          line-height: 1.5;
-          color: #1f2937;
+          font-family: 'Helvetica Neue', Arial, sans-serif;
+          font-size: 10px;
+          line-height: 1.2;
+          color: #000;
           background: white;
-          padding: 12px;
+          padding: 0;
         }
         
         .container {
@@ -135,65 +126,91 @@ export class HTMLPrintService {
         }
         
         .header {
-          text-align: center;
-          margin-bottom: 2px;
-          padding-bottom: 2px;
-          border-bottom: 1px solid #e5e7eb;
+           position: relative;
+           margin-bottom: 5px;
+           border-bottom: 2px solid #000;
+           padding-bottom: 5px;
         }
         
         .header h1 {
-          font-size: 24px;
-          font-weight: 700;
-          color: #111827;
+          font-size: 18px;
+          font-weight: 900;
+          text-transform: uppercase;
+          color: #000;
           margin-bottom: 2px;
         }
         
         .header .date {
-          font-size: 14px;
-          color: #6b7280;
-          font-weight: 500;
+          font-size: 11px;
+          color: #000;
+          font-weight: bold;
+        }
+        
+        /* Top left info block */
+        .header-info-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            text-align: left;
+        }
+
+        .header-info-left h2 {
+           font-size: 14px;
+           font-weight: 900;
+           text-transform: uppercase;
+           margin: 0;
+        }
+        .header-info-left div {
+           font-size: 10px;
         }
         
         .livreur-section {
-          margin-bottom: 6px;
-          /* page-break-inside: avoid; removed to prevent forcing start on new page */
+          margin-bottom: 5px;
+          /* Reduced page-break aggression, rely on flow unless necessary */
+          page-break-after: auto;
         }
         
         .livreur-header {
-          background: #f9fafb;
-          padding: 6px 8px;
-          border-left: 3px solid #4b5563;
-          margin-bottom: 2px;
+          background: white;
+          padding: 2px 0;
+          border-bottom: 1px solid #000;
+          margin-bottom: 5px;
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
         }
         
         .livreur-header h2 {
-          font-size: 16px;
-          font-weight: 600;
-          color: #111827;
-          margin-bottom: 2px;
+          font-size: 14px;
+          font-weight: 800;
+          text-transform: uppercase;
+          color: #000;
+          margin: 0;
         }
         
         .livreur-header .info {
-          font-size: 12px;
-          color: #6b7280;
+          font-size: 10px;
+          font-weight: normal;
         }
         
         .car-section {
           margin-bottom: 10px;
-          border: 1px solid #d1d5db;
-          border-radius: 4px;
-          overflow: hidden;
+          border: 1px solid #000;
           page-break-inside: avoid;
         }
         
         .car-header {
+          background: #000;
           color: white;
-          padding: 6px 10px;
-          font-weight: 600;
-          font-size: 14px;
+          padding: 3px 5px;
+          font-weight: 800;
+          font-size: 11px;
+          text-transform: uppercase;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         
         .car-body {
@@ -206,137 +223,127 @@ export class HTMLPrintService {
         }
         
         th {
-          background: #f3f4f6;
-          padding: 6px 8px;
-          text-align: left;
-          font-weight: 600;
-          font-size: 12px;
-          color: #374151;
-          border-bottom: 1px solid #d1d5db;
+          background: #eee;
+          padding: 2px 4px;
+          text-align: center;
+          font-weight: 800;
+          font-size: 9px;
+          color: #000;
+          border: 1px solid #000;
+          text-transform: uppercase;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        th:first-child {
+            text-align: left;
         }
         
         td {
-          padding: 6px 8px;
-          border-bottom: 1px solid #e5e7eb;
-          font-size: 12px;
-          vertical-align: top;
+          padding: 2px 4px;
+          border: 1px solid #000;
+          font-size: 9px;
+          vertical-align: middle;
+          color: #000;
         }
         
-        tr:last-child td {
-          border-bottom: none;
-        }
-        
-        tr:hover {
-          background: #f9fafb;
+        tr:nth-child(even) {
+          background: #f9f9f9;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         
         .summary {
-          background: #374151;
-          color: white;
-          padding: 6px 8px;
-          margin-top: 0;
-          border-top: 1px solid #d1d5db;
+          background: white;
+          color: #000;
+          padding: 4px;
+          border-top: 2px solid #000;
         }
         
         .summary h4 {
-          font-size: 13px;
-          font-weight: 600;
-          margin-bottom: 4px;
+          font-size: 10px;
+          font-weight: 800;
+          text-transform: uppercase;
+          margin-bottom: 2px;
+          text-decoration: underline;
         }
         
         .summary-items {
           display: flex;
           flex-wrap: wrap;
-          gap: 4px;
+          gap: 5px;
         }
         
         .summary-item {
           background: white;
-          color: #111827;
-          padding: 4px 8px;
-          border-radius: 3px;
-          font-size: 11px;
-          font-weight: 500;
-          display: inline-flex;
+          color: #000;
+          padding: 1px 0;
+          font-size: 9px;
+          font-weight: 600;
+          display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 2px;
+          border: 1px solid #ccc;
+          padding: 1px 4px;
+          border-radius: 2px;
         }
         
         .summary-item .count {
-          background: #f3f4f6;
-          padding: 1px 5px;
-          border-radius: 8px;
+          background: #000;
+          color: white;
+          padding: 0 4px;
+          border-radius: 4px;
           font-weight: 700;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         
         .retours-column {
-          width: 80px;
-          min-height: 20px;
-          border: 1px solid #d1d5db;
-          border-radius: 3px;
-          background: #fafafa;
+          width: 100%;
+          height: 12px;
         }
         
         .stats {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 8px;
-          margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border: 1px solid #000;
+            padding: 5px;
         }
         
         .stat-card {
-          background: #f9fafb;
-          padding: 6px 8px;
-          border-radius: 4px;
-          border-left: 3px solid #4b5563;
+            text-align: center;
         }
         
         .stat-card .label {
-          font-size: 8px;
-          color: #6b7280;
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
+            font-size: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
         }
-        
+
         .stat-card .value {
-          font-size: 18px;
-          font-weight: 700;
-          color: #111827;
-          margin-top: 2px;
+            font-size: 14px;
+            font-weight: 800;
         }
         
         @media print {
+          @page {
+            margin: 5mm;
+            size: A4;
+          }
+
           body {
-            padding: 0;
-            font-size: 9px;
+            -webkit-print-color-adjust: exact;
+             print-color-adjust: exact;
           }
           
           .no-print {
             display: none !important;
           }
-          
+
           .livreur-section {
-            page-break-after: always;
-          }
-          
-          .car-section {
-            page-break-inside: avoid;
-          }
-          
-          th {
-            font-size: 8px;
-            padding: 3px 5px;
-          }
-          
-          td {
-            font-size: 8px;
-            padding: 3px 5px;
-          }
-          
-          @page {
-            margin: 5mm;
-            size: A4;
+             break-after: auto;
+             page-break-after: auto;
           }
         }
       </style>
@@ -361,20 +368,24 @@ export class HTMLPrintService {
       </head>
       <body>
         <div class="container">
-          <div class="header">
-            <div class="logo">
-              <img src="${logoUrl}" alt="Boulangerie Chez Mina" style="height: 60px; margin: 0 auto 2px auto; display: block;" />
+          <div class="header" style="position: relative; margin-bottom: 20px;">
+            <!-- Livreur Info - Absolutly positioned top left -->
+            <div style="position: absolute; top: 0; left: 0; text-align: left;">
+               <h2 style="font-size: 16px; font-weight: 900; text-transform: uppercase; margin: 0;">${livreurNom}</h2>
+               ${dataLivreur.livreur?.telephone ? `<div style="font-size: 11px; margin-top: 4px;">📞 ${dataLivreur.livreur.telephone}</div>` : ''}
+               ${dataLivreur.livreur?.vehicule ? `<div style="font-size: 11px; margin-top: 2px;">🚗 ${dataLivreur.livreur.vehicule}</div>` : ''}
             </div>
-            <h1>📦 Programme de Livraison</h1>
-            <div class="date">${this.formatDate(dateSelectionnee)}</div>
+
+            <!-- Centered Header Content -->
+            <div style="text-align: center;">
+               <img src="${logoUrl}" alt="Logo" style="height: 50px; margin-bottom: 5px; display: inline-block;" />
+               <h1 style="font-size: 24px; margin: 0; text-transform: uppercase;">Programme de Livraison</h1>
+               <div class="date" style="font-size: 14px; font-weight: bold; margin-top: 2px;">${this.formatDate(dateSelectionnee)}</div>
+            </div>
           </div>
           
           <div class="livreur-section">
-            <div class="livreur-header">
-              <h2>${livreurNom}</h2>
-              ${dataLivreur.livreur?.telephone ? `<div class="info">📞 ${dataLivreur.livreur.telephone}</div>` : ''}
-              ${dataLivreur.livreur?.vehicule ? `<div class="info">🚗 ${dataLivreur.livreur.vehicule}</div>` : ''}
-            </div>
+            <!-- Header removed as it is now in main header -->
     `;
 
     // Pour chaque car - Ordre défini : car1_matin, car2_matin, car_soir
@@ -576,10 +587,12 @@ export class HTMLPrintService {
 
       html += `
           <div class="livreur-section">
-            <div class="livreur-header">
-              <h2>${livreurNom}</h2>
-              ${dataLivreur.livreur?.telephone ? `<div class="info">📞 ${dataLivreur.livreur.telephone}</div>` : ''}
-              ${dataLivreur.livreur?.vehicule ? `<div class="info">🚗 ${dataLivreur.livreur.vehicule}</div>` : ''}
+            <div class="livreur-header" style="flex-direction: column; align-items: flex-start; gap: 2px;">
+              <h2 style="font-size: 18px; margin: 0;">${livreurNom}</h2>
+              <div style="display: flex; gap: 15px; font-size: 11px;">
+                  ${dataLivreur.livreur?.telephone ? `<div>📞 ${dataLivreur.livreur.telephone}</div>` : ''}
+                  ${dataLivreur.livreur?.vehicule ? `<div>🚗 ${dataLivreur.livreur.vehicule}</div>` : ''}
+              </div>
             </div>
       `;
 
@@ -824,11 +837,11 @@ export class HTMLPrintService {
 
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            font-size: 11px;
-            line-height: 1.4;
-            color: #1f2937;
+            font-size: 9px;
+            line-height: 1.2;
+            color: #000;
             background: white;
-            padding: 12px;
+            padding: 5px;
           }
 
           .container {
@@ -837,55 +850,58 @@ export class HTMLPrintService {
           }
 
           .header {
-            text-align: center;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #374151;
-          }
-
-          .header .logo {
-            margin-bottom: 8px;
-          }
-
-          .header .logo img {
-            height: 60px;
-            margin: 0 auto;
-            display: block;
+             position: relative;
+             margin-bottom: 5px;
+             border-bottom: 2px solid #000;
+             padding-bottom: 5px;
           }
 
           .header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 4px;
-          }
-
-          .header .date {
-            font-size: 13px;
-            color: #6b7280;
-            font-weight: 500;
+            font-size: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #000;
             margin-bottom: 2px;
           }
+          
+          /* Top left info block */
+          .header-info-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            text-align: left;
+          }
 
-          .header .status {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 4px;
-            display: inline-block;
-            background: #f3f4f6;
-            color: #374151;
+          .header-info-left .date {
+            font-size: 11px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 1px;
+            text-transform: uppercase;
+          }
+
+          .header-info-left .meta {
+             font-size: 9px;
+             color: #000;
+          }
+          
+          .header-info-left .status {
+             margin-top: 2px;
+             font-size: 9px;
+             font-weight: bold;
+             text-transform: uppercase;
+             border: 1px solid #000;
+             padding: 0 4px;
+             display: inline-block;
           }
 
           .stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-            background: #374151;
-            padding: 16px;
-            border-radius: 8px;
-            color: white;
+            gap: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #000;
+            padding: 5px;
           }
 
           .stat-card {
@@ -893,217 +909,138 @@ export class HTMLPrintService {
           }
 
           .stat-card .label {
-            font-size: 10px;
+            font-size: 9px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-            opacity: 0.8;
+            font-weight: 600;
+            color: #000;
           }
 
           .stat-card .value {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 800;
+            color: #000;
           }
 
           .stat-card .unit {
-            font-size: 11px;
-            opacity: 0.8;
+            font-size: 8px;
+            color: #000;
           }
 
           .section {
-            margin-bottom: 24px;
+            margin-bottom: 10px;
             page-break-inside: avoid;
           }
 
           .section-header {
-            background: #f9fafb;
-            padding: 8px 12px;
-            border-left: 4px solid #4b5563;
-            margin-bottom: 12px;
-            border-radius: 4px;
-          }
-
-          .section-header.matin {
-            border-left-color: #f59e0b;
-            background: #fffbeb;
-          }
-
-          .section-header.soir {
-            border-left-color: #6366f1;
-            background: #eef2ff;
-          }
-
-          .section-header.boutique {
-            border-left-color: #059669;
-            background: #ecfdf5;
+            background: white;
+            padding: 2px 0;
+            border-bottom: 1px solid #000;
+            margin-bottom: 5px;
           }
 
           .section-header h2 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #111827;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #000;
+            margin: 0;
           }
 
           .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 4px;
           }
 
           .product-card {
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            overflow: hidden;
+            border: 1px solid #000;
             page-break-inside: avoid;
           }
 
           .product-header {
-            background: #374151;
+            background: #000;
             color: white;
-            padding: 8px 12px;
-            font-weight: 600;
-            font-size: 12px;
-          }
-
-          .product-header.matin {
-            background: #f59e0b;
-          }
-
-          .product-header.soir {
-            background: #6366f1;
-          }
-
-          .product-header.boutique {
-            background: #059669;
+            padding: 2px 4px;
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
 
           .product-body {
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            height: calc(100% - 40px);
+            padding: 2px 4px;
           }
-
-          .product-content {
-            flex: 1;
-          }
-
+          
           .car-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 4px 0;
-            border-bottom: 1px solid #f3f4f6;
+            border-bottom: 1px dotted #000;
+            padding: 1px 0;
           }
-
+          
           .car-row:last-child {
-            border-bottom: none;
-          }
-
-          .car-label {
-            font-size: 10px;
-            color: #6b7280;
-            font-weight: 500;
-          }
-
-          .car-value {
-            font-size: 14px;
-            font-weight: 700;
-            color: #111827;
+             border-bottom: none;
           }
 
           .total-row {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 2px solid #e5e7eb;
+            border-top: 1px solid #000;
+            margin-top: 2px;
+            padding-top: 2px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            font-weight: bold;
           }
-
-          .total-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #374151;
-          }
-
-          .total-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: #111827;
-          }
-
+          
           .soir-total {
-            text-align: center;
-            padding: 20px;
-            background: #f8fafc;
-            border-radius: 8px;
+             border: 1px solid #000;
+             padding: 4px;
+             text-align: center;
           }
-
-          .soir-total .value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 4px;
-          }
-
-          .soir-total .label {
-            font-size: 12px;
-            color: #6b7280;
-          }
-
+          
           .footer {
-            margin-top: 40px;
-            padding-top: 16px;
-            border-top: 1px solid #d1d5db;
+            margin-top: 10px;
+            border-top: 1px solid #000;
+            padding-top: 5px;
             text-align: center;
-            font-size: 9px;
-            color: #6b7280;
+            font-size: 8px;
           }
 
           @media print {
             body {
-              padding: 8px;
-              font-size: 10px;
+               font-size: 9px;
+               -webkit-print-color-adjust: exact;
+               print-color-adjust: exact;
             }
-
-            .no-print {
-              display: none !important;
-            }
-
-            .section {
-              page-break-inside: avoid;
-            }
-
-            .products-grid {
-              grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-              gap: 8px;
-            }
-
-            @page {
-              margin: 8mm;
-              size: A4;
-            }
+            .no-print { display: none !important; }
+            .section { page-break-inside: avoid; }
+            .product-card { page-break-inside: avoid; }
+            @page { margin: 5mm; size: A4; }
           }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">
-              <img src="${logoUrl}" alt="Boulangerie Chez Mina" />
+            <!-- Top Left Info -->
+            <div class="header-info-left">
+               <div class="date">
+                 Production : ${this.formatDateWithCorrection(programme.dateProduction)}
+               </div>
+               <div class="meta">
+                 Créé le ${programme.dateCreation.toLocaleDateString('fr-FR')} à ${programme.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+               </div>
+               <div class="status">${statutText}</div>
             </div>
-            <h1>🥖 Programme de Production</h1>
-            <div class="date">
-              Production : ${this.formatDateWithCorrection(programme.dateProduction)}
+
+            <!-- Centered Title & Logo -->
+            <div style="text-align: center;">
+                <div class="logo">
+                  <img src="${logoUrl}" alt="Boulangerie Chez Mina" style="height: 50px; display: inline-block; margin-bottom: 5px;" />
+                </div>
+                <h1>🥖 Programme de Production</h1>
             </div>
-            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
-              Programme créé le ${programme.dateCreation.toLocaleDateString('fr-FR')} à ${programme.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-            <div class="status">${statutText}</div>
           </div>
 
           <div class="stats">
@@ -1322,12 +1259,12 @@ export class HTMLPrintService {
 
     if (hasCar1 || hasCar2 || hasCarSoir) {
       html += `
-          <div class="section" style="break-before: page; margin-top: 20px; PT-4 border-t-2 border-gray-300">
+          <div class="section" style="break-before: page; margin-top: 10px; padding-top: 4px; border-top: 1px solid #d1d5db">
             <div class="section-header" style="background: #374151; color: white; border-left: none;">
-               <h2 style="color: white; justify-content: center;">🚚 Récapitulatif Global par Car</h2>
+               <h2 style="color: white; justify-content: center; font-size: 14px;">🚚 Récapitulatif Global par Car</h2>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
        `;
 
       // Helper pour générer une colonne de car
@@ -1338,12 +1275,12 @@ export class HTMLPrintService {
         const totalGeneral = carEntries.reduce((acc, [, qty]) => acc + qty, 0);
 
         let colHtml = `
-            <div style="border: 2px solid ${color}; border-radius: 8px; overflow: hidden; background: white;">
-               <div style="background: ${bgColor}; padding: 10px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-                 <h3 style="font-size: 14px; font-weight: 800; color: #111827; margin: 0; text-transform: uppercase;">${title}</h3>
-                 <div style="font-size: 10px; color: #6b7280; margin-top: 2px;">Clients + Boutique</div>
+            <div style="border: 1px solid ${color}; border-radius: 4px; overflow: hidden; background: white;">
+               <div style="background: ${bgColor}; padding: 6px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+                 <h3 style="font-size: 11px; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase;">${title}</h3>
+                 <div style="font-size: 8px; color: #6b7280; margin-top: 2px;">Clients + Boutique</div>
                </div>
-               <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+               <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
                  <tbody>
          `;
 
@@ -1351,16 +1288,16 @@ export class HTMLPrintService {
           const produit = produits.find(p => p.id === produitId);
           colHtml += `
                  <tr style="border-bottom: 1px solid #f3f4f6;">
-                   <td style="padding: 6px 10px; color: #374151;">${produit?.nom || 'Inconnu'}</td>
-                   <td style="padding: 6px 10px; text-align: right; font-weight: 700;">${qty}</td>
+                   <td style="padding: 4px 6px; color: #374151;">${produit?.nom || 'Inconnu'}</td>
+                   <td style="padding: 4px 6px; text-align: right; font-weight: 700;">${qty}</td>
                  </tr>
             `;
         });
 
         colHtml += `
-                 <tr style="background: ${bgColor}; border-top: 2px solid ${color};">
-                    <td style="padding: 8px 10px; font-weight: 800; text-transform: uppercase;">TOTAL</td>
-                    <td style="padding: 8px 10px; text-align: right; font-weight: 900; font-size: 13px;">${totalGeneral}</td>
+                 <tr style="background: ${bgColor}; border-top: 1px solid ${color};">
+                    <td style="padding: 6px 8px; font-weight: 700; text-transform: uppercase;">TOTAL</td>
+                    <td style="padding: 6px 8px; text-align: right; font-weight: 700; font-size: 11px;">${totalGeneral}</td>
                  </tr>
                  </tbody>
                </table>
