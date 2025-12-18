@@ -1259,7 +1259,7 @@ export class HTMLPrintService {
 
     if (hasCar1 || hasCar2 || hasCarSoir) {
       html += `
-          <div class="section" style="break-before: page; margin-top: 10px; padding-top: 4px; border-top: 1px solid #d1d5db">
+          <div class="section" style="margin-top: 10px; padding-top: 4px; border-top: 1px solid #d1d5db">
             <div class="section-header" style="background: #374151; color: white; border-left: none;">
                <h2 style="color: white; justify-content: center; font-size: 14px;">🚚 Récapitulatif Global par Car</h2>
             </div>
