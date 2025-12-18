@@ -624,7 +624,7 @@ export const VueBoulanger: React.FC = () => {
             )}
 
             {/* Section Récapitulatif par Car (Clients + Boutique) */}
-            <section className="pt-8 border-t border-gray-200 break-before-page" data-section="recap-cars">
+            <section className="pt-8 border-t border-gray-200" data-section="recap-cars">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
                    <Icon icon="mdi:truck-delivery" className="text-xl text-orange-600" />
@@ -728,7 +728,7 @@ export const VueBoulanger: React.FC = () => {
              )}
 
             {/* Résumé pour impression uniquement */}
-            <div className="hidden print:block print:break-before-page print:mt-8">
+            <div className="hidden print:block print:mt-8">
               <div className="border-t-2 border-black pt-4">
                 <h3 className="text-lg font-bold mb-4">📋 RÉSUMÉ DE PRODUCTION</h3>
                 <div className="grid grid-cols-3 gap-4 text-sm">
