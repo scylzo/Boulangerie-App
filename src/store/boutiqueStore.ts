@@ -39,6 +39,7 @@ interface BoutiqueStore {
   // Actions Chargement
   chargerEquipe: (date: Date, periode: 'matin' | 'soir') => Promise<void>;
   chargerVentes: (date: Date) => Promise<void>;
+  getVentesPeriode: (dateDebut: Date, dateFin: Date) => Promise<number>;
 
 
   // Setters
@@ -591,6 +592,42 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
       }
     } catch (error) {
       console.error(`❌ Erreur lors du chargement des ventes:`, error);
+    }
+  },
+
+  getVentesPeriode: async (dateDebut: Date, dateFin: Date) => {
+    try {
+      if (!dateDebut || !dateFin) return 0;
+
+      const q = query(
+        collection(db, 'shopSales'),
+        where('date', '>=', dateToTimestamp(dateDebut)),
+        where('date', '<=', dateToTimestamp(dateFin))
+      );
+
+      const snapshot = await getDocs(q);
+
+      // Somme des ventes totales (venduTotal * prixBoutique ?) 
+      // Attention: VentesBoutique contient 'produits' avec 'venduTotal'. 
+      // Mais on n'a pas le prix stocké dans VentesBoutique.produits (si, on a juste produitId, stockDebut, etc. et une copie de produit?).
+      // Regardons 'creerStockJour' -> 'produits.map... produit: p.produit'.
+      // Donc oui, l'objet 'produit' complet est stocké dans 'ventesJour.produits[].produit'.
+
+      let totalPeriode = 0;
+
+      snapshot.docs.forEach(doc => {
+        const data = doc.data() as VentesBoutique;
+        const totalJour = data.produits.reduce((acc, p) => {
+          const prix = p.produit?.prixBoutique || p.produit?.prixUnitaire || 0;
+          return acc + (p.venduTotal * prix);
+        }, 0);
+        totalPeriode += totalJour;
+      });
+
+      return totalPeriode;
+    } catch (error) {
+      console.error('Erreur calcul CA boutique période:', error);
+      return 0;
     }
   },
 

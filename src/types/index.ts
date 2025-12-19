@@ -51,3 +51,10 @@ export type {
   UniteMesure,
   TypeMouvement
 } from './stock';
+
+// Depenses types
+export type {
+  Depense,
+  CategorieDepense,
+  SyntheseDepenses
+} from './depense';

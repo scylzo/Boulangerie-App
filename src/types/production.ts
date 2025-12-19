@@ -102,12 +102,19 @@ export interface ProgrammeProduction {
   dateCreation: Date;   // Date de création du programme (sans heure)
   commandesClients: CommandeClient[];
   quantitesBoutique: QuantiteBoutique[];
+  // Saisie réelle de production (optionnel, si différent du prévu)
+  productionReelle?: Array<{
+    produitId: string;
+    quantite: number;
+  }>;
   totauxParProduit: Array<{
     produitId: string;
     produit?: Produit;
     totalClient: number;
     totalBoutique: number;
     totalGlobal: number;
+    // Quantité réellement produite (si saisie, sinon égal à totalGlobal ou undefined)
+    quantiteProduiteReelle?: number;
     // Répartition par car de livraison
     repartitionCar1Matin: number;
     repartitionCar2Matin: number;

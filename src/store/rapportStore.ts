@@ -212,7 +212,8 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         const venduClients = quantiteLivreeClients - invendusClientsProduit;
 
         // Calculs totaux
-        const quantiteProduite = quantiteLivreeClients + quantiteBoutique; // Estimation
+        // Utiliser la quantité réelle si saisie dans le programme, sinon l'estimation
+        const quantiteProduite = progProduit.quantiteProduiteReelle ?? (quantiteLivreeClients + quantiteBoutique);
         const quantiteVendueTotal = venduClients + venduBoutique;
         const invendusTotal = invendusClientsProduit + invenduBoutique;
 

@@ -65,6 +65,9 @@ interface ProductionStore {
   modifierQuantiteBoutique: (produitId: string, quantite: number) => void;
   supprimerQuantiteBoutique: (produitId: string) => void;
 
+  // Actions Production Réelle
+  setQuantiteProduite: (produitId: string, quantite: number) => void;
+
   // Actions Calculs
   calculerTotauxParProduit: () => void;
   modifierRepartitionProduit: (produitId: string, car1Matin: number, car2Matin: number, carSoir: number) => void;
@@ -385,9 +388,18 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
             logDetails.push(`Produit: ${produit.nom} (Total: ${total.totalGlobal})`);
 
+            // Utiliser la quantité réelle si saisie, sinon la quantité prévue (totalGlobal)
+            const quantiteReference = total.quantiteProduiteReelle !== undefined
+              ? total.quantiteProduiteReelle
+              : total.totalGlobal;
+
+            if (total.quantiteProduiteReelle !== undefined) {
+              logDetails.push(`  -> Production réelle saisie: ${total.quantiteProduiteReelle} (au lieu de ${total.totalGlobal} prévu)`);
+            }
+
             // Pour chaque ingrédient de la recette
             produit.recette.forEach(ing => {
-              const qteTotale = Number((ing.quantite * total.totalGlobal).toFixed(3));
+              const qteTotale = Number((ing.quantite * quantiteReference).toFixed(3));
               if (qteTotale > 0) {
                 mouvementsStock.push({
                   matiereId: ing.matiereId,
@@ -681,6 +693,33 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     setTimeout(() => get().sauvegarderEtRecharger().catch(console.error), 0);
   },
 
+  // Actions Production Réelle
+  setQuantiteProduite: (produitId, quantite) => {
+    set((state) => {
+      if (!state.programmeActuel) return {};
+
+      const newProductionReelle = [...(state.programmeActuel.productionReelle || [])];
+      const existingIndex = newProductionReelle.findIndex(p => p.produitId === produitId);
+
+      if (existingIndex >= 0) {
+        newProductionReelle[existingIndex] = { produitId, quantite };
+      } else {
+        newProductionReelle.push({ produitId, quantite });
+      }
+
+      return {
+        programmeActuel: {
+          ...state.programmeActuel,
+          productionReelle: newProductionReelle
+        }
+      };
+    });
+    // Recalculer les totaux pour mettre à jour l'affichage
+    get().calculerTotauxParProduit();
+    // Sauvegarder
+    setTimeout(() => get().sauvegarderEtRecharger().catch(console.error), 0);
+  },
+
   // Actions Calculs
   calculerTotauxParProduit: () => {
     const { commandesClients, quantitesBoutique, produits } = get();
@@ -764,12 +803,17 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       const produit = produits.find(p => p.id === produitId);
       const totalGlobal = totaux.totalClient + totaux.totalBoutique;
 
+      // Récupérer la quantité réellement produite si saisie
+      const realProdEntry = (get().programmeActuel?.productionReelle || []).find(p => p.produitId === produitId);
+      const quantiteProduiteReelle = realProdEntry ? realProdEntry.quantite : undefined;
+
       return {
         produitId,
         produit,
         totalClient: totaux.totalClient,
         totalBoutique: totaux.totalBoutique,
         totalGlobal,
+        quantiteProduiteReelle,
         repartitionCar1Matin: totaux.repartitionCar1Matin,
         repartitionCar2Matin: totaux.repartitionCar2Matin,
         repartitionCarSoir: totaux.repartitionCarSoir

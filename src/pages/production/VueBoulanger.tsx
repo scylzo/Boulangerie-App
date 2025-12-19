@@ -105,7 +105,7 @@ const printStyles = `
 
 
 export const VueBoulanger: React.FC = () => {
-  const { programmeActuel, chargerProgramme, chargerProduits, produits } = useProductionStore();
+  const { programmeActuel, chargerProgramme, chargerProduits, produits, setQuantiteProduite } = useProductionStore();
   const [dateSelectionnee, setDateSelectionnee] = useState(new Date().toISOString().split('T')[0]);
 
   // Chargement initial des données
@@ -438,6 +438,64 @@ export const VueBoulanger: React.FC = () => {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Saisie de la Production Réelle */}
+              <div className="bg-white border-2 border-indigo-100 rounded-xl p-4 shadow-sm print:hidden">
+                  <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-indigo-100 rounded-lg">
+                          <Icon icon="mdi:checkbox-marked-circle-plus-outline" className="text-xl text-indigo-600" />
+                      </div>
+                      <div>
+                          <h3 className="font-bold text-gray-900">Ajustement Production Réelle</h3>
+                          <p className="text-xs text-gray-500">Saisissez les quantités si elles diffèrent du prévu</p>
+                      </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {totauxParProduit.map((item) => (
+                          <div key={item.produitId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                              <span className="font-medium text-gray-700 text-sm truncate mr-2 flex-1" title={item.produit?.nom}>
+                                  {item.produit?.nom}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                  <div className="text-xs text-gray-400">Prévu: {item.totalGlobal}</div>
+                                  <input 
+                                      type="number" 
+                                      min="0"
+                                      className="w-20 px-2 py-1 text-right text-sm font-bold border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                      placeholder={String(item.totalGlobal)}
+                                      value={item.quantiteProduiteReelle ?? ''}
+                                      onChange={(e) => {
+                                          const val = e.target.value === '' ? undefined : Number(e.target.value);
+                                          if (val !== undefined) {
+                                               setQuantiteProduite(item.produitId, val);
+                                          }
+                                      }}
+                                  />
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+                  
+                  <div className="mt-6 flex justify-end gap-3 border-t border-gray-100 pt-4">
+                      <button
+                          onClick={() => {
+                              if (window.confirm("Êtes-vous sûr de vouloir valider la production ? Cela déduira les stocks basés sur ces quantités.")) {
+                                  useProductionStore.getState().validerProduction();
+                              }
+                          }}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors ${
+                              programmeActuel?.statut === 'produit' 
+                                  ? 'bg-green-600 cursor-default'
+                                  : 'bg-indigo-600 hover:bg-indigo-700'
+                          }`}
+                          disabled={programmeActuel?.statut === 'produit'}
+                      >
+                          <Icon icon={programmeActuel?.statut === 'produit' ? "mdi:check-circle" : "mdi:check"} className="text-xl" />
+                          <span>{programmeActuel?.statut === 'produit' ? 'Production Validée' : 'Valider la Production'}</span>
+                      </button>
+                  </div>
               </div>
             </div>
 

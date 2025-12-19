@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Icon } from '@iconify/react';
@@ -18,6 +19,8 @@ const navigation = [
   { name: 'Boutique', href: '/boutique', roles: ['admin', 'vendeuse'] },
   { name: 'Facturation', href: '/facturation', roles: ['admin', 'gestionnaire'] },
   { name: 'Stocks', href: '/stocks', roles: ['admin', 'gestionnaire'] }, // Use "Stocks" or "Économat"
+  { name: 'Dépenses', href: '/depenses', roles: ['admin', 'gestionnaire'] },
+  { name: 'Comptabilité', href: '/comptabilite', roles: ['admin', 'gestionnaire'] },
   { name: 'Rapport Journalier', href: '/rapport', roles: ['admin', 'gestionnaire'] },
   { name: 'Gestion Produits', href: '/admin/produits', roles: ['admin'] },
   { name: 'Gestion Clients', href: '/admin/clients', roles: ['admin'] },
@@ -33,11 +36,13 @@ const navigationIcons = {
   'Boutique': 'mdi:store',
   'Facturation': 'mdi:file-document',
   'Stocks': 'mdi:warehouse',
+  'Dépenses': 'mdi:cash-multiple',
   'Rapport Journalier': 'mdi:chart-bar',
   'Gestion Produits': 'mdi:bread-slice',
   'Gestion Clients': 'mdi:account-group',
   'Gestion Livreurs': 'mdi:motorbike',
   'Gestion Utilisateurs': 'mdi:account-key',
+  'Comptabilité': 'mdi:calculator',
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {

@@ -17,6 +17,8 @@ import { GestionLivreurs } from './pages/admin/GestionLivreurs';
 import { GestionUtilisateurs } from './pages/admin/GestionUtilisateurs';
 import { GestionFactures } from './pages/facturation/GestionFactures';
 import { GestionStock } from './pages/stock/GestionStock';
+import { GestionDepenses } from './pages/finance/GestionDepenses';
+import { Comptabilite } from './pages/finance/Comptabilite';
 import { useAuthStore } from './store';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -163,6 +165,18 @@ function App() {
         <Route path="/stocks" element={
           <ProtectedRoute>
             <GestionStock />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/depenses" element={
+          <ProtectedRoute>
+            <GestionDepenses />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/comptabilite" element={
+          <ProtectedRoute>
+            <Comptabilite />
           </ProtectedRoute>
         } />
 
