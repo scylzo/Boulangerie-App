@@ -335,8 +335,8 @@ export const PageLivraison: React.FC = () => {
               >
                 {/* En-tête Livreur Compact */}
                 <div className="p-4 border-b border-gray-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3 wrap mb-2">
+                  <div className="flex items-center justify-between gap-3 mb-3" style={{flexWrap: 'wrap', marginBottom: '12px'}}>
+                    <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
                         data.livreur ? 'bg-gray-100 border-gray-200' : 'bg-amber-100 border-amber-200'
                       }`}>
