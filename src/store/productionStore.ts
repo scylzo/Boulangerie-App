@@ -323,11 +323,36 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         updatedAt: dateToTimestamp(new Date())
       };
 
+
+      const cleanData = (data: any): any => {
+        if (data === undefined) return null;
+        if (data === null) return null;
+        if (data instanceof Date) return data;
+        // Garder les Timestamp Firestore
+        if (typeof data === 'object' && typeof data.toMillis === 'function') return data;
+
+        if (Array.isArray(data)) {
+          return data.map(cleanData);
+        }
+        if (typeof data === 'object') {
+          const res: any = {};
+          for (const k in data) {
+            const val = cleanData(data[k]);
+            // On garde les propriétés même si null, mais pas si undefined originalement ? 
+            // Firestore accepte null. On a transformé undefined en null au début.
+            res[k] = val;
+          }
+          return res;
+        }
+        return data;
+      };
+
+      const dataToSaveSafe = cleanData(programmeAEnregistrer);
+
       if (programmeActuel.id.startsWith('prog_')) {
         // Nouveau programme, l'ajouter
-
-        const { id: _, ...dataToSave } = programmeAEnregistrer;
-        const docRef = await firestoreService.create('productionPrograms', dataToSave);
+        const { id: _, ...dataContent } = dataToSaveSafe;
+        const docRef = await firestoreService.create('productionPrograms', dataContent);
 
         set((state) => ({
           programmeActuel: state.programmeActuel ? {
@@ -338,8 +363,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         }));
       } else {
         // Programme existant, le mettre à jour
-        const { id, ...dataToUpdate } = programmeAEnregistrer;
-        await firestoreService.update('productionPrograms', id, dataToUpdate);
+        const { id, ...dataContent } = dataToSaveSafe;
+        await firestoreService.update('productionPrograms', id, dataContent);
         set({ isLoading: false });
       }
 

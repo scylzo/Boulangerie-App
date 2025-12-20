@@ -40,6 +40,7 @@ export interface MouvementStock {
     referenceDocument?: string; // N° Facture, BL...
     auteur?: string; // Celui qui saisit ou effectue l'action
     responsable?: string; // Celui qui valide (nouveau champ)
+    fournisseurId?: string; // Lien avec le fournisseur (pour achats)
     userId: string; // Qui a saisi le mouvement
     createdAt: Date;
 }

@@ -12,6 +12,7 @@ import type {
     MouvementStock,
     Fournisseur
 } from '../types';
+import { useDepenseStore } from './depenseStore';
 
 interface StockState {
     matieres: MatierePremiere[];
@@ -24,7 +25,7 @@ interface StockState {
     chargerDonnees: () => Promise<void>;
 
     // Actions Matières
-    addMatiere: (matiere: Omit<MatierePremiere, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+    addMatiere: (matiere: Omit<MatierePremiere, 'id' | 'updatedAt'>) => Promise<void>;
     updateMatiere: (id: string, updates: Partial<MatierePremiere>) => Promise<void>;
     deleteMatiere: (id: string) => Promise<void>;
     convertMatiereUnit: (id: string, factor: number, newUnit: string) => Promise<void>;
@@ -86,7 +87,7 @@ export const useStockStore = create<StockState>((set, get) => ({
         try {
             const newMatiere = {
                 ...matiereData,
-                createdAt: new Date(),
+                createdAt: matiereData.createdAt || new Date(),
                 updatedAt: new Date()
             };
             const docRef = await firestoreService.create('matieres', newMatiere);
@@ -258,10 +259,30 @@ export const useStockStore = create<StockState>((set, get) => ({
                     valeurTotale: newValeurTotale,
                     updatedAt: new Date()
                 });
-
-                // Mettre à jour l'état local APRES succès (pas possible IN transaction callback easily for pure state sync)
-                // On le fera après le await
             });
+
+            // Intégration DÉPENSES : Si c'est un achat, on crée une dépense
+            if (mouvementData.type === 'achat' && mouvementData.prixTotal && mouvementData.prixTotal > 0) {
+                try {
+                    const matiere = get().matieres.find(m => m.id === mouvementData.matiereId);
+                    const fournisseur = mouvementData.fournisseurId
+                        ? get().fournisseurs.find(f => f.id === mouvementData.fournisseurId)
+                        : undefined;
+
+                    await useDepenseStore.getState().ajouterDepense({
+                        date: mouvementData.date || new Date(),
+                        montant: mouvementData.prixTotal,
+                        categorie: 'Intrants',
+                        description: `Achat Stock: ${matiere?.nom || 'Inconnu'} ${mouvementData.motif ? `(${mouvementData.motif})` : ''}`,
+                        fournisseur: fournisseur?.nom,
+                        userId: mouvementData.userId
+                    });
+                    console.log('✅ Dépense créée automatiquement pour l\'achat de stock');
+                } catch (depenseError) {
+                    console.error('⚠️ Erreur lors de la création automatique de la dépense:', depenseError);
+                    // On ne bloque pas le flux principal si l'ajout de dépense échoue, mais on log
+                }
+            }
 
             // Rechargement des données pour être sûr d'avoir l'état frais (ou update manuel optimiste)
             // Pour être sûr de la synchro PMP, on recharge tout ou juste la matière ?

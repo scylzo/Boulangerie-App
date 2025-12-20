@@ -26,13 +26,15 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
     stockActuel: number | '';
     prixMoyenPondere: number | '';
     valeurTotale: number;
+    dateCreation: string;
   }>({
     nom: '',
     unite: 'kg',
     stockMinimum: '',
     prixMoyenPondere: '',
     stockActuel: '',
-    valeurTotale: 0
+    valeurTotale: 0,
+    dateCreation: new Date().toISOString().split('T')[0]
   });
   // Conversion state
   const { convertMatiereUnit } = useStockStore();
@@ -74,12 +76,12 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isEditing) {
+      // Destructure to remove fields we don't want to update via this form anymore
+      const { stockActuel, prixMoyenPondere, ...updates } = formData;
       updateMatiere(isEditing, {
-        ...formData,
+        ...updates,
         stockMinimum: Number(formData.stockMinimum) || 0,
-        stockActuel: Number(formData.stockActuel) || 0,
-        prixMoyenPondere: Number(formData.prixMoyenPondere) || 0,
-        valeurTotale: (Number(formData.stockActuel) || 0) * (Number(formData.prixMoyenPondere) || 0)
+        createdAt: formData.dateCreation ? new Date(formData.dateCreation) : new Date()
       });
       setIsEditing(null);
     } else {
@@ -87,18 +89,26 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
         nom: formData.nom || '',
         unite: formData.unite as UniteMesure || 'kg',
         stockMinimum: Number(formData.stockMinimum) || 0,
-        stockActuel: Number(formData.stockActuel) || 0,
-        prixMoyenPondere: Number(formData.prixMoyenPondere) || 0,
-        valeurTotale: (Number(formData.stockActuel) || 0) * (Number(formData.prixMoyenPondere) || 0),
-        active: true
+        stockActuel: 0, // Force 0 initial
+        prixMoyenPondere: 0, // Force 0 initial
+        valeurTotale: 0,
+        active: true,
+        createdAt: formData.dateCreation ? new Date(formData.dateCreation) : new Date()
       });
     }
-    setFormData({ nom: '', unite: 'kg', stockMinimum: '', prixMoyenPondere: '', stockActuel: '', valeurTotale: 0 });
+    setFormData({ nom: '', unite: 'kg', stockMinimum: '', prixMoyenPondere: '', stockActuel: '', valeurTotale: 0, dateCreation: new Date().toISOString().split('T')[0] });
     setShowForm(false);
   };
 
   const startEdit = (matiere: MatierePremiere) => {
-    setFormData(matiere);
+    setFormData({
+        ...matiere,
+        stockMinimum: matiere.stockMinimum,
+        stockActuel: matiere.stockActuel,
+        prixMoyenPondere: matiere.prixMoyenPondere,
+        valeurTotale: matiere.valeurTotale,
+        dateCreation: new Date(matiere.createdAt).toISOString().split('T')[0]
+    });
     setIsEditing(matiere.id);
     setShowForm(true);
   };
@@ -124,7 +134,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
         <button
           onClick={() => {
             setIsEditing(null);
-            setFormData({ nom: '', unite: 'kg', stockMinimum: '', prixMoyenPondere: '', stockActuel: '', valeurTotale: 0 });
+            setFormData({ nom: '', unite: 'kg', stockMinimum: '', prixMoyenPondere: '', stockActuel: '', valeurTotale: 0, dateCreation: new Date().toISOString().split('T')[0] });
             setShowForm(!showForm);
           }}
           className="flex items-center space-x-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
@@ -149,6 +159,15 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
               />
             </div>
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date de création</label>
+              <input
+                type="date"
+                value={formData.dateCreation}
+                onChange={e => setFormData({ ...formData, dateCreation: e.target.value })}
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+              />
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Unité</label>
               <select
                 value={formData.unite}
@@ -163,19 +182,8 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                 <option value="sac_25kg">Sac 25kg</option>
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Stock Initial</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.stockActuel}
-                onChange={e => setFormData({ ...formData, stockActuel: e.target.value === '' ? '' : parseFloat(e.target.value) })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                disabled={!!isEditing} // On ne modifie pas le stock directement en édition, il faut passer par un mouvement
-              />
-              {isEditing && <p className="text-xs text-gray-500 mt-1">Pour modifier le stock, utilisez "Mouvement"</p>}
-            </div>
+            {/* Removed Stock Initial Input to enforce using Movements */}
+            {/* Removed Prix Moyen Initial Input to enforce using Movements */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Seuil d'alerte</label>
               <input
@@ -186,16 +194,13 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prix Moyen Initial (FCFA)</label>
-              <input
-                type="number"
-                min="0"
-                value={formData.prixMoyenPondere}
-                onChange={e => setFormData({ ...formData, prixMoyenPondere: e.target.value === '' ? '' : parseFloat(e.target.value) })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                disabled={!!isEditing}
-              />
+
+            <div className="col-span-1 md:col-span-2 bg-blue-50 p-3 rounded-lg flex items-start space-x-2">
+                <div className="text-blue-500 mt-0.5"><AlertTriangle size={16} /></div>
+                <div className="text-sm text-blue-700">
+                    <span className="font-bold">Note :</span> Créez d'abord la matière avec son unité de base (ex: kg). 
+                    Vous pourrez ensuite ajouter du stock en <b>Cartons</b> ou <b>Sacs</b> via le bouton "Mouvements" <ArrowRightLeft className="inline" size={14}/> dans la liste.
+                </div>
             </div>
           </div>
           <div className="flex justify-end space-x-3 pt-4">
@@ -300,6 +305,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Nom</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Date Création</th>
               <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">Stock Actuel</th>
               <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">Valeur (FCFA)</th>
               <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">État</th>
@@ -318,8 +324,16 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                     <div className="font-medium text-gray-900">{matiere.nom}</div>
                     <div className="text-xs text-gray-500">PMP: {Math.round(matiere.prixMoyenPondere).toLocaleString()} FCFA / {matiere.unite}</div>
                   </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {new Date(matiere.createdAt).toLocaleDateString('fr-FR')}
+                  </td>
                   <td className="px-6 py-4 text-right font-medium text-gray-900">
                     {matiere.stockActuel.toLocaleString()} <span className="text-gray-500 text-sm">{matiere.unite}</span>
+                    {matiere.unite === 'kg' && matiere.stockActuel >= 50 && (
+                        <div className="text-xs text-blue-600 mt-1">
+                            (~{(matiere.stockActuel / 50).toLocaleString(undefined, {maximumFractionDigits: 1})} sacs de 50kg)
+                        </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-right text-gray-600">
                     {Math.round(matiere.valeurTotale).toLocaleString()}

@@ -434,6 +434,25 @@ export const ProgrammeProduction: React.FC = () => {
     }
   };
 
+  const handleRegulariserStock = async () => {
+    const confirmation = await confirmModal.confirm({
+        title: 'Régulariser les stocks',
+        message: `⚠️ ATTENTION : Vous allez relancer la déduction des stocks pour cette production déjà terminée.\n\nCela est utile UNIQUEMENT si :\n- Vous avez mis à jour les recettes après la production\n- Les stocks n'avaient pas été déduits correctement\n\nSi les stocks ont déjà été déduits, cela risque de créer des DOUBLONS.\n\nVoulez-vous continuer ?`,
+        confirmText: 'Oui, régulariser',
+        cancelText: 'Annuler',
+        type: 'warning'
+    });
+
+    if (confirmation) {
+        try {
+            await validerProduction();
+            toast.success('✅ Régularisation effectuée : Stocks mis à jour !');
+        } catch (error) {
+            toast.error('❌ Erreur lors de la régularisation');
+        }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header moderne type Odoo */}
@@ -505,6 +524,19 @@ export const ProgrammeProduction: React.FC = () => {
                 >
                   <Icon icon="mdi:factory" className="text-lg" />
                   <span className="font-medium">Valider</span>
+                </button>
+              )}
+
+              {/* Bouton Régulariser Stock */}
+              {programmeActuel?.statut === 'produit' && (
+                <button
+                  onClick={handleRegulariserStock}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 border border-orange-200 rounded-lg hover:bg-orange-200 transition-all disabled:opacity-50 shadow-sm"
+                  title="Recalculer et déduire les stocks si nécessaire"
+                >
+                  <Icon icon="mdi:refresh-alert" className="text-lg" />
+                  <span className="font-medium">Régulariser Stocks</span>
                 </button>
               )}
             </div>

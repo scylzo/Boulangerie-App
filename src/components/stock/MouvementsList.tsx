@@ -102,7 +102,24 @@ export const MouvementsList: React.FC = () => {
                   {m.responsable && <div className="text-xs text-gray-500 text-green-600">Validé par: {m.responsable}</div>}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                  {m.quantite} <span className="text-gray-500 font-normal">{m.matiereUnite}</span>
+                  {/* Affichage Quantité */}
+                  <div className="font-medium text-gray-900">
+                      {m.quantite.toLocaleString('fr-FR')} {m.matiereUnite}
+                  </div>
+                  {/* Parsing du motif pour afficher les sacs si présents */}
+                  {(() => {
+                      const sacMatch = m.motif && m.motif.match(/(\d+)\s*sacs?/i);
+                      const weightMatch = m.motif && m.motif.match(/de\s*(\d+)/i); // Cherche "de 50" dans "sacs de 50kg"
+                      
+                      if (sacMatch) {
+                          return (
+                              <div className="text-xs text-blue-600 font-medium">
+                                  {sacMatch[1]} sacs {weightMatch ? `de ${weightMatch[1]}kg` : ''}
+                              </div>
+                          );
+                      }
+                      return null;
+                  })()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
                   {m.displayPrice ? `${m.displayPrice.toLocaleString()} FCFA` : '-'}
