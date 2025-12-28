@@ -117,23 +117,23 @@ export const GestionProduits: React.FC = () => {
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
 
-      {/* Modal d'ajout/modification */}
-      {showForm && (
-        <Modal
-          isOpen={showForm}
-          onClose={handleAnnuler}
-          title={produitEnEdition ? 'Modifier le produit' : 'Nouveau produit'}
-          position="center"
-          size="lg"
-        >
-          <ProduitForm
-            produit={produitEnEdition}
-            onSave={produitEnEdition ? handleModifier : handleAjouter}
-            onCancel={handleAnnuler}
-            isLoading={isLoadingProduits}
-          />
-        </Modal>
-      )}
+        {/* Modal d'ajout/modification */}
+        {showForm && (
+          <Modal
+            isOpen={showForm}
+            onClose={handleAnnuler}
+            title={produitEnEdition ? 'Modifier le produit' : 'Nouveau produit'}
+            position="center"
+            size="lg"
+          >
+            <ProduitForm
+              produit={produitEnEdition}
+              onSave={produitEnEdition ? handleModifier : handleAjouter}
+              onCancel={handleAnnuler}
+              isLoading={isLoadingProduits}
+            />
+          </Modal>
+        )}
 
         {/* Section Liste des produits */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -199,11 +199,10 @@ export const GestionProduits: React.FC = () => {
                             {produit.nom}
                           </h3>
                           <div className="flex items-center gap-2">
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${
-                              produit.active
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${produit.active
                                 ? 'bg-green-100 text-green-700'
                                 : 'bg-red-100 text-red-700'
-                            }`}>
+                              }`}>
                               <Icon icon={produit.active ? 'mdi:check-circle' : 'mdi:pause-circle'} className="text-xs" />
                               {produit.active ? 'Actif' : 'Inactif'}
                             </span>
@@ -237,32 +236,7 @@ export const GestionProduits: React.FC = () => {
                       </div>
                     </div>
 
-                     {/* Marge Estimée */}
-                    {(() => {
-                        const { matieres } = useStockStore.getState(); // Utiliser getState pour éviter les problèmes de hook dans la boucle si possible, mais ici on est dans le render.
-                        // Calcul du coût de revient
-                        if (!produit.recette || produit.recette.length === 0) return null;
-
-                        const coutRevient = produit.recette.reduce((total, ing) => {
-                            const matiere = matieres.find(m => m.id === ing.matiereId);
-                            return total + (ing.quantite * (matiere?.prixMoyenPondere || 0));
-                        }, 0);
-
-                        const margeBoutique = produit.prixBoutique ? produit.prixBoutique - coutRevient : 0;
-                        const tauxMarge = produit.prixBoutique ? (margeBoutique / produit.prixBoutique) * 100 : 0;
-
-                        return (
-                             <div className="mb-4 bg-gray-50 rounded-lg p-2 flex items-center justify-between border border-gray-100">
-                                <div className="flex items-center gap-1.5">
-                                    <Icon icon="mdi:finance" className="text-orange-500 text-sm" />
-                                    <span className="text-xs font-medium text-gray-600">Marge Est.</span>
-                                </div>
-                                <div className={`text-sm font-bold ${tauxMarge >= 50 ? 'text-green-600' : tauxMarge >= 30 ? 'text-orange-600' : 'text-red-600'}`}>
-                                    {Math.round(margeBoutique).toLocaleString()} F <span className="text-xs font-normal opacity-80">({tauxMarge.toFixed(0)}%)</span>
-                                </div>
-                            </div>
-                        );
-                    })()}
+                    {/* Marge Estimée retirée car plus de gestion financière dans le stock */}
 
                     {/* Actions */}
                     <div className="flex gap-2">

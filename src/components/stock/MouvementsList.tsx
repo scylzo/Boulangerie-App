@@ -7,26 +7,18 @@ export const MouvementsList: React.FC = () => {
   const { mouvements, matieres } = useStockStore();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Enrichir les mouvements avec le nom de la matière et la valeur estimée
+  // Enrichir les mouvements avec le nom de la matière
   const enrichedMouvements = mouvements.map(m => {
     const matiere = matieres.find(mat => mat.id === m.matiereId);
-    
-    // Si pas de prix total enregistré (ancien historique), on l'estime avec le PMP actuel
-    // uniquement pour consommation/perte pour être cohérent avec le dashboard
-    let displayPrice = m.prixTotal;
-    if (!displayPrice && matiere && ['consommation', 'perte'].includes(m.type)) {
-        displayPrice = Math.abs(m.quantite) * matiere.prixMoyenPondere;
-    }
 
     return {
       ...m,
       matiereNom: matiere ? matiere.nom : 'Article Inconnu',
       matiereUnite: matiere ? matiere.unite : '',
-      displayPrice // Nouvelle propriété pour l'affichage
     };
   });
 
-  const filteredMouvements = enrichedMouvements.filter(m => 
+  const filteredMouvements = enrichedMouvements.filter(m =>
     m.matiereNom.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (m.motif && m.motif.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -78,7 +70,7 @@ export const MouvementsList: React.FC = () => {
               <th className="px-6 py-3">Type</th>
               <th className="px-6 py-3">Auteur / Resp.</th>
               <th className="px-6 py-3 text-right">Quantité</th>
-              <th className="px-6 py-3 text-right">Prix Total</th>
+
               <th className="px-6 py-3">Motif / Réf</th>
             </tr>
           </thead>
@@ -86,7 +78,7 @@ export const MouvementsList: React.FC = () => {
             {filteredMouvements.map((m) => (
               <tr key={m.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(m.date).toLocaleDateString('fr-FR')} <span className="text-xs">{new Date(m.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</span>
+                  {new Date(m.date).toLocaleDateString('fr-FR')} <span className="text-xs">{new Date(m.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {m.matiereNom}
@@ -104,28 +96,24 @@ export const MouvementsList: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
                   {/* Affichage Quantité */}
                   <div className="font-medium text-gray-900">
-                      {m.quantite.toLocaleString('fr-FR')} {m.matiereUnite}
+                    {m.quantite.toLocaleString('fr-FR')} {m.matiereUnite}
                   </div>
                   {/* Parsing du motif pour afficher les sacs si présents */}
                   {(() => {
-                      const sacMatch = m.motif && m.motif.match(/(\d+)\s*sacs?/i);
-                      const weightMatch = m.motif && m.motif.match(/de\s*(\d+)/i); // Cherche "de 50" dans "sacs de 50kg"
-                      
-                      if (sacMatch) {
-                          return (
-                              <div className="text-xs text-blue-600 font-medium">
-                                  {sacMatch[1]} sacs {weightMatch ? `de ${weightMatch[1]}kg` : ''}
-                              </div>
-                          );
-                      }
-                      return null;
+                    const sacMatch = m.motif && m.motif.match(/(\d+)\s*sacs?/i);
+                    const weightMatch = m.motif && m.motif.match(/de\s*(\d+)/i); // Cherche "de 50" dans "sacs de 50kg"
+
+                    if (sacMatch) {
+                      return (
+                        <div className="text-xs text-blue-600 font-medium">
+                          {sacMatch[1]} sacs {weightMatch ? `de ${weightMatch[1]}kg` : ''}
+                        </div>
+                      );
+                    }
+                    return null;
                   })()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
-                  {m.displayPrice ? `${m.displayPrice.toLocaleString()} FCFA` : '-'}
-                  {/* Indicateur si c'est une estimation */}
-                  {!m.prixTotal && m.displayPrice && <span className="text-xs text-gray-400 ml-1">(est.)</span>}
-                </td>
+
                 <td className="px-6 py-4 text-sm text-gray-500">
                   <div className="flex flex-col">
                     <span>{m.motif || '-'}</span>
@@ -138,7 +126,7 @@ export const MouvementsList: React.FC = () => {
             ))}
             {filteredMouvements.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                   Aucun mouvement trouvé.
                 </td>
               </tr>
