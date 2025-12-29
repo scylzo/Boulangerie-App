@@ -38,6 +38,10 @@ interface StockState {
     updateFournisseur: (id: string, updates: Partial<Fournisseur>) => Promise<void>;
     deleteFournisseur: (id: string) => Promise<void>;
 
+    // Actions Spécifiques
+    declarerConsommationJournee: (date: Date, consommations: { matiereId: string, quantite: number }[]) => Promise<void>;
+
+
     // Getters / Selectors
     getMatiere: (id: string) => MatierePremiere | undefined;
     getMouvementsByMatiere: (matiereId: string) => MouvementStock[];
@@ -286,6 +290,43 @@ export const useStockStore = create<StockState>((set, get) => ({
             console.error('Erreur suppression fournisseur:', error);
         }
     },
+
+    declarerConsommationJournee: async (date: Date, consommations: { matiereId: string, quantite: number }[]) => {
+        set({ isLoading: true });
+        try {
+            console.log(`📝 Déclaration consommation pour ${date.toLocaleDateString()}:`, consommations.length, 'matières');
+
+            // On utilise une boucle séquentielle pour garantir l'ordre (ou Promise.all si on veut speed, mais attention lock)
+            // L'idéal serait une grosse transaction, mais Firestore limits writes/transactions.
+            // On va réutiliser addMouvement qui gère sa propre transaction par mouvement.
+            // C'est moins atomique globalement mais sûr par matière.
+
+            for (const conso of consommations) {
+                if (conso.quantite > 0) {
+                    await get().addMouvement({
+                        matiereId: conso.matiereId,
+                        quantite: conso.quantite,
+                        type: 'consommation',
+                        motif: 'Déclaration journalière',
+                        auteur: 'Système', // Ou utilisateur connecté si dispo
+                        responsable: 'Responsable Prod',
+                        referenceDocument: `DECL-${date.toLocaleDateString('fr-CA')}`, // YYYY-MM-DD
+                        date: date, // Date de la consommation (= date de prod)
+                        userId: 'system'
+                    });
+                }
+            }
+
+            set({ isLoading: false });
+            console.log('✅ Déclaration consommations terminée');
+
+        } catch (error: any) {
+            console.error('Erreur déclaration consommation:', error);
+            set({ isLoading: false, error: error.message });
+            throw error;
+        }
+    },
+
 
     getMatiere: (id) => get().matieres.find((m) => m.id === id),
 

@@ -100,10 +100,9 @@ export const firestoreService = {
 export const businessQueries = {
   // Programmes de production
   async getProgrammeByDate(date: Date) {
-    const dateStart = new Date(date);
-    dateStart.setHours(0, 0, 0, 0);
-    const dateEnd = new Date(date);
-    dateEnd.setHours(23, 59, 59, 999);
+    // Créer les bornes en UTC pour correspondre au format de stockage (YYYY-MM-DDT00:00:00.000Z)
+    const dateStart = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0));
+    const dateEnd = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999));
 
     return await firestoreService.getByQuery('productionPrograms', [
       where('dateProduction', '>=', dateToTimestamp(dateStart)),

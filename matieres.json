@@ -1,0 +1,20 @@
+[
+  {
+    "id": "UKshK0yMTKF6PqU2NZlA",
+    "nom": "FARINE GMD",
+    "unite": "sac_50kg",
+    "stockMinimum": 100,
+    "prixMoyenPondere": 15600,
+    "active": true,
+    "createdAt": {
+      "_seconds": 1765238400,
+      "_nanoseconds": 0
+    },
+    "stockActuel": 79.896,
+    "valeurTotale": 1246377.6,
+    "updatedAt": {
+      "_seconds": 1766269065,
+      "_nanoseconds": 162000000
+    }
+  }
+]

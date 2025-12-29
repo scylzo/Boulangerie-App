@@ -38,6 +38,13 @@ export const GestionStock: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Gestion des Stocks</h1>
           <p className="text-gray-500">Suivi des matières premières</p>
         </div>
+        <a
+          href="/stocks/declaration"
+          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+        >
+          <Package className="w-5 h-5 mr-2" />
+          Déclarer Consommation
+        </a>
       </div>
 
       <StockDashboard />
@@ -48,8 +55,8 @@ export const GestionStock: React.FC = () => {
             <button
               onClick={() => setActiveTab('stock')}
               className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'stock'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-orange-500 text-orange-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               <Package size={18} />
@@ -58,8 +65,8 @@ export const GestionStock: React.FC = () => {
             <button
               onClick={() => setActiveTab('mouvements')} // Placeholder for future implementation
               className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'mouvements'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-orange-500 text-orange-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               <History size={18} />
@@ -68,8 +75,8 @@ export const GestionStock: React.FC = () => {
             <button
               onClick={() => setActiveTab('fournisseurs')} // Placeholder for future implementation
               className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'fournisseurs'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-orange-500 text-orange-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               <Users size={18} />

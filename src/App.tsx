@@ -19,6 +19,7 @@ import { GestionFactures } from './pages/facturation/GestionFactures';
 import { GestionStock } from './pages/stock/GestionStock';
 import { GestionDepenses } from './pages/finance/GestionDepenses';
 import { Comptabilite } from './pages/finance/Comptabilite';
+import { StockDeclaration } from './pages/stock/StockDeclaration';
 import { useAuthStore } from './store';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -70,7 +71,7 @@ function App() {
             setUser({
               id: user.uid,
               email: user.email || '',
-              nom: '', 
+              nom: '',
               prenom: '',
               role: 'admin', // Fallback en admin pour le premier setup
               active: true,
@@ -162,9 +163,16 @@ function App() {
           </ProtectedRoute>
         } />
 
+
         <Route path="/stocks" element={
           <ProtectedRoute>
             <GestionStock />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/stocks/declaration" element={
+          <ProtectedRoute>
+            <StockDeclaration />
           </ProtectedRoute>
         } />
 

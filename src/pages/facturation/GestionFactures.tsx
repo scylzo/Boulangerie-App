@@ -75,8 +75,8 @@ export const GestionFactures: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        await actualiserStatutsFactures();
-        await chargerFactures();
+        await actualiserStatutsFactures(true); // mode silencieux
+        await chargerFactures(undefined, undefined, true); // mode silencieux
       } catch (error) {
         console.error('Erreur lors de la synchronisation automatique:', error);
       }
@@ -91,7 +91,7 @@ export const GestionFactures: React.FC = () => {
 
       // Vérifier s'il y a déjà des factures pour cette date
       const facturesExistantes = factures.filter(f =>
-        f.dateLivraison.toISOString().split('T')[0] === dateSelectionnee
+        new Date(f.dateLivraison).toISOString().split('T')[0] === dateSelectionnee
       );
 
       // Si des factures existent, demander confirmation
@@ -117,8 +117,8 @@ export const GestionFactures: React.FC = () => {
       console.log('📦 Chargement des retours clients pour', date.toLocaleDateString('fr-FR'));
       await chargerInvendusDuJour(date);
 
-      // Attendre un délai plus long pour que le state soit mis à jour
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Attendre un court instant pour s'assurer que les stores sont à jour (optionnel mais parfois utile pour les listeners)
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Récupérer les données après le chargement
       const programmeActuelApresChargement = useProductionStore.getState().programmeActuel;
@@ -141,8 +141,8 @@ export const GestionFactures: React.FC = () => {
 
       await genererFacturesDepuisLivraisons(date, commandesClients, invendusApresChargement);
 
-      // Recharger la liste des factures
-      await chargerFactures();
+      // On ne recharge PAS les factures ici car genererFacturesDepuisLivraisons met déjà à jour le store
+      // et la requête Firestore pourrait retourner des données obsolètes (consistance éventuelle)
       toast.success('✅ Factures générées avec succès');
     } catch (error) {
       console.error('Erreur lors de la génération:', error);
@@ -237,7 +237,7 @@ export const GestionFactures: React.FC = () => {
   // Filtrer les factures par date de livraison et statut
   const facturesFiltrees = factures.filter(facture => {
     // Filtrer par date de livraison sélectionnée
-    const dateLivraisonStr = facture.dateLivraison.toISOString().split('T')[0];
+    const dateLivraisonStr = new Date(facture.dateLivraison).toISOString().split('T')[0];
     const dateSelectionneeStr = dateSelectionnee;
 
     const matchDate = dateLivraisonStr === dateSelectionneeStr;
@@ -256,7 +256,7 @@ export const GestionFactures: React.FC = () => {
 
   // Factures de la date sélectionnée pour les statistiques
   const facturesDateSelectionnee = factures.filter(facture => {
-    const dateLivraisonStr = facture.dateLivraison.toISOString().split('T')[0];
+    const dateLivraisonStr = new Date(facture.dateLivraison).toISOString().split('T')[0];
     return dateLivraisonStr === dateSelectionnee;
   });
 
@@ -458,7 +458,7 @@ export const GestionFactures: React.FC = () => {
                 className="flex items-center gap-2"
               >
                 <Icon icon="mdi:plus" className="text-sm" />
-                {factures.some(f => f.dateLivraison.toISOString().split('T')[0] === dateSelectionnee)
+                {factures.some(f => new Date(f.dateLivraison).toISOString().split('T')[0] === dateSelectionnee)
                   ? 'Mettre à jour factures'
                   : 'Générer nouvelles factures'} du {new Date(dateSelectionnee).toLocaleDateString('fr-FR')}
               </Button>
@@ -551,6 +551,9 @@ export const GestionFactures: React.FC = () => {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        #
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                         N° Facture
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
@@ -574,8 +577,11 @@ export const GestionFactures: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {facturesFiltrees.map((facture) => (
+                    {facturesFiltrees.map((facture, index) => (
                       <tr key={facture.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 text-sm text-gray-500">
+                          {index + 1}
+                        </td>
                         <td className="px-4 py-2 text-sm font-medium text-gray-900">
                           {facture.numeroFacture}
                         </td>
@@ -583,7 +589,7 @@ export const GestionFactures: React.FC = () => {
                           {facture.client?.nom || 'Client inconnu'}
                         </td>
                         <td className="px-4 py-2 text-sm text-gray-600">
-                          {facture.dateLivraison.toLocaleDateString('fr-FR')}
+                          {new Date(facture.dateLivraison).toLocaleDateString('fr-FR')}
                         </td>
                         <td className="px-4 py-2 text-sm font-medium text-gray-900">
                           {formatCurrency(facture.totalTTC)}
@@ -663,6 +669,19 @@ export const GestionFactures: React.FC = () => {
         isOpen={showRistourneModal}
         onClose={() => setShowRistourneModal(false)}
       />
+
+      {/* Overlay de chargement */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-bounce-in">
+            <div className="w-16 h-16 border-4 border-purple-100 border-t-purple-600 rounded-full animate-spin mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Chargement en cours</h3>
+            <p className="text-gray-500 text-center">
+              Veuillez patienter pendant le traitement<br />des factures...
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

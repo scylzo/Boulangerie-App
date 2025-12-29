@@ -1,0 +1,913 @@
+[
+  {
+    "id": "3V1cFMtUUuebrLqpsEZO",
+    "nom": "MR SALIOU BA ",
+    "adresse": "SINTHIOU",
+    "telephone": "781223990",
+    "email": "",
+    "conditionsPaiement": "",
+    "active": true,
+    "createdAt": "2025-12-10T16:48:13.782Z",
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "eligibleRistourne": true,
+    "typeClient": "client",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 70,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 50,
+          "car_soir": 20
+        }
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "quantiteCommandee": 5,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 5,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-25T19:12:01.575Z"
+  },
+  {
+    "id": "514Y17suGvNuoTrF11P9",
+    "nom": "MME AMY DIALLO ",
+    "adresse": "SANGALKAM MOSQUE ",
+    "telephone": "709702831",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:47:06.598Z",
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 40,
+        "repartitionCars": {
+          "car1_matin": 20,
+          "car2_matin": 20,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-15T20:22:41.897Z"
+  },
+  {
+    "id": "5qJk7pZ1pJEdNr7B8RMg",
+    "nom": "CENTRE COMM ABDOU",
+    "adresse": "NOFLAYE VILLAGE ",
+    "telephone": "776542824",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:39:00.912Z",
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 0,
+          "car_soir": 10
+        }
+      }
+    ],
+    "updatedAt": "2025-12-13T14:36:59.061Z"
+  },
+  {
+    "id": "8fKXMpGnfk5O7x7dsv4U",
+    "nom": "MME GAYE ",
+    "adresse": "CAM 2 ",
+    "telephone": "762186113",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:53:25.440Z",
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 60,
+        "repartitionCars": {
+          "car1_matin": 40,
+          "car2_matin": 20,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-14T20:52:28.629Z"
+  },
+  {
+    "id": "9pLkruiVDm6bCi7cHWjM",
+    "nom": "MME COUMBA ",
+    "adresse": "SANGALKAM MOSQUE OMAR GUEYE ",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:59:45.798Z",
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 75,
+        "repartitionCars": {
+          "car1_matin": 15,
+          "car2_matin": 30,
+          "car_soir": 30
+        }
+      },
+      {
+        "produitId": "QYHyBPcek9gdvxTU6brO",
+        "quantiteCommandee": 20,
+        "repartitionCars": {
+          "car1_matin": 20,
+          "car2_matin": 0,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-25T19:00:46.918Z"
+  },
+  {
+    "id": "BYyRoEHycygI4XbsAuqT",
+    "nom": "MME BADIANE ",
+    "adresse": "NOFLAYE VILLAGE ",
+    "telephone": "763522640",
+    "email": "",
+    "conditionsPaiement": "",
+    "createdAt": "2025-12-10T16:39:40.327Z",
+    "eligibleRistourne": true,
+    "typeClient": "boutique",
+    "active": true,
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 120,
+        "repartitionCars": {
+          "car1_matin": 40,
+          "car2_matin": 50,
+          "car_soir": 30
+        }
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 10,
+          "car2_matin": 0,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-14T20:55:21.485Z"
+  },
+  {
+    "id": "BhLWMwD7huQAZinBffNw",
+    "nom": "ASTOU NDIAYE ",
+    "adresse": "NOFLAYE PESAGE ",
+    "telephone": "704272563",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:54:32.239Z",
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 30,
+        "repartitionCars": {
+          "car1_matin": 15,
+          "car2_matin": 15,
+          "car_soir": 0
+        }
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 10,
+          "car2_matin": 0,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-15T19:52:07.109Z"
+  },
+  {
+    "id": "DVIcOn9S3QZvwAu0Qpku",
+    "nom": "MME ASTOU DIONE ",
+    "adresse": "NOFLAYE VILLAGE ",
+    "telephone": "772137950",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:40:53.663Z",
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 30,
+        "repartitionCars": {
+          "car1_matin": 30,
+          "car2_matin": 0,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-15T19:36:11.519Z"
+  },
+  {
+    "id": "EzIlT8qIypdMzEURoSAs",
+    "nom": "IBRAHIMA KHOGNE",
+    "adresse": "NOFLAYE",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "livreurId": "",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-23T13:51:22.206Z",
+    "updatedAt": "2025-12-23T13:51:22.206Z"
+  },
+  {
+    "id": "LL9SupfDB0WS5kbzgj9G",
+    "nom": "MME LO ",
+    "adresse": "CITE CDC",
+    "telephone": "775723382",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:48:40.727Z",
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 105,
+        "repartitionCars": {
+          "car1_matin": 70,
+          "car2_matin": 20,
+          "car_soir": 15
+        }
+      }
+    ],
+    "updatedAt": "2025-12-13T19:24:51.322Z"
+  },
+  {
+    "id": "M9NyKpCruKqTPVVefvyG",
+    "nom": "MME THIAM ",
+    "adresse": "CITE CDC ",
+    "telephone": "772221193",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T17:02:59.014Z",
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 18,
+        "repartitionCars": {
+          "car1_matin": 18,
+          "car2_matin": 0,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-13T14:40:16.468Z"
+  },
+  {
+    "id": "OFITTn25hO7sLmehIfLa",
+    "nom": "MME DIAKHO",
+    "adresse": "NOFLAYE",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:44:19.600Z",
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 25,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 25,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-13T14:40:45.034Z"
+  },
+  {
+    "id": "Oskbd3k6HKIh914G2gby",
+    "nom": "MME MOUSSOU ",
+    "adresse": "DOUDOU BASSE ",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:46:29.021Z",
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "telephone": "773463039/776642052",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 25,
+        "repartitionCars": {
+          "car1_matin": 15,
+          "car2_matin": 10,
+          "car_soir": 0
+        }
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 10,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-17T22:56:14.864Z"
+  },
+  {
+    "id": "PkCYSyNfxZAfgmlg0l7f",
+    "nom": "MME OUMOU SOW ",
+    "adresse": "CITE MERE THERESA ",
+    "telephone": "771033562",
+    "email": "",
+    "conditionsPaiement": "",
+    "createdAt": "2025-12-10T16:47:43.205Z",
+    "eligibleRistourne": true,
+    "active": true,
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "typeClient": "client",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 40,
+        "repartitionCars": {
+          "car1_matin": 20,
+          "car2_matin": 20,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-27T19:38:22.598Z"
+  },
+  {
+    "id": "R7o0fCd3xXHqya8Q9FJo",
+    "nom": "MME NGONE ",
+    "adresse": "CM SANGALKAM ",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T17:00:06.071Z",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 10,
+          "car_soir": 0
+        }
+      },
+      {
+        "produitId": "xVysyBhY2N1HZdc5r4KJ",
+        "quantiteCommandee": 75,
+        "repartitionCars": {
+          "car1_matin": 15,
+          "car2_matin": 60,
+          "car_soir": 0
+        }
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "quantiteCommandee": 30,
+        "repartitionCars": {
+          "car1_matin": 10,
+          "car2_matin": 20,
+          "car_soir": 0
+        }
+      }
+    ],
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "updatedAt": "2025-12-12T20:59:30.581Z"
+  },
+  {
+    "id": "T7Okh03DkvLproJVALUv",
+    "nom": "MME BA ",
+    "adresse": "NDIAKHIRATE SEN EAU ",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T17:01:07.724Z",
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 5,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 5,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-13T14:44:15.563Z"
+  },
+  {
+    "id": "TkgiFpg1uLmzx2fI9vd4",
+    "nom": "MME HAIDARA ",
+    "adresse": "CITE MERE THERESA ",
+    "telephone": "781432478",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:42:03.855Z",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 5,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 5,
+          "car_soir": 0
+        }
+      }
+    ],
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "updatedAt": "2025-12-12T20:59:59.053Z"
+  },
+  {
+    "id": "XJO7Up6NF9U0ed8iDxkT",
+    "nom": "MME FATY",
+    "adresse": "CM SANGALKAM ",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T17:00:24.157Z",
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 5,
+          "car2_matin": 5,
+          "car_soir": 0
+        }
+      },
+      {
+        "produitId": "xVysyBhY2N1HZdc5r4KJ",
+        "quantiteCommandee": 40,
+        "repartitionCars": {
+          "car1_matin": 10,
+          "car2_matin": 30,
+          "car_soir": 0
+        }
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 10,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-15T19:38:58.478Z"
+  },
+  {
+    "id": "fYhDJQ4o7AShFLnrnzQF",
+    "nom": "KHADY DIOUF",
+    "adresse": "NOFLAYE VILLAGE",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:55:00.254Z",
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 5,
+          "car2_matin": 5,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-13T19:10:17.905Z"
+  },
+  {
+    "id": "hRgkbN6iPGwf9sZprtSp",
+    "nom": "MME GUIRASSY GAGNE ",
+    "adresse": "NOFLAYE VILLAGE ",
+    "telephone": "772127663",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:40:19.135Z",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 10,
+          "car_soir": 0
+        }
+      }
+    ],
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "updatedAt": "2025-12-13T19:10:36.546Z"
+  },
+  {
+    "id": "hqow0vtDLOyP05n1W5o2",
+    "nom": "MR IBRAHIMA NDIAYE ",
+    "adresse": "NOFLAYE VILLAGE ",
+    "telephone": "774330056",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:41:27.294Z",
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 10,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-13T19:10:54.513Z"
+  },
+  {
+    "id": "isqGJAvg7GmstKToNyMr",
+    "nom": "MME FAYE",
+    "adresse": "MERE THERESA ",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:56:00.702Z",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 5,
+        "repartitionCars": {
+          "car1_matin": 5,
+          "car2_matin": 0,
+          "car_soir": 0
+        }
+      }
+    ],
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "updatedAt": "2025-12-12T21:00:53.869Z"
+  },
+  {
+    "id": "jlJIEey2auLpWwOQKv6W",
+    "nom": "MME AWA TOURE ",
+    "adresse": "IA NOFLAYE ",
+    "telephone": "771207475",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:43:07.182Z",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 40,
+        "repartitionCars": {
+          "car1_matin": 20,
+          "car2_matin": 20,
+          "car_soir": 0
+        }
+      }
+    ],
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "updatedAt": "2025-12-12T21:01:10.719Z"
+  },
+  {
+    "id": "k6VILWXSzAntrTogMCp6",
+    "nom": "MME TAMBA",
+    "adresse": "NOFLAYE",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "livreurId": "",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-23T13:54:46.789Z",
+    "updatedAt": "2025-12-23T13:54:46.789Z"
+  },
+  {
+    "id": "lTWXN30GKZOHAH8uAqIX",
+    "nom": "MME DIANE YACINE ",
+    "adresse": "CITE GENDARMERIE ",
+    "telephone": "777390760",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:45:38.694Z",
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 60,
+        "repartitionCars": {
+          "car1_matin": 30,
+          "car2_matin": 30,
+          "car_soir": 0
+        }
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "quantiteCommandee": 20,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 20,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-14T21:07:16.902Z"
+  },
+  {
+    "id": "m3QdRHa3zhhPN2YBM9o0",
+    "nom": "MME VIVIANE ",
+    "adresse": "FACE CITE MERE THERESA ",
+    "telephone": "773217321",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:45:04.503Z",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 5,
+          "car2_matin": 5,
+          "car_soir": 0
+        }
+      }
+    ],
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "updatedAt": "2025-12-13T19:13:52.834Z"
+  },
+  {
+    "id": "m7KF8hsfIADVeSMyAT2j",
+    "nom": "MME SARR",
+    "adresse": "CITE MERE THERESA ",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:42:27.871Z",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 10,
+        "repartitionCars": {
+          "car1_matin": 5,
+          "car2_matin": 5,
+          "car_soir": 0
+        }
+      }
+    ],
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "updatedAt": "2025-12-12T21:01:32.647Z"
+  },
+  {
+    "id": "pX3W7mocHe75vUz8UlUH",
+    "nom": "MME KA ",
+    "adresse": "SINTHIOU",
+    "telephone": "769742389//776174341",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T16:43:55.946Z",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 75,
+        "repartitionCars": {
+          "car1_matin": 20,
+          "car2_matin": 35,
+          "car_soir": 20
+        }
+      }
+    ],
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "updatedAt": "2025-12-15T19:40:31.902Z"
+  },
+  {
+    "id": "skHfKpkyL066gi1CNqZP",
+    "nom": "MME NDOUBE LAM ",
+    "adresse": "CITEE GENDARMERIE ",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T17:00:46.246Z",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 35,
+        "repartitionCars": {
+          "car1_matin": 20,
+          "car2_matin": 15,
+          "car_soir": 0
+        }
+      }
+    ],
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "updatedAt": "2025-12-13T19:14:51.473Z"
+  },
+  {
+    "id": "v09SaBgc9i4poP1LZnxB",
+    "nom": "MME DIA",
+    "adresse": "Sangalkam",
+    "telephone": "781378263",
+    "email": "",
+    "typeClient": "boutique",
+    "active": true,
+    "createdAt": "2025-11-19T18:25:18.715Z",
+    "eligibleRistourne": true,
+    "conditionsPaiement": "",
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 100,
+        "repartitionCars": {
+          "car1_matin": 20,
+          "car2_matin": 40,
+          "car_soir": 40
+        }
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "quantiteCommandee": 40,
+        "repartitionCars": {
+          "car1_matin": 10,
+          "car2_matin": 10,
+          "car_soir": 20
+        }
+      }
+    ],
+    "updatedAt": "2025-12-21T21:10:54.287Z"
+  },
+  {
+    "id": "wdZJfew3dg61MDVCmM8h",
+    "nom": "MME PENDA",
+    "adresse": "CITE TOTAL ",
+    "email": "",
+    "active": true,
+    "createdAt": "2025-11-19T20:01:35.974Z",
+    "typeClient": "boutique",
+    "telephone": "784760082",
+    "eligibleRistourne": false,
+    "conditionsPaiement": "",
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 40,
+        "repartitionCars": {
+          "car1_matin": 30,
+          "car2_matin": 10,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-21T21:11:10.550Z"
+  },
+  {
+    "id": "zHrrSmMYtkcTubApjCRy",
+    "nom": "MME DIAGNE TOUTY",
+    "adresse": "NDIAKHIRATE",
+    "telephone": "781378263",
+    "email": "",
+    "createdAt": "2025-11-19T21:01:31.065Z",
+    "conditionsPaiement": "",
+    "eligibleRistourne": true,
+    "typeClient": "boutique",
+    "active": true,
+    "livreurId": "9Utuy1R987uVPNyfyG9I",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 60,
+        "repartitionCars": {
+          "car1_matin": 15,
+          "car2_matin": 20,
+          "car_soir": 25
+        }
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "quantiteCommandee": 20,
+        "repartitionCars": {
+          "car1_matin": 10,
+          "car2_matin": 10,
+          "car_soir": 0
+        }
+      }
+    ],
+    "updatedAt": "2025-12-21T21:12:43.667Z"
+  },
+  {
+    "id": "zuJqJaFXjWiGrQYmd0hV",
+    "nom": "DIBITERIE ",
+    "adresse": "NDIAKHIRATE ",
+    "telephone": "",
+    "email": "",
+    "typeClient": "client",
+    "conditionsPaiement": "",
+    "eligibleRistourne": false,
+    "active": true,
+    "createdAt": "2025-12-10T17:01:37.246Z",
+    "livreurId": "4d7XD8EdpgXzTlOVtifD",
+    "commandeType": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "quantiteCommandee": 15,
+        "repartitionCars": {
+          "car1_matin": 0,
+          "car2_matin": 0,
+          "car_soir": 15
+        }
+      }
+    ],
+    "updatedAt": "2025-12-15T19:56:23.094Z"
+  }
+]
