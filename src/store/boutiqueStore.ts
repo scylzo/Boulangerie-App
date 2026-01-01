@@ -21,6 +21,7 @@ interface BoutiqueStore {
   ajouterProduitManuel: (date: Date, produitId: string, quantite: number, vendu?: number, periode?: 'matin' | 'soir' | null) => Promise<void>;
   modifierQuantiteStock: (date: Date, produitId: string, nouvelleQuantite: number) => Promise<void>;
   supprimerProduitStock: (date: Date, produitId: string) => Promise<void>;
+  toggleModeJourneeContinue: () => Promise<void>;
   chargerProduits: () => Promise<void>;
 
   // Actions Équipes
@@ -73,6 +74,7 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
         produitId: p.produitId,
         stockDebut: p.stockDebut
       })),
+      isJourneeContinue: date.getDay() === 0 || date.getDay() === 6, // Auto-détection Week-end (Samedi/Dimanche)
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -609,6 +611,52 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     }
   },
 
+  toggleModeJourneeContinue: async () => {
+    const { stockJour } = get();
+    if (!stockJour) return;
+
+    set({ isLoading: true });
+    try {
+      const nouveauMode = !stockJour.isJourneeContinue;
+
+      console.log(`Basculement mode Journée Continue: ${stockJour.isJourneeContinue} -> ${nouveauMode}`);
+
+      // 1. Mise à jour locale
+      const nouveauStockJour = { ...stockJour, isJourneeContinue: nouveauMode, updatedAt: new Date() };
+      set({ stockJour: nouveauStockJour });
+
+      // 2. Mise à jour Firestore
+      const dateStart = new Date(stockJour.date);
+      dateStart.setHours(0, 0, 0, 0);
+      const dateEnd = new Date(stockJour.date);
+      dateEnd.setHours(23, 59, 59, 999);
+
+      const q = query(
+        collection(db, 'shopStock'),
+        where('date', '>=', dateToTimestamp(dateStart)),
+        where('date', '<=', dateToTimestamp(dateEnd))
+      );
+
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        const docRef = snapshot.docs[0].ref;
+        await setDoc(docRef, { isJourneeContinue: nouveauMode, updatedAt: new Date() }, { merge: true });
+        console.log('✅ Mode Journée Continue mis à jour en base');
+      } else {
+        console.warn('⚠️ Stock non trouvé en base pour mise à jour du mode (stock local uniquement ?)');
+      }
+
+      // 3. Recalculer les ventes (pour masquer/afficher produits du soir)
+      get().calculerVentesBoutique();
+      await get().sauvegarderVentes();
+
+      set({ isLoading: false });
+    } catch (error) {
+      console.error('Erreur toggleModeJourneeContinue:', error);
+      set({ isLoading: false });
+    }
+  },
+
   chargerProduits: async () => {
     try {
       const q = query(collection(db, 'produits'));
@@ -805,8 +853,23 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
 
         const venduMatin = produitMatin?.vendu || 0;
         const resteMidi = produitMatin?.reste || 0;
-        const venduSoir = produitSoir?.vendu || 0;
-        const invenduBoutique = produitSoir?.reste || 0;
+
+        let venduSoir = 0;
+        let invenduBoutique = 0;
+        let venduTotal = 0;
+
+        if (stockJour.isJourneeContinue) {
+          // Mode Journée Continue: Une seule équipe (Matin -> Journée)
+          // Le "Matin" couvre toute la journée
+          venduSoir = 0; // Pas de vente soir
+          invenduBoutique = resteMidi; // L'invendu est ce qui reste de l'équipe unique
+          venduTotal = venduMatin;
+        } else {
+          // Mode Normal (2 rotations)
+          venduSoir = produitSoir?.vendu || 0;
+          invenduBoutique = produitSoir?.reste || 0;
+          venduTotal = venduMatin + venduSoir;
+        }
 
         return {
           produitId: stockProduit.produitId,
@@ -816,7 +879,7 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
           resteMidi,
           venduSoir,
           invenduBoutique,
-          venduTotal: venduMatin + venduSoir
+          venduTotal
         };
       }),
       createdAt: new Date(),

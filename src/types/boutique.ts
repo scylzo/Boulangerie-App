@@ -16,6 +16,7 @@ export interface StockBoutique {
   }>;
   createdAt: Date;
   updatedAt: Date;
+  isJourneeContinue?: boolean; // Si true = Weekend (Mode Journée Continue - Une seule équipe)
 }
 
 export interface EquipeBoutique {

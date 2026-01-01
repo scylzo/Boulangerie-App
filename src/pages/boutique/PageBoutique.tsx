@@ -29,7 +29,8 @@ export const PageBoutique: React.FC = () => {
     modifierQuantiteStock,
     supprimerProduitStock,
     rouvrirEquipeMatin,
-    rouvrirEquipeSoir
+    rouvrirEquipeSoir,
+    toggleModeJourneeContinue
   } = useBoutiqueStore();
 
   const [vendeuseMatin, setVendeuseMatin] = useState('');
@@ -212,16 +213,37 @@ export const PageBoutique: React.FC = () => {
                     <h2 className="text-lg font-semibold text-gray-900">
                       Stock de départ - {new Date(stockJour.date).toLocaleDateString('fr-FR')}
                     </h2>
+
                     <p className="text-sm text-gray-500">{stockJour.produits.length} produit(s) reçu(s) de la production</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowAddProductModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                >
-                  <Icon icon="mdi:plus-circle" className="text-lg" />
-                  <span className="font-medium">Ajouter Produit</span>
-                </button>
+
+                <div className="flex items-center gap-4">
+                  {/* Toggle Mode Journée Continue */}
+                  <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                    <button
+                      onClick={toggleModeJourneeContinue}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${stockJour.isJourneeContinue ? 'bg-indigo-600' : 'bg-gray-200'
+                        }`}
+                    >
+                      <span
+                        className={`${stockJour.isJourneeContinue ? 'translate-x-6' : 'translate-x-1'
+                          } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                      />
+                    </button>
+                    <span className="text-sm font-medium text-gray-700">
+                      {stockJour.isJourneeContinue ? 'Mode Journée Continue (Week-end)' : 'Mode 2 Équipes (Semaine)'}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => setShowAddProductModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    <Icon icon="mdi:plus-circle" className="text-lg" />
+                    <span className="font-medium">Ajouter Produit</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -482,21 +504,25 @@ export const PageBoutique: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="w-px h-6 bg-gray-300"></div>
+                    {!stockJour.isJourneeContinue && (
+                      <>
+                        <div className="w-px h-6 bg-gray-300"></div>
 
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Icon icon="wi:sunset" className="text-gray-600" />
-                      <span>Équipe Soir:</span>
-                      <span className={
-                        !equipeSoir ? 'text-gray-500' :
-                          equipeSoir.statut === 'en_cours' ? 'text-blue-600' :
-                            'text-green-600'
-                      }>
-                        {!equipeSoir ? 'Non commencée' :
-                          equipeSoir.statut === 'en_cours' ? 'En cours' :
-                            'Terminée'}
-                      </span>
-                    </div>
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Icon icon="wi:sunset" className="text-gray-600" />
+                          <span>Équipe Soir:</span>
+                          <span className={
+                            !equipeSoir ? 'text-gray-500' :
+                              equipeSoir.statut === 'en_cours' ? 'text-blue-600' :
+                                'text-green-600'
+                          }>
+                            {!equipeSoir ? 'Non commencée' :
+                              equipeSoir.statut === 'en_cours' ? 'En cours' :
+                                'Terminée'}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {ventesJour && (
@@ -524,13 +550,21 @@ export const PageBoutique: React.FC = () => {
               <div className="px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Icon icon="wi:sunrise" className="text-lg text-orange-600" />
+                    <Icon icon="wi:day-sunny" className="text-lg text-orange-600" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900">
-                      Équipe Matin - Vendeuse #{!equipeMatin ? 'À définir' : equipeMatin.vendeuse}
+                      {stockJour.isJourneeContinue
+                        ? `Équipe Journée (Unique) - Vendeuse #${!equipeMatin ? 'À définir' : equipeMatin.vendeuse}`
+                        : `Équipe Matin - Vendeuse #${!equipeMatin ? 'À définir' : equipeMatin.vendeuse}`
+                      }
                     </h2>
-                    <p className="text-sm text-gray-500">Service du matin (jusqu'à 14h) - Stock initial de la production</p>
+                    <p className="text-sm text-gray-500">
+                      {stockJour.isJourneeContinue
+                        ? "Service complet (Journée continue) - Stock initial complet"
+                        : "Service du matin (jusqu'à 14h) - Stock initial de la production"
+                      }
+                    </p>
                   </div>
                 </div>
               </div>
@@ -576,6 +610,25 @@ export const PageBoutique: React.FC = () => {
                           )}
                         </p>
                       </div>
+
+                      {/* Affichage du total vendu pour la journée continue */}
+                      {stockJour.isJourneeContinue && (
+                        <div className="text-right mr-4">
+                          <p className="text-sm text-gray-600 font-medium">Total Journée</p>
+                          <div className="flex flex-col items-end">
+                            <p className="text-lg font-bold text-gray-900">
+                              {equipeMatin.produits.reduce((total, p) => total + (p.vendu || 0), 0)} pièces
+                            </p>
+                            <p className="text-sm font-semibold text-green-600">
+                              {equipeMatin.produits.reduce((total, p) => {
+                                const prix = p.produit?.prixBoutique || p.produit?.prixUnitaire || 0;
+                                return total + ((p.vendu || 0) * prix);
+                              }, 0).toLocaleString('fr-FR')} CFA
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       {equipeMatin.statut === 'en_cours' && (
                         <button
                           onClick={async () => {
@@ -604,16 +657,18 @@ export const PageBoutique: React.FC = () => {
                           className="flex items-center gap-2 px-4 py-2 bg-white border border-orange-200 text-orange-700 rounded-lg hover:bg-orange-50 transition-all shadow-sm"
                         >
                           <Icon icon="mdi:pencil" className="text-lg" />
-                          <span className="font-medium">Modifier</span>
+                          <span className="font-medium">Modifier (Réouvrir)</span>
                         </button>
                       )}
                     </div>
 
-                    {/* Grille des ventes matin */}
+                    {/* Grille des ventes matin/journee */}
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                         <Icon icon="mdi:view-grid" className="text-gray-500" />
-                        <h3 className="text-lg font-semibold text-gray-800">Saisie des ventes matinales</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {stockJour.isJourneeContinue ? 'Saisie des ventes journée' : 'Saisie des ventes matinales'}
+                        </h3>
                       </div>
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {equipeMatin.produits.map((produit) => (
@@ -638,7 +693,9 @@ export const PageBoutique: React.FC = () => {
 
                             <div className="space-y-3">
                               <div className="flex items-center gap-2">
-                                <label className="text-sm font-medium text-gray-700">Vendu matin:</label>
+                                <label className="text-sm font-medium text-gray-700">
+                                  {stockJour.isJourneeContinue ? 'Vendu Total:' : 'Vendu matin:'}
+                                </label>
                                 <input
                                   type="number"
                                   min="0"
@@ -652,7 +709,9 @@ export const PageBoutique: React.FC = () => {
                                 />
                               </div>
                               <div className="text-sm">
-                                <span className="text-gray-600">Reste midi: </span>
+                                <span className="text-gray-600">
+                                  {stockJour.isJourneeContinue ? 'Invendu final: ' : 'Reste midi: '}
+                                </span>
                                 <span className="font-bold text-blue-600">{produit.reste} pièces</span>
                               </div>
                             </div>
@@ -665,8 +724,8 @@ export const PageBoutique: React.FC = () => {
               </div>
             </div>
 
-            {/* Passage de relais */}
-            {equipeMatin?.statut === 'termine' && !equipeSoir && (
+            {/* Passage de relais (Uniquement si mode normal et pas journée continue) */}
+            {equipeMatin?.statut === 'termine' && !equipeSoir && !stockJour.isJourneeContinue && (
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div className="px-6 py-4 border-b border-gray-100">
                   <div className="flex items-center gap-3">
@@ -714,8 +773,8 @@ export const PageBoutique: React.FC = () => {
               </div>
             )}
 
-            {/* Équipe Soir */}
-            {equipeMatin?.statut === 'termine' && (
+            {/* Équipe Soir (Uniquement si mode normal et pas journée continue) */}
+            {equipeMatin?.statut === 'termine' && !stockJour.isJourneeContinue && (
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div className="px-6 py-4 border-b border-gray-100">
                   <div className="flex items-center gap-3">
