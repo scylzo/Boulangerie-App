@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useBoutiqueStore } from '../../store';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 
 export const PageBoutique: React.FC = () => {
   const {
@@ -21,7 +22,14 @@ export const PageBoutique: React.FC = () => {
     calculerVentesBoutique,
     sauvegarderVentes,
     chargerEquipe,
-    chargerVentes
+    chargerVentes,
+    produits,
+    chargerProduits,
+    ajouterProduitManuel,
+    modifierQuantiteStock,
+    supprimerProduitStock,
+    rouvrirEquipeMatin,
+    rouvrirEquipeSoir
   } = useBoutiqueStore();
 
   const [vendeuseMatin, setVendeuseMatin] = useState('');
@@ -29,6 +37,20 @@ export const PageBoutique: React.FC = () => {
   const [dateSelectionnee, setDateSelectionnee] = useState(
     new Date().toISOString().split('T')[0]
   );
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [selectedProductToAdd, setSelectedProductToAdd] = useState('');
+  const [quantityToAdd, setQuantityToAdd] = useState(0);
+  const [isSold, setIsSold] = useState(false);
+  const [soldQuantity, setSoldQuantity] = useState(0);
+  const [soldPeriod, setSoldPeriod] = useState<'matin' | 'soir'>('matin');
+
+  // État pour la suppression
+  const [productToDelete, setProductToDelete] = useState<{ id: string, nom: string } | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // État pour la modification
+  const [productToEdit, setProductToEdit] = useState<{ id: string, nom: string, quantity: number } | null>(null);
+  const [newQuantity, setNewQuantity] = useState(0);
 
   const dateActuelle = new Date(dateSelectionnee);
 
@@ -54,6 +76,9 @@ export const PageBoutique: React.FC = () => {
 
         // 3. Charger les ventes depuis Firebase
         await chargerVentes(dateActuelle);
+
+        // 4. Charger le catalogue produits (pour l'ajout manuel)
+        await chargerProduits();
 
         console.log('✅ Toutes les données chargées');
       } catch (error) {
@@ -178,18 +203,158 @@ export const PageBoutique: React.FC = () => {
         {stockJour && (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
             <div className="px-6 py-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Icon icon="mdi:package-check" className="text-lg text-green-600" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Icon icon="mdi:package-check" className="text-lg text-green-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Stock de départ - {new Date(stockJour.date).toLocaleDateString('fr-FR')}
+                    </h2>
+                    <p className="text-sm text-gray-500">{stockJour.produits.length} produit(s) reçu(s) de la production</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Stock de départ - {new Date(stockJour.date).toLocaleDateString('fr-FR')}
-                  </h2>
-                  <p className="text-sm text-gray-500">{stockJour.produits.length} produit(s) reçu(s) de la production</p>
-                </div>
+                <button
+                  onClick={() => setShowAddProductModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  <Icon icon="mdi:plus-circle" className="text-lg" />
+                  <span className="font-medium">Ajouter Produit</span>
+                </button>
               </div>
             </div>
+
+            {/* Modal d'ajout manuel */}
+            {showAddProductModal && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Icon icon="mdi:plus-box" className="text-blue-600" />
+                    Ajouter un produit au stock
+                  </h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Produit</label>
+                      <select
+                        value={selectedProductToAdd}
+                        onChange={(e) => setSelectedProductToAdd(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Sélectionner un produit...</option>
+                        {produits.map(p => (
+                          <option key={p.id} value={p.id}>{p.nom}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Quantité à ajouter</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={quantityToAdd || ''}
+                        onChange={(e) => setQuantityToAdd(parseInt(e.target.value) || 0)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Cette quantité sera ajoutée au stock existant et propagée aux équipes actives.
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-100">
+                      <div className="flex items-center gap-2 mb-3">
+                        <input
+                          type="checkbox"
+                          id="isSold"
+                          checked={isSold}
+                          onChange={(e) => setIsSold(e.target.checked)}
+                          className="rounded text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor="isSold" className="text-sm font-medium text-gray-900">
+                          Enregistrer une vente immédiatement ?
+                        </label>
+                      </div>
+
+                      {isSold && (
+                        <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Quantité vendue</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max={quantityToAdd}
+                              value={soldQuantity || ''}
+                              onChange={(e) => setSoldQuantity(parseInt(e.target.value) || 0)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Période</label>
+                            <select
+                              value={soldPeriod}
+                              onChange={(e) => setSoldPeriod(e.target.value as 'matin' | 'soir')}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="matin">Matin</option>
+                              <option value="soir">Soir</option>
+                            </select>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end gap-3 mt-6">
+                      <button
+                        onClick={() => {
+                          setShowAddProductModal(false);
+                          setSelectedProductToAdd('');
+                          setQuantityToAdd(0);
+                          setIsSold(false);
+                          setSoldQuantity(0);
+                        }}
+                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        disabled={isLoading || !selectedProductToAdd || quantityToAdd <= 0 || (isSold && soldQuantity <= 0)}
+                        onClick={async () => {
+                          try {
+                            await ajouterProduitManuel(
+                              dateActuelle,
+                              selectedProductToAdd,
+                              quantityToAdd,
+                              isSold ? soldQuantity : 0,
+                              isSold ? soldPeriod : undefined
+                            );
+                            setShowAddProductModal(false);
+                            setSelectedProductToAdd('');
+                            setQuantityToAdd(0);
+                            setIsSold(false);
+                            setSoldQuantity(0);
+                          } catch (error) {
+                            console.error('Erreur ajout:', error);
+                            alert('Erreur lors de l\'ajout du produit');
+                          }
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Icon icon="mdi:loading" className="animate-spin" />
+                            <span>Ajout...</span>
+                          </>
+                        ) : (
+                          "Confirmer l'ajout"
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="p-6">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -213,6 +378,7 @@ export const PageBoutique: React.FC = () => {
                         <th className="text-center py-3 px-4 font-medium text-gray-700">Car 1M</th>
                         <th className="text-center py-3 px-4 font-medium text-gray-700">Car 2M</th>
                         <th className="text-center py-3 px-4 font-medium text-gray-700">Car S</th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-700">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -221,7 +387,7 @@ export const PageBoutique: React.FC = () => {
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-3">
                               <Icon
-                                icon={getProductIcon(produit.produit?.nom || '')}
+                                icon={getProductIcon(produit.produit?.nom || produit.produitId)}
                                 className="text-gray-600"
                               />
                               <span className="font-medium text-gray-900">
@@ -240,6 +406,37 @@ export const PageBoutique: React.FC = () => {
                           </td>
                           <td className="text-center py-3 px-4 text-gray-600">
                             {produit.repartitionCars?.car_soir || '—'}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex justify-center gap-2">
+                              <button
+                                onClick={() => {
+                                  setProductToEdit({
+                                    id: produit.produitId,
+                                    nom: produit.produit?.nom || 'Produit inconnu',
+                                    quantity: produit.stockDebut
+                                  });
+                                  setNewQuantity(produit.stockDebut);
+                                }}
+                                className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                                title="Modifier la quantité"
+                              >
+                                <Icon icon="mdi:pencil-outline" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setProductToDelete({
+                                    id: produit.produitId,
+                                    nom: produit.produit?.nom || 'Produit inconnu'
+                                  });
+                                  setShowDeleteConfirm(true);
+                                }}
+                                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                title="Supprimer du stock"
+                              >
+                                <Icon icon="mdi:trash-can-outline" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -276,12 +473,12 @@ export const PageBoutique: React.FC = () => {
                       <span>Équipe Matin:</span>
                       <span className={
                         !equipeMatin ? 'text-gray-500' :
-                        equipeMatin.statut === 'en_cours' ? 'text-blue-600' :
-                        'text-green-600'
+                          equipeMatin.statut === 'en_cours' ? 'text-blue-600' :
+                            'text-green-600'
                       }>
                         {!equipeMatin ? 'Non commencée' :
-                         equipeMatin.statut === 'en_cours' ? 'En cours' :
-                         'Terminée'}
+                          equipeMatin.statut === 'en_cours' ? 'En cours' :
+                            'Terminée'}
                       </span>
                     </div>
 
@@ -292,12 +489,12 @@ export const PageBoutique: React.FC = () => {
                       <span>Équipe Soir:</span>
                       <span className={
                         !equipeSoir ? 'text-gray-500' :
-                        equipeSoir.statut === 'en_cours' ? 'text-blue-600' :
-                        'text-green-600'
+                          equipeSoir.statut === 'en_cours' ? 'text-blue-600' :
+                            'text-green-600'
                       }>
                         {!equipeSoir ? 'Non commencée' :
-                         equipeSoir.statut === 'en_cours' ? 'En cours' :
-                         'Terminée'}
+                          equipeSoir.statut === 'en_cours' ? 'En cours' :
+                            'Terminée'}
                       </span>
                     </div>
                   </div>
@@ -305,9 +502,17 @@ export const PageBoutique: React.FC = () => {
                   {ventesJour && (
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Total vendu</p>
-                      <p className="text-lg font-bold text-gray-900">
-                        {ventesJour.produits.reduce((total, p) => total + p.venduTotal, 0)} pièces
-                      </p>
+                      <div className="flex flex-col items-end">
+                        <p className="text-lg font-bold text-gray-900">
+                          {ventesJour.produits.reduce((total, p) => total + p.venduTotal, 0)} pièces
+                        </p>
+                        <p className="text-sm font-semibold text-green-600">
+                          {ventesJour.produits.reduce((total, p) => {
+                            const prix = p.produit?.prixBoutique || p.produit?.prixUnitaire || 0;
+                            return total + (p.venduTotal * prix);
+                          }, 0).toLocaleString('fr-FR')} CFA
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -387,6 +592,21 @@ export const PageBoutique: React.FC = () => {
                           <span className="font-medium">Terminer l'équipe matin</span>
                         </button>
                       )}
+                      {equipeMatin.statut === 'termine' && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              rouvrirEquipeMatin();
+                            } catch (error) {
+                              console.error('Erreur lors de la réouverture:', error);
+                            }
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 bg-white border border-orange-200 text-orange-700 rounded-lg hover:bg-orange-50 transition-all shadow-sm"
+                        >
+                          <Icon icon="mdi:pencil" className="text-lg" />
+                          <span className="font-medium">Modifier</span>
+                        </button>
+                      )}
                     </div>
 
                     {/* Grille des ventes matin */}
@@ -423,7 +643,7 @@ export const PageBoutique: React.FC = () => {
                                   type="number"
                                   min="0"
                                   max={produit.stockDebut}
-                                  value={produit.vendu}
+                                  value={produit.vendu || ''}
                                   onChange={(e) =>
                                     saisirVenteMatin(produit.produitId, parseInt(e.target.value) || 0)
                                   }
@@ -573,6 +793,22 @@ export const PageBoutique: React.FC = () => {
                             <span className="font-medium">Terminer l'équipe soir</span>
                           </button>
                         )}
+                        {equipeSoir.statut === 'termine' && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                rouvrirEquipeSoir();
+                              } catch (error) {
+                                console.error('Erreur lors de la réouverture:', error);
+                              }
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-indigo-200 text-indigo-700 rounded-lg hover:bg-indigo-50 transition-all shadow-sm"
+                          >
+                            <Icon icon="mdi:pencil" className="text-lg" />
+                            <span className="font-medium">Modifier</span>
+                          </button>
+                        )}
+
                       </div>
 
                       {/* Grille des ventes soir */}
@@ -609,7 +845,7 @@ export const PageBoutique: React.FC = () => {
                                     type="number"
                                     min="0"
                                     max={produit.stockDebut}
-                                    value={produit.vendu}
+                                    value={produit.vendu || ''}
                                     onChange={(e) =>
                                       saisirVenteSoir(produit.produitId, parseInt(e.target.value) || 0)
                                     }
@@ -774,12 +1010,12 @@ export const PageBoutique: React.FC = () => {
                             key={produit.produitId}
                             className="bg-white rounded-xl p-4 border border-gray-200 hover:shadow-md transition-all"
                           >
-                            <div className="grid grid-cols-2 md:grid-cols-7 gap-4 items-center">
+                            <div className="grid grid-cols-2 md:grid-cols-8 gap-4 items-center">
                               <div className="md:col-span-1">
                                 <div className="flex items-center gap-3">
                                   <div className="w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg flex items-center justify-center">
                                     <Icon
-                                      icon={getProductIcon(produit.produit?.nom || '')}
+                                      icon={getProductIcon(produit.produit?.nom || produit.produitId)}
                                       className="text-white text-sm"
                                     />
                                   </div>
@@ -793,24 +1029,57 @@ export const PageBoutique: React.FC = () => {
                                 <div className="text-xs text-gray-500">Stock initial</div>
                               </div>
                               <div className="text-center">
-                                <div className="text-lg font-bold text-orange-600">{produit.venduMatin}</div>
-                                <div className="text-xs text-gray-500">Vendu matin</div>
+                                <div className="text-lg font-bold text-gray-900">{produit.venduMatin}</div>
+                                <div className="text-xs text-orange-600 font-medium">
+                                  Matin ({equipeMatin?.vendeuse || '—'})
+                                </div>
                               </div>
                               <div className="text-center">
                                 <div className="text-lg font-bold text-blue-600">{produit.resteMidi}</div>
                                 <div className="text-xs text-gray-500">Transmis soir</div>
                               </div>
                               <div className="text-center">
-                                <div className="text-lg font-bold text-indigo-600">{produit.venduSoir}</div>
-                                <div className="text-xs text-gray-500">Vendu soir</div>
+                                <div className="text-lg font-bold text-gray-900">{produit.venduSoir}</div>
+                                <div className="text-xs text-indigo-600 font-medium">
+                                  Soir ({equipeSoir?.vendeuse || '—'})
+                                </div>
                               </div>
                               <div className="text-center">
                                 <div className="text-lg font-bold text-red-600">{produit.invenduBoutique}</div>
                                 <div className="text-xs text-gray-500">Invendu final</div>
                               </div>
                               <div className="text-center">
-                                <div className="text-xl font-bold text-green-600">{produit.venduTotal}</div>
+                                <div className="text-lg font-bold text-green-600">{produit.venduTotal}</div>
                                 <div className="text-xs text-gray-500">Total vendu</div>
+                              </div>
+                              <div className="flex justify-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    setProductToEdit({
+                                      id: produit.produitId,
+                                      nom: produit.produit?.nom || 'Produit inconnu',
+                                      quantity: produit.stockDebut
+                                    });
+                                    setNewQuantity(produit.stockDebut);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                                  title="Modifier la quantité"
+                                >
+                                  <Icon icon="mdi:pencil-outline" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setProductToDelete({
+                                      id: produit.produitId,
+                                      nom: produit.produit?.nom || 'Produit inconnu'
+                                    });
+                                    setShowDeleteConfirm(true);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                  title="Supprimer la ligne"
+                                >
+                                  <Icon icon="mdi:trash-can-outline" />
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -824,6 +1093,74 @@ export const PageBoutique: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setProductToDelete(null);
+        }}
+        onConfirm={async () => {
+          if (productToDelete) {
+            try {
+              await supprimerProduitStock(dateActuelle, productToDelete.id);
+              setShowDeleteConfirm(false);
+              setProductToDelete(null);
+            } catch (e) {
+              console.error("Erreur suppression:", e);
+              // Optionnel: Notification d'erreur
+            }
+          }
+        }}
+        title="Supprimer du stock"
+        message={`Voulez-vous vraiment supprimer "${productToDelete?.nom}" du stock du jour ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
+
+      {/* Modal de modification de quantité */}
+      {productToEdit && (
+        <ConfirmModal
+          isOpen={!!productToEdit}
+          onClose={() => {
+            setProductToEdit(null);
+            setNewQuantity(0);
+          }}
+          onConfirm={async () => {
+            if (productToEdit && newQuantity >= 0) {
+              try {
+                await modifierQuantiteStock(dateActuelle, productToEdit.id, newQuantity);
+                setProductToEdit(null);
+                setNewQuantity(0);
+              } catch (e) {
+                console.error("Erreur modification:", e);
+                alert("Erreur lors de la modification");
+              }
+            }
+          }}
+          title="Modifier la quantité"
+          message={
+            <div className="space-y-4">
+              <p>Modifier le stock initial pour <strong>{productToEdit.nom}</strong> :</p>
+              <input
+                type="number"
+                min="0"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={newQuantity}
+                onChange={(e) => setNewQuantity(parseInt(e.target.value) || 0)}
+                autoFocus
+              />
+              <p className="text-xs text-gray-500">
+                Cette modification ajustera automatiquement les stocks des équipes matin et soir.
+              </p>
+            </div>
+          }
+          confirmText="Enregistrer"
+          cancelText="Annuler"
+          type="info"
+        />
+      )}
     </div>
   );
 };

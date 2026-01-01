@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { useStockStore } from './stockStore';
+
 import type { ProgrammeProduction, CommandeClient, QuantiteBoutique, Produit, Client } from '../types';
 import { firestoreService, businessQueries, realTimeListeners, dateToTimestamp, timestampToDate } from '../firebase/collections';
 import type { Timestamp } from 'firebase/firestore';
@@ -394,7 +394,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   },
 
   validerProduction: async () => {
-    const { programmeActuel, produits } = get();
+    const { programmeActuel } = get();
     if (!programmeActuel) return;
 
     set({ isLoading: true });

@@ -33,11 +33,20 @@ export const useLivreurStore = create<LivreurStore>((set, get) => ({
     set({ isLoadingLivreurs: true });
     try {
       const livreurs = await firestoreService.getAll<any>('livreurs');
-      const livreursConverts = livreurs.map(livreur => ({
-        ...livreur,
-        createdAt: livreur.createdAt instanceof Date ? livreur.createdAt : timestampToDate(livreur.createdAt as Timestamp),
-        updatedAt: livreur.updatedAt instanceof Date ? livreur.updatedAt : timestampToDate(livreur.updatedAt as Timestamp),
-      })) as Livreur[];
+      const livreursConverts = livreurs.map(livreur => {
+        const parseDate = (date: any) => {
+          if (!date) return new Date();
+          if (date instanceof Date) return date;
+          if (typeof date.toDate === 'function') return date.toDate();
+          return new Date(date);
+        };
+
+        return {
+          ...livreur,
+          createdAt: parseDate(livreur.createdAt),
+          updatedAt: parseDate(livreur.updatedAt),
+        };
+      }) as Livreur[];
 
       set({ livreurs: livreursConverts, isLoadingLivreurs: false });
     } catch (error) {

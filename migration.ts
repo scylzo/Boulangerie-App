@@ -3,28 +3,6 @@ import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ServiceAccount } from "firebase-admin";
 
-const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
-
-function convertDates(obj: any): any {
-    if (typeof obj === "string" && ISO_DATE_REGEX.test(obj)) {
-        return new Date(obj);
-    }
-
-    if (Array.isArray(obj)) {
-        return obj.map(convertDates);
-    }
-
-    if (obj !== null && typeof obj === "object") {
-        const newObj: any = {};
-        for (const key in obj) {
-            newObj[key] = convertDates(obj[key]);
-        }
-        return newObj;
-    }
-
-    return obj;
-}
-
 async function main() {
     // 🔐 Initialisation Firebase (projet cible)
     const serviceAccount = JSON.parse(
@@ -38,12 +16,9 @@ async function main() {
     const db = getFirestore();
 
     // 📦 Chargement du JSON exporté
-    const rawData = JSON.parse(
-        fs.readFileSync("./matieres.json", "utf-8")
+    const data = JSON.parse(
+        fs.readFileSync("./livreurs.json", "utf-8")
     ) as Array<{ id: string;[key: string]: any }>;
-
-    // 🔄 Conversion des dates
-    const data = convertDates(rawData);
 
     console.log(`📄 ${data.length} documents à importer`);
 
@@ -54,9 +29,9 @@ async function main() {
         const batch = db.batch();
         const chunk = data.slice(i, i + BATCH_SIZE);
 
-        chunk.forEach((doc: any) => {
+        chunk.forEach((doc) => {
             const { id, ...fields } = doc;
-            const ref = db.collection("matieres").doc(id);
+            const ref = db.collection("livreurs").doc(id);
             batch.set(ref, fields, { merge: false });
         });
 
