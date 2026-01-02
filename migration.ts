@@ -17,7 +17,7 @@ async function main() {
 
     // 📦 Chargement du JSON exporté
     const data = JSON.parse(
-        fs.readFileSync("./livreurs.json", "utf-8")
+        fs.readFileSync("./clientReturns.json", "utf-8")
     ) as Array<{ id: string;[key: string]: any }>;
 
     console.log(`📄 ${data.length} documents à importer`);
@@ -31,7 +31,7 @@ async function main() {
 
         chunk.forEach((doc) => {
             const { id, ...fields } = doc;
-            const ref = db.collection("livreurs").doc(id);
+            const ref = db.collection("clientReturns").doc(id);
             batch.set(ref, fields, { merge: false });
         });
 

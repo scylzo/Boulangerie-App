@@ -1,0 +1,3390 @@
+[
+  {
+    "id": "retours_3V1cFMtUUuebrLqpsEZO_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.141Z",
+    "produits": [],
+    "clientId": "3V1cFMtUUuebrLqpsEZO",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.141Z"
+  },
+  {
+    "id": "retours_3V1cFMtUUuebrLqpsEZO_2025-12-18",
+    "clientId": "3V1cFMtUUuebrLqpsEZO",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "createdAt": "2025-12-19T21:35:45.145Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "active": true,
+          "nom": "Baguette",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "description": "",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 70,
+        "invendus": 2,
+        "vendu": 68
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "nom": "Baguette Pistolet",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "prixBoutique": 100,
+          "prixUnitaire": 100,
+          "description": "",
+          "unite": "piece",
+          "prixClient": 90,
+          "active": true
+        },
+        "quantiteLivree": 5,
+        "invendus": 0,
+        "vendu": 5
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-19T21:35:45.145Z"
+  },
+  {
+    "id": "retours_3V1cFMtUUuebrLqpsEZO_2025-12-19",
+    "createdAt": "2025-12-20T11:21:56.607Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixUnitaire": 150,
+          "prixClient": 130,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "description": "",
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "active": true,
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "unite": "piece"
+        },
+        "quantiteLivree": 70,
+        "invendus": 23,
+        "vendu": 47
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "active": true,
+          "prixClient": 90,
+          "prixBoutique": 100,
+          "description": "",
+          "prixUnitaire": 100,
+          "unite": "piece",
+          "nom": "Baguette Pistolet",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "updatedAt": "2025-11-19T18:41:13.587Z"
+        },
+        "quantiteLivree": 5,
+        "invendus": 0,
+        "vendu": 5
+      }
+    ],
+    "clientId": "3V1cFMtUUuebrLqpsEZO",
+    "dateLivraison": "2025-12-19T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-20T11:21:56.607Z"
+  },
+  {
+    "id": "retours_3V1cFMtUUuebrLqpsEZO_2025-12-20",
+    "createdAt": "2025-12-21T20:08:43.703Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "prixUnitaire": 150,
+          "active": true,
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "prixBoutique": 150,
+          "prixClient": 130,
+          "unite": "piece",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "nom": "Baguette",
+          "description": ""
+        },
+        "quantiteLivree": 70,
+        "invendus": 0,
+        "vendu": 70
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "prixUnitaire": 100,
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "prixClient": 90,
+          "nom": "Baguette Pistolet",
+          "prixBoutique": 100,
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "active": true,
+          "unite": "piece",
+          "description": ""
+        },
+        "quantiteLivree": 5,
+        "invendus": 0,
+        "vendu": 5
+      }
+    ],
+    "clientId": "3V1cFMtUUuebrLqpsEZO",
+    "dateLivraison": "2025-12-20T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T20:08:43.703Z"
+  },
+  {
+    "id": "retours_3V1cFMtUUuebrLqpsEZO_2025-12-21",
+    "createdAt": "2025-12-21T20:04:36.950Z",
+    "produits": [],
+    "clientId": "3V1cFMtUUuebrLqpsEZO",
+    "dateLivraison": "2025-12-21T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T20:04:36.950Z"
+  },
+  {
+    "id": "retours_3V1cFMtUUuebrLqpsEZO_2025-12-22",
+    "createdAt": "2025-12-23T18:46:24.147Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixClient": 130,
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "description": "",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 70,
+        "invendus": 19,
+        "vendu": 51
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "unite": "piece",
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "active": true,
+          "description": "",
+          "prixUnitaire": 100,
+          "nom": "Baguette Pistolet",
+          "prixClient": 90,
+          "prixBoutique": 100
+        },
+        "quantiteLivree": 5,
+        "invendus": 0,
+        "vendu": 5
+      }
+    ],
+    "clientId": "3V1cFMtUUuebrLqpsEZO",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:46:24.147Z"
+  },
+  {
+    "id": "retours_3V1cFMtUUuebrLqpsEZO_2025-12-23",
+    "createdAt": "2025-12-24T19:19:41.610Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 70,
+        "invendus": 13,
+        "vendu": 57
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "prixBoutique": 100,
+          "active": true,
+          "prixUnitaire": 100,
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "prixClient": 90,
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "nom": "Baguette Pistolet",
+          "description": "",
+          "unite": "piece"
+        },
+        "quantiteLivree": 5,
+        "invendus": 0,
+        "vendu": 5
+      }
+    ],
+    "clientId": "3V1cFMtUUuebrLqpsEZO",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T19:19:41.610Z"
+  },
+  {
+    "id": "retours_3V1cFMtUUuebrLqpsEZO_2025-12-24",
+    "createdAt": "2025-12-25T20:14:31.273Z",
+    "produits": [],
+    "clientId": "3V1cFMtUUuebrLqpsEZO",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:14:31.273Z"
+  },
+  {
+    "id": "retours_514Y17suGvNuoTrF11P9_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "514Y17suGvNuoTrF11P9",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_514Y17suGvNuoTrF11P9_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.672Z",
+    "produits": [],
+    "clientId": "514Y17suGvNuoTrF11P9",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.672Z"
+  },
+  {
+    "id": "retours_514Y17suGvNuoTrF11P9_2025-12-19",
+    "createdAt": "2025-12-21T20:57:03.023Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "prixClient": 130,
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "nom": "Baguette",
+          "description": "",
+          "prixUnitaire": 150,
+          "unite": "piece",
+          "prixBoutique": 150
+        },
+        "quantiteLivree": 40,
+        "invendus": 33,
+        "vendu": 7
+      }
+    ],
+    "clientId": "514Y17suGvNuoTrF11P9",
+    "dateLivraison": "2025-12-19T00:00:00.000Z",
+    "retoursCompletes": false,
+    "updatedAt": "2025-12-21T20:57:19.287Z"
+  },
+  {
+    "id": "retours_514Y17suGvNuoTrF11P9_2025-12-22",
+    "createdAt": "2025-12-23T18:47:05.387Z",
+    "produits": [],
+    "clientId": "514Y17suGvNuoTrF11P9",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:05.387Z"
+  },
+  {
+    "id": "retours_514Y17suGvNuoTrF11P9_2025-12-23",
+    "clientId": "514Y17suGvNuoTrF11P9",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "createdAt": "2025-12-24T19:20:00.403Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 40,
+        "invendus": 4,
+        "vendu": 36
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T19:20:00.403Z"
+  },
+  {
+    "id": "retours_514Y17suGvNuoTrF11P9_2025-12-24",
+    "createdAt": "2025-12-25T20:14:34.056Z",
+    "produits": [],
+    "clientId": "514Y17suGvNuoTrF11P9",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:14:34.056Z"
+  },
+  {
+    "id": "retours_5qJk7pZ1pJEdNr7B8RMg_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.141Z",
+    "produits": [],
+    "clientId": "5qJk7pZ1pJEdNr7B8RMg",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.141Z"
+  },
+  {
+    "id": "retours_5qJk7pZ1pJEdNr7B8RMg_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.672Z",
+    "produits": [],
+    "clientId": "5qJk7pZ1pJEdNr7B8RMg",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.672Z"
+  },
+  {
+    "id": "retours_5qJk7pZ1pJEdNr7B8RMg_2025-12-22",
+    "createdAt": "2025-12-23T18:47:08.411Z",
+    "produits": [],
+    "clientId": "5qJk7pZ1pJEdNr7B8RMg",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:08.411Z"
+  },
+  {
+    "id": "retours_5qJk7pZ1pJEdNr7B8RMg_2025-12-24",
+    "createdAt": "2025-12-25T20:14:37.144Z",
+    "produits": [],
+    "clientId": "5qJk7pZ1pJEdNr7B8RMg",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:14:37.144Z"
+  },
+  {
+    "id": "retours_8fKXMpGnfk5O7x7dsv4U_2025-12-01",
+    "createdAt": "2025-12-25T11:20:09.673Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 60,
+        "invendus": 13,
+        "vendu": 47
+      }
+    ],
+    "clientId": "8fKXMpGnfk5O7x7dsv4U",
+    "dateLivraison": "2025-12-01T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T11:20:09.673Z"
+  },
+  {
+    "id": "retours_8fKXMpGnfk5O7x7dsv4U_2025-12-17",
+    "createdAt": "2025-12-18T14:45:57.764Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "unite": "piece",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "nom": "Baguette",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "prixClient": 130,
+          "description": "",
+          "prixUnitaire": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "active": true
+        },
+        "quantiteLivree": 60,
+        "invendus": 1,
+        "vendu": 59
+      }
+    ],
+    "clientId": "8fKXMpGnfk5O7x7dsv4U",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:45:57.764Z"
+  },
+  {
+    "id": "retours_8fKXMpGnfk5O7x7dsv4U_2025-12-18",
+    "clientId": "8fKXMpGnfk5O7x7dsv4U",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "createdAt": "2025-12-19T22:01:23.113Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "active": true,
+          "nom": "Baguette",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "description": "",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 60,
+        "invendus": 0,
+        "vendu": 60
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-19T22:01:23.113Z"
+  },
+  {
+    "id": "retours_8fKXMpGnfk5O7x7dsv4U_2025-12-22",
+    "createdAt": "2025-12-23T18:47:10.995Z",
+    "produits": [],
+    "clientId": "8fKXMpGnfk5O7x7dsv4U",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:10.995Z"
+  },
+  {
+    "id": "retours_8fKXMpGnfk5O7x7dsv4U_2025-12-23",
+    "createdAt": "2025-12-24T13:19:10.555Z",
+    "produits": [],
+    "clientId": "8fKXMpGnfk5O7x7dsv4U",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T13:19:10.555Z"
+  },
+  {
+    "id": "retours_8fKXMpGnfk5O7x7dsv4U_2025-12-24",
+    "createdAt": "2025-12-25T20:14:39.687Z",
+    "produits": [],
+    "clientId": "8fKXMpGnfk5O7x7dsv4U",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:14:39.687Z"
+  },
+  {
+    "id": "retours_9pLkruiVDm6bCi7cHWjM_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.141Z",
+    "produits": [],
+    "clientId": "9pLkruiVDm6bCi7cHWjM",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.141Z"
+  },
+  {
+    "id": "retours_9pLkruiVDm6bCi7cHWjM_2025-12-18",
+    "clientId": "9pLkruiVDm6bCi7cHWjM",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "createdAt": "2025-12-19T21:36:17.305Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "active": true,
+          "nom": "Baguette",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "description": "",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 55,
+        "invendus": 10,
+        "vendu": 45
+      },
+      {
+        "produitId": "QYHyBPcek9gdvxTU6brO",
+        "produit": {
+          "id": "QYHyBPcek9gdvxTU6brO",
+          "createdAt": "2025-11-19T18:42:01.435Z",
+          "nom": "Pain au lait Choco",
+          "active": true,
+          "description": "",
+          "prixClient": 175,
+          "unite": "piece",
+          "prixBoutique": 200,
+          "updatedAt": "2025-11-19T18:42:01.435Z",
+          "prixUnitaire": 200
+        },
+        "quantiteLivree": 20,
+        "invendus": 0,
+        "vendu": 20
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "nom": "Baguette Pistolet",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "prixBoutique": 100,
+          "prixUnitaire": 100,
+          "description": "",
+          "unite": "piece",
+          "prixClient": 90,
+          "active": true
+        },
+        "quantiteLivree": 10,
+        "invendus": 0,
+        "vendu": 10
+      },
+      {
+        "produitId": "xVysyBhY2N1HZdc5r4KJ",
+        "produit": {
+          "id": "xVysyBhY2N1HZdc5r4KJ",
+          "nom": "Petit Pain",
+          "active": true,
+          "createdAt": "2025-12-11T19:51:02.349Z",
+          "description": "",
+          "recette": [],
+          "prixBoutique": 50,
+          "unite": "piece",
+          "updatedAt": "2025-12-13T22:32:34.272Z",
+          "prixUnitaire": 50,
+          "prixClient": 45
+        },
+        "quantiteLivree": 20,
+        "invendus": 0,
+        "vendu": 20
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-19T21:36:17.305Z"
+  },
+  {
+    "id": "retours_9pLkruiVDm6bCi7cHWjM_2025-12-19",
+    "createdAt": "2025-12-21T21:39:47.857Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "active": true,
+          "description": "",
+          "unite": "piece",
+          "prixBoutique": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "prixClient": 130,
+          "nom": "Baguette",
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 55,
+        "invendus": 0,
+        "vendu": 55
+      },
+      {
+        "produitId": "QYHyBPcek9gdvxTU6brO",
+        "produit": {
+          "id": "QYHyBPcek9gdvxTU6brO",
+          "prixBoutique": 200,
+          "nom": "Pain au lait Choco",
+          "unite": "piece",
+          "description": "",
+          "prixClient": 175,
+          "active": true,
+          "createdAt": "2025-11-19T18:42:01.435Z",
+          "updatedAt": "2025-11-19T18:42:01.435Z",
+          "prixUnitaire": 200
+        },
+        "quantiteLivree": 15,
+        "invendus": 0,
+        "vendu": 15
+      }
+    ],
+    "clientId": "9pLkruiVDm6bCi7cHWjM",
+    "dateLivraison": "2025-12-19T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T21:39:47.857Z"
+  },
+  {
+    "id": "retours_9pLkruiVDm6bCi7cHWjM_2025-12-20",
+    "createdAt": "2025-12-21T21:41:47.853Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "active": true,
+          "description": "",
+          "unite": "piece",
+          "prixBoutique": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "prixClient": 130,
+          "nom": "Baguette",
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 75,
+        "invendus": 0,
+        "vendu": 75
+      },
+      {
+        "produitId": "QYHyBPcek9gdvxTU6brO",
+        "produit": {
+          "id": "QYHyBPcek9gdvxTU6brO",
+          "prixBoutique": 200,
+          "nom": "Pain au lait Choco",
+          "unite": "piece",
+          "description": "",
+          "prixClient": 175,
+          "active": true,
+          "createdAt": "2025-11-19T18:42:01.435Z",
+          "updatedAt": "2025-11-19T18:42:01.435Z",
+          "prixUnitaire": 200
+        },
+        "quantiteLivree": 20,
+        "invendus": 0,
+        "vendu": 20
+      }
+    ],
+    "clientId": "9pLkruiVDm6bCi7cHWjM",
+    "dateLivraison": "2025-12-20T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T21:41:47.853Z"
+  },
+  {
+    "id": "retours_9pLkruiVDm6bCi7cHWjM_2025-12-21",
+    "createdAt": "2025-12-23T19:09:18.851Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixClient": 130,
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "description": "",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 60,
+        "invendus": 3,
+        "vendu": 57
+      },
+      {
+        "produitId": "QYHyBPcek9gdvxTU6brO",
+        "produit": {
+          "id": "QYHyBPcek9gdvxTU6brO",
+          "nom": "Pain au lait Choco",
+          "prixUnitaire": 200,
+          "description": "",
+          "unite": "piece",
+          "createdAt": "2025-11-19T18:42:01.435Z",
+          "prixClient": 175,
+          "active": true,
+          "prixBoutique": 200,
+          "updatedAt": "2025-11-19T18:42:01.435Z"
+        },
+        "quantiteLivree": 10,
+        "invendus": 0,
+        "vendu": 10
+      }
+    ],
+    "clientId": "9pLkruiVDm6bCi7cHWjM",
+    "dateLivraison": "2025-12-21T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T19:09:18.851Z"
+  },
+  {
+    "id": "retours_9pLkruiVDm6bCi7cHWjM_2025-12-22",
+    "createdAt": "2025-12-23T18:47:13.466Z",
+    "produits": [],
+    "clientId": "9pLkruiVDm6bCi7cHWjM",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:13.466Z"
+  },
+  {
+    "id": "retours_9pLkruiVDm6bCi7cHWjM_2025-12-24",
+    "createdAt": "2025-12-25T20:14:42.241Z",
+    "produits": [],
+    "clientId": "9pLkruiVDm6bCi7cHWjM",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:14:42.241Z"
+  },
+  {
+    "id": "retours_BYyRoEHycygI4XbsAuqT_2025-12-17",
+    "clientId": "BYyRoEHycygI4XbsAuqT",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "createdAt": "2025-12-18T20:07:35.365Z",
+    "produits": [],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T20:07:35.365Z"
+  },
+  {
+    "id": "retours_BYyRoEHycygI4XbsAuqT_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.672Z",
+    "produits": [],
+    "clientId": "BYyRoEHycygI4XbsAuqT",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.672Z"
+  },
+  {
+    "id": "retours_BYyRoEHycygI4XbsAuqT_2025-12-22",
+    "createdAt": "2025-12-23T18:47:15.851Z",
+    "produits": [],
+    "clientId": "BYyRoEHycygI4XbsAuqT",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:15.851Z"
+  },
+  {
+    "id": "retours_BYyRoEHycygI4XbsAuqT_2025-12-24",
+    "createdAt": "2025-12-25T20:14:44.896Z",
+    "produits": [],
+    "clientId": "BYyRoEHycygI4XbsAuqT",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:14:44.896Z"
+  },
+  {
+    "id": "retours_BhLWMwD7huQAZinBffNw_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.141Z",
+    "produits": [],
+    "clientId": "BhLWMwD7huQAZinBffNw",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.141Z"
+  },
+  {
+    "id": "retours_BhLWMwD7huQAZinBffNw_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "BhLWMwD7huQAZinBffNw",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_BhLWMwD7huQAZinBffNw_2025-12-22",
+    "createdAt": "2025-12-23T18:47:18.427Z",
+    "produits": [],
+    "clientId": "BhLWMwD7huQAZinBffNw",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:18.427Z"
+  },
+  {
+    "id": "retours_BhLWMwD7huQAZinBffNw_2025-12-24",
+    "createdAt": "2025-12-25T20:15:12.361Z",
+    "produits": [],
+    "clientId": "BhLWMwD7huQAZinBffNw",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:12.361Z"
+  },
+  {
+    "id": "retours_DVIcOn9S3QZvwAu0Qpku_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.141Z",
+    "produits": [],
+    "clientId": "DVIcOn9S3QZvwAu0Qpku",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.141Z"
+  },
+  {
+    "id": "retours_DVIcOn9S3QZvwAu0Qpku_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "DVIcOn9S3QZvwAu0Qpku",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_DVIcOn9S3QZvwAu0Qpku_2025-12-22",
+    "createdAt": "2025-12-23T18:47:20.771Z",
+    "produits": [],
+    "clientId": "DVIcOn9S3QZvwAu0Qpku",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:20.771Z"
+  },
+  {
+    "id": "retours_DVIcOn9S3QZvwAu0Qpku_2025-12-24",
+    "createdAt": "2025-12-25T20:15:17.239Z",
+    "produits": [],
+    "clientId": "DVIcOn9S3QZvwAu0Qpku",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:17.239Z"
+  },
+  {
+    "id": "retours_LL9SupfDB0WS5kbzgj9G_2025-12-01",
+    "createdAt": "2025-12-25T11:19:17.018Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 80,
+        "invendus": 10,
+        "vendu": 70
+      }
+    ],
+    "clientId": "LL9SupfDB0WS5kbzgj9G",
+    "dateLivraison": "2025-12-01T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T11:19:17.018Z"
+  },
+  {
+    "id": "retours_LL9SupfDB0WS5kbzgj9G_2025-12-17",
+    "createdAt": "2025-12-18T14:42:33.605Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "unite": "piece",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "nom": "Baguette",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "prixClient": 130,
+          "description": "",
+          "prixUnitaire": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "active": true
+        },
+        "quantiteLivree": 105,
+        "invendus": 3,
+        "vendu": 102
+      }
+    ],
+    "clientId": "LL9SupfDB0WS5kbzgj9G",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:42:33.605Z"
+  },
+  {
+    "id": "retours_LL9SupfDB0WS5kbzgj9G_2025-12-18",
+    "clientId": "LL9SupfDB0WS5kbzgj9G",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "createdAt": "2025-12-19T21:54:45.249Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "active": true,
+          "nom": "Baguette",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "description": "",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 105,
+        "invendus": 0,
+        "vendu": 105
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-19T21:54:45.249Z"
+  },
+  {
+    "id": "retours_LL9SupfDB0WS5kbzgj9G_2025-12-19",
+    "createdAt": "2025-12-21T20:35:38.278Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "prixClient": 130,
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "nom": "Baguette",
+          "description": "",
+          "prixUnitaire": 150,
+          "unite": "piece",
+          "prixBoutique": 150
+        },
+        "quantiteLivree": 105,
+        "invendus": 23,
+        "vendu": 82
+      }
+    ],
+    "clientId": "LL9SupfDB0WS5kbzgj9G",
+    "dateLivraison": "2025-12-19T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T20:35:38.278Z"
+  },
+  {
+    "id": "retours_LL9SupfDB0WS5kbzgj9G_2025-12-20",
+    "createdAt": "2025-12-21T20:38:21.894Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "prixClient": 130,
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "nom": "Baguette",
+          "description": "",
+          "prixUnitaire": 150,
+          "unite": "piece",
+          "prixBoutique": 150
+        },
+        "quantiteLivree": 105,
+        "invendus": 7,
+        "vendu": 98
+      }
+    ],
+    "clientId": "LL9SupfDB0WS5kbzgj9G",
+    "dateLivraison": "2025-12-20T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T20:38:21.894Z"
+  },
+  {
+    "id": "retours_LL9SupfDB0WS5kbzgj9G_2025-12-22",
+    "createdAt": "2025-12-23T18:45:31.036Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixClient": 130,
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "description": "",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 105,
+        "invendus": 9,
+        "vendu": 96
+      }
+    ],
+    "clientId": "LL9SupfDB0WS5kbzgj9G",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:45:31.036Z"
+  },
+  {
+    "id": "retours_LL9SupfDB0WS5kbzgj9G_2025-12-23",
+    "createdAt": "2025-12-24T19:20:15.738Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 105,
+        "invendus": 38,
+        "vendu": 67
+      }
+    ],
+    "clientId": "LL9SupfDB0WS5kbzgj9G",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T19:20:15.738Z"
+  },
+  {
+    "id": "retours_LL9SupfDB0WS5kbzgj9G_2025-12-24",
+    "createdAt": "2025-12-25T20:13:07.729Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "active": true,
+          "nom": "Baguette",
+          "prixClient": 130,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "prixBoutique": 150,
+          "description": ""
+        },
+        "quantiteLivree": 105,
+        "invendus": 14,
+        "vendu": 91
+      }
+    ],
+    "clientId": "LL9SupfDB0WS5kbzgj9G",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:13:07.729Z"
+  },
+  {
+    "id": "retours_LL9SupfDB0WS5kbzgj9G_2025-12-25",
+    "createdAt": "2025-12-25T21:08:48.530Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "active": true,
+          "nom": "Baguette",
+          "prixClient": 130,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "prixBoutique": 150,
+          "description": ""
+        },
+        "quantiteLivree": 105,
+        "invendus": 15,
+        "vendu": 90
+      }
+    ],
+    "clientId": "LL9SupfDB0WS5kbzgj9G",
+    "dateLivraison": "2025-12-25T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T21:08:48.530Z"
+  },
+  {
+    "id": "retours_LL9SupfDB0WS5kbzgj9G_2025-12-26",
+    "createdAt": "2025-12-26T22:26:58.592Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "active": true,
+          "prixUnitaire": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "prixClient": 130,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "prixBoutique": 150,
+          "description": ""
+        },
+        "quantiteLivree": 105,
+        "invendus": 13,
+        "vendu": 92
+      }
+    ],
+    "clientId": "LL9SupfDB0WS5kbzgj9G",
+    "dateLivraison": "2025-12-26T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-26T22:26:58.592Z"
+  },
+  {
+    "id": "retours_M9NyKpCruKqTPVVefvyG_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.141Z",
+    "produits": [],
+    "clientId": "M9NyKpCruKqTPVVefvyG",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.141Z"
+  },
+  {
+    "id": "retours_M9NyKpCruKqTPVVefvyG_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "M9NyKpCruKqTPVVefvyG",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_M9NyKpCruKqTPVVefvyG_2025-12-22",
+    "createdAt": "2025-12-23T18:47:24.043Z",
+    "produits": [],
+    "clientId": "M9NyKpCruKqTPVVefvyG",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:24.043Z"
+  },
+  {
+    "id": "retours_M9NyKpCruKqTPVVefvyG_2025-12-24",
+    "createdAt": "2025-12-25T20:15:20.872Z",
+    "produits": [],
+    "clientId": "M9NyKpCruKqTPVVefvyG",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:20.872Z"
+  },
+  {
+    "id": "retours_OFITTn25hO7sLmehIfLa_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.141Z",
+    "produits": [],
+    "clientId": "OFITTn25hO7sLmehIfLa",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.141Z"
+  },
+  {
+    "id": "retours_OFITTn25hO7sLmehIfLa_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "OFITTn25hO7sLmehIfLa",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_OFITTn25hO7sLmehIfLa_2025-12-22",
+    "createdAt": "2025-12-23T18:47:26.179Z",
+    "produits": [],
+    "clientId": "OFITTn25hO7sLmehIfLa",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:26.179Z"
+  },
+  {
+    "id": "retours_OFITTn25hO7sLmehIfLa_2025-12-24",
+    "createdAt": "2025-12-25T20:15:23.271Z",
+    "produits": [],
+    "clientId": "OFITTn25hO7sLmehIfLa",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:23.271Z"
+  },
+  {
+    "id": "retours_Oskbd3k6HKIh914G2gby_2025-12-18",
+    "clientId": "Oskbd3k6HKIh914G2gby",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "createdAt": "2025-12-19T22:03:20.385Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "active": true,
+          "nom": "Baguette",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "description": "",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 25,
+        "invendus": 4,
+        "vendu": 21
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "nom": "Baguette Pistolet",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "prixBoutique": 100,
+          "prixUnitaire": 100,
+          "description": "",
+          "unite": "piece",
+          "prixClient": 90,
+          "active": true
+        },
+        "quantiteLivree": 10,
+        "invendus": 3,
+        "vendu": 7
+      },
+      {
+        "produitId": "xVysyBhY2N1HZdc5r4KJ",
+        "produit": {
+          "id": "xVysyBhY2N1HZdc5r4KJ",
+          "nom": "Petit Pain",
+          "active": true,
+          "createdAt": "2025-12-11T19:51:02.349Z",
+          "description": "",
+          "recette": [],
+          "prixBoutique": 50,
+          "unite": "piece",
+          "updatedAt": "2025-12-13T22:32:34.272Z",
+          "prixUnitaire": 50,
+          "prixClient": 45
+        },
+        "quantiteLivree": 20,
+        "invendus": 11,
+        "vendu": 9
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-19T22:03:20.385Z"
+  },
+  {
+    "id": "retours_Oskbd3k6HKIh914G2gby_2025-12-22",
+    "createdAt": "2025-12-23T18:47:28.434Z",
+    "produits": [],
+    "clientId": "Oskbd3k6HKIh914G2gby",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:28.434Z"
+  },
+  {
+    "id": "retours_PkCYSyNfxZAfgmlg0l7f_2025-12-17",
+    "clientId": "PkCYSyNfxZAfgmlg0l7f",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "createdAt": "2025-12-18T20:08:02.757Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "description": "",
+          "recette": [
+            {
+              "matiereId": "0GpbASzor5lM4zMXZgQN",
+              "quantite": 0.198
+            }
+          ],
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "prixBoutique": 150,
+          "prixClient": 130,
+          "nom": "Baguette",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 25,
+        "invendus": 6,
+        "vendu": 19
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T20:08:02.757Z"
+  },
+  {
+    "id": "retours_PkCYSyNfxZAfgmlg0l7f_2025-12-18",
+    "clientId": "PkCYSyNfxZAfgmlg0l7f",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "createdAt": "2025-12-19T22:00:51.929Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "active": true,
+          "nom": "Baguette",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "description": "",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 25,
+        "invendus": 0,
+        "vendu": 25
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "nom": "Baguette Pistolet",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "prixBoutique": 100,
+          "prixUnitaire": 100,
+          "description": "",
+          "unite": "piece",
+          "prixClient": 90,
+          "active": true
+        },
+        "quantiteLivree": 10,
+        "invendus": 0,
+        "vendu": 10
+      },
+      {
+        "produitId": "xVysyBhY2N1HZdc5r4KJ",
+        "produit": {
+          "id": "xVysyBhY2N1HZdc5r4KJ",
+          "nom": "Petit Pain",
+          "active": true,
+          "createdAt": "2025-12-11T19:51:02.349Z",
+          "description": "",
+          "recette": [],
+          "prixBoutique": 50,
+          "unite": "piece",
+          "updatedAt": "2025-12-13T22:32:34.272Z",
+          "prixUnitaire": 50,
+          "prixClient": 45
+        },
+        "quantiteLivree": 10,
+        "invendus": 0,
+        "vendu": 10
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-19T22:00:51.929Z"
+  },
+  {
+    "id": "retours_PkCYSyNfxZAfgmlg0l7f_2025-12-22",
+    "createdAt": "2025-12-23T18:47:30.754Z",
+    "produits": [],
+    "clientId": "PkCYSyNfxZAfgmlg0l7f",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:30.754Z"
+  },
+  {
+    "id": "retours_PkCYSyNfxZAfgmlg0l7f_2025-12-24",
+    "createdAt": "2025-12-25T20:15:25.576Z",
+    "produits": [],
+    "clientId": "PkCYSyNfxZAfgmlg0l7f",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:25.576Z"
+  },
+  {
+    "id": "retours_R7o0fCd3xXHqya8Q9FJo_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.141Z",
+    "produits": [],
+    "clientId": "R7o0fCd3xXHqya8Q9FJo",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.141Z"
+  },
+  {
+    "id": "retours_R7o0fCd3xXHqya8Q9FJo_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "R7o0fCd3xXHqya8Q9FJo",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_T7Okh03DkvLproJVALUv_2025-12-01",
+    "createdAt": "2025-12-25T11:18:57.473Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 5,
+        "invendus": 1,
+        "vendu": 4
+      }
+    ],
+    "clientId": "T7Okh03DkvLproJVALUv",
+    "dateLivraison": "2025-12-01T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T11:18:57.473Z"
+  },
+  {
+    "id": "retours_T7Okh03DkvLproJVALUv_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.141Z",
+    "produits": [],
+    "clientId": "T7Okh03DkvLproJVALUv",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.141Z"
+  },
+  {
+    "id": "retours_T7Okh03DkvLproJVALUv_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "T7Okh03DkvLproJVALUv",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_T7Okh03DkvLproJVALUv_2025-12-19",
+    "createdAt": "2025-12-26T08:05:40.399Z",
+    "produits": [],
+    "clientId": "T7Okh03DkvLproJVALUv",
+    "dateLivraison": "2025-12-19T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-26T08:05:40.399Z"
+  },
+  {
+    "id": "retours_T7Okh03DkvLproJVALUv_2025-12-20",
+    "createdAt": "2025-12-26T08:05:55.974Z",
+    "produits": [],
+    "clientId": "T7Okh03DkvLproJVALUv",
+    "dateLivraison": "2025-12-20T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-26T08:05:55.974Z"
+  },
+  {
+    "id": "retours_T7Okh03DkvLproJVALUv_2025-12-21",
+    "createdAt": "2025-12-26T08:06:12.278Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "active": true,
+          "nom": "Baguette",
+          "prixClient": 130,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "prixBoutique": 150,
+          "description": ""
+        },
+        "quantiteLivree": 5,
+        "invendus": 4,
+        "vendu": 1
+      }
+    ],
+    "clientId": "T7Okh03DkvLproJVALUv",
+    "dateLivraison": "2025-12-21T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-26T08:06:12.278Z"
+  },
+  {
+    "id": "retours_T7Okh03DkvLproJVALUv_2025-12-22",
+    "createdAt": "2025-12-23T18:47:32.930Z",
+    "produits": [],
+    "clientId": "T7Okh03DkvLproJVALUv",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:32.930Z"
+  },
+  {
+    "id": "retours_T7Okh03DkvLproJVALUv_2025-12-23",
+    "createdAt": "2025-12-26T08:06:34.934Z",
+    "produits": [],
+    "clientId": "T7Okh03DkvLproJVALUv",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-26T08:06:34.934Z"
+  },
+  {
+    "id": "retours_T7Okh03DkvLproJVALUv_2025-12-24",
+    "createdAt": "2025-12-25T20:15:27.927Z",
+    "produits": [],
+    "clientId": "T7Okh03DkvLproJVALUv",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:27.927Z"
+  },
+  {
+    "id": "retours_TkgiFpg1uLmzx2fI9vd4_2025-12-01",
+    "createdAt": "2025-12-25T11:19:41.386Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 5,
+        "invendus": 1,
+        "vendu": 4
+      }
+    ],
+    "clientId": "TkgiFpg1uLmzx2fI9vd4",
+    "dateLivraison": "2025-12-01T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T11:19:41.386Z"
+  },
+  {
+    "id": "retours_TkgiFpg1uLmzx2fI9vd4_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.141Z",
+    "produits": [],
+    "clientId": "TkgiFpg1uLmzx2fI9vd4",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.141Z"
+  },
+  {
+    "id": "retours_TkgiFpg1uLmzx2fI9vd4_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "TkgiFpg1uLmzx2fI9vd4",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_TkgiFpg1uLmzx2fI9vd4_2025-12-22",
+    "createdAt": "2025-12-23T18:45:45.707Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixClient": 130,
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "description": "",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 5,
+        "invendus": 1,
+        "vendu": 4
+      }
+    ],
+    "clientId": "TkgiFpg1uLmzx2fI9vd4",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:45:45.707Z"
+  },
+  {
+    "id": "retours_TkgiFpg1uLmzx2fI9vd4_2025-12-23",
+    "createdAt": "2025-12-24T19:10:27.288Z",
+    "produits": [],
+    "clientId": "TkgiFpg1uLmzx2fI9vd4",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T19:10:27.288Z"
+  },
+  {
+    "id": "retours_TkgiFpg1uLmzx2fI9vd4_2025-12-24",
+    "createdAt": "2025-12-25T20:15:31.847Z",
+    "produits": [],
+    "clientId": "TkgiFpg1uLmzx2fI9vd4",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:31.847Z"
+  },
+  {
+    "id": "retours_XJO7Up6NF9U0ed8iDxkT_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "XJO7Up6NF9U0ed8iDxkT",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_XJO7Up6NF9U0ed8iDxkT_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "XJO7Up6NF9U0ed8iDxkT",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_XJO7Up6NF9U0ed8iDxkT_2025-12-22",
+    "createdAt": "2025-12-23T18:47:36.067Z",
+    "produits": [],
+    "clientId": "XJO7Up6NF9U0ed8iDxkT",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:36.067Z"
+  },
+  {
+    "id": "retours_XJO7Up6NF9U0ed8iDxkT_2025-12-24",
+    "createdAt": "2025-12-25T20:15:33.872Z",
+    "produits": [],
+    "clientId": "XJO7Up6NF9U0ed8iDxkT",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:33.872Z"
+  },
+  {
+    "id": "retours_a0Hs9kcAjphVLsu7ssRD_2025-12-31",
+    "createdAt": "2026-01-02T18:54:14.852Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "description": "",
+          "prixClient": 130,
+          "unite": "piece",
+          "prixBoutique": 150,
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "nom": "Baguette",
+          "active": true,
+          "prixUnitaire": 150,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 10,
+        "invendus": 0,
+        "vendu": 10
+      }
+    ],
+    "clientId": "a0Hs9kcAjphVLsu7ssRD",
+    "dateLivraison": "2025-12-31T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2026-01-02T18:54:14.852Z"
+  },
+  {
+    "id": "retours_fYhDJQ4o7AShFLnrnzQF_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "fYhDJQ4o7AShFLnrnzQF",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_fYhDJQ4o7AShFLnrnzQF_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "fYhDJQ4o7AShFLnrnzQF",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_fYhDJQ4o7AShFLnrnzQF_2025-12-22",
+    "createdAt": "2025-12-23T18:47:39.730Z",
+    "produits": [],
+    "clientId": "fYhDJQ4o7AShFLnrnzQF",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:39.730Z"
+  },
+  {
+    "id": "retours_fYhDJQ4o7AShFLnrnzQF_2025-12-24",
+    "createdAt": "2025-12-25T20:15:36.135Z",
+    "produits": [],
+    "clientId": "fYhDJQ4o7AShFLnrnzQF",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:36.135Z"
+  },
+  {
+    "id": "retours_hRgkbN6iPGwf9sZprtSp_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "hRgkbN6iPGwf9sZprtSp",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_hRgkbN6iPGwf9sZprtSp_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "hRgkbN6iPGwf9sZprtSp",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_hRgkbN6iPGwf9sZprtSp_2025-12-22",
+    "createdAt": "2025-12-23T18:47:43.483Z",
+    "produits": [],
+    "clientId": "hRgkbN6iPGwf9sZprtSp",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:43.483Z"
+  },
+  {
+    "id": "retours_hRgkbN6iPGwf9sZprtSp_2025-12-24",
+    "createdAt": "2025-12-25T20:15:38.999Z",
+    "produits": [],
+    "clientId": "hRgkbN6iPGwf9sZprtSp",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:38.999Z"
+  },
+  {
+    "id": "retours_hqow0vtDLOyP05n1W5o2_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "hqow0vtDLOyP05n1W5o2",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_hqow0vtDLOyP05n1W5o2_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "hqow0vtDLOyP05n1W5o2",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_hqow0vtDLOyP05n1W5o2_2025-12-22",
+    "createdAt": "2025-12-23T18:47:45.859Z",
+    "produits": [],
+    "clientId": "hqow0vtDLOyP05n1W5o2",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:45.859Z"
+  },
+  {
+    "id": "retours_hqow0vtDLOyP05n1W5o2_2025-12-24",
+    "createdAt": "2025-12-25T20:15:42.271Z",
+    "produits": [],
+    "clientId": "hqow0vtDLOyP05n1W5o2",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:42.271Z"
+  },
+  {
+    "id": "retours_isqGJAvg7GmstKToNyMr_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "isqGJAvg7GmstKToNyMr",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_isqGJAvg7GmstKToNyMr_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "isqGJAvg7GmstKToNyMr",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_isqGJAvg7GmstKToNyMr_2025-12-19",
+    "createdAt": "2025-12-21T20:42:15.079Z",
+    "produits": [],
+    "clientId": "isqGJAvg7GmstKToNyMr",
+    "dateLivraison": "2025-12-19T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T20:42:15.079Z"
+  },
+  {
+    "id": "retours_isqGJAvg7GmstKToNyMr_2025-12-20",
+    "createdAt": "2025-12-21T20:42:42.527Z",
+    "produits": [],
+    "clientId": "isqGJAvg7GmstKToNyMr",
+    "dateLivraison": "2025-12-20T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T20:42:42.527Z"
+  },
+  {
+    "id": "retours_isqGJAvg7GmstKToNyMr_2025-12-22",
+    "createdAt": "2025-12-23T18:47:48.362Z",
+    "produits": [],
+    "clientId": "isqGJAvg7GmstKToNyMr",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:48.362Z"
+  },
+  {
+    "id": "retours_isqGJAvg7GmstKToNyMr_2025-12-23",
+    "createdAt": "2025-12-24T19:09:43.706Z",
+    "produits": [],
+    "clientId": "isqGJAvg7GmstKToNyMr",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T19:09:43.706Z"
+  },
+  {
+    "id": "retours_isqGJAvg7GmstKToNyMr_2025-12-24",
+    "createdAt": "2025-12-25T20:15:44.727Z",
+    "produits": [],
+    "clientId": "isqGJAvg7GmstKToNyMr",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:44.727Z"
+  },
+  {
+    "id": "retours_jlJIEey2auLpWwOQKv6W_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "jlJIEey2auLpWwOQKv6W",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_jlJIEey2auLpWwOQKv6W_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "jlJIEey2auLpWwOQKv6W",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_jlJIEey2auLpWwOQKv6W_2025-12-22",
+    "createdAt": "2025-12-23T18:47:50.675Z",
+    "produits": [],
+    "clientId": "jlJIEey2auLpWwOQKv6W",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:50.675Z"
+  },
+  {
+    "id": "retours_jlJIEey2auLpWwOQKv6W_2025-12-24",
+    "createdAt": "2025-12-25T20:15:47.391Z",
+    "produits": [],
+    "clientId": "jlJIEey2auLpWwOQKv6W",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:47.391Z"
+  },
+  {
+    "id": "retours_lTWXN30GKZOHAH8uAqIX_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "lTWXN30GKZOHAH8uAqIX",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_lTWXN30GKZOHAH8uAqIX_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "lTWXN30GKZOHAH8uAqIX",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_lTWXN30GKZOHAH8uAqIX_2025-12-19",
+    "createdAt": "2025-12-21T20:17:47.254Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "active": true,
+          "description": "",
+          "nom": "Baguette",
+          "prixClient": 130,
+          "prixUnitaire": 150,
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "prixBoutique": 150,
+          "unite": "piece"
+        },
+        "quantiteLivree": 70,
+        "invendus": 3,
+        "vendu": 67
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "unite": "piece",
+          "prixBoutique": 100,
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "prixUnitaire": 100,
+          "nom": "Baguette Pistolet",
+          "prixClient": 90,
+          "description": "",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "active": true
+        },
+        "quantiteLivree": 20,
+        "invendus": 0,
+        "vendu": 20
+      }
+    ],
+    "clientId": "lTWXN30GKZOHAH8uAqIX",
+    "dateLivraison": "2025-12-19T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T20:17:47.254Z"
+  },
+  {
+    "id": "retours_lTWXN30GKZOHAH8uAqIX_2025-12-20",
+    "createdAt": "2025-12-21T20:27:15.991Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "active": true,
+          "description": "",
+          "nom": "Baguette",
+          "prixClient": 130,
+          "prixUnitaire": 150,
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "prixBoutique": 150,
+          "unite": "piece"
+        },
+        "quantiteLivree": 80,
+        "invendus": 4,
+        "vendu": 76
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "unite": "piece",
+          "prixBoutique": 100,
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "prixUnitaire": 100,
+          "nom": "Baguette Pistolet",
+          "prixClient": 90,
+          "description": "",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "active": true
+        },
+        "quantiteLivree": 20,
+        "invendus": 0,
+        "vendu": 20
+      }
+    ],
+    "clientId": "lTWXN30GKZOHAH8uAqIX",
+    "dateLivraison": "2025-12-20T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T20:27:15.991Z"
+  },
+  {
+    "id": "retours_lTWXN30GKZOHAH8uAqIX_2025-12-21",
+    "clientId": "lTWXN30GKZOHAH8uAqIX",
+    "dateLivraison": "2025-12-21T00:00:00.000Z",
+    "createdAt": "2025-12-23T12:38:40.697Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "prixUnitaire": 150,
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "unite": "piece",
+          "prixClient": 130,
+          "prixBoutique": 150,
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "description": ""
+        },
+        "quantiteLivree": 60,
+        "invendus": 10,
+        "vendu": 50
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T12:38:40.697Z"
+  },
+  {
+    "id": "retours_lTWXN30GKZOHAH8uAqIX_2025-12-22",
+    "createdAt": "2025-12-23T18:45:08.181Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixClient": 130,
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "description": "",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 70,
+        "invendus": 12,
+        "vendu": 58
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "unite": "piece",
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "active": true,
+          "description": "",
+          "prixUnitaire": 100,
+          "nom": "Baguette Pistolet",
+          "prixClient": 90,
+          "prixBoutique": 100
+        },
+        "quantiteLivree": 20,
+        "invendus": 0,
+        "vendu": 20
+      }
+    ],
+    "clientId": "lTWXN30GKZOHAH8uAqIX",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:45:08.181Z"
+  },
+  {
+    "id": "retours_lTWXN30GKZOHAH8uAqIX_2025-12-23",
+    "clientId": "lTWXN30GKZOHAH8uAqIX",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "createdAt": "2025-12-24T19:16:29.642Z",
+    "produits": [],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T19:16:29.642Z"
+  },
+  {
+    "id": "retours_lTWXN30GKZOHAH8uAqIX_2025-12-24",
+    "createdAt": "2025-12-25T20:13:32.177Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "active": true,
+          "nom": "Baguette",
+          "prixClient": 130,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "prixBoutique": 150,
+          "description": ""
+        },
+        "quantiteLivree": 60,
+        "invendus": 1,
+        "vendu": 59
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "description": "",
+          "prixBoutique": 100,
+          "active": true,
+          "prixClient": 90,
+          "nom": "Baguette Pistolet",
+          "prixUnitaire": 100,
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "unite": "piece",
+          "updatedAt": "2025-11-19T18:41:13.587Z"
+        },
+        "quantiteLivree": 20,
+        "invendus": 0,
+        "vendu": 20
+      }
+    ],
+    "clientId": "lTWXN30GKZOHAH8uAqIX",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:13:32.177Z"
+  },
+  {
+    "id": "retours_m3QdRHa3zhhPN2YBM9o0_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "m3QdRHa3zhhPN2YBM9o0",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_m3QdRHa3zhhPN2YBM9o0_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "m3QdRHa3zhhPN2YBM9o0",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_m3QdRHa3zhhPN2YBM9o0_2025-12-22",
+    "createdAt": "2025-12-23T18:47:53.779Z",
+    "produits": [],
+    "clientId": "m3QdRHa3zhhPN2YBM9o0",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:53.779Z"
+  },
+  {
+    "id": "retours_m3QdRHa3zhhPN2YBM9o0_2025-12-24",
+    "createdAt": "2025-12-25T20:15:53.496Z",
+    "produits": [],
+    "clientId": "m3QdRHa3zhhPN2YBM9o0",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:53.496Z"
+  },
+  {
+    "id": "retours_m7KF8hsfIADVeSMyAT2j_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "m7KF8hsfIADVeSMyAT2j",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_m7KF8hsfIADVeSMyAT2j_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "m7KF8hsfIADVeSMyAT2j",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_m7KF8hsfIADVeSMyAT2j_2025-12-22",
+    "createdAt": "2025-12-23T18:47:56.043Z",
+    "produits": [],
+    "clientId": "m7KF8hsfIADVeSMyAT2j",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:47:56.043Z"
+  },
+  {
+    "id": "retours_m7KF8hsfIADVeSMyAT2j_2025-12-24",
+    "createdAt": "2025-12-25T20:15:56.145Z",
+    "produits": [],
+    "clientId": "m7KF8hsfIADVeSMyAT2j",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:56.145Z"
+  },
+  {
+    "id": "retours_pX3W7mocHe75vUz8UlUH_2025-12-01",
+    "createdAt": "2025-12-25T11:19:30.915Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 75,
+        "invendus": 5,
+        "vendu": 70
+      }
+    ],
+    "clientId": "pX3W7mocHe75vUz8UlUH",
+    "dateLivraison": "2025-12-01T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T11:19:30.915Z"
+  },
+  {
+    "id": "retours_pX3W7mocHe75vUz8UlUH_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "pX3W7mocHe75vUz8UlUH",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_pX3W7mocHe75vUz8UlUH_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "pX3W7mocHe75vUz8UlUH",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_pX3W7mocHe75vUz8UlUH_2025-12-19",
+    "createdAt": "2025-12-21T21:09:48.320Z",
+    "produits": [],
+    "clientId": "pX3W7mocHe75vUz8UlUH",
+    "dateLivraison": "2025-12-19T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T21:09:48.320Z"
+  },
+  {
+    "id": "retours_pX3W7mocHe75vUz8UlUH_2025-12-20",
+    "createdAt": "2025-12-21T21:11:54.175Z",
+    "produits": [],
+    "clientId": "pX3W7mocHe75vUz8UlUH",
+    "dateLivraison": "2025-12-20T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T21:11:54.175Z"
+  },
+  {
+    "id": "retours_pX3W7mocHe75vUz8UlUH_2025-12-21",
+    "createdAt": "2025-12-22T18:58:52.836Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixBoutique": 150,
+          "nom": "Baguette",
+          "active": true,
+          "description": "",
+          "prixUnitaire": 150,
+          "unite": "piece",
+          "prixClient": 130,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ]
+        },
+        "quantiteLivree": 100,
+        "invendus": 9,
+        "vendu": 91
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "description": "",
+          "unite": "piece",
+          "active": true,
+          "prixClient": 90,
+          "prixUnitaire": 100,
+          "prixBoutique": 100,
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "nom": "Baguette Pistolet",
+          "createdAt": "2025-11-19T18:41:13.587Z"
+        },
+        "quantiteLivree": 20,
+        "invendus": 2,
+        "vendu": 18
+      }
+    ],
+    "clientId": "pX3W7mocHe75vUz8UlUH",
+    "dateLivraison": "2025-12-21T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-22T18:58:52.836Z"
+  },
+  {
+    "id": "retours_pX3W7mocHe75vUz8UlUH_2025-12-22",
+    "createdAt": "2025-12-23T18:45:59.315Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixClient": 130,
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "description": "",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 80,
+        "invendus": 4,
+        "vendu": 76
+      }
+    ],
+    "clientId": "pX3W7mocHe75vUz8UlUH",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:45:59.315Z"
+  },
+  {
+    "id": "retours_pX3W7mocHe75vUz8UlUH_2025-12-23",
+    "createdAt": "2025-12-24T19:20:36.574Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 75,
+        "invendus": 4,
+        "vendu": 71
+      }
+    ],
+    "clientId": "pX3W7mocHe75vUz8UlUH",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T19:20:36.574Z"
+  },
+  {
+    "id": "retours_pX3W7mocHe75vUz8UlUH_2025-12-24",
+    "createdAt": "2025-12-25T20:15:58.815Z",
+    "produits": [],
+    "clientId": "pX3W7mocHe75vUz8UlUH",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:15:58.815Z"
+  },
+  {
+    "id": "retours_skHfKpkyL066gi1CNqZP_2025-12-17",
+    "createdAt": "2025-12-18T14:47:21.950Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "unite": "piece",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "nom": "Baguette",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "prixClient": 130,
+          "description": "",
+          "prixUnitaire": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "active": true
+        },
+        "quantiteLivree": 35,
+        "invendus": 4,
+        "vendu": 31
+      }
+    ],
+    "clientId": "skHfKpkyL066gi1CNqZP",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:47:21.950Z"
+  },
+  {
+    "id": "retours_skHfKpkyL066gi1CNqZP_2025-12-18",
+    "clientId": "skHfKpkyL066gi1CNqZP",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "createdAt": "2025-12-19T21:55:39.065Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "active": true,
+          "nom": "Baguette",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "description": "",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 35,
+        "invendus": 0,
+        "vendu": 35
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "nom": "Baguette Pistolet",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "prixBoutique": 100,
+          "prixUnitaire": 100,
+          "description": "",
+          "unite": "piece",
+          "prixClient": 90,
+          "active": true
+        },
+        "quantiteLivree": 5,
+        "invendus": 0,
+        "vendu": 5
+      },
+      {
+        "produitId": "xVysyBhY2N1HZdc5r4KJ",
+        "produit": {
+          "id": "xVysyBhY2N1HZdc5r4KJ",
+          "nom": "Petit Pain",
+          "active": true,
+          "createdAt": "2025-12-11T19:51:02.349Z",
+          "description": "",
+          "recette": [],
+          "prixBoutique": 50,
+          "unite": "piece",
+          "updatedAt": "2025-12-13T22:32:34.272Z",
+          "prixUnitaire": 50,
+          "prixClient": 45
+        },
+        "quantiteLivree": 5,
+        "invendus": 0,
+        "vendu": 5
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-19T21:55:39.065Z"
+  },
+  {
+    "id": "retours_skHfKpkyL066gi1CNqZP_2025-12-19",
+    "createdAt": "2025-12-21T20:56:45.127Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "prixClient": 130,
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "nom": "Baguette",
+          "description": "",
+          "prixUnitaire": 150,
+          "unite": "piece",
+          "prixBoutique": 150
+        },
+        "quantiteLivree": 35,
+        "invendus": 5,
+        "vendu": 30
+      }
+    ],
+    "clientId": "skHfKpkyL066gi1CNqZP",
+    "dateLivraison": "2025-12-19T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T20:56:45.127Z"
+  },
+  {
+    "id": "retours_skHfKpkyL066gi1CNqZP_2025-12-20",
+    "createdAt": "2025-12-21T21:02:26.553Z",
+    "produits": [],
+    "clientId": "skHfKpkyL066gi1CNqZP",
+    "dateLivraison": "2025-12-20T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-21T21:02:26.553Z"
+  },
+  {
+    "id": "retours_skHfKpkyL066gi1CNqZP_2025-12-22",
+    "createdAt": "2025-12-23T18:46:09.812Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixClient": 130,
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "description": "",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 35,
+        "invendus": 1,
+        "vendu": 34
+      }
+    ],
+    "clientId": "skHfKpkyL066gi1CNqZP",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:46:09.812Z"
+  },
+  {
+    "id": "retours_skHfKpkyL066gi1CNqZP_2025-12-23",
+    "createdAt": "2025-12-24T19:20:45.321Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 35,
+        "invendus": 4,
+        "vendu": 31
+      }
+    ],
+    "clientId": "skHfKpkyL066gi1CNqZP",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T19:20:45.321Z"
+  },
+  {
+    "id": "retours_skHfKpkyL066gi1CNqZP_2025-12-24",
+    "createdAt": "2025-12-25T20:16:01.313Z",
+    "produits": [],
+    "clientId": "skHfKpkyL066gi1CNqZP",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:16:01.313Z"
+  },
+  {
+    "id": "retours_v09SaBgc9i4poP1LZnxB_2025-12-17",
+    "createdAt": "2025-12-18T14:46:52.846Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "unite": "piece",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "nom": "Baguette",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "prixClient": 130,
+          "description": "",
+          "prixUnitaire": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "active": true
+        },
+        "quantiteLivree": 100,
+        "invendus": 14,
+        "vendu": 86
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "description": "",
+          "active": true,
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "prixClient": 90,
+          "nom": "Baguette Pistolet",
+          "prixUnitaire": 100,
+          "unite": "piece",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "prixBoutique": 100
+        },
+        "quantiteLivree": 40,
+        "invendus": 1,
+        "vendu": 39
+      }
+    ],
+    "clientId": "v09SaBgc9i4poP1LZnxB",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:46:52.846Z"
+  },
+  {
+    "id": "retours_v09SaBgc9i4poP1LZnxB_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "v09SaBgc9i4poP1LZnxB",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_v09SaBgc9i4poP1LZnxB_2025-12-19",
+    "clientId": "v09SaBgc9i4poP1LZnxB",
+    "dateLivraison": "2025-12-19T00:00:00.000Z",
+    "createdAt": "2025-12-23T19:30:53.245Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixClient": 130,
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "description": "",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 100,
+        "invendus": 33,
+        "vendu": 67
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "unite": "piece",
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "active": true,
+          "description": "",
+          "prixUnitaire": 100,
+          "nom": "Baguette Pistolet",
+          "prixClient": 90,
+          "prixBoutique": 100
+        },
+        "quantiteLivree": 40,
+        "invendus": 0,
+        "vendu": 40
+      },
+      {
+        "produitId": "QYHyBPcek9gdvxTU6brO",
+        "produit": {
+          "id": "QYHyBPcek9gdvxTU6brO",
+          "nom": "Pain au lait Choco",
+          "prixUnitaire": 200,
+          "description": "",
+          "unite": "piece",
+          "createdAt": "2025-11-19T18:42:01.435Z",
+          "prixClient": 175,
+          "active": true,
+          "prixBoutique": 200,
+          "updatedAt": "2025-11-19T18:42:01.435Z"
+        },
+        "quantiteLivree": 30,
+        "invendus": 1,
+        "vendu": 29
+      },
+      {
+        "produitId": "bpmZMsjgilxaEGB2bIBY",
+        "produit": {
+          "id": "bpmZMsjgilxaEGB2bIBY",
+          "description": "",
+          "prixBoutique": 200,
+          "prixClient": 175,
+          "createdAt": "2025-11-19T18:41:39.986Z",
+          "active": true,
+          "updatedAt": "2025-11-19T18:41:39.986Z",
+          "unite": "piece",
+          "nom": "Pain au lait Nature",
+          "prixUnitaire": 200
+        },
+        "quantiteLivree": 20,
+        "invendus": 0,
+        "vendu": 20
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T19:30:53.245Z"
+  },
+  {
+    "id": "retours_v09SaBgc9i4poP1LZnxB_2025-12-22",
+    "createdAt": "2025-12-23T18:46:45.932Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "nom": "Baguette",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "prixClient": 130,
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "recette": [
+            {
+              "matiereId": "UKshK0yMTKF6PqU2NZlA",
+              "quantite": 0.0039
+            }
+          ],
+          "description": "",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 100,
+        "invendus": 13,
+        "vendu": 87
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "unite": "piece",
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "active": true,
+          "description": "",
+          "prixUnitaire": 100,
+          "nom": "Baguette Pistolet",
+          "prixClient": 90,
+          "prixBoutique": 100
+        },
+        "quantiteLivree": 40,
+        "invendus": 9,
+        "vendu": 31
+      }
+    ],
+    "clientId": "v09SaBgc9i4poP1LZnxB",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:46:45.932Z"
+  },
+  {
+    "id": "retours_v09SaBgc9i4poP1LZnxB_2025-12-24",
+    "createdAt": "2025-12-25T20:16:03.847Z",
+    "produits": [],
+    "clientId": "v09SaBgc9i4poP1LZnxB",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:16:03.847Z"
+  },
+  {
+    "id": "retours_wdZJfew3dg61MDVCmM8h_2025-12-17",
+    "createdAt": "2025-12-18T14:48:18.142Z",
+    "produits": [],
+    "clientId": "wdZJfew3dg61MDVCmM8h",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:48:18.142Z"
+  },
+  {
+    "id": "retours_wdZJfew3dg61MDVCmM8h_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "wdZJfew3dg61MDVCmM8h",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_wdZJfew3dg61MDVCmM8h_2025-12-22",
+    "createdAt": "2025-12-23T18:48:00.419Z",
+    "produits": [],
+    "clientId": "wdZJfew3dg61MDVCmM8h",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:48:00.419Z"
+  },
+  {
+    "id": "retours_wdZJfew3dg61MDVCmM8h_2025-12-24",
+    "createdAt": "2025-12-24T18:33:16.819Z",
+    "produits": [],
+    "clientId": "wdZJfew3dg61MDVCmM8h",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T18:33:16.819Z"
+  },
+  {
+    "id": "retours_zHrrSmMYtkcTubApjCRy_2025-12-01",
+    "createdAt": "2025-12-25T11:19:55.353Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 60,
+        "invendus": 4,
+        "vendu": 56
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "prixBoutique": 100,
+          "active": true,
+          "prixUnitaire": 100,
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "prixClient": 90,
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "nom": "Baguette Pistolet",
+          "description": "",
+          "unite": "piece"
+        },
+        "quantiteLivree": 20,
+        "invendus": 0,
+        "vendu": 20
+      }
+    ],
+    "clientId": "zHrrSmMYtkcTubApjCRy",
+    "dateLivraison": "2025-12-01T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T11:19:55.353Z"
+  },
+  {
+    "id": "retours_zHrrSmMYtkcTubApjCRy_2025-12-17",
+    "createdAt": "2025-12-18T14:43:00.957Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "unite": "piece",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "nom": "Baguette",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "prixClient": 130,
+          "description": "",
+          "prixUnitaire": 150,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "active": true
+        },
+        "quantiteLivree": 65,
+        "invendus": 2,
+        "vendu": 63
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "description": "",
+          "active": true,
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "prixClient": 90,
+          "nom": "Baguette Pistolet",
+          "prixUnitaire": 100,
+          "unite": "piece",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "prixBoutique": 100
+        },
+        "quantiteLivree": 20,
+        "invendus": 2,
+        "vendu": 18
+      }
+    ],
+    "clientId": "zHrrSmMYtkcTubApjCRy",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T14:43:00.957Z"
+  },
+  {
+    "id": "retours_zHrrSmMYtkcTubApjCRy_2025-12-18",
+    "clientId": "zHrrSmMYtkcTubApjCRy",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "createdAt": "2025-12-19T21:55:56.226Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "active": true,
+          "nom": "Baguette",
+          "recette": [
+            {
+              "quantite": 0.198,
+              "matiereId": "0GpbASzor5lM4zMXZgQN"
+            }
+          ],
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "description": "",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "prixBoutique": 150,
+          "unite": "piece",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 59,
+        "invendus": 0,
+        "vendu": 59
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "nom": "Baguette Pistolet",
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "prixBoutique": 100,
+          "prixUnitaire": 100,
+          "description": "",
+          "unite": "piece",
+          "prixClient": 90,
+          "active": true
+        },
+        "quantiteLivree": 20,
+        "invendus": 0,
+        "vendu": 20
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-19T21:55:56.226Z"
+  },
+  {
+    "id": "retours_zHrrSmMYtkcTubApjCRy_2025-12-22",
+    "createdAt": "2025-12-23T18:48:03.275Z",
+    "produits": [],
+    "clientId": "zHrrSmMYtkcTubApjCRy",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:48:03.275Z"
+  },
+  {
+    "id": "retours_zHrrSmMYtkcTubApjCRy_2025-12-23",
+    "createdAt": "2025-12-24T19:20:56.852Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-20T08:45:46.334Z",
+          "unite": "piece",
+          "active": true,
+          "createdAt": "2025-11-19T18:35:52.318Z",
+          "recette": [
+            {
+              "quantite": 0.0039,
+              "matiereId": "UKshK0yMTKF6PqU2NZlA"
+            }
+          ],
+          "nom": "Baguette",
+          "prixBoutique": 150,
+          "description": "",
+          "prixClient": 130,
+          "prixUnitaire": 150
+        },
+        "quantiteLivree": 60,
+        "invendus": 2,
+        "vendu": 58
+      },
+      {
+        "produitId": "bgSnCYVBZNBF89bah6ms",
+        "produit": {
+          "id": "bgSnCYVBZNBF89bah6ms",
+          "prixBoutique": 100,
+          "active": true,
+          "prixUnitaire": 100,
+          "createdAt": "2025-11-19T18:41:13.587Z",
+          "prixClient": 90,
+          "updatedAt": "2025-11-19T18:41:13.587Z",
+          "nom": "Baguette Pistolet",
+          "description": "",
+          "unite": "piece"
+        },
+        "quantiteLivree": 20,
+        "invendus": 1,
+        "vendu": 19
+      }
+    ],
+    "clientId": "zHrrSmMYtkcTubApjCRy",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T19:20:56.852Z"
+  },
+  {
+    "id": "retours_zHrrSmMYtkcTubApjCRy_2025-12-24",
+    "createdAt": "2025-12-25T20:16:07.671Z",
+    "produits": [],
+    "clientId": "zHrrSmMYtkcTubApjCRy",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:16:07.671Z"
+  },
+  {
+    "id": "retours_zuJqJaFXjWiGrQYmd0hV_2025-12-17",
+    "clientId": "zuJqJaFXjWiGrQYmd0hV",
+    "dateLivraison": "2025-12-17T00:00:00.000Z",
+    "createdAt": "2025-12-18T20:08:59.397Z",
+    "produits": [
+      {
+        "produitId": "cvF0hBBUkYzPDB3RZnB0",
+        "produit": {
+          "id": "cvF0hBBUkYzPDB3RZnB0",
+          "updatedAt": "2025-12-16T18:43:15.748Z",
+          "description": "",
+          "recette": [
+            {
+              "matiereId": "0GpbASzor5lM4zMXZgQN",
+              "quantite": 0.198
+            }
+          ],
+          "unite": "piece",
+          "prixUnitaire": 150,
+          "active": true,
+          "prixBoutique": 150,
+          "prixClient": 130,
+          "nom": "Baguette",
+          "createdAt": "2025-11-19T18:35:52.318Z"
+        },
+        "quantiteLivree": 15,
+        "invendus": 1,
+        "vendu": 14
+      }
+    ],
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T20:08:59.397Z"
+  },
+  {
+    "id": "retours_zuJqJaFXjWiGrQYmd0hV_2025-12-18",
+    "createdAt": "2025-12-18T23:19:38.673Z",
+    "produits": [],
+    "clientId": "zuJqJaFXjWiGrQYmd0hV",
+    "dateLivraison": "2025-12-18T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-18T23:19:38.673Z"
+  },
+  {
+    "id": "retours_zuJqJaFXjWiGrQYmd0hV_2025-12-22",
+    "createdAt": "2025-12-23T18:48:05.589Z",
+    "produits": [],
+    "clientId": "zuJqJaFXjWiGrQYmd0hV",
+    "dateLivraison": "2025-12-22T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-23T18:48:05.589Z"
+  },
+  {
+    "id": "retours_zuJqJaFXjWiGrQYmd0hV_2025-12-23",
+    "createdAt": "2025-12-24T19:12:47.091Z",
+    "produits": [],
+    "clientId": "zuJqJaFXjWiGrQYmd0hV",
+    "dateLivraison": "2025-12-23T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-24T19:12:47.091Z"
+  },
+  {
+    "id": "retours_zuJqJaFXjWiGrQYmd0hV_2025-12-24",
+    "createdAt": "2025-12-25T20:16:09.825Z",
+    "produits": [],
+    "clientId": "zuJqJaFXjWiGrQYmd0hV",
+    "dateLivraison": "2025-12-24T00:00:00.000Z",
+    "retoursCompletes": true,
+    "updatedAt": "2025-12-25T20:16:09.825Z"
+  }
+]

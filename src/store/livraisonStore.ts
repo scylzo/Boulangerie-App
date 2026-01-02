@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, setDoc, getDocs, query, where, doc, writeBatch } from 'firebase/firestore';
+import { collection, setDoc, getDocs, query, where, doc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { LivraisonClient, InvendusClient, Client, Produit } from '../types';
 
@@ -25,6 +25,7 @@ interface LivraisonStore {
   sauvegarderRetoursClient: (clientId: string, date: Date, produits: Array<{ produitId: string; produit: any; quantiteLivree: number; invendus: number; vendu: number }>) => Promise<void>;
   marquerTousSansRetour: (clientIds: string[], date: Date) => Promise<void>;
   annulerValidationRetours: (clientId: string, date: Date) => Promise<void>;
+  supprimerInvendusClient: (clientId: string, date: Date) => Promise<void>;
 
   // Actions utilitaires
   getLivraisonByClientId: (clientId: string) => LivraisonClient | undefined;
@@ -389,29 +390,76 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
 
   annulerValidationRetours: async (clientId: string, date: Date) => {
     set({ isLoading: true });
+
     try {
-      console.log('🔄 Annulation validaton retours pour client:', clientId);
+      console.log('🔓 Annulation validation retours pour client:', clientId);
+
+      // Récupérer les données actuelles
+      const { invendusClients } = get();
+      const currentReturn = invendusClients.find(inv =>
+        inv.clientId === clientId &&
+        inv.dateLivraison.toISOString().split('T')[0] === date.toISOString().split('T')[0]
+      );
+
+      if (!currentReturn) return;
+
       const dateStr = date.toISOString().split('T')[0];
       const docId = `retours_${clientId}_${dateStr}`;
 
-      // 1. Mettre à jour Firestore
-      const docRef = doc(db, 'clientReturns', docId);
-      await setDoc(docRef, { retoursCompletes: false, updatedAt: new Date() }, { merge: true });
+      const updatedReturn = {
+        ...currentReturn,
+        retoursCompletes: false,
+        updatedAt: new Date()
+      };
 
-      // 2. Mettre à jour le state local
+      // Mettre à jour Firebase
+      // NOTE: On ne supprime pas, on met juste à jour le statut
+      const docRef = doc(db, 'clientReturns', docId);
+      await setDoc(docRef, updatedReturn, { merge: true });
+
+      // Mettre à jour state local
       set(state => ({
         invendusClients: state.invendusClients.map(inv =>
-          (inv.clientId === clientId && inv.dateLivraison.toDateString() === date.toDateString())
-            ? { ...inv, retoursCompletes: false, updatedAt: new Date() }
+          (inv.clientId === clientId && inv.dateLivraison.toISOString().split('T')[0] === dateStr)
+            ? updatedReturn
             : inv
         ),
         isLoading: false
       }));
 
-      console.log('✅ Validation retours annulée avec succès');
+      console.log('✅ Validation retours annulée');
+
     } catch (error) {
       set({ isLoading: false });
       console.error('❌ Erreur lors de l\'annulation de la validation:', error);
+      throw error;
+    }
+  },
+
+  supprimerInvendusClient: async (clientId: string, date: Date) => {
+    set({ isLoading: true });
+    try {
+      const dateStr = date.toISOString().split('T')[0];
+      const docId = `retours_${clientId}_${dateStr}`;
+
+      console.log(`🗑️ Suppression des invendus pour client ${clientId} date ${dateStr}, docId: ${docId}`);
+
+      // Supprimer de Firebase
+      await deleteDoc(doc(db, 'clientReturns', docId));
+
+      // Supprimer de l'état local
+      set(state => ({
+        invendusClients: state.invendusClients.filter(inv =>
+          !(inv.clientId === clientId &&
+            new Date(inv.dateLivraison).toISOString().split('T')[0] === dateStr)
+        ),
+        isLoading: false
+      }));
+
+      console.log('✅ Invendus supprimés avec succès');
+    } catch (error) {
+      set({ isLoading: false });
+      console.error('❌ Erreur lors de la suppression des invendus:', error);
       throw error;
     }
   },

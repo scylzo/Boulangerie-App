@@ -17,9 +17,10 @@ export const SaisieRetours: React.FC = () => {
     sauvegarderRetoursClient,
     marquerTousSansRetour,
     annulerValidationRetours,
+    supprimerInvendusClient,
     isLoading
   } = useLivraisonStore();
-  
+
   const { genererFacturesDepuisLivraisons } = useFacturationStore();
 
   const { commandesClients, chargerProgramme } = useProductionStore();
@@ -51,49 +52,81 @@ export const SaisieRetours: React.FC = () => {
   }, [dateSelectionnee, chargerClients, chargerProduits, chargerProgramme, chargerInvendusDuJour]);
 
 
-  // Créer la structure des données pour l'affichage
-  const clientsAvecCommandes = commandesClients.map(commande => {
-    const client = clients.find(c => c.id === commande.clientId);
+  // Combiner les clients des commandes et des retours existants
+  const clientIdsFromCommandes = new Set(commandesClients.map(c => c.clientId));
+  const clientIdsFromRetours = new Set(invendusClients.map(i => i.clientId));
+  const allClientIds = Array.from(new Set([...clientIdsFromCommandes, ...clientIdsFromRetours]));
+
+  const clientsAvecDonnees = allClientIds.map(clientId => {
+    const client = clients.find(c => c.id === clientId);
     if (!client) return null;
 
-    const produitsLivres = commande.produits.map(produitCmd => {
-      const produit = produits.find(p => p.id === produitCmd.produitId);
-      const repartitionValues = Object.values(produitCmd.repartitionCars || {});
-      const quantiteTotale = repartitionValues
-        .reduce((sum, qte) => {
-          const qty = typeof qte === 'number' ? qte : (parseInt(String(qte)) || 0);
-          // Limiter à des valeurs raisonnables pour éviter les erreurs de données
-          const safeQty = isNaN(qty) ? 0 : Math.min(qty, 9999);
-          return sum + safeQty;
-        }, 0);
+    const commande = commandesClients.find(c => c.clientId === clientId);
+    const invendusExistants = invendusClients.find(inv => inv.clientId === clientId);
 
+    type ProduitAffichage = {
+      produitId: string;
+      produit: any;
+      quantiteLivree: number;
+      invendus: number;
+      vendu: number;
+    };
 
-      // Récupérer les invendus existants depuis Firebase ou localement
-      const invendusExistants = invendusClients.find(inv => inv.clientId === commande.clientId);
-      const produitInvendus = invendusExistants?.produits.find(p => p.produitId === produitCmd.produitId);
-      const invendusFirebase = produitInvendus?.invendus || 0;
-      const invendusLocauxQty = invendusLocaux[commande.clientId]?.[produitCmd.produitId];
+    let produitsAffiches: ProduitAffichage[] = [];
 
-      // Utiliser les invendus locaux si définis, sinon ceux de Firebase
-      const invendusActuels = invendusLocauxQty !== undefined ? invendusLocauxQty : invendusFirebase;
+    if (commande) {
+      // Cas 1: Le client a une commande
+      produitsAffiches = commande.produits.map(produitCmd => {
+        const produit = produits.find(p => p.id === produitCmd.produitId);
+        const repartitionValues = Object.values(produitCmd.repartitionCars || {});
+        const quantiteTotale = repartitionValues
+          .reduce((sum, qte) => {
+            const qty = typeof qte === 'number' ? qte : (parseInt(String(qte)) || 0);
+            return sum + (isNaN(qty) ? 0 : Math.min(qty, 9999));
+          }, 0);
 
-      return {
-        produitId: produitCmd.produitId,
-        produit,
-        quantiteLivree: quantiteTotale,
-        invendus: invendusActuels,
-        vendu: quantiteTotale - invendusActuels
-      };
-    }).filter(p => p.quantiteLivree > 0);
+        // Récupérer les invendus existants (Firebase ou local)
+        const produitInvendus = invendusExistants?.produits.find(p => p.produitId === produitCmd.produitId);
+        const invendusFirebase = produitInvendus?.invendus || 0;
+        const invendusLocauxQty = invendusLocaux[clientId]?.[produitCmd.produitId];
+
+        const invendusActuels = invendusLocauxQty !== undefined ? invendusLocauxQty : invendusFirebase;
+
+        return {
+          produitId: produitCmd.produitId,
+          produit,
+          quantiteLivree: quantiteTotale,
+          invendus: invendusActuels,
+          vendu: quantiteTotale - invendusActuels
+        };
+      }).filter(p => p.quantiteLivree > 0);
+    } else if (invendusExistants) {
+      // Cas 2: Pas de commande mais des retours (historique migré par exemple)
+      produitsAffiches = invendusExistants.produits.map(produitInv => {
+        const produit = produits.find(p => p.id === produitInv.produitId) || produitInv.produit; // Fallback sur le produit stocké dans l'invendu si dispo
+
+        const invendusLocauxQty = invendusLocaux[clientId]?.[produitInv.produitId];
+        const invendusActuels = invendusLocauxQty !== undefined ? invendusLocauxQty : produitInv.invendus;
+
+        return {
+          produitId: produitInv.produitId,
+          produit: produit as any, // Cast necessaire si le type diffère légèrement
+          quantiteLivree: produitInv.quantiteLivree,
+          invendus: invendusActuels,
+          vendu: produitInv.quantiteLivree - invendusActuels // Recalculer le vendu basé sur l'invendu actuel (modifiable)
+        };
+      });
+    }
+
+    if (produitsAffiches.length === 0) return null;
 
     return {
       ...client,
-      commande,
-      produits: produitsLivres
+      produits: produitsAffiches
     };
   }).filter((client): client is NonNullable<typeof client> => client !== null)
-    .filter(client => 
-      searchTerm === '' || 
+    .filter(client =>
+      searchTerm === '' ||
       client.nom.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -127,7 +160,7 @@ export const SaisieRetours: React.FC = () => {
       if (confirmation) {
         await marquerAucunRetourClient(clientId, new Date(dateSelectionnee));
         await chargerInvendusDuJour(new Date(dateSelectionnee));
-        
+
         // Mettre à jour la facture (silencieusement)
         const invendusUpdated = useLivraisonStore.getState().invendusClients;
         genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error(err));
@@ -154,7 +187,7 @@ export const SaisieRetours: React.FC = () => {
 
       if (confirmation) {
         await annulerValidationRetours(clientId, new Date(dateSelectionnee));
-        
+
         // Mettre à jour la facture (pour la repasser en attente)
         const invendusUpdated = useLivraisonStore.getState().invendusClients;
         genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error(err));
@@ -167,6 +200,33 @@ export const SaisieRetours: React.FC = () => {
     }
   };
 
+  const handleSupprimerRetour = async (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+
+    try {
+      const confirmation = await confirmModal.confirm({
+        title: 'Supprimer le retour',
+        message: `Attention, vous allez supprimer définitivement le retour pour "${client?.nom}".\n\nCette action est irréversible et supprimera le retour de la base de données.`,
+        confirmText: 'Supprimer définitivement',
+        cancelText: 'Annuler',
+        type: 'danger'
+      });
+
+      if (confirmation) {
+        await supprimerInvendusClient(clientId, new Date(dateSelectionnee));
+
+        // Mettre à jour les factures après suppression
+        const invendusUpdated = useLivraisonStore.getState().invendusClients;
+        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error(err));
+
+        toast.success(`🗑️ Retour supprimé pour ${client?.nom}`);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast.error('❌ Erreur lors de la suppression');
+    }
+  };
+
   // Vérifier si un client a déjà des retours finalisés
   const clientARetoursCompletes = (clientId: string) => {
     return invendusClients.some(inv =>
@@ -176,9 +236,17 @@ export const SaisieRetours: React.FC = () => {
     );
   };
 
+  // Vérifier si un client a des retours enregistrés (même non finalisés)
+  const clientASauvegarde = (clientId: string) => {
+    return invendusClients.some(inv =>
+      inv.clientId === clientId &&
+      inv.dateLivraison.toDateString() === new Date(dateSelectionnee).toDateString()
+    );
+  };
+
   const handleEnregistrerRetours = async (clientId: string) => {
     const client = clients.find(c => c.id === clientId);
-    const clientData = clientsAvecCommandes.find(c => c.id === clientId);
+    const clientData = clientsAvecDonnees.find(c => c.id === clientId);
 
     if (!clientData) {
       toast.error('Client non trouvé');
@@ -206,7 +274,7 @@ export const SaisieRetours: React.FC = () => {
 
         await sauvegarderRetoursClient(clientId, new Date(dateSelectionnee), produitsAvecRetours);
         await chargerInvendusDuJour(new Date(dateSelectionnee));
-        
+
         // Mettre à jour la facture IMMÉDIATEMENT
         const invendusUpdated = useLivraisonStore.getState().invendusClients;
         genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error("Erreur update facture", err));
@@ -260,10 +328,10 @@ export const SaisieRetours: React.FC = () => {
           </div>
 
           <div className="flex gap-3">
-             <button
+            <button
               onClick={async () => {
-                const clientsSansRetours = clientsAvecCommandes.filter(c => !clientARetoursCompletes(c.id!));
-                
+                const clientsSansRetours = clientsAvecDonnees.filter(c => !clientARetoursCompletes(c.id!));
+
                 if (clientsSansRetours.length === 0) {
                   toast.success('Tous les clients ont déjà des retours finalisés !');
                   return;
@@ -278,13 +346,13 @@ export const SaisieRetours: React.FC = () => {
                 });
 
                 if (confirmation) {
-                   const clientIds = clientsSansRetours.map(c => c.id!);
-                   await marquerTousSansRetour(clientIds, new Date(dateSelectionnee));
-                   toast.success(`✅ ${clientIds.length} clients marqués sans retour !`);
+                  const clientIds = clientsSansRetours.map(c => c.id!);
+                  await marquerTousSansRetour(clientIds, new Date(dateSelectionnee));
+                  toast.success(`✅ ${clientIds.length} clients marqués sans retour !`);
                 }
               }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-all shadow-md shrink-0"
-              disabled={isLoading || clientsAvecCommandes.every(c => clientARetoursCompletes(c.id!))}
+              disabled={isLoading || clientsAvecDonnees.every(c => clientARetoursCompletes(c.id!))}
             >
               <Icon icon="mdi:check-all" className="text-lg" />
               <span className="hidden sm:inline">Tout marquer sans retour</span>
@@ -294,16 +362,16 @@ export const SaisieRetours: React.FC = () => {
 
         {/* Barre de recherche intégrée au header */}
         <div className="mt-4 max-w-md ml-auto">
-             <div className="relative">
-                <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Rechercher un client..."
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-                />
-             </div>
+          <div className="relative">
+            <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Rechercher un client..."
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+            />
+          </div>
         </div>
       </div>
 
@@ -313,7 +381,7 @@ export const SaisieRetours: React.FC = () => {
         {/* Widget de sélection de date moderne et visible */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-             {/* Sélecteur de date à gauche */}
+            {/* Sélecteur de date à gauche */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                 <Icon icon="mdi:calendar" className="text-xl text-red-600" />
@@ -332,29 +400,29 @@ export const SaisieRetours: React.FC = () => {
             {/* Affichage GROS de la date à droite */}
             <div className="flex-1 max-w-lg bg-gradient-to-r from-red-50 to-rose-50 border border-red-100 rounded-xl p-4 shadow-sm">
               <div className="flex items-center gap-4">
-                 <div className="hidden sm:flex w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl items-center justify-center text-white shadow-md transform rotate-3">
-                    <Icon icon="mdi:calendar-check" className="text-2xl" />
-                 </div>
-                 <div>
-                    <div className="text-xs font-bold text-red-600 uppercase tracking-widest mb-1">
-                      Retours du
-                    </div>
-                    <div className="text-xl sm:text-2xl font-black text-gray-800 capitalize leading-tight">
-                      {new Date(dateSelectionnee).toLocaleDateString('fr-FR', {
-                        weekday: 'long',
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </div>
-                 </div>
+                <div className="hidden sm:flex w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl items-center justify-center text-white shadow-md transform rotate-3">
+                  <Icon icon="mdi:calendar-check" className="text-2xl" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-red-600 uppercase tracking-widest mb-1">
+                    Retours du
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-gray-800 capitalize leading-tight">
+                    {new Date(dateSelectionnee).toLocaleDateString('fr-FR', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Liste des clients avec livraisons */}
-        {clientsAvecCommandes.length === 0 ? (
+        {clientsAvecDonnees.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
             <div className="p-6">
               <div className="text-center py-12">
@@ -385,7 +453,7 @@ export const SaisieRetours: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-3xl font-bold">
-                      {clientsAvecCommandes.length}
+                      {clientsAvecDonnees.length}
                     </div>
                     <div className="text-gray-300 text-xs">clients</div>
                   </div>
@@ -400,7 +468,7 @@ export const SaisieRetours: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-3xl font-bold">
-                      {clientsAvecCommandes.reduce((sum, client) =>
+                      {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.quantiteLivree, 0), 0
                       )}
                     </div>
@@ -417,7 +485,7 @@ export const SaisieRetours: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-3xl font-bold">
-                      {clientsAvecCommandes.reduce((sum, client) =>
+                      {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.invendus, 0), 0
                       )}
                     </div>
@@ -434,7 +502,7 @@ export const SaisieRetours: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-3xl font-bold">
-                      {clientsAvecCommandes.reduce((sum, client) =>
+                      {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.vendu, 0), 0
                       )}
                     </div>
@@ -446,7 +514,7 @@ export const SaisieRetours: React.FC = () => {
             </div>
 
             {/* Liste des clients */}
-            {clientsAvecCommandes.map((client) => (
+            {clientsAvecDonnees.map((client) => (
               <div key={client.id} className="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div className="px-6 py-4 border-b border-gray-100">
                   <div className="flex items-center justify-between">
@@ -489,6 +557,14 @@ export const SaisieRetours: React.FC = () => {
                           <Icon icon="mdi:pencil" className="text-sm" />
                           <span>Modifier</span>
                         </button>
+                        <button
+                          onClick={() => handleSupprimerRetour(client.id!)}
+                          disabled={isLoading}
+                          className="flex items-center gap-2 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all text-sm"
+                          title="Supprimer le retour"
+                        >
+                          <Icon icon="mdi:trash-can" className="text-sm" />
+                        </button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
@@ -498,7 +574,7 @@ export const SaisieRetours: React.FC = () => {
                           className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 shadow-md"
                         >
                           <Icon icon="mdi:content-save-check" className="text-sm" />
-                          <span className="text-sm font-medium">Enregistrer les retours</span>
+                          <span className="text-sm font-medium">Enregistrer</span>
                         </button>
                         <button
                           onClick={() => handleAucunRetour(client.id!)}
@@ -508,6 +584,16 @@ export const SaisieRetours: React.FC = () => {
                           <Icon icon="mdi:check-bold" className="text-sm" />
                           <span className="text-sm font-medium">Aucun retour</span>
                         </button>
+                        {clientASauvegarde(client.id!) && (
+                          <button
+                            onClick={() => handleSupprimerRetour(client.id!)}
+                            disabled={isLoading}
+                            className="flex items-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all text-sm shadow-sm"
+                            title="Supprimer le retour"
+                          >
+                            <Icon icon="mdi:trash-can" className="text-lg" />
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
