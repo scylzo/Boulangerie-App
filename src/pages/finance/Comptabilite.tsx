@@ -27,12 +27,9 @@ export const Comptabilite: React.FC = () => {
     const [stats, setStats] = useState({
         caBoutique: 0,
         caLivraison: 0,
-        totalRecettes: 0,
-        totalCouts: 0,
         achatsMatieres: 0,
         autresCharges: 0,
-        resultat: 0,
-        marge: 0,
+        totalCouts: 0,
         depensesParCategorie: {} as Record<string, number>,
         loading: false
     });
@@ -53,6 +50,11 @@ export const Comptabilite: React.FC = () => {
         calculerStats();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [factures, depenses, periode.debut, periode.fin]);
+
+    // Calculs dérivés pour l'affichage (garantit la cohérence)
+    const totalRecettes = stats.caBoutique + stats.caLivraison;
+    const resultat = totalRecettes - stats.totalCouts;
+    const marge = totalRecettes > 0 ? (resultat / totalRecettes) * 100 : 0;
 
     const chargerDonnees = async () => {
         setStats(prev => ({ ...prev, loading: true }));
@@ -105,21 +107,14 @@ export const Comptabilite: React.FC = () => {
         const achatsMatieres = depensesParCategorie['Intrants'] || 0;
         const autresCharges = totalDepenses - achatsMatieres;
 
-        // Totaux
-        const totalRecettes = stats.caBoutique + caLivraison;
-        const totalCouts = totalDepenses;
-        const resultat = totalRecettes - totalCouts;
-        const marge = totalRecettes > 0 ? (resultat / totalRecettes) * 100 : 0;
+        // Note: caBoutique est mis à jour par chargerDonnees (getVentesPeriode) séparément
 
         setStats(prev => ({
             ...prev,
             caLivraison,
-            totalRecettes,
-            totalCouts,
+            totalCouts: totalDepenses,
             achatsMatieres,
             autresCharges,
-            resultat,
-            marge,
             depensesParCategorie
         }));
     };
@@ -186,7 +181,7 @@ export const Comptabilite: React.FC = () => {
                         <span className="text-sm font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">Recettes (Entrées)</span>
                     </div>
                     <div className="space-y-2 relative z-10">
-                        <h3 className="text-3xl font-bold text-gray-900">{formatCurrency(stats.totalRecettes)}</h3>
+                        <h3 className="text-3xl font-bold text-gray-900">{formatCurrency(totalRecettes)}</h3>
                         <div className="grid grid-cols-2 gap-2 text-sm pt-2">
                             <div className="bg-emerald-50/50 p-2 rounded">
                                 <p className="text-emerald-800 text-xs uppercase tracking-wider font-semibold">Boutique</p>
@@ -227,26 +222,26 @@ export const Comptabilite: React.FC = () => {
                 </div>
 
                 {/* Résultat */}
-                <div className={`bg-white p-6 rounded-xl shadow-sm border relative overflow-hidden ${stats.resultat >= 0 ? 'border-blue-100' : 'border-orange-100'}`}>
+                <div className={`bg-white p-6 rounded-xl shadow-sm border relative overflow-hidden ${resultat >= 0 ? 'border-blue-100' : 'border-orange-100'}`}>
                     <div className="absolute top-0 right-0 p-4 opacity-5">
-                        <Activity size={100} className={stats.resultat >= 0 ? 'text-blue-600' : 'text-orange-600'} />
+                        <Activity size={100} className={resultat >= 0 ? 'text-blue-600' : 'text-orange-600'} />
                     </div>
                     <div className="flex items-center justify-between mb-4 relative z-10">
-                        <div className={`p-3 rounded-lg ${stats.resultat >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
-                            <Activity className={stats.resultat >= 0 ? 'text-blue-600' : 'text-orange-600'} size={24} />
+                        <div className={`p-3 rounded-lg ${resultat >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
+                            <Activity className={resultat >= 0 ? 'text-blue-600' : 'text-orange-600'} size={24} />
                         </div>
-                        <span className={`text-sm font-medium px-3 py-1 rounded-full ${stats.resultat >= 0 ? 'text-blue-700 bg-blue-50' : 'text-orange-700 bg-orange-50'}`}>
+                        <span className={`text-sm font-medium px-3 py-1 rounded-full ${resultat >= 0 ? 'text-blue-700 bg-blue-50' : 'text-orange-700 bg-orange-50'}`}>
                             Résultat Net
                         </span>
                     </div>
                     <div className="space-y-2 relative z-10">
-                        <h3 className={`text-3xl font-bold ${stats.resultat >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-                            {stats.resultat > 0 ? '+' : ''}{formatCurrency(stats.resultat)}
+                        <h3 className={`text-3xl font-bold ${resultat >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+                            {resultat > 0 ? '+' : ''}{formatCurrency(resultat)}
                         </h3>
                         <div className="flex items-center justify-between pt-2">
                             <p className="text-sm text-gray-500">Marge Nette</p>
-                            <p className={`text-lg font-bold ${stats.marge >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                                {stats.marge.toFixed(1)}%
+                            <p className={`text-lg font-bold ${marge >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                                {marge.toFixed(1)}%
                             </p>
                         </div>
                     </div>
@@ -300,20 +295,20 @@ export const Comptabilite: React.FC = () => {
                         <div>
                             <div className="flex justify-between text-sm mb-2">
                                 <span className="text-gray-600">Ventes Boutique</span>
-                                <span className="font-bold text-gray-900">{stats.totalRecettes > 0 ? Math.round((stats.caBoutique / stats.totalRecettes) * 100) : 0}%</span>
+                                <span className="font-bold text-gray-900">{totalRecettes > 0 ? Math.round((stats.caBoutique / totalRecettes) * 100) : 0}%</span>
                             </div>
                             <div className="w-full bg-gray-100 rounded-full h-3">
-                                <div className="bg-blue-500 h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalRecettes > 0 ? (stats.caBoutique / stats.totalRecettes) * 100 : 0}%` }}></div>
+                                <div className="bg-blue-500 h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caBoutique / totalRecettes) * 100 : 0}%` }}></div>
                             </div>
                             <p className="text-xs text-gray-400 mt-1 text-right">{formatCurrency(stats.caBoutique)}</p>
                         </div>
                         <div>
                             <div className="flex justify-between text-sm mb-2">
                                 <span className="text-gray-600">Livraisons (Facturées)</span>
-                                <span className="font-bold text-gray-900">{stats.totalRecettes > 0 ? Math.round((stats.caLivraison / stats.totalRecettes) * 100) : 0}%</span>
+                                <span className="font-bold text-gray-900">{totalRecettes > 0 ? Math.round((stats.caLivraison / totalRecettes) * 100) : 0}%</span>
                             </div>
                             <div className="w-full bg-gray-100 rounded-full h-3">
-                                <div className="bg-purple-500 h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalRecettes > 0 ? (stats.caLivraison / stats.totalRecettes) * 100 : 0}%` }}></div>
+                                <div className="bg-purple-500 h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caLivraison / totalRecettes) * 100 : 0}%` }}></div>
                             </div>
                             <p className="text-xs text-gray-400 mt-1 text-right">{formatCurrency(stats.caLivraison)}</p>
                         </div>
