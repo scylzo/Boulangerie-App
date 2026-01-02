@@ -52,6 +52,8 @@ export const SaisieRetours: React.FC = () => {
   }, [dateSelectionnee, chargerClients, chargerProduits, chargerProgramme, chargerInvendusDuJour]);
 
 
+  const [filterStatus, setFilterStatus] = useState<'all' | 'with_returns' | 'without_returns'>('all');
+
   // Combiner les clients des commandes et des retours existants
   const clientIdsFromCommandes = new Set(commandesClients.map(c => c.clientId));
   const clientIdsFromRetours = new Set(invendusClients.map(i => i.clientId));
@@ -128,7 +130,13 @@ export const SaisieRetours: React.FC = () => {
     .filter(client =>
       searchTerm === '' ||
       client.nom.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    )
+    .filter(client => {
+      const totalInvendus = client.produits.reduce((sum, p) => sum + p.invendus, 0);
+      if (filterStatus === 'with_returns') return totalInvendus > 0;
+      if (filterStatus === 'without_returns') return totalInvendus === 0;
+      return true;
+    });
 
   const handleSaisirInvendus = (clientId: string, produitId: string, invendus: string) => {
     const invendusNum = parseInt(invendus) || 0;
@@ -360,9 +368,41 @@ export const SaisieRetours: React.FC = () => {
           </div>
         </div>
 
-        {/* Barre de recherche intégrée au header */}
-        <div className="mt-4 max-w-md ml-auto">
-          <div className="relative">
+        {/* Barre de recherche et filtres */}
+        <div className="flex flex-col md:flex-row gap-4 mt-4">
+          {/* Filtres */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1 shrink-0">
+            <button
+              onClick={() => setFilterStatus('all')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterStatus === 'all'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              Tous
+            </button>
+            <button
+              onClick={() => setFilterStatus('with_returns')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterStatus === 'with_returns'
+                  ? 'bg-white text-red-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              Avec retours
+            </button>
+            <button
+              onClick={() => setFilterStatus('without_returns')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterStatus === 'without_returns'
+                  ? 'bg-white text-green-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              Sans retour
+            </button>
+          </div>
+
+          {/* Barre de recherche */}
+          <div className="flex-1 relative">
             <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
             <input
               type="text"
