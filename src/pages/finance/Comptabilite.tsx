@@ -1,3 +1,5 @@
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import React, { useState, useEffect } from 'react';
 import { useStockStore } from '../../store/stockStore';
 import { useDepenseStore } from '../../store/depenseStore';
@@ -10,7 +12,8 @@ import {
     Activity,
     RefreshCw,
     Coins,
-    Calendar
+    Calendar,
+    FileText
 } from 'lucide-react';
 
 
@@ -125,6 +128,157 @@ export const Comptabilite: React.FC = () => {
         return Math.round(amount).toLocaleString('fr-FR') + ' FCFA';
     };
 
+    const genererRapportPDF = () => {
+        const doc = new jsPDF();
+
+        // Helper pour le formatage propre dans le PDF
+        const formatPdfCurrency = (amount: number) => {
+            return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + ' FCFA';
+        };
+
+        // --- EN-TÊTE ---
+        // Fond coloré pour l'en-tête
+        doc.setFillColor(41, 128, 185);
+        doc.rect(0, 0, 210, 40, 'F');
+
+        // Titre blanc
+        doc.setFontSize(24);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.text("RAPPORT FINANCIER", 105, 20, { align: 'center' }); // Centré
+
+        // Période et Date en blanc légèrement transparent
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Période : ${new Date(periode.debut).toLocaleDateString('fr-FR')} au ${new Date(periode.fin).toLocaleDateString('fr-FR')}`, 105, 30, { align: 'center' });
+
+        const generatedDate = `Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`;
+        doc.setFontSize(8);
+        doc.text(generatedDate, 200, 38, { align: 'right' });
+
+
+        // --- CONTENU ---
+        let finalY = 50;
+
+        // 1. RÉSUMÉ FINANCIER
+        doc.setFontSize(14);
+        doc.setTextColor(41, 128, 185);
+        doc.setFont("helvetica", "bold");
+        doc.text("1. Synthèse Financière", 14, finalY);
+
+        const summaryData = [
+            ['Total Recettes', formatPdfCurrency(totalRecettes)],
+            ['Total Dépenses', formatPdfCurrency(stats.totalCouts)],
+            ['RÉSULTAT NET', formatPdfCurrency(resultat)],
+            ['Marge Nette', `${marge.toFixed(1)} %`]
+        ];
+
+        autoTable(doc, {
+            startY: finalY + 5,
+            head: [['Indicateur', 'Montant / Valeur']],
+            body: summaryData,
+            theme: 'striped',
+            headStyles: {
+                fillColor: [44, 62, 80],
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+                halign: 'left'
+            },
+            columnStyles: {
+                0: { fontStyle: 'bold', cellWidth: 100 },
+                1: { halign: 'right', fontStyle: 'bold' } // Alignement à droite pour les chiffres
+            },
+            styles: { fontSize: 11, cellPadding: 4 },
+            didParseCell: function (data) {
+                // Mettre en évidence le Résultat Net
+                if (data.row.index === 2 && data.section === 'body') {
+                    data.cell.styles.textColor = resultat >= 0 ? [39, 174, 96] : [192, 57, 43]; // Vert ou Rouge
+                    data.cell.styles.fontStyle = 'bold';
+                }
+            }
+        });
+
+        finalY = (doc as any).lastAutoTable.finalY + 15;
+
+        // 2. DÉTAIL DES RECETTES
+        doc.setFontSize(14);
+        doc.setTextColor(41, 128, 185); // Bleu
+        doc.text("2. Détail des Recettes", 14, finalY);
+
+        const recetteData = [
+            ['Ventes Boutique', formatPdfCurrency(stats.caBoutique)],
+            ['Livraisons (Facturées)', formatPdfCurrency(stats.caLivraison)],
+            ['TOTAL RECETTES', formatPdfCurrency(totalRecettes)] // Ajout ligne total
+        ];
+
+        autoTable(doc, {
+            startY: finalY + 5,
+            head: [['Source', 'Montant']],
+            body: recetteData,
+            theme: 'grid',
+            headStyles: { fillColor: [39, 174, 96], halign: 'left' }, // Vert
+            columnStyles: {
+                0: { cellWidth: 100 },
+                1: { halign: 'right' }
+            },
+            didParseCell: function (data) {
+                if (data.row.index === 2 && data.section === 'body') {
+                    data.cell.styles.fontStyle = 'bold';
+                }
+            }
+        });
+
+        finalY = (doc as any).lastAutoTable.finalY + 15;
+
+        // 3. DÉTAIL DES DÉPENSES
+        doc.setFontSize(14);
+        doc.setTextColor(192, 57, 43); // Rouge
+        doc.text("3. Détail des Dépenses", 14, finalY);
+
+        const depenseData = Object.entries(stats.depensesParCategorie)
+            .filter(([_, montant]) => montant > 0) // Filtrer les catégories vides
+            .sort((a, b) => b[1] - a[1]) // Trier par montant décroissant
+            .map(([categ, montant]) => [
+                categ,
+                formatPdfCurrency(montant)
+            ]);
+
+        // Ajouter le total à la fin
+        depenseData.push(['TOTAL DÉPENSES', formatPdfCurrency(stats.totalCouts)]);
+
+        autoTable(doc, {
+            startY: finalY + 5,
+            head: [['Catégorie', 'Montant']],
+            body: depenseData,
+            theme: 'grid',
+            headStyles: { fillColor: [192, 57, 43], halign: 'left' }, // Rouge
+            columnStyles: {
+                0: { cellWidth: 100 },
+                1: { halign: 'right' }
+            },
+            didParseCell: function (data) {
+                // Mettre le total en gras
+                if (data.row.index === depenseData.length - 1 && data.section === 'body') {
+                    data.cell.styles.fontStyle = 'bold';
+                    data.cell.styles.fillColor = [253, 237, 236]; // Fond rouge très clair
+                }
+            }
+        });
+
+        // --- PIED DE PAGE ---
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Page ${i} / ${pageCount}`, 105, 290, { align: 'center' });
+            doc.text("Boulangerie App - Document confidentiel", 14, 290, { align: 'left' });
+        }
+
+        doc.save(`Rapport_Financier_${periode.debut}_${periode.fin}.pdf`);
+    };
+
     return (
         <div className="p-6 space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -133,7 +287,17 @@ export const Comptabilite: React.FC = () => {
                     <p className="text-gray-500">Recettes - Dépenses = Résultat (Trésorerie)</p>
                 </div>
 
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-wrap items-center gap-4">
+                    <button
+                        onClick={genererRapportPDF}
+                        disabled={stats.loading}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                        title="Télécharger le rapport PDF"
+                    >
+                        <FileText size={18} />
+                        <span className="hidden sm:inline">Générer Rapport</span>
+                    </button>
+
                     <button
                         onClick={chargerDonnees}
                         disabled={stats.loading}
