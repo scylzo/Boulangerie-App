@@ -478,13 +478,40 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     }));
 
     // Recalculer et auto-sauvegarder immédiatement après l'ajout
-    setTimeout(() => {
+    setTimeout(async () => {
       get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
       get().calculerTotauxParProduit();
       // Auto-sauvegarde avec rechargement pour éviter les conflits
       get().sauvegarderEtRecharger().catch(error => {
         console.warn('Auto-sauvegarde échouée:', error);
       });
+
+      // --- AUTO-GENERATION FACTURE (DRAFT) ---
+      try {
+        const { programmeActuel } = get();
+        if (programmeActuel && nouvelleCommande) {
+          // Importer le store de facturation dynamiquement pour éviter les cycles si possible, ou utiliser getState
+          // Note: On utilise require ou import en haut mais ici on suppose que useFacturationStore est dispo
+          // import { useFacturationStore } from './facturationStore';
+          const { useFacturationStore } = await import('./facturationStore');
+          if (useFacturationStore) {
+            const dateLivraison = new Date(nouvelleCommande.dateLivraison);
+            // On passe TOUTES les commandes de ce programme pour cette date, pour être sûr
+            const allCommandes = get().commandesClients.filter(c =>
+              new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString()
+            );
+
+            // On appelle la génération. Note: les retours sont vides pour l'instant (draft)
+            console.log('🔄 Auto-génération de facture brouillon pour la commande...');
+            useFacturationStore.getState().genererFacturesDepuisLivraisons(dateLivraison, allCommandes, [])
+              .catch((err: any) => console.error('Erreur auto-gen facture:', err));
+          }
+        }
+      } catch (e) {
+        console.warn('Non bloquant: Erreur trigger facturation', e);
+      }
+      // ----------------------------------------
+
     }, 100);
   },
 
@@ -497,10 +524,33 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       )
     }));
     // Recalculer et auto-sauvegarder après la modification
-    setTimeout(() => {
+    setTimeout(async () => {
       get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
       get().calculerTotauxParProduit();
       get().sauvegarderEtRecharger().catch(console.warn);
+
+      // --- AUTO-UPDATE FACTURE (DRAFT) ---
+      try {
+        const commandeModifiee = get().commandesClients.find(c => c.id === id);
+        if (commandeModifiee) {
+          const { useFacturationStore } = await import('./facturationStore');
+          if (useFacturationStore) {
+            const dateLivraison = new Date(commandeModifiee.dateLivraison);
+            const allCommandes = get().commandesClients.filter(c =>
+              new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString()
+            );
+            console.log('🔄 Auto-update de facture brouillon suite modif commande...');
+            // On passe [] pour les retours, ce qui va garder les retours existants s'ils sont gérés intelligemment dans le store facturation
+            // ou simplement regénérer le "brouillon" basé sur la commande.
+            // IMPORTANT: genererFacturesDepuisLivraisons dans facturationStore doit être robuste.
+            useFacturationStore.getState().genererFacturesDepuisLivraisons(dateLivraison, allCommandes, [])
+              .catch((err: any) => console.error('Erreur auto-update facture:', err));
+          }
+        }
+      } catch (e) {
+        console.warn('Non bloquant: Erreur trigger facturation update', e);
+      }
+      // ----------------------------------------
     }, 100);
   },
 

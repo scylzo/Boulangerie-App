@@ -28,6 +28,7 @@ interface FacturationStore {
   actualiserStatutsFactures: (background?: boolean) => Promise<void>;
   modifierTauxTVA: (factureId: string, nouveauTaux: number) => Promise<void>;
   supprimerFacture: (factureId: string) => Promise<void>;
+  ajouterAvoirClient: (clientId: string, montant: number) => Promise<void>;
 
   // Actions Paramètres
   chargerParametres: () => Promise<void>;
@@ -660,6 +661,27 @@ export const useFacturationStore = create<FacturationStore>()(
 
         } catch (error) {
           console.error('❌ Erreur lors de la suppression:', error);
+          throw error;
+        }
+      },
+
+      ajouterAvoirClient: async (clientId: string, montant: number) => {
+        try {
+          const clientRef = doc(db, 'clients', clientId);
+          const snap = await getDoc(clientRef);
+
+          if (snap.exists()) {
+            const soldeActuel = snap.data().solde || 0;
+            const nouveauSolde = soldeActuel + montant;
+
+            await updateDoc(clientRef, {
+              solde: nouveauSolde,
+              updatedAt: new Date()
+            });
+            console.log(`💰 Avoir ajouté pour client ${clientId}: +${montant} (Nouveau solde: ${nouveauSolde})`);
+          }
+        } catch (error) {
+          console.error('❌ Erreur ajout avoir:', error);
           throw error;
         }
       },

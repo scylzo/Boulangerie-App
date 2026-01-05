@@ -29,6 +29,7 @@ interface DepenseStore {
     // Stats
     getTotalDepenses: () => number;
     getDepensesParCategorie: () => Record<CategorieDepense, number>;
+    getDepensesProRata: (dateDebut: Date, dateFin: Date) => { total: number; parCategorie: Record<CategorieDepense, number> };
 }
 
 export const useDepenseStore = create<DepenseStore>()(
@@ -42,38 +43,62 @@ export const useDepenseStore = create<DepenseStore>()(
                 set({ isLoading: true, error: null });
                 try {
                     const depensesRef = collection(db, 'depenses');
-                    let q = query(depensesRef, orderBy('date', 'desc'));
+                    const promises = [];
 
-                    // Appliquer les filtres de date si fournis
-                    if (dateDebut) {
-                        q = query(q, where('date', '>=', dateDebut));
+                    // Requete 1 : Dépenses par date de paiement (Range standard)
+                    let q1 = query(depensesRef, orderBy('date', 'desc'));
+
+                    // Si aucune date n'est fournie, on charge le mois en cours par défaut
+                    let startFilter = dateDebut;
+                    let endFilter = dateFin;
+
+                    if (!startFilter && !endFilter) {
+                        const now = new Date();
+                        startFilter = new Date(now.getFullYear(), now.getMonth(), 1);
+                        startFilter.setHours(0, 0, 0, 0);
                     }
-                    if (dateFin) {
-                        // Ajuster la fin de journée pour inclure toute la journée sélectionnée
-                        const adjustDateFin = new Date(dateFin);
+
+                    if (startFilter) {
+                        q1 = query(q1, where('date', '>=', startFilter));
+                    }
+                    if (endFilter) {
+                        const adjustDateFin = new Date(endFilter);
                         adjustDateFin.setHours(23, 59, 59, 999);
-                        q = query(q, where('date', '<=', adjustDateFin));
+                        q1 = query(q1, where('date', '<=', adjustDateFin));
+                    }
+                    promises.push(getDocs(q1));
+
+                    // Requete 2 : Dépenses avec période d'usage qui chevauchent le début de la période
+                    // On cherche les dépenses dont dateFinUsage >= dateDebut
+                    if (startFilter) {
+                        const q2 = query(depensesRef, where('dateFinUsage', '>=', startFilter));
+                        promises.push(getDocs(q2));
                     }
 
-                    // Si aucune date n'est fournie, on charge le mois en cours par défaut pour éviter de tout charger
-                    if (!dateDebut && !dateFin) {
-                        const startOfMonth = new Date();
-                        startOfMonth.setDate(1);
-                        startOfMonth.setHours(0, 0, 0, 0);
-                        q = query(q, where('date', '>=', startOfMonth));
-                    }
+                    const snapshots = await Promise.all(promises);
+                    const allDocs = new Map();
 
-                    const snapshot = await getDocs(q);
-                    const depenses = snapshot.docs.map(doc => {
+                    snapshots.forEach(snapshot => {
+                        snapshot.docs.forEach(doc => {
+                            allDocs.set(doc.id, doc);
+                        });
+                    });
+
+                    const depenses = Array.from(allDocs.values()).map(doc => {
                         const data = doc.data();
                         return {
                             id: doc.id,
                             ...data,
                             date: data.date?.toDate() || new Date(),
+                            dateDebutUsage: data.dateDebutUsage?.toDate(),
+                            dateFinUsage: data.dateFinUsage?.toDate(),
                             createdAt: data.createdAt?.toDate() || new Date(),
                             updatedAt: data.updatedAt?.toDate() || new Date(),
                         } as Depense;
                     });
+
+                    // Tri final par date
+                    depenses.sort((a, b) => b.date.getTime() - a.date.getTime());
 
                     set({ depenses, isLoading: false });
                 } catch (error) {
@@ -90,7 +115,9 @@ export const useDepenseStore = create<DepenseStore>()(
                         createdAt: Timestamp.now(),
                         updatedAt: Timestamp.now(),
                         // Assurer que la date est stockée en Timestamp
-                        date: Timestamp.fromDate(nouveauRecu.date)
+                        date: Timestamp.fromDate(nouveauRecu.date),
+                        ...(nouveauRecu.dateDebutUsage ? { dateDebutUsage: Timestamp.fromDate(nouveauRecu.dateDebutUsage) } : {}),
+                        ...(nouveauRecu.dateFinUsage ? { dateFinUsage: Timestamp.fromDate(nouveauRecu.dateFinUsage) } : {})
                     };
 
                     const docRef = await addDoc(collection(db, 'depenses'), depenseData);
@@ -135,7 +162,9 @@ export const useDepenseStore = create<DepenseStore>()(
                     const updateData = {
                         ...updates,
                         updatedAt: Timestamp.now(),
-                        ...(updates.date ? { date: Timestamp.fromDate(updates.date) } : {})
+                        ...(updates.date ? { date: Timestamp.fromDate(updates.date) } : {}),
+                        ...(updates.dateDebutUsage ? { dateDebutUsage: Timestamp.fromDate(updates.dateDebutUsage) } : {}),
+                        ...(updates.dateFinUsage ? { dateFinUsage: Timestamp.fromDate(updates.dateFinUsage) } : {})
                     };
 
                     await updateDoc(docRef, updateData);
@@ -164,6 +193,70 @@ export const useDepenseStore = create<DepenseStore>()(
                     acc[depense.categorie] = (acc[depense.categorie] || 0) + depense.montant;
                     return acc;
                 }, {} as Record<CategorieDepense, number>);
+            },
+
+            getDepensesProRata: (dateDebut: Date, dateFin: Date) => {
+                // Cette fonction calcule le montant "réellement consommé" sur la période donnée
+                // Si la dépense a une période d'usage définie, on applique un prorata temporis
+
+                const depenses = get().depenses;
+                const result = {
+                    total: 0,
+                    parCategorie: {} as Record<CategorieDepense, number>
+                };
+
+                // Normaliser les dates de filtre (début de journée / fin de journée)
+                const startFilter = new Date(dateDebut);
+                startFilter.setHours(0, 0, 0, 0);
+                const endFilter = new Date(dateFin);
+                endFilter.setHours(23, 59, 59, 999);
+
+                depenses.forEach(depense => {
+                    let montantACompter = 0;
+
+                    if (depense.dateDebutUsage && depense.dateFinUsage) {
+                        // Cas avec période d'usage (ex: Carburant acheté le 4 Nov utilisé jusqu'au 19 Dec)
+                        const usageStart = new Date(depense.dateDebutUsage);
+                        usageStart.setHours(0, 0, 0, 0);
+                        const usageEnd = new Date(depense.dateFinUsage);
+                        usageEnd.setHours(23, 59, 59, 999);
+
+                        // Vérifier s'il y a chevauchement avec la période filtrée
+                        if (usageStart <= endFilter && usageEnd >= startFilter) {
+                            // Calculer la durée totale d'usage en jours
+                            const totalDurationMs = usageEnd.getTime() - usageStart.getTime();
+                            const MS_PER_DAY = 1000 * 60 * 60 * 24;
+                            // Math.ceil pour avoir des jours entiers au minimum, +1 pour inclure le dernier jour partiel si < 1 jour plein, mais ici on a déjà setHours...
+                            // Si 15 nov 00h à 15 nov 23h59 = 0.99 jour -> Math.ceil = 1 jour. Correct.
+                            const totalDurationDays = Math.max(1, Math.ceil(totalDurationMs / MS_PER_DAY));
+
+                            const coutParJour = depense.montant / totalDurationDays;
+
+                            // Calculer le chevauchement (overlap)
+                            const overlapStart = usageStart > startFilter ? usageStart : startFilter;
+                            const overlapEnd = usageEnd < endFilter ? usageEnd : endFilter;
+
+                            const overlapMs = Math.max(0, overlapEnd.getTime() - overlapStart.getTime());
+                            const overlapDays = Math.max(0, Math.ceil(overlapMs / MS_PER_DAY));
+
+                            const finalOverlapDays = Math.min(overlapDays, totalDurationDays);
+                            montantACompter = coutParJour * finalOverlapDays;
+                        }
+                    } else {
+                        // Cas standard (Date de paiement)
+                        const depenseDate = new Date(depense.date);
+                        if (depenseDate >= startFilter && depenseDate <= endFilter) {
+                            montantACompter = depense.montant;
+                        }
+                    }
+
+                    if (montantACompter > 0) {
+                        result.total += montantACompter;
+                        result.parCategorie[depense.categorie] = (result.parCategorie[depense.categorie] || 0) + montantACompter;
+                    }
+                });
+
+                return result;
             }
         }),
         {

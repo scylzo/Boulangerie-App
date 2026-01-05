@@ -375,8 +375,8 @@ export const SaisieRetours: React.FC = () => {
             <button
               onClick={() => setFilterStatus('all')}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterStatus === 'all'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
               Tous
@@ -384,8 +384,8 @@ export const SaisieRetours: React.FC = () => {
             <button
               onClick={() => setFilterStatus('with_returns')}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterStatus === 'with_returns'
-                  ? 'bg-white text-red-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-red-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
               Avec retours
@@ -393,8 +393,8 @@ export const SaisieRetours: React.FC = () => {
             <button
               onClick={() => setFilterStatus('without_returns')}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterStatus === 'without_returns'
-                  ? 'bg-white text-green-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-green-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
               Sans retour

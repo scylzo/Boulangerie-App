@@ -38,7 +38,7 @@ export const Comptabilite: React.FC = () => {
     });
 
     const { chargerDonnees: chargerStock } = useStockStore();
-    const { chargerDepenses, getTotalDepenses, getDepensesParCategorie, depenses } = useDepenseStore();
+    const { chargerDepenses, getDepensesProRata, depenses } = useDepenseStore();
     const { chargerFactures, factures } = useFacturationStore();
     const { getVentesPeriode } = useBoutiqueStore();
 
@@ -102,11 +102,13 @@ export const Comptabilite: React.FC = () => {
         });
         const caLivraison = facturesDuMois.reduce((sum, f) => sum + f.totalTTC, 0);
 
-        // COUTS (Basé sur les Dépenses Réelles / Trésorerie)
-        const totalDepenses = getTotalDepenses();
+        // COUTS (Basé sur les Dépenses Réelles avec Prorata Temporis si applicable)
+        // Utilisation de getDepensesProRata pour gérer les chevauchements de période (ex: carburant)
+        const statsCouts = getDepensesProRata(debut, fin);
+        const totalDepenses = statsCouts.total;
+        const depensesParCategorie = statsCouts.parCategorie;
 
         // On isole les "Intrants" (Achats Matières) des autres charges pour l'analyse
-        const depensesParCategorie = getDepensesParCategorie();
         const achatsMatieres = depensesParCategorie['Intrants'] || 0;
         const autresCharges = totalDepenses - achatsMatieres;
 

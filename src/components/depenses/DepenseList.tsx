@@ -1,10 +1,15 @@
 import React from 'react';
 import { useDepenseStore } from '../../store/depenseStore';
-import { Trash2, Calendar, Tag, CreditCard, Building2 } from 'lucide-react';
+import { Trash2, Calendar, Tag, CreditCard, Building2, Edit2 } from 'lucide-react';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import type { Depense } from '../../types/depense';
 
-export const DepenseList: React.FC = () => {
+interface DepenseListProps {
+  onEdit?: (depense: Depense) => void;
+}
+
+export const DepenseList: React.FC<DepenseListProps> = ({ onEdit }) => {
   const { depenses, supprimerDepense, isLoading } = useDepenseStore();
   const { isOpen, title, message, confirm, handleConfirm, handleCancel } = useConfirmModal();
 
@@ -72,7 +77,7 @@ export const DepenseList: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center">
                       <Calendar size={16} className="mr-2 text-gray-400" />
-                      {depense.date.toLocaleDateString()}
+                      {depense.date.toLocaleDateString('fr-FR')}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -91,15 +96,27 @@ export const DepenseList: React.FC = () => {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">
-                    {depense.montant.toLocaleString()} F
+                    {depense.montant.toLocaleString()} FCFA
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleDelete(depense.id)}
-                      className="text-red-400 hover:text-red-900 transition-colors p-2 hover:bg-red-50 rounded-full"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    <div className="flex items-center justify-end space-x-2">
+                      {onEdit && (
+                        <button
+                          onClick={() => onEdit(depense)}
+                          className="text-gray-400 hover:text-orange-600 transition-colors p-2 hover:bg-orange-50 rounded-full"
+                          title="Modifier"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(depense.id)}
+                        className="text-gray-400 hover:text-red-900 transition-colors p-2 hover:bg-red-50 rounded-full"
+                        title="Supprimer"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -107,7 +124,7 @@ export const DepenseList: React.FC = () => {
           </table>
         </div>
       </div>
-      
+
       <ConfirmModal
         isOpen={isOpen}
         onClose={handleCancel}

@@ -20,6 +20,8 @@ export interface Depense {
     fournisseur?: string; // Nom du fournisseur ou station service
     moyenPaiement?: 'Especes' | 'Mobile Money' | 'Virement' | 'Cheque';
     userId: string; // Autheur de la saisie
+    dateDebutUsage?: Date; // Pour les dépenses sur une période (ex: Loyer, Carburant)
+    dateFinUsage?: Date;   // Pour les dépenses sur une période
     createdAt: Date;
     updatedAt: Date;
 }

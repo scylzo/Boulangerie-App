@@ -33,6 +33,7 @@ export const collectionsRef = {
   matieres: collection(db, 'matieres'),
   mouvements: collection(db, 'mouvements'),
   fournisseurs: collection(db, 'fournisseurs'),
+  depenses: collection(db, 'depenses'),
 };
 
 // Utilitaires pour la conversion Date <-> Timestamp

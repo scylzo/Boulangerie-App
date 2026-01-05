@@ -1,0 +1,93 @@
+[
+  {
+    "id": "DT80hBNTZTiiaLMd2Bpf",
+    "nom": "SENELEC",
+    "contact": "Woyofal",
+    "telephone": "338676666",
+    "adresse": "DAKAR",
+    "categories": [
+      "Énergie"
+    ],
+    "active": true,
+    "createdAt": "2025-12-19T11:34:23.518Z",
+    "updatedAt": "2025-12-19T11:34:23.518Z"
+  },
+  {
+    "id": "EcxosGceAySpvjvrK2S6",
+    "nom": "SENEGA PETROLE SA",
+    "contact": "SENEGA",
+    "telephone": "",
+    "adresse": "NDIAKHIRATE",
+    "categories": [
+      "Carburant"
+    ],
+    "active": true,
+    "createdAt": "2025-12-19T11:41:44.868Z",
+    "updatedAt": "2025-12-19T11:41:44.868Z"
+  },
+  {
+    "id": "K6wot7fk7KW21zv8fCSP",
+    "nom": "SOCOMAF",
+    "contact": "Bernard",
+    "telephone": "338596900 / 770109108",
+    "adresse": "KM 4,8 Boulevard du centenaire",
+    "categories": [
+      "Matières Premières"
+    ],
+    "active": true,
+    "createdAt": "2025-12-19T11:56:30.162Z",
+    "updatedAt": "2025-12-19T11:56:30.162Z"
+  },
+  {
+    "id": "PpUHcwMuoeiviP79UPyd",
+    "contact": "Malick",
+    "categories": [
+      "Farine"
+    ],
+    "active": true,
+    "createdAt": "2025-12-10T14:05:07.328Z",
+    "telephone": "338399797 / 338328947",
+    "nom": "GRAND MOULIN DE DAKAR (GMD)",
+    "adresse": "KEUR MASSAR",
+    "updatedAt": "2025-12-19T10:53:49.654Z"
+  },
+  {
+    "id": "hSctW2FHEzmSZ51H4CES",
+    "nom": "CO&CO International Investment Sarl",
+    "contact": "Cissé",
+    "telephone": "776580577 / 784618749 / 338423328 / 338424982",
+    "adresse": "KEUR MASSAR",
+    "categories": [
+      "Énergie"
+    ],
+    "active": true,
+    "createdAt": "2025-12-19T11:45:48.172Z",
+    "updatedAt": "2025-12-19T11:45:48.172Z"
+  },
+  {
+    "id": "my9xO0di1iZ9Ku4k5Nl1",
+    "nom": "STATION SHELL ",
+    "contact": "Shell Sangalkam",
+    "telephone": "788274313",
+    "adresse": "NDIAKHIRATE",
+    "active": true,
+    "createdAt": "2025-12-19T11:36:11.722Z",
+    "categories": [
+      "Carburant"
+    ],
+    "updatedAt": "2025-12-19T11:38:13.246Z"
+  },
+  {
+    "id": "rMVGQorwvYAKOMpAIbgq",
+    "nom": "SGF SARL",
+    "contact": "SERIGNE GUEYE & FILS",
+    "telephone": "339751385",
+    "adresse": "NDIAKHIRATE",
+    "active": true,
+    "createdAt": "2025-12-19T10:49:14.520Z",
+    "categories": [
+      "Carburant"
+    ],
+    "updatedAt": "2025-12-19T11:38:24.481Z"
+  }
+]

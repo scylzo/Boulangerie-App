@@ -5,7 +5,7 @@ import { ConfirmModal } from '../ui/ConfirmModal';
 import type { Fournisseur } from '../../types';
 
 export const FournisseurList: React.FC = () => {
-  const { fournisseurs, addFournisseur, updateFournisseur, deleteFournisseur } = useStockStore();
+  const { fournisseurs, addFournisseur, updateFournisseur, deleteFournisseur, chargerDonnees } = useStockStore();
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; fournisseurId: string; fournisseurNom: string }>({
@@ -13,6 +13,12 @@ export const FournisseurList: React.FC = () => {
     fournisseurId: '',
     fournisseurNom: ''
   });
+
+  React.useEffect(() => {
+    if (fournisseurs.length === 0) {
+      chargerDonnees();
+    }
+  }, [chargerDonnees, fournisseurs.length]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -143,7 +149,7 @@ export const FournisseurList: React.FC = () => {
             </div>
             <div className="md:col-span-2 space-y-3">
               <label className="block text-sm font-medium text-gray-700">Catégories</label>
-              
+
               {/* Catégories prédéfinies */}
               <div className="flex flex-wrap gap-2 mb-2">
                 {[
@@ -156,44 +162,43 @@ export const FournisseurList: React.FC = () => {
                   'Énergie',
                   'Divers'
                 ].map(cat => {
-                   const isSelected = formData.categories.split(',').map(c => c.trim()).includes(cat);
-                   return (
-                     <button
-                       key={cat}
-                       type="button"
-                       onClick={() => {
-                         const currentCats = formData.categories.split(',').map(c => c.trim()).filter(c => c !== '');
-                         let newCats;
-                         if (isSelected) {
-                            newCats = currentCats.filter(c => c !== cat);
-                         } else {
-                            newCats = [...currentCats, cat];
-                         }
-                         setFormData({ ...formData, categories: newCats.join(', ') });
-                       }}
-                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                         isSelected 
-                           ? 'bg-orange-100 text-orange-700 border-orange-200' 
-                           : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
-                       }`}
-                     >
-                       {cat}
-                     </button>
-                   );
+                  const isSelected = formData.categories.split(',').map(c => c.trim()).includes(cat);
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => {
+                        const currentCats = formData.categories.split(',').map(c => c.trim()).filter(c => c !== '');
+                        let newCats;
+                        if (isSelected) {
+                          newCats = currentCats.filter(c => c !== cat);
+                        } else {
+                          newCats = [...currentCats, cat];
+                        }
+                        setFormData({ ...formData, categories: newCats.join(', ') });
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isSelected
+                          ? 'bg-orange-100 text-orange-700 border-orange-200'
+                          : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                        }`}
+                    >
+                      {cat}
+                    </button>
+                  );
                 })}
               </div>
 
               <div className="relative">
-                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Tag size={14} className="text-gray-400" />
-                 </div>
-                 <input
-                   type="text"
-                   value={formData.categories}
-                   onChange={e => setFormData({ ...formData, categories: e.target.value })}
-                   className="w-full pl-9 p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm"
-                   placeholder="Ajoutez d'autres catégories, séparées par des virgules..."
-                 />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Tag size={14} className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={formData.categories}
+                  onChange={e => setFormData({ ...formData, categories: e.target.value })}
+                  className="w-full pl-9 p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                  placeholder="Ajoutez d'autres catégories, séparées par des virgules..."
+                />
               </div>
             </div>
           </div>
@@ -270,7 +275,7 @@ export const FournisseurList: React.FC = () => {
             </div>
           </div>
         ))}
-        
+
         {fournisseurs.length === 0 && !showForm && (
           <div className="col-span-full py-12 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
             <User size={48} className="mx-auto mb-4 opacity-20" />

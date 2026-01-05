@@ -4,12 +4,11 @@ import { StockDashboard } from '../../components/stock/StockDashboard';
 import { MatiereList } from '../../components/stock/MatiereList';
 import { MouvementModal } from '../../components/stock/MouvementModal';
 import { MouvementsList } from '../../components/stock/MouvementsList';
-import { FournisseurList } from '../../components/stock/FournisseurList';
 import type { MatierePremiere } from '../../types';
-import { Package, History, Users } from 'lucide-react';
+import { Package, History } from 'lucide-react';
 
 export const GestionStock: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'stock' | 'mouvements' | 'fournisseurs'>('stock');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'stock' | 'mouvements'>('stock');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMatiere, setSelectedMatiere] = useState<MatierePremiere | undefined>(undefined);
   const { chargerDonnees, isLoading } = useStockStore();
@@ -72,16 +71,6 @@ export const GestionStock: React.FC = () => {
               <History size={18} />
               <span>Historique Mouvements</span>
             </button>
-            <button
-              onClick={() => setActiveTab('fournisseurs')} // Placeholder for future implementation
-              className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'fournisseurs'
-                ? 'border-orange-500 text-orange-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-            >
-              <Users size={18} />
-              <span>Fournisseurs</span>
-            </button>
           </nav>
         </div>
 
@@ -91,9 +80,6 @@ export const GestionStock: React.FC = () => {
           )}
           {activeTab === 'mouvements' && (
             <MouvementsList />
-          )}
-          {activeTab === 'fournisseurs' && (
-            <FournisseurList />
           )}
         </div>
       </div>
