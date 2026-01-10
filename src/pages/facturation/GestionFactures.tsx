@@ -353,6 +353,29 @@ export const GestionFactures: React.FC = () => {
     </div>
   );
 
+  // --- Sélection multiple pour calcul total ---
+  const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([]);
+
+  const toggleSelectInvoice = (id: string) => {
+    setSelectedInvoiceIds(prev =>
+      prev.includes(id)
+        ? prev.filter(invoiceId => invoiceId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedInvoiceIds.length === clientInvoices.length) {
+      setSelectedInvoiceIds([]);
+    } else {
+      setSelectedInvoiceIds(clientInvoices.map(f => f.id));
+    }
+  };
+
+  const totalSelectedAmount = clientInvoices
+    .filter(f => selectedInvoiceIds.includes(f.id))
+    .reduce((sum, f) => sum + (f.netAPayer ?? f.totalTTC), 0);
+
   const renderClientDetails = () => (
     <div className="space-y-6 animate-in slide-in-from-right duration-300">
       {/* Header Navigation */}
@@ -403,12 +426,23 @@ export const GestionFactures: React.FC = () => {
       {/* Filters & Content */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Icon icon="mdi:account-details" className="text-purple-600" />
-              {selectedClient?.nom}
-            </h2>
-            <p className="text-sm text-gray-500">Historique des commandes et règlements</p>
+          <div className="flex items-center gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Icon icon="mdi:account-details" className="text-purple-600" />
+                {selectedClient?.nom}
+              </h2>
+              <p className="text-sm text-gray-500">Historique des commandes et règlements</p>
+            </div>
+
+            {/* Somme sélectionnée */}
+            {selectedInvoiceIds.length > 0 && (
+              <div className="bg-purple-100 border border-purple-200 px-4 py-2 rounded-lg flex items-center gap-3 animate-in fade-in zoom-in duration-200">
+                <span className="text-purple-700 font-medium text-sm">{selectedInvoiceIds.length} sélectionnée(s)</span>
+                <div className="h-4 w-px bg-purple-300"></div>
+                <span className="text-purple-900 font-bold text-lg">Total: {formatCurrency(totalSelectedAmount)}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex bg-gray-100 p-1 rounded-lg">
@@ -437,6 +471,14 @@ export const GestionFactures: React.FC = () => {
           <table className="w-full text-left">
             <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-medium">
               <tr>
+                <th className="px-6 py-3 w-4">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    checked={clientInvoices.length > 0 && selectedInvoiceIds.length === clientInvoices.length}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">N° Facture</th>
                 <th className="px-6 py-3 text-center">Livrés</th>
@@ -449,7 +491,7 @@ export const GestionFactures: React.FC = () => {
             <tbody className="divide-y divide-gray-100">
               {clientInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
                     <Icon icon="mdi:file-hidden" className="text-4xl mx-auto mb-2" />
                     Aucune facture trouvée pour cette période
                   </td>
@@ -460,7 +502,15 @@ export const GestionFactures: React.FC = () => {
                   const totalRetournee = facture.lignes.reduce((sum, l) => sum + l.quantiteRetournee, 0);
 
                   return (
-                    <tr key={facture.id} className="hover:bg-gray-50 group">
+                    <tr key={facture.id} className={`hover:bg-gray-50 group border-b border-gray-100 ${selectedInvoiceIds.includes(facture.id) ? 'bg-purple-50 hover:bg-purple-50' : ''}`}>
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                          checked={selectedInvoiceIds.includes(facture.id)}
+                          onChange={() => toggleSelectInvoice(facture.id)}
+                        />
+                      </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">
                         {new Date(facture.dateLivraison).toLocaleDateString('fr-FR')}
                       </td>
@@ -584,8 +634,10 @@ export const GestionFactures: React.FC = () => {
   const [showRetourModal, setShowRetourModal] = useState(false);
   const [facturePourRetour, setFacturePourRetour] = useState<Facture | null>(null);
 
+
+
   const SaisieRetourModal = () => {
-    const { sauvegarderRetoursClient } = useLivraisonStore();
+    const { sauvegarderRetoursClient, marquerAucunRetourClient } = useLivraisonStore();
     const [valeursRetours, setValeursRetours] = useState<Record<string, number>>({});
     const [isSaving, setIsSaving] = useState(false);
 
@@ -636,6 +688,31 @@ export const GestionFactures: React.FC = () => {
       }
     };
 
+    const handleAucunRetour = async () => {
+      console.log("Validation sans retour cliquée...");
+      setIsSaving(true);
+      const loadingToast = toast.loading('Validation en cours...');
+      try {
+        console.log("Appel de marquerAucunRetourClient...");
+        await marquerAucunRetourClient(
+          facturePourRetour.clientId,
+          new Date(facturePourRetour.dateLivraison)
+        );
+        console.log("Retour marqué. Actualisation factures...");
+
+        await actualiserStatutsFactures();
+        await chargerFactures(undefined, undefined, true);
+
+        toast.success('Validé : Aucun retour', { id: loadingToast });
+        setShowRetourModal(false);
+      } catch (e) {
+        console.error("Erreur handleAucunRetour:", e);
+        toast.error('Erreur lors de la validation', { id: loadingToast });
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
@@ -646,7 +723,7 @@ export const GestionFactures: React.FC = () => {
             </button>
           </div>
           <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
-            <p className="text-sm text-gray-500 mb-4">Date : {new Date(facturePourRetour.dateLivraison).toLocaleDateString()}</p>
+            <p className="text-sm text-gray-500 mb-4">Date : {new Date(facturePourRetour.dateLivraison).toLocaleDateString('fr-FR')}</p>
             {facturePourRetour.lignes.map(ligne => (
               <div key={ligne.produitId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
@@ -667,9 +744,19 @@ export const GestionFactures: React.FC = () => {
               </div>
             ))}
           </div>
-          <div className="p-4 border-t border-gray-100 flex justify-end gap-2 bg-gray-50">
-            <Button variant="outline" onClick={() => setShowRetourModal(false)}>Annuler</Button>
-            <Button onClick={handleSave} isLoading={isSaving}>Enregistrer</Button>
+          <div className="p-4 border-t border-gray-100 flex justify-between gap-2 bg-gray-50">
+            <Button
+              variant="secondary"
+              onClick={handleAucunRetour}
+              className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+              isLoading={isSaving}
+            >
+              Valider sans retours
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowRetourModal(false)}>Annuler</Button>
+              <Button onClick={handleSave} isLoading={isSaving}>Enregistrer</Button>
+            </div>
           </div>
         </div>
       </div>
@@ -752,8 +839,8 @@ export const GestionFactures: React.FC = () => {
               <button
                 onClick={() => setMode('add')}
                 className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${mode === 'add'
-                    ? 'bg-white text-green-600 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-green-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
                   }`}
               >
                 Ajouter
@@ -761,8 +848,8 @@ export const GestionFactures: React.FC = () => {
               <button
                 onClick={() => setMode('remove')}
                 className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${mode === 'remove'
-                    ? 'bg-white text-red-600 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-red-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
                   }`}
               >
                 Retirer / Corriger

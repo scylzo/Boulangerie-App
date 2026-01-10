@@ -155,11 +155,17 @@ export const FournisseurList: React.FC = () => {
                 {[
                   'Matières Premières',
                   'Emballage',
-                  'Matériel & Équipement',
-                  'Maintenance & Entretien',
-                  'Carburant',
+                  'Intrants',
+                  'Carburant Véhicule',
+                  'Carburant Four',
+                  'Électricité',
+                  'Eau',
+                  'Loyer',
+                  'Salaires',
+                  'Entretien',
+                  'Marketing',
+                  'Transport',
                   'Services',
-                  'Énergie',
                   'Divers'
                 ].map(cat => {
                   const isSelected = formData.categories.split(',').map(c => c.trim()).includes(cat);
@@ -178,8 +184,8 @@ export const FournisseurList: React.FC = () => {
                         setFormData({ ...formData, categories: newCats.join(', ') });
                       }}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isSelected
-                          ? 'bg-orange-100 text-orange-700 border-orange-200'
-                          : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                        ? 'bg-orange-100 text-orange-700 border-orange-200'
+                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                         }`}
                     >
                       {cat}

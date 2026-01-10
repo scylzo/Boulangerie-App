@@ -110,15 +110,35 @@ export const useDepenseStore = create<DepenseStore>()(
             ajouterDepense: async (nouveauRecu) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const depenseData = {
+                    // Préparer les données en excluant les champs undefined
+                    const depenseData: any = {
                         ...nouveauRecu,
                         createdAt: Timestamp.now(),
                         updatedAt: Timestamp.now(),
-                        // Assurer que la date est stockée en Timestamp
                         date: Timestamp.fromDate(nouveauRecu.date),
-                        ...(nouveauRecu.dateDebutUsage ? { dateDebutUsage: Timestamp.fromDate(nouveauRecu.dateDebutUsage) } : {}),
-                        ...(nouveauRecu.dateFinUsage ? { dateFinUsage: Timestamp.fromDate(nouveauRecu.dateFinUsage) } : {})
                     };
+
+                    // Conversion explicite et nettoyage des champs optionnels
+                    if (nouveauRecu.dateDebutUsage) {
+                        depenseData.dateDebutUsage = Timestamp.fromDate(nouveauRecu.dateDebutUsage);
+                    } else {
+                        delete depenseData.dateDebutUsage;
+                    }
+
+                    if (nouveauRecu.dateFinUsage) {
+                        depenseData.dateFinUsage = Timestamp.fromDate(nouveauRecu.dateFinUsage);
+                    } else {
+                        delete depenseData.dateFinUsage;
+                    }
+
+                    if (depenseData.fournisseur === undefined) {
+                        delete depenseData.fournisseur;
+                    }
+
+                    // Nettoyage générique final pour sécurité
+                    Object.keys(depenseData).forEach(key =>
+                        depenseData[key] === undefined && delete depenseData[key]
+                    );
 
                     const docRef = await addDoc(collection(db, 'depenses'), depenseData);
 
@@ -159,13 +179,19 @@ export const useDepenseStore = create<DepenseStore>()(
                 set({ isLoading: true, error: null });
                 try {
                     const docRef = doc(db, 'depenses', id);
-                    const updateData = {
+                    const updateData: any = {
                         ...updates,
-                        updatedAt: Timestamp.now(),
-                        ...(updates.date ? { date: Timestamp.fromDate(updates.date) } : {}),
-                        ...(updates.dateDebutUsage ? { dateDebutUsage: Timestamp.fromDate(updates.dateDebutUsage) } : {}),
-                        ...(updates.dateFinUsage ? { dateFinUsage: Timestamp.fromDate(updates.dateFinUsage) } : {})
+                        updatedAt: Timestamp.now()
                     };
+
+                    if (updates.date) updateData.date = Timestamp.fromDate(updates.date);
+                    if (updates.dateDebutUsage) updateData.dateDebutUsage = Timestamp.fromDate(updates.dateDebutUsage);
+                    if (updates.dateFinUsage) updateData.dateFinUsage = Timestamp.fromDate(updates.dateFinUsage);
+
+                    // Nettoyage générique
+                    Object.keys(updateData).forEach(key =>
+                        updateData[key] === undefined && delete updateData[key]
+                    );
 
                     await updateDoc(docRef, updateData);
 

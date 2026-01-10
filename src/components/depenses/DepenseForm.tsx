@@ -47,6 +47,8 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
     dateFinUsage: initialData?.dateFinUsage ? new Date(initialData.dateFinUsage).toISOString().split('T')[0] : ''
   });
 
+  const [showManualInput, setShowManualInput] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -173,8 +175,17 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
             <label className="block text-sm font-medium text-gray-700 mb-1">Fournisseur</label>
             <div className="flex gap-2">
               <select
-                value={fournisseurs.some(f => f.nom === formData.fournisseur) ? formData.fournisseur : ''}
-                onChange={e => setFormData({ ...formData, fournisseur: e.target.value })}
+                value={showManualInput ? 'autre' : (fournisseurs.some(f => f.nom === formData.fournisseur) ? formData.fournisseur : '')}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === 'autre') {
+                    setShowManualInput(true);
+                    setFormData({ ...formData, fournisseur: '' });
+                  } else {
+                    setShowManualInput(false);
+                    setFormData({ ...formData, fournisseur: val });
+                  }
+                }}
                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white"
               >
                 <option value="">-- Sélectionner ou saisir manuellement --</option>
@@ -184,16 +195,16 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
                 <option value="autre">Autre (Saisie manuelle)</option>
               </select>
             </div>
-            {(!fournisseurs.some(f => f.nom === formData.fournisseur) && formData.fournisseur !== '') || formData.fournisseur === 'autre' ? (
+            {(showManualInput || (formData.fournisseur !== '' && !fournisseurs.some(f => f.nom === formData.fournisseur))) && (
               <input
                 type="text"
-                value={formData.fournisseur === 'autre' ? '' : formData.fournisseur}
+                value={formData.fournisseur}
                 onChange={e => setFormData({ ...formData, fournisseur: e.target.value })}
                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none mt-2"
                 placeholder="Saisir le nom du fournisseur..."
-                autoFocus
+                autoFocus={showManualInput && formData.fournisseur === ''}
               />
-            ) : null}
+            )}
           </div>
 
           <button
