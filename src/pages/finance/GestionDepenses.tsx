@@ -68,7 +68,13 @@ export const GestionDepenses: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-500 font-medium">Total ce mois</h3>
+              <h3 className="text-gray-500 font-medium">{
+                dateFilter.debut === new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0] &&
+                  (dateFilter.fin === new Date().toISOString().split('T')[0] ||
+                    dateFilter.fin === new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
+                  ? 'Total ce mois'
+                  : 'Total sur la période'
+              }</h3>
               <div className="p-2 bg-red-50 text-red-600 rounded-lg">
                 <TrendingDown size={20} />
               </div>
