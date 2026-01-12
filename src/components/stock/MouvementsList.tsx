@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { ArrowDownLeft, ArrowUpRight, Search } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Search, Edit2, Trash2, AlertTriangle } from 'lucide-react';
 import type { MouvementStock } from '../../types';
+import { ConfirmModal } from '../ui/ConfirmModal';
+import { MouvementModal } from './MouvementModal';
 
 export const MouvementsList: React.FC = () => {
-  const { mouvements, matieres } = useStockStore();
+  const { mouvements, matieres, deleteMouvement } = useStockStore();
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Edit & Delete State
+  const [editingMouvement, setEditingMouvement] = useState<MouvementStock | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string }>({ isOpen: false, id: '' });
 
   // Enrichir les mouvements avec le nom de la matière
   const enrichedMouvements = mouvements.map(m => {
     const matiere = matieres.find(mat => mat.id === m.matiereId);
-
     return {
       ...m,
       matiereNom: matiere ? matiere.nom : 'Article Inconnu',
       matiereUnite: matiere ? matiere.unite : '',
+      matiere: matiere // On garde la ref entière pour le modal d'édition
     };
   });
 
@@ -22,6 +28,17 @@ export const MouvementsList: React.FC = () => {
     m.matiereNom.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (m.motif && m.motif.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const handleDelete = async () => {
+    if (!deleteConfirm.id) return;
+    try {
+      await deleteMouvement(deleteConfirm.id);
+      setDeleteConfirm({ isOpen: false, id: '' });
+    } catch (error) {
+      console.error(error);
+      alert("Impossible de supprimer ce mouvement");
+    }
+  };
 
   const getTypeStyle = (type: MouvementStock['type']) => {
     switch (type) {
@@ -65,48 +82,51 @@ export const MouvementsList: React.FC = () => {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              <th className="px-6 py-3">Date</th>
-              <th className="px-6 py-3">Article</th>
-              <th className="px-6 py-3">Type</th>
-              <th className="px-6 py-3">Auteur / Resp.</th>
-              <th className="px-6 py-3 text-right">Quantité</th>
-
-              <th className="px-6 py-3">Motif / Réf</th>
+              <th className="px-3 py-3 w-32">Date</th>
+              <th className="px-3 py-3">Article</th>
+              <th className="px-3 py-3">Type</th>
+              <th className="px-3 py-3 text-right">Quantité</th>
+              <th className="px-3 py-3">Réf / Motif</th>
+              <th className="px-3 py-3 w-20">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
             {filteredMouvements.map((m) => (
-              <tr key={m.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(m.date).toLocaleDateString('fr-FR')} <span className="text-xs">{new Date(m.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+              <tr key={m.id} className="hover:bg-gray-50 transition-colors group">
+                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex flex-col">
+                    <span className="font-medium">{new Date(m.date).toLocaleDateString('fr-FR')}</span>
+                    {new Date(m.date).getHours() !== 0 && new Date(m.date).getMinutes() !== 0 && (
+                      <span className="text-xs text-gray-400">
+                        {new Date(m.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {m.matiereNom}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeStyle(m.type)}`}>
+                <td className="px-3 py-4 whitespace-nowrap">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeStyle(m.type)}`}>
                     {getIcon(m.type)}
                     {m.type === 'achat' ? 'Entrée' : m.type.charAt(0).toUpperCase() + m.type.slice(1)}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div className="font-medium">{m.auteur || 'Inconnu'}</div>
-                  {m.responsable && <div className="text-xs text-gray-500 text-green-600">Validé par: {m.responsable}</div>}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                <td className="px-3 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
                   {/* Affichage Quantité */}
-                  <div className="font-medium text-gray-900">
+                  <div className="font-bold text-gray-900">
                     {m.quantite.toLocaleString('fr-FR')} {m.matiereUnite}
                   </div>
                   {/* Parsing du motif pour afficher les sacs si présents */}
                   {(() => {
-                    const sacMatch = m.motif && m.motif.match(/(\d+)\s*sacs?/i);
+                    // Cherche motifs du type "(3 sacs)" ou "2 sacs"
+                    const sacMatch = m.motif && m.motif.match(/(\d+(?:[.,]\d+)?)\s*sacs?/i);
                     const weightMatch = m.motif && m.motif.match(/de\s*(\d+)/i); // Cherche "de 50" dans "sacs de 50kg"
 
                     if (sacMatch) {
                       return (
                         <div className="text-xs text-blue-600 font-medium">
-                          {sacMatch[1]} sacs {weightMatch ? `de ${weightMatch[1]}kg` : ''}
+                          {sacMatch[1]} sacs {weightMatch ? `x ${weightMatch[1]}kg` : ''}
                         </div>
                       );
                     }
@@ -114,19 +134,39 @@ export const MouvementsList: React.FC = () => {
                   })()}
                 </td>
 
-                <td className="px-6 py-4 text-sm text-gray-500">
+                <td className="px-3 py-4 text-sm text-gray-500 max-w-xs truncate">
                   <div className="flex flex-col">
-                    <span>{m.motif || '-'}</span>
-                    {m.referenceDocument && (
-                      <span className="text-xs text-gray-400">Réf: {m.referenceDocument}</span>
-                    )}
+                    <span title={m.motif}>{m.motif || '-'}</span>
+                    <div className="flex gap-2 text-xs text-gray-400 mt-0.5">
+                      {m.referenceDocument && <span>Ref: {m.referenceDocument}</span>}
+                      {m.responsable && <span className="text-green-600">Validé: {m.responsable}</span>}
+                    </div>
+                  </div>
+                </td>
+
+                <td className="px-3 py-4 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => m.matiere && setEditingMouvement(m)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                      title="Modifier"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm({ isOpen: true, id: m.id })}
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                      title="Supprimer (Annule l'impact stock)"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </td>
               </tr>
             ))}
             {filteredMouvements.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                   Aucun mouvement trouvé.
                 </td>
               </tr>
@@ -134,6 +174,27 @@ export const MouvementsList: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, id: '' })}
+        onConfirm={handleDelete}
+        title="Supprimer ce mouvement ?"
+        message="Attention : Le stock de la matière première sera ajusté en conséquence (inversion du mouvement)."
+        confirmText="Supprimer et Ajuster Stock"
+        cancelText="Annuler"
+        type="danger"
+      />
+
+      {editingMouvement && editingMouvement.matiere && (
+        <MouvementModal
+          isOpen={true}
+          onClose={() => setEditingMouvement(null)}
+          selectedMatiere={editingMouvement.matiere}
+          initialData={editingMouvement}
+          isEditing={true}
+        />
+      )}
     </div>
   );
 };

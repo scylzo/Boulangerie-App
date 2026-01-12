@@ -7,14 +7,18 @@ interface MouvementModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedMatiere?: MatierePremiere;
+  initialData?: any; // Pour l'édition
+  isEditing?: boolean;
 }
 
 export const MouvementModal: React.FC<MouvementModalProps> = ({
   isOpen,
   onClose,
-  selectedMatiere
+  selectedMatiere,
+  initialData,
+  isEditing = false
 }) => {
-  const { addMouvement, fournisseurs } = useStockStore();
+  const { addMouvement, updateMouvement, fournisseurs } = useStockStore();
 
   const [formData, setFormData] = useState({
     type: 'achat' as TypeMouvement,
@@ -25,38 +29,72 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
     fournisseurId: '',
     referenceDocument: '',
     date: new Date().toISOString().split('T')[0],
-    inputUnit: 'initial' as string, // 'initial', 'sac', 'carton' or 'sachet'
+    inputUnit: 'initial' as string,
     bagWeight: 50,
     cartonWeight: 10,
     sachetWeight: 0.5
   });
 
   useEffect(() => {
-    // Reset form when modal opens or matiere changes
-    if (isOpen) {
-      setFormData({
-        type: 'achat',
-        quantite: '',
-        motif: '',
-        auteur: '',
-        responsable: '',
-        fournisseurId: '',
-        referenceDocument: '',
-        date: new Date().toISOString().split('T')[0],
-        inputUnit: selectedMatiere?.unite || 'kg',
-        bagWeight: 50,
-        cartonWeight: 10,
-        sachetWeight: 0.5
-      });
+    if (isOpen && selectedMatiere) {
+      if (isEditing && initialData) {
+        // Mode Édition : Charger les données
+        // Essayer de déduire l'unité d'entrée depuis le motif (ex: "3 sacs")
+        let inputUnit = selectedMatiere.unite;
+        let bagWeight = 50;
+        let qte = initialData.quantite;
+
+        // Simple heuristique pour pré-remplir le formulaire d'édition
+        // Si le motif contient "sac", on se met en mode sac
+        if (initialData.motif && initialData.motif.includes('sac')) {
+          inputUnit = 'sac';
+          // Trouver le poids approximatif si possible ou garder 50
+          // Si qte = 150 et on a 'sacs', alors c'est peut-être 3 sacs de 50.
+          // Mais pour l'édition "simple", on remet souvent en kg (unité de base) pour éviter des erreurs de conversion 
+          // SAUF si on veut vraiment éditer le nombre de sacs.
+          // Simplifions : on édite en unité de base (kg) par défaut, sauf si l'utilisateur change.
+          // Pour l'instant on laisse en unité de base pour l'édition pour ne pas casser la data.
+          inputUnit = selectedMatiere.unite;
+        }
+
+        setFormData({
+          type: initialData.type,
+          quantite: qte,
+          motif: initialData.motif || '',
+          auteur: initialData.auteur || '',
+          responsable: initialData.responsable || '',
+          fournisseurId: initialData.fournisseurId || '',
+          referenceDocument: initialData.referenceDocument || '',
+          date: new Date(initialData.date).toISOString().split('T')[0],
+          inputUnit: inputUnit,
+          bagWeight,
+          cartonWeight: 10,
+          sachetWeight: 0.5
+        });
+      } else {
+        // Mode Création (Reset)
+        setFormData({
+          type: 'achat',
+          quantite: '',
+          motif: '',
+          auteur: '',
+          responsable: '',
+          fournisseurId: '',
+          referenceDocument: '',
+          date: new Date().toISOString().split('T')[0],
+          inputUnit: selectedMatiere.unite,
+          bagWeight: 50,
+          cartonWeight: 10,
+          sachetWeight: 0.5
+        });
+      }
     }
-  }, [isOpen, selectedMatiere]);
+  }, [isOpen, selectedMatiere, isEditing, initialData]);
 
   if (!isOpen || !selectedMatiere) return null;
 
   const handleQuantiteChange = (val: string) => {
     const qty = val === '' ? '' : parseFloat(val);
-
-    // Mise à jour de la quantité
     setFormData({ ...formData, quantite: qty });
   };
 
@@ -67,33 +105,68 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
       let finalQuantity = Number(formData.quantite) || 0;
       let motifSuffix = '';
 
+      // Gestion conversion (seulement si on change l'unité d'input)
       if (formData.inputUnit === 'sac') {
         finalQuantity *= (Number(formData.bagWeight) || 1);
-        motifSuffix = ` (Entrée: ${formData.quantite} sacs de ${formData.bagWeight}kg)`;
+        motifSuffix = ` (${formData.quantite} sacs de ${formData.bagWeight}kg)`;
       } else if (formData.inputUnit === 'carton') {
         finalQuantity *= (Number(formData.cartonWeight) || 1);
-        motifSuffix = ` (Entrée: ${formData.quantite} cartons de ${formData.cartonWeight}kg)`;
+        motifSuffix = ` (${formData.quantite} cartons de ${formData.cartonWeight}kg)`;
       } else if (formData.inputUnit === 'sachet') {
         finalQuantity *= (Number(formData.sachetWeight) || 0.5);
         motifSuffix = ` (${formData.quantite} sachets de ${formData.sachetWeight}kg)`;
       }
 
-      await addMouvement({
-        date: new Date(formData.date),
+      // Nettoyage motif pour éviter duplication suffixes en édition
+      let finalMotif = formData.motif;
+      if (motifSuffix && !finalMotif.includes(motifSuffix)) {
+        // Si on ajoute, on concatène. Mais en édition attention.
+        // En édition, l'utilisateur voit déjà le motif complet, s'il ne le change pas, on le garde.
+        // S'il change la quantité/unité, on ajoute le suffixe.
+      }
+      // Simplification : si inputUnit est diff de base, on force le suffixe pour la clarté
+      if (formData.inputUnit !== selectedMatiere.unite) {
+        finalMotif += motifSuffix;
+      }
+
+      // create a new date object from formData.date (YYYY-MM-DD)
+      const submitDate = new Date(formData.date);
+      // If the selected date is today, use current time. Else default to noon or keep 00:00?
+      // User requested "heure correcte". If date is today, let's inject current time.
+      const now = new Date();
+      if (submitDate.toDateString() === now.toDateString()) {
+        submitDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+      } else {
+        // If past date, user probably meant that day. 00:00 is technically correct for "that day generally".
+        // But to avoid "00:00" looking like a bug, we could set it to 12:00? 
+        // Or just leave it and let the List component hide it if it's 00:00 (which we just did).
+        // However, if they edit, they might want to specify time? 
+        // The current input is type="date" so it strips time. 
+        // Let's stick to: "If Today -> Current Time". "If Other Day -> 00:00 (Hidden in List)".
+      }
+
+      const mouvementData = {
+        date: submitDate,
         matiereId: selectedMatiere.id,
         type: formData.type,
         quantite: finalQuantity,
-        motif: formData.motif + motifSuffix,
+        motif: finalMotif,
         auteur: formData.auteur,
         responsable: formData.responsable,
         referenceDocument: formData.referenceDocument,
         fournisseurId: formData.fournisseurId || undefined,
-        userId: 'current-user-id', // À remplacer par l'ID réel de l'utilisateur connecté
-      });
+        userId: 'current-user-id',
+      };
+
+      if (isEditing && initialData) {
+        await updateMouvement(initialData.id, mouvementData);
+      } else {
+        await addMouvement(mouvementData);
+      }
 
       onClose();
     } catch (error) {
-      console.error("Erreur lors de l'ajout du mouvement:", error);
+      console.error("Erreur lors de l'enregistrement:", error);
       alert("Erreur lors de l'enregistrement. Vérifiez votre connexion.");
     }
   };
@@ -105,7 +178,7 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md my-8 flex flex-col max-h-[90vh]">
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
           <h3 className="font-bold text-gray-800">
-            Mouvement de Stock : {selectedMatiere.nom}
+            {isEditing ? 'Modifier le Mouvement' : `Mouvement de Stock : ${selectedMatiere.nom}`}
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={20} />
@@ -139,39 +212,38 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
           </div>
 
           <div>
+            {/* Unit Selection is now available for all movement types */}
             <div className="flex justify-between mb-1">
               <label className="block text-sm font-medium text-gray-700">
                 {isSortie ? 'Quantité Sortante' : 'Quantité Entrante'}
               </label>
-              {formData.type === 'achat' && (
-                <div className="flex items-center space-x-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, inputUnit: selectedMatiere.unite })}
-                    className={`px-2 py-0.5 rounded ${formData.inputUnit === selectedMatiere.unite ? 'bg-orange-100 text-orange-700 font-bold' : 'text-gray-500 hover:bg-gray-100'}`}
-                  >
-                    {selectedMatiere.unite}
-                  </button>
-                  {(selectedMatiere.unite === 'kg' || selectedMatiere.unite === 'g') && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, inputUnit: 'sac' })}
-                        className={`px-2 py-0.5 rounded ${formData.inputUnit === 'sac' ? 'bg-orange-100 text-orange-700 font-bold' : 'text-gray-500 hover:bg-gray-100'}`}
-                      >
-                        Sac
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, inputUnit: 'carton' })}
-                        className={`px-2 py-0.5 rounded ${formData.inputUnit === 'carton' ? 'bg-orange-100 text-orange-700 font-bold' : 'text-gray-500 hover:bg-gray-100'}`}
-                      >
-                        Carton
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
+              <div className="flex items-center space-x-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, inputUnit: selectedMatiere.unite })}
+                  className={`px-2 py-0.5 rounded ${formData.inputUnit === selectedMatiere.unite ? 'bg-orange-100 text-orange-700 font-bold' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  {selectedMatiere.unite}
+                </button>
+                {(selectedMatiere.unite === 'kg' || selectedMatiere.unite === 'g') && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, inputUnit: 'sac' })}
+                      className={`px-2 py-0.5 rounded ${formData.inputUnit === 'sac' ? 'bg-orange-100 text-orange-700 font-bold' : 'text-gray-500 hover:bg-gray-100'}`}
+                    >
+                      Sac
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, inputUnit: 'carton' })}
+                      className={`px-2 py-0.5 rounded ${formData.inputUnit === 'carton' ? 'bg-orange-100 text-orange-700 font-bold' : 'text-gray-500 hover:bg-gray-100'}`}
+                    >
+                      Carton
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="flex gap-2">
@@ -203,7 +275,7 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
                   className="w-full p-1.5 text-sm border-orange-200 rounded focus:ring-1 focus:ring-orange-500 outline-none"
                 />
                 <p className="text-xs text-orange-600 mt-1">
-                  Total : <b>{(Number(formData.quantite) || 0) * (Number(formData.bagWeight) || 0)} kg</b> ajoutés au stock.
+                  Total : <b>{(Number(formData.quantite) || 0) * (Number(formData.bagWeight) || 0)} kg</b> {isSortie ? 'retirés du' : 'ajoutés au'} stock.
                 </p>
               </div>
             )}
@@ -220,7 +292,7 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
                   className="w-full p-1.5 text-sm border-blue-200 rounded focus:ring-1 focus:ring-blue-500 outline-none"
                 />
                 <p className="text-xs text-blue-600 mt-1">
-                  Total : <b>{(Number(formData.quantite) || 0) * (Number(formData.cartonWeight) || 0)} kg</b> ajoutés au stock.
+                  Total : <b>{(Number(formData.quantite) || 0) * (Number(formData.cartonWeight) || 0)} kg</b> {isSortie ? 'retirés du' : 'ajoutés au'} stock.
                 </p>
               </div>
             )}
@@ -322,7 +394,7 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
               className={`flex-1 px-4 py-2 rounded-lg text-white font-medium ${isSortie ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
                 }`}
             >
-              Valider {isSortie ? 'la Sortie' : "l'Entrée"}
+              Valider {isEditing ? 'la Modification' : (isSortie ? 'la Sortie' : "l'Entrée")}
             </button>
           </div>
         </form>

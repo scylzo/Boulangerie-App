@@ -18,6 +18,7 @@ interface FacturationStore {
 
   // Actions Factures
   genererFacturesDepuisLivraisons: (date: Date, commandesClients: CommandeClient[], retoursClients: InvendusClient[]) => Promise<void>;
+  genererFacturesPourClient: (clientId: string, dateReference?: Date) => Promise<void>;
   chargerFactures: (dateDebut?: Date, dateFin?: Date, background?: boolean) => Promise<void>;
   chargerFacturesAvecListener: (dateDebut?: Date, dateFin?: Date) => void;
   chargerFacture: (factureId: string) => Promise<void>;
@@ -369,6 +370,255 @@ export const useFacturationStore = create<FacturationStore>()(
         } catch (error) {
           set({ isLoading: false });
           console.error('❌ Erreur lors de la génération/mise à jour des factures:', error);
+          throw error;
+        }
+      },
+
+      genererFacturesPourClient: async (clientId: string, dateReference?: Date) => {
+        set({ isLoading: true });
+        try {
+          const { parametres } = get();
+          if (!parametres) {
+            // Tenter de charger les paramètres si manquants
+            await get().chargerParametres();
+            if (!get().parametres) throw new Error('Impossible de charger les paramètres de facturation');
+          }
+          const params = get().parametres!;
+
+          let dateDebut: Date;
+          let dateFin: Date | null = null; // null means no upper limit if defaulting to "recent"
+
+          if (dateReference) {
+            // 1er du mois
+            dateDebut = new Date(dateReference.getFullYear(), dateReference.getMonth(), 1);
+            dateDebut.setHours(0, 0, 0, 0);
+
+            // Dernier jour du mois
+            dateFin = new Date(dateReference.getFullYear(), dateReference.getMonth() + 1, 0);
+            dateFin.setHours(23, 59, 59, 999);
+          } else {
+            // Default: 60 days ago
+            dateDebut = new Date();
+            dateDebut.setDate(dateDebut.getDate() - 60);
+          }
+
+          // 1. Récupérer les commandes
+          console.log(`[DEBUG] Recherche commandes pour Client ${clientId} | Debut: ${dateDebut.toISOString()} | Fin: ${dateFin?.toISOString() || 'Aucune'}`);
+
+          let commandesQuery = query(
+            collection(db, 'clientOrders'),
+            where('clientId', '==', clientId),
+            where('dateLivraison', '>=', dateDebut),
+            orderBy('dateLivraison', 'asc')
+          );
+
+          if (dateFin) {
+            // Add upper bound if filtering by month
+            commandesQuery = query(
+              collection(db, 'clientOrders'),
+              where('clientId', '==', clientId),
+              where('dateLivraison', '>=', dateDebut),
+              where('dateLivraison', '<=', dateFin),
+              orderBy('dateLivraison', 'asc')
+            );
+          }
+
+          const commandesSnap = await getDocs(commandesQuery);
+          const commandes = commandesSnap.docs.map(d => ({ ...d.data(), id: d.id, dateLivraison: d.data().dateLivraison.toDate() })) as CommandeClient[];
+
+          console.log(`[DEBUG] Commandes trouvées: ${commandes.length}`);
+          if (commandes.length > 0) {
+            commandes.forEach(c => console.log(` - Commande ${c.id} du ${c.dateLivraison.toISOString()}`));
+          }
+
+          if (commandes.length === 0) {
+            console.log("Aucune commande trouvée pour cette période");
+            set({ isLoading: false });
+            return;
+          }
+
+          // 2. Récupérer les retours (invendus)
+          let retoursQuery = query(
+            collection(db, 'clientReturns'),
+            where('clientId', '==', clientId),
+            where('dateLivraison', '>=', dateDebut)
+          );
+
+          if (dateFin) {
+            retoursQuery = query(
+              collection(db, 'clientReturns'),
+              where('clientId', '==', clientId),
+              where('dateLivraison', '>=', dateDebut),
+              where('dateLivraison', '<=', dateFin)
+            );
+          }
+
+          const retoursSnap = await getDocs(retoursQuery);
+          const retours = retoursSnap.docs.map(d => ({ ...d.data(), id: d.id, dateLivraison: d.data().dateLivraison.toDate() })) as InvendusClient[];
+
+          // 3. Récupérer les factures existantes
+          let facturesQuery = query(
+            collection(db, 'factures'),
+            where('clientId', '==', clientId),
+            where('dateLivraison', '>=', dateDebut)
+          );
+
+          if (dateFin) {
+            facturesQuery = query(
+              collection(db, 'factures'),
+              where('clientId', '==', clientId),
+              where('dateLivraison', '>=', dateDebut),
+              where('dateLivraison', '<=', dateFin)
+            );
+          }
+
+          const facturesSnap = await getDocs(facturesQuery);
+          const facturesExistantes = facturesSnap.docs.map(d => ({ ...d.data(), id: d.id, dateLivraison: d.data().dateLivraison.toDate() } as Facture));
+
+          // 4. Grouper par date
+          const commandesParDate = new Map<string, CommandeClient[]>();
+          commandes.forEach(c => {
+            const dateStr = c.dateLivraison.toISOString().split('T')[0];
+            if (!commandesParDate.has(dateStr)) commandesParDate.set(dateStr, []);
+            commandesParDate.get(dateStr)!.push(c);
+          });
+
+          const misesAJour: Facture[] = [];
+          const nouvelles: Facture[] = [];
+
+          // 5. Itérer sur chaque date
+          for (const [dateStr, commandesJour] of commandesParDate) {
+            const dateObj = new Date(dateStr);
+            const factureExistante = facturesExistantes.find(f => f.dateLivraison.toISOString().split('T')[0] === dateStr);
+
+            // Si facture bloquée, skip
+            if (factureExistante && ['payee', 'envoyee', 'annulee'].includes(factureExistante.statut)) {
+              continue;
+            }
+
+            const retoursJour = retours.filter(r => r.dateLivraison.toISOString().split('T')[0] === dateStr);
+            const retoursCompletes = get().verifierRetoursCompletes(clientId, dateObj, retoursJour);
+
+            // Fetch info client (first command)
+            let clientInfo = commandesJour[0].client;
+
+            // Calcul lignes
+            const lignesMap = new Map<string, LigneFacture>();
+
+            for (const cmd of commandesJour) {
+              for (const pCmd of cmd.produits) {
+                const qte = Object.values(pCmd.repartitionCars || {}).reduce((s, q) => s + (Number(q) || 0), 0);
+                if (qte <= 0) continue;
+
+                const produitFull: any = pCmd.produit || { id: pCmd.produitId, nom: 'Produit Inconnu', prixUnitaire: 0 };
+                // Prix selon type client
+                const prixUnitaire = (clientInfo?.typeClient === 'client')
+                  ? (produitFull.prixClient || produitFull.prixUnitaire || 0)
+                  : (produitFull.prixBoutique || produitFull.prixUnitaire || 0);
+
+                if (lignesMap.has(pCmd.produitId)) {
+                  const l = lignesMap.get(pCmd.produitId)!;
+                  l.quantiteLivree += qte;
+                } else {
+                  // Chercher retour pour ce produit
+                  const retourProd = retoursJour.find(r => r.produits.some(rp => rp.produitId === pCmd.produitId));
+                  const retourItem = retourProd?.produits.find(rp => rp.produitId === pCmd.produitId);
+                  const qteRetour = retourItem?.invendus || 0;
+
+                  lignesMap.set(pCmd.produitId, {
+                    produitId: pCmd.produitId,
+                    produit: pCmd.produit,
+                    quantiteLivree: qte,
+                    quantiteRetournee: qteRetour,
+                    quantiteFacturee: 0,
+                    prixUnitaire,
+                    montantLigne: 0
+                  });
+                }
+              }
+            }
+
+            // Finaliser lignes
+            const lignes = Array.from(lignesMap.values()).map(l => {
+              const retourGlob = retoursJour.flatMap(r => r.produits).find(rp => rp.produitId === l.produitId);
+              if (retourGlob) l.quantiteRetournee = retourGlob.invendus || 0;
+
+              l.quantiteFacturee = Math.max(0, l.quantiteLivree - l.quantiteRetournee);
+              l.montantLigne = l.quantiteFacturee * l.prixUnitaire;
+              return l;
+            });
+
+            if (lignes.length === 0) continue;
+
+            const totaux = get().calculerTotauxFacture(lignes, params.tauxTVADefaut);
+
+            let soldeUtilise = 0;
+            if (factureExistante) soldeUtilise = factureExistante.soldeUtilise || 0;
+
+            const netAPayer = Math.max(0, totaux.totalTTC - soldeUtilise);
+
+            // Sauvegarde
+            const factureData = {
+              lignes,
+              ...totaux,
+              soldeUtilise,
+              netAPayer,
+              statut: retoursCompletes ? 'validee' : 'en_attente_retours',
+              retoursCompletes,
+              updatedAt: new Date()
+            } as any;
+
+            if (factureExistante) {
+              if (retoursCompletes && factureExistante.statut !== 'validee') factureData.validatedAt = new Date();
+              await updateDoc(doc(db, 'factures', factureExistante.id), factureData);
+              misesAJour.push({ ...factureExistante, ...factureData });
+            } else {
+              // Utiliser ID déterministe pour éviter les doublons: facture_CLIENTID_YYYY-MM-DD
+              const dateKey = dateObj.toISOString().split('T')[0];
+              const newId = `facture_${clientId}_${dateKey}`;
+
+              // Double check si cet ID existe déjà dans la liste (cas où la dateLivraison aurait un offset mais l'ID serait le même)
+              // Normalement 'factureExistante' au début de la boucle couvre cela, mais par sécurité.
+
+              const newFacture = {
+                id: newId,
+                numeroFacture: get().genererNumeroFacture(dateObj),
+                clientId,
+                client: clientInfo,
+                dateLivraison: dateObj,
+                dateFacture: new Date(),
+                ...factureData,
+                createdAt: new Date(),
+                conditionsPaiement: clientInfo?.conditionsPaiement || params.conditionsPaiementDefaut,
+                tauxTVA: params.tauxTVADefaut
+              };
+
+              // Utiliser setDoc avec merge: true pour écraser si existe déjà (idempotence)
+              await setDoc(doc(db, 'factures', newId), newFacture, { merge: true });
+              nouvelles.push(newFacture as Facture);
+            }
+          }
+
+          set(state => {
+            const facturesMisesAJour = state.factures.map(f => {
+              const updated = misesAJour.find(u => u.id === f.id);
+              return updated || f;
+            });
+
+            // Ajouter les nouvelles et dédupliquer par ID
+            const toutesLesFactures = [...facturesMisesAJour, ...nouvelles];
+            const facturesUniques = Array.from(new Map(toutesLesFactures.map(f => [f.id, f])).values());
+
+            return {
+              factures: facturesUniques,
+              isLoading: false
+            };
+          });
+
+
+        } catch (error) {
+          console.error(error);
+          set({ isLoading: false });
           throw error;
         }
       },

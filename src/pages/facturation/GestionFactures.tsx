@@ -6,7 +6,7 @@ import { FactureDetailsModal } from '../../components/factures/FactureDetailsMod
 import { PaymentModal } from '../../components/factures/PaymentModal';
 import { CalculateurRistourneModal } from '../../components/factures/CalculateurRistourneModal';
 import { useFacturationStore } from '../../store/facturationStore';
-import { useProductionStore } from '../../store/productionStore';
+
 import { useLivraisonStore } from '../../store/livraisonStore';
 import { useReferentielStore } from '../../store/referentielStore';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
@@ -17,7 +17,7 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 
 // Types pour la vue
-type ViewMode = 'clients_list' | 'client_details' | 'daily_generation';
+type ViewMode = 'clients_list' | 'client_details';
 
 export const GestionFactures: React.FC = () => {
   const {
@@ -26,7 +26,7 @@ export const GestionFactures: React.FC = () => {
     isLoading,
     chargerFactures,
     chargerParametres,
-    genererFacturesDepuisLivraisons,
+    genererFacturesPourClient,
     envoyerFacture,
     marquerPayee,
     annulerFacture,
@@ -35,8 +35,29 @@ export const GestionFactures: React.FC = () => {
     actualiserStatutsFactures
   } = useFacturationStore();
 
-  const { chargerProgramme } = useProductionStore();
-  const { chargerInvendusDuJour } = useLivraisonStore();
+  const [generatingClientId, setGeneratingClientId] = useState<string | null>(null);
+
+  const handleGenererFacturesClient = async (clientId: string) => {
+    const moisStr = selectedMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    if (await confirmModal.confirm({
+      title: 'Génération Factures',
+      message: `Générer/Actualiser les factures pour ${moisStr} ?`,
+      confirmText: 'Générer',
+      type: 'info'
+    })) {
+      setGeneratingClientId(clientId);
+      try {
+        await genererFacturesPourClient(clientId, selectedMonth);
+        toast.success("Factures mises à jour !");
+      } catch (e) {
+        console.error(e);
+        toast.error("Erreur lors de la génération");
+      } finally {
+        setGeneratingClientId(null);
+      }
+    }
+  };
+
   const { clients, chargerClients } = useReferentielStore();
   const confirmModal = useConfirmModal();
 
@@ -46,9 +67,7 @@ export const GestionFactures: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
   // États existants pour la génération et actions
-  const [dateSelectionnee, setDateSelectionnee] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+
   const [filtreStatut, setFiltreStatut] = useState<string>('tous');
   const [searchTerm, setSearchTerm] = useState('');
   const [showFactureDetails, setShowFactureDetails] = useState(false);
@@ -86,10 +105,12 @@ export const GestionFactures: React.FC = () => {
   // --- Logique Vue Clients ---
 
   const filteredClients = useMemo(() => {
-    return clients.filter(client =>
-      client.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.telephone?.includes(searchTerm)
-    );
+    return clients
+      .filter(client => client.active) // Exclure les clients inactifs
+      .filter(client =>
+        client.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.telephone?.includes(searchTerm)
+      );
   }, [clients, searchTerm]);
 
   // --- Logique Vue Détails Client ---
@@ -243,38 +264,7 @@ export const GestionFactures: React.FC = () => {
     }
   };
 
-  const handleGenererFactures = async () => {
-    try {
-      const date = new Date(dateSelectionnee);
-      const facturesExistantes = factures.filter(f =>
-        new Date(f.dateLivraison).toISOString().split('T')[0] === dateSelectionnee
-      );
 
-      if (facturesExistantes.length > 0) {
-        if (!await confirmModal.confirm({
-          title: 'Mise à jour',
-          message: `Mettre à jour les factures du ${new Date(dateSelectionnee).toLocaleDateString('fr-FR')} ?`,
-          confirmText: 'Mettre à jour',
-          type: 'warning'
-        })) return;
-      }
-
-      await chargerProgramme(date);
-      await chargerInvendusDuJour(date);
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      const programme = useProductionStore.getState().programmeActuel;
-      const commandes = programme?.commandesClients || [];
-      const invendus = useLivraisonStore.getState().invendusClients;
-
-      await genererFacturesDepuisLivraisons(date, commandes, invendus);
-      toast.success('✅ Génération terminée');
-      setViewMode('clients_list'); // Retour liste après génération
-    } catch (error) {
-      console.error(error);
-      toast.error(`❌ Erreur génération: ${error}`);
-    }
-  };
 
 
   // --- Render Functions ---
@@ -294,14 +284,7 @@ export const GestionFactures: React.FC = () => {
           />
         </div>
         <div className="flex gap-2">
-          <Button
-            onClick={() => setViewMode('daily_generation')}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Icon icon="mdi:calendar-refresh" className="text-xl" />
-            Génération Journalière
-          </Button>
+          {/* Bouton Ristournes uniquement */}
           <Button
             onClick={() => setShowRistourneModal(true)}
             variant="outline"
@@ -316,29 +299,29 @@ export const GestionFactures: React.FC = () => {
       {/* Grid of Clients */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredClients.map(client => {
-          // Calculer quelques stats rapides pour la carte client (optionnel mais sympa)
-          // On pourrait filtrer toutes les factures de ce client pour avoir le total dû à vie, mais attention aux perfs
           return (
             <div
               key={client.id}
-              onClick={() => handleSelectClient(client)}
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-purple-300 cursor-pointer transition-all group"
+              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all group relative"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center font-bold text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                  {client.nom.charAt(0).toUpperCase()}
+              <div
+                onClick={() => handleSelectClient(client)}
+                className="cursor-pointer"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center font-bold text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                    {client.nom.charAt(0).toUpperCase()}
+                  </div>
+                  <Icon icon="mdi:chevron-right" className="text-gray-300 group-hover:text-purple-500 text-2xl" />
                 </div>
-                <Icon icon="mdi:chevron-right" className="text-gray-300 group-hover:text-purple-500 text-2xl" />
+                <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">{client.nom}</h3>
+                <p className="text-sm text-gray-500 flex items-center gap-2 mb-4">
+                  <Icon icon="mdi:phone" className="text-gray-400" />
+                  {client.telephone || 'Non renseigné'}
+                </p>
               </div>
-              <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">{client.nom}</h3>
-              <p className="text-sm text-gray-500 flex items-center gap-2 mb-4">
-                <Icon icon="mdi:phone" className="text-gray-400" />
-                {client.telephone || 'Non renseigné'}
-              </p>
-              <div className="border-t border-gray-100 pt-4 flex justify-between items-center text-sm">
-                <span className="text-gray-500">Voir factures</span>
-                <span className="text-purple-600 font-medium group-hover:translate-x-1 transition-transform">Détails &rarr;</span>
-              </div>
+
+
             </div>
           );
         })}
@@ -445,25 +428,37 @@ export const GestionFactures: React.FC = () => {
             )}
           </div>
 
-          <div className="flex bg-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setFiltreStatut('tous')}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${filtreStatut === 'tous' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => selectedClient && handleGenererFacturesClient(selectedClient.id)}
+              isLoading={selectedClient ? generatingClientId === selectedClient.id : false}
+              className="bg-indigo-600 text-white hover:bg-indigo-700 h-9"
+              size="sm"
             >
-              Tout
-            </button>
-            <button
-              onClick={() => setFiltreStatut('payee')}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${filtreStatut === 'payee' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-            >
-              Payé
-            </button>
-            <button
-              onClick={() => setFiltreStatut('impayee')}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${filtreStatut === 'impayee' ? 'bg-white text-red-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-            >
-              Impayé
-            </button>
+              <Icon icon="mdi:refresh-auto" className="text-lg mr-2" />
+              Générer Factures
+            </Button>
+
+            <div className="flex bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setFiltreStatut('tous')}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${filtreStatut === 'tous' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              >
+                Tout
+              </button>
+              <button
+                onClick={() => setFiltreStatut('payee')}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${filtreStatut === 'payee' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              >
+                Payé
+              </button>
+              <button
+                onClick={() => setFiltreStatut('impayee')}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${filtreStatut === 'impayee' ? 'bg-white text-red-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              >
+                Impayé
+              </button>
+            </div>
           </div>
         </div>
 
@@ -572,6 +567,13 @@ export const GestionFactures: React.FC = () => {
                           >
                             <Icon icon="mdi:wallet-plus" />
                           </button>
+                          <button
+                            onClick={() => handleActionFacture('supprimer', facture)}
+                            className="p-2 hover:bg-red-100 rounded text-red-600"
+                            title="Supprimer"
+                          >
+                            <Icon icon="mdi:trash-can" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -581,51 +583,6 @@ export const GestionFactures: React.FC = () => {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-  );
-
-  const renderDailyGeneration = () => (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => setViewMode('clients_list')} className="p-2 hover:bg-gray-200 rounded-full">
-          <Icon icon="mdi:arrow-left" className="text-2xl" />
-        </button>
-        <h2 className="text-xl font-bold">Génération des Factures</h2>
-      </div>
-
-      <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 text-center space-y-6">
-        <div className="w-20 h-20 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto text-4xl">
-          <Icon icon="mdi:factory" />
-        </div>
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Générateur Quotidien</h3>
-          <p className="text-gray-500 max-w-md mx-auto">
-            Sélectionnez la date pour générer ou mettre à jour les factures basées sur les livraisons et les retours validés.
-          </p>
-        </div>
-
-        <div className="flex flex-col items-center gap-4 max-w-sm mx-auto">
-          <Input
-            type="date"
-            label="Date de facturation"
-            value={dateSelectionnee}
-            onChange={(e) => setDateSelectionnee(e.target.value)}
-            className="w-full text-center"
-          />
-          <Button
-            onClick={() => handleGenererFactures()}
-            isLoading={isLoading}
-            className="w-full py-3 text-lg shadow-xl shadow-orange-100"
-          >
-            <Icon icon="mdi:lightning-bolt" className="mr-2 text-2xl" />
-            Lancer la génération
-          </Button>
-        </div>
-
-        <p className="text-xs text-gray-400">
-          La génération peut prendre quelques secondes. Veuillez patienter.
-        </p>
       </div>
     </div>
   );
@@ -768,9 +725,7 @@ export const GestionFactures: React.FC = () => {
   const [facturePourAvoir, setFacturePourAvoir] = useState<Facture | null>(null);
 
   const SaisieAvoirModal = () => {
-    const { ajouterAvoirClient, genererFacturesDepuisLivraisons } = useFacturationStore();
-    const { commandesClients } = useProductionStore();
-    const { invendusClients } = useLivraisonStore();
+    const { ajouterAvoirClient, genererFacturesPourClient, chargerFactures } = useFacturationStore();
 
     const [montantAvoir, setMontantAvoir] = useState<string>('');
     const [mode, setMode] = useState<'add' | 'remove'>('add'); // 'add' ou 'remove'
@@ -798,13 +753,9 @@ export const GestionFactures: React.FC = () => {
         toast.success(message);
 
         // 2. Régénération pour mise à jour facture
-        const dateLivraison = new Date(facturePourAvoir.dateLivraison);
-        const commandesJours = commandesClients.filter(c =>
-          c.clientId === facturePourAvoir.clientId &&
-          new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString()
-        );
+        await genererFacturesPourClient(facturePourAvoir.clientId);
 
-        await genererFacturesDepuisLivraisons(dateLivraison, commandesJours, invendusClients);
+        // 3. Recharger les factures pour l'affichage
         await chargerFactures(undefined, undefined, true);
 
         toast.success('Facture mise à jour');
@@ -907,7 +858,7 @@ export const GestionFactures: React.FC = () => {
       <main className="max-w-7xl mx-auto">
         {viewMode === 'clients_list' && renderClientsList()}
         {viewMode === 'client_details' && renderClientDetails()}
-        {viewMode === 'daily_generation' && renderDailyGeneration()}
+
       </main>
 
       {/* Modals & Loaders */}

@@ -20,7 +20,7 @@ export const GestionClients: React.FC = () => {
     setClientEnEdition
   } = useReferentielStore();
 
-  const {  chargerLivreurs, getLivreurById } = useLivreurStore();
+  const { chargerLivreurs, getLivreurById } = useLivreurStore();
 
   const [showForm, setShowForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; clientId: string; clientNom: string }>({
@@ -107,23 +107,23 @@ export const GestionClients: React.FC = () => {
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
 
-      {/* Modal d'ajout/modification */}
-      {showForm && (
-        <Modal
-          isOpen={showForm}
-          onClose={handleAnnuler}
-          title={clientEnEdition ? 'Modifier le client' : 'Nouveau client'}
-          position="center"
-          size="lg"
-        >
-          <ClientForm
-            client={clientEnEdition}
-            onSave={clientEnEdition ? handleModifier : handleAjouter}
-            onCancel={handleAnnuler}
-            isLoading={isLoadingClients}
-          />
-        </Modal>
-      )}
+        {/* Modal d'ajout/modification */}
+        {showForm && (
+          <Modal
+            isOpen={showForm}
+            onClose={handleAnnuler}
+            title={clientEnEdition ? 'Modifier le client' : 'Nouveau client'}
+            position="center"
+            size="lg"
+          >
+            <ClientForm
+              client={clientEnEdition}
+              onSave={clientEnEdition ? handleModifier : handleAjouter}
+              onCancel={handleAnnuler}
+              isLoading={isLoadingClients}
+            />
+          </Modal>
+        )}
 
         {/* Section Liste des clients */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -192,11 +192,10 @@ export const GestionClients: React.FC = () => {
                               {client.nom}
                             </h3>
                             <div className="flex items-center gap-2">
-                              <span className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${
-                                client.active
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-red-100 text-red-700'
-                              }`}>
+                              <span className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${client.active
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700'
+                                }`}>
                                 <Icon icon={client.active ? 'mdi:check-circle' : 'mdi:pause-circle'} className="text-xs" />
                                 {client.active ? 'Actif' : 'Inactif'}
                               </span>
@@ -234,11 +233,10 @@ export const GestionClients: React.FC = () => {
                             <Icon icon="mdi:tag" className="text-gray-500 text-sm" />
                             <span className="text-xs font-medium text-gray-600">Type de client</span>
                           </div>
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-lg ${
-                            client.typeClient === 'client'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-purple-100 text-purple-800'
-                          }`}>
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-lg ${client.typeClient === 'client'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-purple-100 text-purple-800'
+                            }`}>
                             <Icon icon={client.typeClient === 'client' ? 'mdi:account-heart' : 'mdi:storefront'} className="text-xs" />
                             {getTypeClientLabel(client.typeClient)}
                           </span>
@@ -274,7 +272,7 @@ export const GestionClients: React.FC = () => {
                       )}
 
                       {/* Actions */}
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 mt-auto">
                         <button
                           onClick={() => handleEditer(client)}
                           disabled={showForm}

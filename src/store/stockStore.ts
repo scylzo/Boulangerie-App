@@ -39,8 +39,9 @@ interface StockState {
     deleteFournisseur: (id: string) => Promise<void>;
 
     // Actions Spécifiques
-    declarerConsommationJournee: (date: Date, consommations: { matiereId: string, quantite: number }[]) => Promise<void>;
-
+    declarerConsommationJournee: (date: Date, consommations: { matiereId: string, quantite: number, motif?: string }[]) => Promise<void>;
+    deleteMouvement: (id: string) => Promise<void>;
+    updateMouvement: (id: string, updates: Partial<MouvementStock>) => Promise<void>;
 
     // Getters / Selectors
     getMatiere: (id: string) => MatierePremiere | undefined;
@@ -291,15 +292,10 @@ export const useStockStore = create<StockState>((set, get) => ({
         }
     },
 
-    declarerConsommationJournee: async (date: Date, consommations: { matiereId: string, quantite: number }[]) => {
+    declarerConsommationJournee: async (date: Date, consommations: { matiereId: string, quantite: number, motif?: string }[]) => {
         set({ isLoading: true });
         try {
             console.log(`📝 Déclaration consommation pour ${date.toLocaleDateString()}:`, consommations.length, 'matières');
-
-            // On utilise une boucle séquentielle pour garantir l'ordre (ou Promise.all si on veut speed, mais attention lock)
-            // L'idéal serait une grosse transaction, mais Firestore limits writes/transactions.
-            // On va réutiliser addMouvement qui gère sa propre transaction par mouvement.
-            // C'est moins atomique globalement mais sûr par matière.
 
             for (const conso of consommations) {
                 if (conso.quantite > 0) {
@@ -307,7 +303,7 @@ export const useStockStore = create<StockState>((set, get) => ({
                         matiereId: conso.matiereId,
                         quantite: conso.quantite,
                         type: 'consommation',
-                        motif: 'Déclaration journalière',
+                        motif: conso.motif || 'Déclaration journalière',
                         auteur: 'Système', // Ou utilisateur connecté si dispo
                         responsable: 'Responsable Prod',
                         referenceDocument: `DECL-${date.toLocaleDateString('fr-CA')}`, // YYYY-MM-DD
@@ -322,6 +318,166 @@ export const useStockStore = create<StockState>((set, get) => ({
 
         } catch (error: any) {
             console.error('Erreur déclaration consommation:', error);
+            set({ isLoading: false, error: error.message });
+            throw error;
+        }
+    },
+
+    deleteMouvement: async (id: string) => {
+        set({ isLoading: true });
+        try {
+            await runTransaction(db, async (transaction) => {
+                const mouvementRef = doc(db, 'mouvements', id);
+                const mouvementDoc = await transaction.get(mouvementRef);
+                if (!mouvementDoc.exists()) throw new Error("Mouvement introuvable");
+
+                const mouvement = mouvementDoc.data() as MouvementStock;
+                const matiereRef = doc(db, 'matieres', mouvement.matiereId);
+                const matiereDoc = await transaction.get(matiereRef);
+
+                if (matiereDoc.exists()) {
+                    const matiere = matiereDoc.data() as MatierePremiere;
+                    let newStock = matiere.stockActuel;
+
+                    // Annuler l'effet du mouvement
+                    // Note: Dans la BDD, 'quantite' est stockée en positif souvent mais il faut vérifier la logique d'addMouvement
+                    // Dans addMouvement:
+                    // Achat -> +quantite
+                    // Conso/Perte -> -quantite (mais stocké comment ? 'signedQuantity' est calculé pour le stock, mais le mouvement a le champ quantite)
+                    // Regardons addMouvement: transaction.set(..., { quantite: finalQuantity }) où finalQuantity est positif
+                    // Et stock += signedQuantity.
+                    // Donc mouvement.quantite est la valeur ABSOLUE généralement.
+
+                    const qte = mouvement.quantite;
+
+                    if (mouvement.type === 'achat') {
+                        // C'était une entrée, donc on retire du stock
+                        newStock -= qte;
+                    } else if (['consommation', 'perte', 'retour_fournisseur'].includes(mouvement.type)) {
+                        // C'était une sortie, donc on ré-ajoute au stock
+                        newStock += qte;
+                    } else if (mouvement.type === 'correction') {
+                        // Correction: On suppose que c'était un ajout si positif (implémentation actuelle simple)
+                        // Si on veut être rigoureux faudrait stocker le delta signé. 
+                        // Mais pour l'instant 'correction' dans addMouvement fait += quantite.
+                        newStock -= qte;
+                    }
+
+                    transaction.update(matiereRef, {
+                        stockActuel: newStock,
+                        updatedAt: new Date()
+                    });
+                }
+
+                transaction.delete(mouvementRef);
+            });
+
+            await get().chargerDonnees();
+            console.log('✅ Mouvement supprimé');
+        } catch (error: any) {
+            console.error('Erreur suppression mouvement:', error);
+            set({ isLoading: false, error: error.message });
+            throw error;
+        }
+    },
+
+    updateMouvement: async (id: string, updates: Partial<MouvementStock>) => {
+        set({ isLoading: true });
+        try {
+            await runTransaction(db, async (transaction) => {
+                const mouvementRef = doc(db, 'mouvements', id);
+                const mouvementDoc = await transaction.get(mouvementRef);
+                if (!mouvementDoc.exists()) throw new Error("Mouvement introuvable");
+
+                const oldMouvement = mouvementDoc.data() as MouvementStock;
+
+                // Si la quantité ou le type change, il faut impacter le stock
+                const quantiteChange = updates.quantite !== undefined && updates.quantite !== oldMouvement.quantite;
+                const typeChange = updates.type !== undefined && updates.type !== oldMouvement.type;
+                const matiereChange = updates.matiereId !== undefined && updates.matiereId !== oldMouvement.matiereId;
+
+                if (quantiteChange || typeChange || matiereChange) {
+                    // Complexe : On annule l'ancien et on applique le nouveau
+                    // 1. Annuler l'ancien sur l'ancienne matière
+                    const oldMatiereRef = doc(db, 'matieres', oldMouvement.matiereId);
+                    const oldMatiereDoc = await transaction.get(oldMatiereRef);
+
+                    if (oldMatiereDoc.exists()) {
+                        let stockRevert = oldMatiereDoc.data().stockActuel;
+                        const oldQte = oldMouvement.quantite;
+
+                        if (oldMouvement.type === 'achat') stockRevert -= oldQte;
+                        else if (['consommation', 'perte', 'retour_fournisseur'].includes(oldMouvement.type)) stockRevert += oldQte;
+                        else if (oldMouvement.type === 'correction') stockRevert -= oldQte;
+
+                        transaction.update(oldMatiereRef, { stockActuel: stockRevert, updatedAt: new Date() });
+                    }
+
+                    // 2. Appliquer le nouveau sur la nouvelle (ou même) matière
+                    // Attention: Si c'est la même matière, il faut prendre le stockRevert comme base !
+                    const newMatiereId = updates.matiereId || oldMouvement.matiereId;
+                    let targetMatiereRef = oldMatiereRef;
+                    let targetStock = 0; // Il faudra le lire proprement
+
+                    if (newMatiereId === oldMouvement.matiereId) {
+                        // Même matière -> on réutilise le doc déjà lu (mais attention on a calculé stockRevert 'virtuellement' ci-dessus sans l'écrire encore dans 'transaction' state pour lecture suivante ?)
+                        // Firestore transactions : writes are applied at end. So subsequent gets() don't see previous writes inside tx unless we track it manually.
+                        // Ici on doit calculer : baseStock = (oldMatiereDoc.data().stockActuel) [Initial]
+                        // step1: baseStock - oldEffect
+                        // step2: baseStock - oldEffect + newEffect
+
+                        // Recalculons proprement
+                        if (oldMatiereDoc.exists()) {
+                            let currentStock = oldMatiereDoc.data().stockActuel;
+
+                            // Reverse Old
+                            if (oldMouvement.type === 'achat') currentStock -= oldMouvement.quantite;
+                            else if (['consommation', 'perte', 'retour_fournisseur'].includes(oldMouvement.type)) currentStock += oldMouvement.quantite;
+                            else if (oldMouvement.type === 'correction') currentStock -= oldMouvement.quantite;
+
+                            // Apply New
+                            const newType = updates.type || oldMouvement.type;
+                            const newQte = updates.quantite !== undefined ? updates.quantite : oldMouvement.quantite;
+
+                            if (newType === 'achat') currentStock += newQte;
+                            else if (['consommation', 'perte', 'retour_fournisseur'].includes(newType)) currentStock -= newQte;
+                            else if (newType === 'correction') currentStock += newQte;
+
+                            transaction.update(oldMatiereRef, { stockActuel: currentStock, updatedAt: new Date() });
+                        }
+                    } else {
+                        // Matière différente (Rare mais possible si erreur de saisie)
+                        // L'ancien stock a déjà été prévu d'être update ci-dessus (stockRevert).
+
+                        // Traitons la nouvelle matière
+                        const newMatRef = doc(db, 'matieres', newMatiereId);
+                        const newMatDoc = await transaction.get(newMatRef);
+
+                        if (newMatDoc.exists()) {
+                            let newMatStock = newMatDoc.data().stockActuel;
+                            const newType = updates.type || oldMouvement.type;
+                            const newQte = updates.quantite !== undefined ? updates.quantite : oldMouvement.quantite;
+
+                            if (newType === 'achat') newMatStock += newQte;
+                            else if (['consommation', 'perte', 'retour_fournisseur'].includes(newType)) newMatStock -= newQte;
+                            else if (newType === 'correction') newMatStock += newQte;
+
+                            transaction.update(newMatRef, { stockActuel: newMatStock, updatedAt: new Date() });
+                        }
+                    }
+                }
+
+                // Update du Mouvement lui-même
+                transaction.update(mouvementRef, {
+                    ...updates,
+                    updatedAt: new Date()
+                });
+            });
+
+            await get().chargerDonnees();
+            console.log('✅ Mouvement mis à jour');
+        } catch (error: any) {
+            console.error('Erreur mise à jour mouvement:', error);
             set({ isLoading: false, error: error.message });
             throw error;
         }
