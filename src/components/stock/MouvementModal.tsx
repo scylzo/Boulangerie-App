@@ -40,7 +40,7 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
       if (isEditing && initialData) {
         // Mode Édition : Charger les données
         // Essayer de déduire l'unité d'entrée depuis le motif (ex: "3 sacs")
-        let inputUnit = selectedMatiere.unite;
+        let inputUnit: string = selectedMatiere.unite;
         let bagWeight = 50;
         let qte = initialData.quantite;
 

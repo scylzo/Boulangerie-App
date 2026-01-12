@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { ArrowDownLeft, ArrowUpRight, Search, Edit2, Trash2, AlertTriangle } from 'lucide-react';
-import type { MouvementStock } from '../../types';
+import { ArrowDownLeft, ArrowUpRight, Search, Edit2, Trash2 } from 'lucide-react';
+import type { MouvementStock, MatierePremiere } from '../../types';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { MouvementModal } from './MouvementModal';
+
+type EnrichedMouvement = MouvementStock & {
+  matiereNom: string;
+  matiereUnite: string;
+  matiere?: MatierePremiere;
+};
 
 export const MouvementsList: React.FC = () => {
   const { mouvements, matieres, deleteMouvement } = useStockStore();
   const [searchTerm, setSearchTerm] = useState('');
 
   // Edit & Delete State
-  const [editingMouvement, setEditingMouvement] = useState<MouvementStock | null>(null);
+  const [editingMouvement, setEditingMouvement] = useState<EnrichedMouvement | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string }>({ isOpen: false, id: '' });
 
   // Enrichir les mouvements avec le nom de la matière

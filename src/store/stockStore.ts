@@ -416,8 +416,6 @@ export const useStockStore = create<StockState>((set, get) => ({
                     // 2. Appliquer le nouveau sur la nouvelle (ou même) matière
                     // Attention: Si c'est la même matière, il faut prendre le stockRevert comme base !
                     const newMatiereId = updates.matiereId || oldMouvement.matiereId;
-                    let targetMatiereRef = oldMatiereRef;
-                    let targetStock = 0; // Il faudra le lire proprement
 
                     if (newMatiereId === oldMouvement.matiereId) {
                         // Même matière -> on réutilise le doc déjà lu (mais attention on a calculé stockRevert 'virtuellement' ci-dessus sans l'écrire encore dans 'transaction' state pour lecture suivante ?)
