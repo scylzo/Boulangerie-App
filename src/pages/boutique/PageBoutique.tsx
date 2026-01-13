@@ -30,7 +30,8 @@ export const PageBoutique: React.FC = () => {
     supprimerProduitStock,
     rouvrirEquipeMatin,
     rouvrirEquipeSoir,
-    toggleModeJourneeContinue
+    toggleModeJourneeContinue,
+    validerVenteDirecte
   } = useBoutiqueStore();
 
   const [vendeuseMatin, setVendeuseMatin] = useState('');
@@ -52,6 +53,23 @@ export const PageBoutique: React.FC = () => {
   // État pour la modification
   const [productToEdit, setProductToEdit] = useState<{ id: string, nom: string, quantity: number } | null>(null);
   const [newQuantity, setNewQuantity] = useState(0);
+
+  // États pour Saisie Rapide
+  const [showFastSaleModal, setShowFastSaleModal] = useState(false);
+  const [showStartFastSaleConfirm, setShowStartFastSaleConfirm] = useState(false);
+  const [fastSaleValues, setFastSaleValues] = useState<Record<string, number>>({});
+
+  // Initialiser les valeurs de saisie rapide
+  React.useEffect(() => {
+    if (showFastSaleModal && stockJour) {
+      const initial: Record<string, number> = {};
+      stockJour.produits.forEach(p => {
+        const existing = equipeMatin?.produits.find(ep => ep.produitId === p.produitId);
+        initial[p.produitId] = existing ? existing.vendu : 0;
+      });
+      setFastSaleValues(initial);
+    }
+  }, [showFastSaleModal, stockJour, equipeMatin]);
 
   const dateActuelle = new Date(dateSelectionnee);
 
@@ -236,6 +254,15 @@ export const PageBoutique: React.FC = () => {
                     </span>
                   </div>
 
+                  {/* Bouton Saisie Rapide */}
+                  <button
+                    onClick={() => setShowFastSaleModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors shadow-sm"
+                  >
+                    <Icon icon="mdi:flash" className="text-lg" />
+                    <span className="font-medium">Saisie Rapide</span>
+                  </button>
+
                   <button
                     onClick={() => setShowAddProductModal(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
@@ -246,6 +273,139 @@ export const PageBoutique: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Modal Saisie Rapide (One Shot) */}
+            {showFastSaleModal && stockJour && (
+              <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl p-6 animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <Icon icon="mdi:flash-circle" className="text-purple-600" />
+                        Saisie Rapide des Ventes
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Validez les ventes de la journée en une seule fois. Cette action passera la boutique en mode "Journée Continue" et clôturera le service.
+                      </p>
+                    </div>
+                    <button onClick={() => setShowFastSaleModal(false)} className="text-gray-400 hover:text-gray-600">
+                      <Icon icon="mdi:close" className="text-2xl" />
+                    </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto pr-2 pb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {stockJour.produits.map(p => {
+                        const currentValue = fastSaleValues[p.produitId] ?? 0;
+                        const isFull = currentValue === p.stockDebut;
+
+                        return (
+                          <div key={p.produitId} className={`p-4 rounded-xl border transition-all ${isFull ? 'bg-purple-50 border-purple-200' : 'bg-white border-gray-200 hover:border-purple-200'}`}>
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${isFull ? 'bg-purple-200 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>
+                                <Icon icon={getProductIcon(p.produit?.nom || '')} className="text-xl" />
+                              </div>
+                              <div className="flex-1 overflow-hidden">
+                                <p className="font-bold text-gray-900 truncate" title={p.produit?.nom}>{p.produit?.nom}</p>
+                                <p className="text-xs text-gray-500">Stock: {p.stockDebut}</p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs font-medium text-gray-500">Vendu</span>
+                                <span className="font-bold text-lg text-gray-900">{currentValue}</span>
+                              </div>
+
+                              <input
+                                type="range"
+                                min="0"
+                                max={p.stockDebut}
+                                value={currentValue}
+                                onChange={(e) => setFastSaleValues(prev => ({ ...prev, [p.produitId]: parseInt(e.target.value) }))}
+                                className="w-full accent-purple-600 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                              />
+
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => setFastSaleValues(prev => ({ ...prev, [p.produitId]: 0 }))}
+                                  className="flex-1 py-1.5 text-xs font-medium bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                >
+                                  0
+                                </button>
+                                <button
+                                  onClick={() => setFastSaleValues(prev => ({ ...prev, [p.produitId]: p.stockDebut }))}
+                                  className={`flex-1 py-1.5 text-xs font-medium border rounded-lg transition-colors ${isFull ? 'bg-purple-600 text-white border-purple-600' : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'}`}
+                                >
+                                  Tout
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 mt-2 border-t border-gray-100 bg-white">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                      <div className="text-sm text-gray-500">
+                        <strong>{Object.keys(fastSaleValues).length}</strong> produits configurés
+                      </div>
+                      <div className="flex gap-3 w-full md:w-auto">
+                        <button
+                          onClick={() => {
+                            // Tout vendre
+                            const allSold: Record<string, number> = {};
+                            stockJour.produits.forEach(p => allSold[p.produitId] = p.stockDebut);
+                            setFastSaleValues(allSold);
+                          }}
+                          className="px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors font-medium text-sm"
+                        >
+                          Tout Vendre (100%)
+                        </button>
+                        <button
+                          onClick={() => setShowStartFastSaleConfirm(true)}
+                          className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 shadow-lg font-bold flex items-center gap-2 transition-all w-full md:w-auto justify-center"
+                        >
+                          <Icon icon="mdi:check-all" className="text-xl" />
+                          Valider et Clôturer
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <ConfirmModal
+              isOpen={showStartFastSaleConfirm}
+              onClose={() => setShowStartFastSaleConfirm(false)}
+              onConfirm={async () => {
+                try {
+                  await validerVenteDirecte(dateActuelle, fastSaleValues);
+                  setShowFastSaleModal(false);
+                  setFastSaleValues({});
+                } catch (e) {
+                  // Erreur gérée
+                  console.error(e);
+                }
+              }}
+              title="Confirmer la validation rapide"
+              message={
+                <div>
+                  <p>Vous êtes sur le point de valider les ventes pour toute la journée.</p>
+                  <p className="text-sm text-gray-500 mt-2">Cela va :</p>
+                  <ul className="text-sm text-gray-500 list-disc list-inside">
+                    <li>Basculer en mode "Journée Continue"</li>
+                    <li>Enregistrer les ventes saisies</li>
+                    <li>Clôturer la journée boutique</li>
+                  </ul>
+                </div>
+              }
+              confirmText="Valider et Clôturer"
+              type="warning"
+            />
 
             {/* Modal d'ajout manuel */}
             {showAddProductModal && (

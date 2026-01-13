@@ -22,6 +22,7 @@ interface BoutiqueStore {
   modifierQuantiteStock: (date: Date, produitId: string, nouvelleQuantite: number) => Promise<void>;
   supprimerProduitStock: (date: Date, produitId: string) => Promise<void>;
   toggleModeJourneeContinue: () => Promise<void>;
+  validerVenteDirecte: (date: Date, ventes: Record<string, number>) => Promise<void>;
   chargerProduits: () => Promise<void>;
 
   // Actions Équipes
@@ -657,6 +658,45 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     }
   },
 
+  validerVenteDirecte: async (date: Date, ventes: Record<string, number>) => {
+    set({ isLoading: true });
+    try {
+      const store = get();
+
+      // 1. Force Mode Journée Continue et update local
+      if (store.stockJour && !store.stockJour.isJourneeContinue) {
+        await store.toggleModeJourneeContinue();
+      }
+
+      // 2. Init Team
+      const freshStore = get();
+      if (!freshStore.equipeMatin) {
+        freshStore.commencerEquipeMatin("Vente Express", date);
+      } else if (freshStore.equipeMatin.statut === 'termine') {
+        freshStore.rouvrirEquipeMatin();
+      }
+
+      // 3. Apply sales
+      Object.entries(ventes).forEach(([prodId, qte]) => {
+        get().saisirVenteMatin(prodId, qte);
+      });
+
+      // 4. Terminate & Save
+      get().terminerEquipeMatin();
+      await get().sauvegarderEquipe('matin');
+
+      // 5. Finalize
+      get().calculerVentesBoutique();
+      await get().sauvegarderVentes();
+
+      set({ isLoading: false });
+    } catch (e) {
+      console.error("Erreur validation directe:", e);
+      set({ isLoading: false });
+      throw e;
+    }
+  },
+
   chargerProduits: async () => {
     try {
       const q = query(collection(db, 'produits'));
@@ -842,14 +882,16 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
   calculerVentesBoutique: () => {
     const { stockJour, equipeMatin, equipeSoir } = get();
 
-    if (!stockJour || !equipeMatin || !equipeSoir) return;
+    // En journee continue, equipeSoir peut etre null
+    if (!stockJour || !equipeMatin) return;
+    if (!stockJour.isJourneeContinue && !equipeSoir) return;
 
     const ventesJour: VentesBoutique = {
       id: `ventes_${stockJour.date.getTime()}`,
       date: stockJour.date,
       produits: stockJour.produits.map(stockProduit => {
         const produitMatin = equipeMatin.produits.find(p => p.produitId === stockProduit.produitId);
-        const produitSoir = equipeSoir.produits.find(p => p.produitId === stockProduit.produitId);
+        const produitSoir = equipeSoir?.produits.find(p => p.produitId === stockProduit.produitId);
 
         const venduMatin = produitMatin?.vendu || 0;
         const resteMidi = produitMatin?.reste || 0;
@@ -1064,18 +1106,29 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
 
       const snapshot = await getDocs(q);
 
-      // Somme des ventes totales (venduTotal * prixBoutique ?) 
-      // Attention: VentesBoutique contient 'produits' avec 'venduTotal'. 
-      // Mais on n'a pas le prix stocké dans VentesBoutique.produits (si, on a juste produitId, stockDebut, etc. et une copie de produit?).
-      // Regardons 'creerStockJour' -> 'produits.map... produit: p.produit'.
-      // Donc oui, l'objet 'produit' complet est stocké dans 'ventesJour.produits[].produit'.
+      // Assurer que le catalogue produits est chargé pour le fallback de prix
+      if (get().produits.length === 0) {
+        await get().chargerProduits();
+      }
+      const catalogue = get().produits;
+
+      console.log(`📊 Calcul Recettes Boutique: ${snapshot.size} rapports de ventes trouvés.`);
 
       let totalPeriode = 0;
 
       snapshot.docs.forEach(doc => {
         const data = doc.data() as VentesBoutique;
         const totalJour = data.produits.reduce((acc, p) => {
-          const prix = p.produit?.prixBoutique || p.produit?.prixUnitaire || 0;
+          // Prix prioritaire: celui stocké dans la vente. Sinon: catalogue.
+          let prix = p.produit?.prixBoutique || p.produit?.prixUnitaire || 0;
+
+          if (!prix && p.produitId) {
+            const inCat = catalogue.find(cp => cp.id === p.produitId);
+            if (inCat) {
+              prix = inCat.prixBoutique || inCat.prixUnitaire || 0;
+            }
+          }
+
           return acc + (p.venduTotal * prix);
         }, 0);
         totalPeriode += totalJour;

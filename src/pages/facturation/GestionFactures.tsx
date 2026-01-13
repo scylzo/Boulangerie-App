@@ -474,6 +474,7 @@ export const GestionFactures: React.FC = () => {
                     onChange={toggleSelectAll}
                   />
                 </th>
+                <th className="px-6 py-3 text-center w-16">Jour</th>
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">N° Facture</th>
                 <th className="px-6 py-3 text-center">Livrés</th>
@@ -484,33 +485,48 @@ export const GestionFactures: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {clientInvoices.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
-                    <Icon icon="mdi:file-hidden" className="text-4xl mx-auto mb-2" />
-                    Aucune facture trouvée pour cette période
-                  </td>
-                </tr>
-              ) : (
-                clientInvoices.map((facture) => {
-                  const totalLivree = facture.lignes.reduce((sum, l) => sum + l.quantiteLivree, 0);
-                  const totalRetournee = facture.lignes.reduce((sum, l) => sum + l.quantiteRetournee, 0);
+              {(() => {
+                const daysInMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0).getDate();
+                const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+                return daysArray.map((day) => {
+                  const dateOfDay = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), day);
+                  const invoice = clientInvoices.find(f => new Date(f.dateLivraison).getDate() === day);
+
+                  if (!invoice) {
+                    return (
+                      <tr key={`day-${day}`} className="hover:bg-gray-50 border-b border-gray-100 bg-gray-50/50">
+                        <td className="px-6 py-4"></td>
+                        <td className="px-6 py-4 text-center font-bold text-gray-400">{day}</td>
+                        <td className="px-6 py-4 text-sm text-gray-400">
+                          {dateOfDay.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        </td>
+                        <td colSpan={6} className="px-6 py-4 text-sm text-gray-300 italic">
+                          Aucune commande
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  const totalLivree = invoice.lignes.reduce((sum, l) => sum + l.quantiteLivree, 0);
+                  const totalRetournee = invoice.lignes.reduce((sum, l) => sum + l.quantiteRetournee, 0);
 
                   return (
-                    <tr key={facture.id} className={`hover:bg-gray-50 group border-b border-gray-100 ${selectedInvoiceIds.includes(facture.id) ? 'bg-purple-50 hover:bg-purple-50' : ''}`}>
+                    <tr key={invoice.id} className={`hover:bg-gray-50 group border-b border-gray-100 ${selectedInvoiceIds.includes(invoice.id) ? 'bg-purple-50 hover:bg-purple-50' : ''}`}>
                       <td className="px-6 py-4">
                         <input
                           type="checkbox"
                           className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
-                          checked={selectedInvoiceIds.includes(facture.id)}
-                          onChange={() => toggleSelectInvoice(facture.id)}
+                          checked={selectedInvoiceIds.includes(invoice.id)}
+                          onChange={() => toggleSelectInvoice(invoice.id)}
                         />
                       </td>
+                      <td className="px-6 py-4 text-center font-bold text-gray-700">{day}</td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        {new Date(facture.dateLivraison).toLocaleDateString('fr-FR')}
+                        {new Date(invoice.dateLivraison).toLocaleDateString('fr-FR')}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {facture.numeroFacture}
+                        {invoice.numeroFacture}
                       </td>
                       <td className="px-6 py-4 text-center text-sm">
                         <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md font-medium text-xs">
@@ -527,29 +543,29 @@ export const GestionFactures: React.FC = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
-                        {formatCurrency(facture.totalTTC)}
+                        {formatCurrency(invoice.totalTTC)}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold block w-fit ${getStatutColor(facture.statut)}`}>
-                          {getStatutLibelle(facture.statut)}
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold block w-fit ${getStatutColor(invoice.statut)}`}>
+                          {getStatutLibelle(invoice.statut)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-1">
-                          <button onClick={() => handleActionFacture('voir', facture)} className="p-2 hover:bg-gray-200 rounded text-gray-600" title="Détails">
+                          <button onClick={() => handleActionFacture('voir', invoice)} className="p-2 hover:bg-gray-200 rounded text-gray-600" title="Détails">
                             <Icon icon="mdi:eye" />
                           </button>
-                          <button onClick={() => handleActionFacture('pdf', facture)} className="p-2 hover:bg-gray-200 rounded text-gray-600" title="PDF">
+                          <button onClick={() => handleActionFacture('pdf', invoice)} className="p-2 hover:bg-gray-200 rounded text-gray-600" title="PDF">
                             <Icon icon="mdi:file-pdf-box" />
                           </button>
-                          {facture.statut !== 'payee' && facture.statut !== 'annulee' && (
-                            <button onClick={() => handleActionFacture('payer', facture)} className="p-2 hover:bg-green-100 rounded text-green-600" title="Payer">
+                          {invoice.statut !== 'payee' && invoice.statut !== 'annulee' && (
+                            <button onClick={() => handleActionFacture('payer', invoice)} className="p-2 hover:bg-green-100 rounded text-green-600" title="Payer">
                               <Icon icon="mdi:cash-check" />
                             </button>
                           )}
                           <button
                             onClick={() => {
-                              setFacturePourRetour(facture);
+                              setFacturePourRetour(invoice);
                               setShowRetourModal(true);
                             }}
                             className="p-2 hover:bg-orange-100 rounded text-orange-600"
@@ -559,7 +575,7 @@ export const GestionFactures: React.FC = () => {
                           </button>
                           <button
                             onClick={() => {
-                              setFacturePourAvoir(facture);
+                              setFacturePourAvoir(invoice);
                               setShowAvoirModal(true);
                             }}
                             className="p-2 hover:bg-blue-100 rounded text-blue-600"
@@ -568,7 +584,7 @@ export const GestionFactures: React.FC = () => {
                             <Icon icon="mdi:wallet-plus" />
                           </button>
                           <button
-                            onClick={() => handleActionFacture('supprimer', facture)}
+                            onClick={() => handleActionFacture('supprimer', invoice)}
                             className="p-2 hover:bg-red-100 rounded text-red-600"
                             title="Supprimer"
                           >
@@ -578,8 +594,8 @@ export const GestionFactures: React.FC = () => {
                       </td>
                     </tr>
                   );
-                })
-              )}
+                });
+              })()}
             </tbody>
           </table>
         </div>
