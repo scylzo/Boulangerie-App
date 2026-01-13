@@ -1,9 +1,11 @@
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import React, { useState, useEffect } from 'react';
 import { useDepenseStore } from '../../store/depenseStore';
 import { DepenseForm } from '../../components/depenses/DepenseForm';
 import { DepenseList } from '../../components/depenses/DepenseList';
 import { FournisseurList } from '../../components/stock/FournisseurList';
-import { TrendingDown, Plus, Users, Wallet } from 'lucide-react';
+import { TrendingDown, Plus, Users, Wallet, FileText } from 'lucide-react';
 import type { Depense } from '../../types/depense';
 
 export const GestionDepenses: React.FC = () => {
@@ -15,7 +17,7 @@ export const GestionDepenses: React.FC = () => {
     fin: new Date().toISOString().split('T')[0]
   });
 
-  const { chargerDepenses, getTotalDepenses, getDepensesParCategorie, getDepensesProRata } = useDepenseStore();
+  const { chargerDepenses, getTotalDepenses, getDepensesParCategorie, getDepensesProRata, depenses } = useDepenseStore();
 
   useEffect(() => {
     if (dateFilter.debut && dateFilter.fin) {
@@ -43,6 +45,110 @@ export const GestionDepenses: React.FC = () => {
     setEditingDepense(null);
   };
 
+  const genererRapportPDF = () => {
+    const doc = new jsPDF();
+
+    const formatPdfCurrency = (amount: number) => {
+      return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + ' FCFA';
+    };
+
+    // --- EN-TÊTE ---
+    doc.setFillColor(230, 126, 34); // Orange (comme le thème dépenses)
+    doc.rect(0, 0, 210, 40, 'F');
+
+    doc.setFontSize(24);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.text("RAPPORT DÉPENSES", 105, 20, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Période : ${new Date(dateFilter.debut).toLocaleDateString('fr-FR')} au ${new Date(dateFilter.fin).toLocaleDateString('fr-FR')}`, 105, 30, { align: 'center' });
+
+    const generatedDate = `Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`;
+    doc.setFontSize(8);
+    doc.text(generatedDate, 200, 38, { align: 'right' });
+
+    let finalY = 50;
+
+    // 1. SYNTHÈSE
+    doc.setFontSize(14);
+    doc.setTextColor(192, 57, 43); // Rouge foncé
+    doc.setFont("helvetica", "bold");
+    doc.text("1. Synthèse", 14, finalY);
+
+    const summaryData = [
+      ['Total Dépenses', formatPdfCurrency(totalDepenses)],
+      ...Object.entries(parCategorie).map(([cat, montant]) => [cat, formatPdfCurrency(montant)])
+    ];
+
+    autoTable(doc, {
+      startY: finalY + 5,
+      head: [['Catégorie', 'Montant']],
+      body: summaryData,
+      theme: 'grid',
+      headStyles: { fillColor: [192, 57, 43], halign: 'left' },
+      columnStyles: {
+        0: { cellWidth: 100, fontStyle: 'bold' },
+        1: { halign: 'right' }
+      },
+      didParseCell: function (data) {
+        if (data.row.index === 0 && data.section === 'body') {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [253, 237, 236];
+        }
+      }
+    });
+
+    finalY = (doc as any).lastAutoTable.finalY + 15;
+
+    // 2. DÉTAIL DES DÉPENSES
+    doc.setFontSize(14);
+    doc.setTextColor(44, 62, 80);
+    doc.text("2. Liste des Dépenses", 14, finalY);
+
+    // Filtrer et trier les dépenses
+    const depensesTriees = [...depenses]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const detailsData = depensesTriees.map(d => [
+      new Date(d.date).toLocaleDateString('fr-FR'),
+      d.categorie,
+      d.description,
+      d.fournisseur || '-',
+      formatPdfCurrency(d.montant)
+    ]);
+
+    autoTable(doc, {
+      startY: finalY + 5,
+      head: [['Date', 'Catégorie', 'Description', 'Fournisseur', 'Montant']],
+      body: detailsData,
+      theme: 'striped',
+      headStyles: { fillColor: [44, 62, 80] },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 50 },
+        3: { cellWidth: 40 },
+        4: { halign: 'right', fontStyle: 'bold' }
+      },
+      styles: { fontSize: 9 }
+    });
+
+    // Pied de page
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(`Page ${i} / ${pageCount}`, 105, 290, { align: 'center' });
+      doc.text("Boulangerie App - Document interne", 14, 290, { align: 'left' });
+    }
+
+    doc.save(`Rapport_Depenses_${dateFilter.debut}_${dateFilter.fin}.pdf`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -50,18 +156,30 @@ export const GestionDepenses: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Gestion des Dépenses</h1>
           <p className="text-gray-500">Suivi des coûts d'exploitation et gestion des fournisseurs</p>
         </div>
-        {activeTab === 'depenses' && (
-          <button
-            onClick={() => {
-              setEditingDepense(null);
-              setShowForm(!showForm);
-            }}
-            className="flex items-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
-          >
-            <Plus size={20} />
-            <span>Nouvelle Dépense</span>
-          </button>
-        )}
+        <div className="flex gap-2">
+          {activeTab === 'depenses' && (
+            <>
+              <button
+                onClick={genererRapportPDF}
+                className="flex items-center space-x-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors shadow-sm"
+                title="Générer Rapport PDF"
+              >
+                <FileText size={20} />
+                <span className="hidden sm:inline">Rapport</span>
+              </button>
+              <button
+                onClick={() => {
+                  setEditingDepense(null);
+                  setShowForm(!showForm);
+                }}
+                className="flex items-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+              >
+                <Plus size={20} />
+                <span>Nouvelle Dépense</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {activeTab === 'depenses' && (
