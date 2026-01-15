@@ -75,6 +75,59 @@ export const GestionFactures: React.FC = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [factureAPayer, setFactureAPayer] = useState<Facture | null>(null);
 
+  // --- Global Daily Total Logic ---
+  const [globalDate, setGlobalDate] = useState(new Date());
+
+  const globalDailyStats = useMemo(() => {
+    // 1. Filter by date
+    const start = new Date(globalDate); start.setHours(0, 0, 0, 0);
+    const end = new Date(globalDate); end.setHours(23, 59, 59, 999);
+
+    const invoicesOfDay = factures.filter(f => {
+      if (f.statut === 'annulee') return false;
+      const d = new Date(f.dateLivraison);
+      return d >= start && d <= end;
+    });
+
+    // 2. Deduplication (Best invoice per client) - consistent with Accounting logic
+    const uniqueInvoicesMap = new Map<string, Facture>();
+    invoicesOfDay.forEach(f => {
+      const key = f.clientId; // Since we filter by single day, clientID is enough uniqueness
+      if (!uniqueInvoicesMap.has(key)) {
+        uniqueInvoicesMap.set(key, f);
+      } else {
+        const existing = uniqueInvoicesMap.get(key)!;
+        // Priorité : Payée > Envoyée > Validée > En attente > Brouillon
+        const getScore = (statut: string) => {
+          switch (statut) {
+            case 'payee': return 5;
+            case 'envoyee': return 4;
+            case 'validee': return 3;
+            case 'en_attente_retours': return 2;
+            default: return 1;
+          }
+        };
+        const scoreNew = getScore(f.statut);
+        const scoreExist = getScore(existing.statut);
+
+        if (scoreNew > scoreExist) {
+          uniqueInvoicesMap.set(key, f);
+        } else if (scoreNew === scoreExist) {
+          if (new Date(f.updatedAt).getTime() > new Date(existing.updatedAt).getTime()) {
+            uniqueInvoicesMap.set(key, f);
+          }
+        }
+      }
+    });
+
+    const finalInvoices = Array.from(uniqueInvoicesMap.values());
+    const totalTTC = finalInvoices.reduce((sum, f) => sum + f.totalTTC, 0);
+    const count = finalInvoices.length;
+
+    return { totalTTC, count };
+  }, [factures, globalDate]);
+
+
   // Initialisation
   useEffect(() => {
     const initialiser = async () => {
@@ -271,6 +324,47 @@ export const GestionFactures: React.FC = () => {
 
   const renderClientsList = () => (
     <div className="space-y-6">
+      {/* Global Daily Stats Card */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-1">Chiffre d'Affaires Facturé</h2>
+            <p className="text-gray-500 text-sm">Total global de tous les clients pour la journée sélectionnée</p>
+          </div>
+
+          <div className="flex items-center gap-4 bg-gray-50 p-2 rounded-lg border border-gray-200">
+            <button
+              onClick={() => {
+                const d = new Date(globalDate); d.setDate(d.getDate() - 1); setGlobalDate(d);
+              }}
+              className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600"
+            >
+              <Icon icon="mdi:chevron-left" className="text-xl" />
+            </button>
+
+            <div className="flex flex-col items-center min-w-[140px]">
+              <span className="font-bold text-gray-900 text-lg capitalize">{globalDate.toLocaleDateString('fr-FR', { weekday: 'long' })}</span>
+              <span className="text-sm text-gray-500">{globalDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+            </div>
+
+            <button
+              onClick={() => {
+                const d = new Date(globalDate); d.setDate(d.getDate() + 1); setGlobalDate(d);
+              }}
+              className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600"
+            >
+              <Icon icon="mdi:chevron-right" className="text-xl" />
+            </button>
+          </div>
+
+          <div className="text-right pl-6 border-l border-gray-100 min-w-[180px]">
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Total Journalier</p>
+            <p className="text-2xl font-bold text-indigo-600">{formatCurrency(globalDailyStats.totalTTC)}</p>
+            <p className="text-xs text-gray-400">{globalDailyStats.count} facture(s)</p>
+          </div>
+        </div>
+      </div>
+
       {/* Search & Actions Bar */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         <div className="relative w-full md:w-96">
@@ -491,18 +585,24 @@ export const GestionFactures: React.FC = () => {
 
                 return daysArray.map((day) => {
                   const dateOfDay = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), day);
+                  // Highlight week-ends differently if needed, here just weekends slightly obscure
+                  const isWeekend = dateOfDay.getDay() === 0 || dateOfDay.getDay() === 6;
+
                   const invoice = clientInvoices.find(f => new Date(f.dateLivraison).getDate() === day);
 
                   if (!invoice) {
                     return (
-                      <tr key={`day-${day}`} className="hover:bg-gray-50 border-b border-gray-100 bg-gray-50/50">
+                      <tr key={`day-${day}`} className={`border-b border-gray-100 ${isWeekend ? 'bg-gray-50/80' : 'bg-slate-50'}`}>
                         <td className="px-6 py-4"></td>
-                        <td className="px-6 py-4 text-center font-bold text-gray-400">{day}</td>
+                        <td className="px-6 py-4 text-center font-bold text-gray-300">{day}</td>
                         <td className="px-6 py-4 text-sm text-gray-400">
                           {dateOfDay.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
                         </td>
-                        <td colSpan={6} className="px-6 py-4 text-sm text-gray-300 italic">
-                          Aucune commande
+                        <td colSpan={6} className="px-6 py-4">
+                          <div className="flex items-center gap-2 text-gray-400 font-medium bg-gray-100/50 w-fit px-3 py-1 rounded-full text-xs">
+                            <Icon icon="mdi:minus-circle-outline" className="text-base" />
+                            <span>Aucune commande ce jour</span>
+                          </div>
                         </td>
                       </tr>
                     );

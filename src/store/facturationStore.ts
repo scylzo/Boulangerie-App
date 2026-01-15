@@ -76,12 +76,28 @@ export const useFacturationStore = create<FacturationStore>()(
           }
 
 
-          // Récupérer les factures existantes pour cette date
-          const { factures } = get();
-          const dateStr = date.toISOString().split('T')[0];
-          const facturesExistantes = factures.filter(facture =>
-            facture.dateLivraison.toISOString().split('T')[0] === dateStr
+          // Récupérer les factures existantes pour cette date (DEPUIS FIRESTORE pour sécurité)
+
+
+          // Bornes pour la query
+          const debutJour = new Date(date); debutJour.setHours(0, 0, 0, 0);
+          const finJour = new Date(date); finJour.setHours(23, 59, 59, 999);
+
+          const qFactures = query(
+            collection(db, 'factures'),
+            where('dateLivraison', '>=', debutJour),
+            where('dateLivraison', '<=', finJour)
           );
+
+          const snapFactures = await getDocs(qFactures);
+          const facturesExistantes = snapFactures.docs.map(doc => {
+            const data = doc.data();
+            return {
+              ...data,
+              id: doc.id,
+              dateLivraison: data.dateLivraison?.toDate ? data.dateLivraison.toDate() : new Date(data.dateLivraison)
+            } as Facture;
+          });
 
           // Grouper les commandes par client
           const commandesParClient = new Map<string, CommandeClient[]>();
@@ -318,8 +334,11 @@ export const useFacturationStore = create<FacturationStore>()(
 
               } else {
                 // CRÉATION NOUVELLE FACTURE
+                const dateKeyId = date.toISOString().split('T')[0];
+                const deterministicId = `facture_${clientId}_${dateKeyId}`;
+
                 const nouvelleFacture: Facture = {
-                  id: `facture_${clientId}_${Date.now()}`,
+                  id: deterministicId,
                   numeroFacture: get().genererNumeroFacture(date),
                   clientId,
                   client: clientInfo,

@@ -100,7 +100,46 @@ export const Comptabilite: React.FC = () => {
             const d = new Date(f.dateLivraison);
             return d >= debut && d <= fin;
         });
-        const caLivraison = facturesDuMois.reduce((sum, f) => sum + f.totalTTC, 0);
+
+        // DEDUPLICATION : Garder seulement la facture la plus pertinente par Client/Jour
+        // Cela corrige le problème si des doublons ont été générés accidentellement
+        const facturesUniquesMap = new Map<string, typeof factures[0]>();
+
+        facturesDuMois.forEach(f => {
+            const dayKey = new Date(f.dateLivraison).toISOString().split('T')[0];
+            const key = `${f.clientId}_${dayKey}`;
+
+            if (!facturesUniquesMap.has(key)) {
+                facturesUniquesMap.set(key, f);
+            } else {
+                const existing = facturesUniquesMap.get(key)!;
+                // Priorité : Payée > Envoyée > Validée > En attente > Brouillon
+                const getScore = (statut: string) => {
+                    switch (statut) {
+                        case 'payee': return 5;
+                        case 'envoyee': return 4;
+                        case 'validee': return 3;
+                        case 'en_attente_retours': return 2;
+                        default: return 1;
+                    }
+                };
+
+                const scoreNew = getScore(f.statut);
+                const scoreExist = getScore(existing.statut);
+
+                if (scoreNew > scoreExist) {
+                    facturesUniquesMap.set(key, f);
+                } else if (scoreNew === scoreExist) {
+                    // Si égalité, on prend la plus récente (updatedAt)
+                    if (new Date(f.updatedAt).getTime() > new Date(existing.updatedAt).getTime()) {
+                        facturesUniquesMap.set(key, f);
+                    }
+                }
+            }
+        });
+
+        const facturesNettoyees = Array.from(facturesUniquesMap.values());
+        const caLivraison = facturesNettoyees.reduce((sum, f) => sum + f.totalTTC, 0);
 
         // COUTS (Basé sur les Dépenses Réelles avec Prorata Temporis si applicable)
         // Utilisation de getDepensesProRata pour gérer les chevauchements de période (ex: carburant)
