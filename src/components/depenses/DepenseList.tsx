@@ -7,10 +7,12 @@ import type { Depense } from '../../types/depense';
 
 interface DepenseListProps {
   onEdit?: (depense: Depense) => void;
+  depenses?: Depense[];
 }
 
-export const DepenseList: React.FC<DepenseListProps> = ({ onEdit }) => {
-  const { depenses, supprimerDepense, isLoading } = useDepenseStore();
+export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, depenses: propDepenses }) => {
+  const { depenses: storeDepenses, supprimerDepense, isLoading } = useDepenseStore();
+  const depenses = propDepenses || storeDepenses;
   const { isOpen, title, message, confirm, handleConfirm, handleCancel } = useConfirmModal();
 
   const handleDelete = async (id: string) => {

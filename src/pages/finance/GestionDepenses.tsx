@@ -6,7 +6,21 @@ import { DepenseForm } from '../../components/depenses/DepenseForm';
 import { DepenseList } from '../../components/depenses/DepenseList';
 import { FournisseurList } from '../../components/stock/FournisseurList';
 import { TrendingDown, Plus, Users, Wallet, FileText } from 'lucide-react';
-import type { Depense } from '../../types/depense';
+import type { Depense, CategorieDepense } from '../../types/depense';
+
+const CATEGORIES: CategorieDepense[] = [
+  'Carburant Véhicule',
+  'Carburant Four',
+  'Électricité',
+  'Eau',
+  'Loyer',
+  'Salaires',
+  'Entretien',
+  'Intrants',
+  'Marketing',
+  'Transport',
+  'Divers'
+];
 
 export const GestionDepenses: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'depenses' | 'fournisseurs'>('depenses');
@@ -16,6 +30,7 @@ export const GestionDepenses: React.FC = () => {
     debut: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     fin: new Date().toISOString().split('T')[0]
   });
+  const [selectedCategory, setSelectedCategory] = useState<CategorieDepense | 'Toutes'>('Toutes');
 
   const { chargerDepenses, getTotalDepenses, getDepensesParCategorie, getDepensesProRata, depenses } = useDepenseStore();
 
@@ -34,6 +49,30 @@ export const GestionDepenses: React.FC = () => {
     totalDepenses = statsProrata.total;
     parCategorie = statsProrata.parCategorie;
   }
+
+  // Filtrage local pour la liste (après chargement store)
+  const filteredDepenses = depenses.filter(d => {
+    // 1. Filtrer par Categorie
+    if (selectedCategory !== 'Toutes' && d.categorie !== selectedCategory) {
+      return false;
+    }
+
+    // 2. Filtrer par Date (Assurer que l'affichage correspond exactement à la période demandée)
+    // C'est nécessaire car chargerDepenses peut charger plus large pour les calculs de prorata (via q2 sur dateFinUsage)
+    const startFilter = new Date(dateFilter.debut); startFilter.setHours(0, 0, 0, 0);
+    const endFilter = new Date(dateFilter.fin); endFilter.setHours(23, 59, 59, 999);
+
+    if (d.dateDebutUsage && d.dateFinUsage) {
+      // Pour les dépenses sur période : on affiche si ça chevauche la période sélectionnée
+      const usageStart = new Date(d.dateDebutUsage); usageStart.setHours(0, 0, 0, 0);
+      const usageEnd = new Date(d.dateFinUsage); usageEnd.setHours(23, 59, 59, 999);
+      return usageStart <= endFilter && usageEnd >= startFilter;
+    } else {
+      // Pour les dépenses ponctuelles : on compare la date simple
+      const simpleDate = new Date(d.date);
+      return simpleDate >= startFilter && simpleDate <= endFilter;
+    }
+  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const handleEditDepense = (depense: Depense) => {
     setEditingDepense(depense);
@@ -108,9 +147,11 @@ export const GestionDepenses: React.FC = () => {
     doc.setTextColor(44, 62, 80);
     doc.text("2. Liste des Dépenses", 14, finalY);
 
-    // Filtrer et trier les dépenses
-    const depensesTriees = [...depenses]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Filtrer et trier les dépenses (utilise la liste filtrée si on veut que le PDF reflète le filtre catégorie, 
+    // ou la liste complète du store. Pour l'instant je garde le comportement global store comme avant pour pas casser,
+    // mais si l'utilisateur filtre visuellement, il s'attend surement à ce que le PDF soit filtré aussi.
+    // Je vais utiliser `filteredDepenses` pour la consistance vue/export).
+    const depensesTriees = [...filteredDepenses];
 
     const detailsData = depensesTriees.map(d => [
       new Date(d.date).toLocaleDateString('fr-FR'),
@@ -203,20 +244,34 @@ export const GestionDepenses: React.FC = () => {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
               <h3 className="text-gray-500 font-medium">Répartition par catégorie</h3>
-              <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
-                <input
-                  type="date"
-                  value={dateFilter.debut}
-                  onChange={(e) => setDateFilter(prev => ({ ...prev, debut: e.target.value }))}
-                  className="bg-white border border-gray-300 text-gray-900 text-xs rounded px-2 py-1 outline-none focus:border-orange-500"
-                />
-                <span className="text-gray-400 text-xs">au</span>
-                <input
-                  type="date"
-                  value={dateFilter.fin}
-                  onChange={(e) => setDateFilter(prev => ({ ...prev, fin: e.target.value }))}
-                  className="bg-white border border-gray-300 text-gray-900 text-xs rounded px-2 py-1 outline-none focus:border-orange-500"
-                />
+
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value as CategorieDepense | 'Toutes')}
+                  className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg px-2 py-1.5 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                >
+                  <option value="Toutes">Toutes les catégories</option>
+                  {CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+
+                <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                  <input
+                    type="date"
+                    value={dateFilter.debut}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, debut: e.target.value }))}
+                    className="bg-white border border-gray-300 text-gray-900 text-xs rounded px-2 py-1 outline-none focus:border-orange-500"
+                  />
+                  <span className="text-gray-400 text-xs">au</span>
+                  <input
+                    type="date"
+                    value={dateFilter.fin}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, fin: e.target.value }))}
+                    className="bg-white border border-gray-300 text-gray-900 text-xs rounded px-2 py-1 outline-none focus:border-orange-500"
+                  />
+                </div>
               </div>
             </div>
 
@@ -270,7 +325,7 @@ export const GestionDepenses: React.FC = () => {
                   initialData={editingDepense || undefined}
                 />
               )}
-              <DepenseList onEdit={handleEditDepense} />
+              <DepenseList onEdit={handleEditDepense} depenses={filteredDepenses} />
             </>
           )}
 
