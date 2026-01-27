@@ -15,6 +15,12 @@ export const MouvementsList: React.FC = () => {
   const { mouvements, matieres, deleteMouvement } = useStockStore();
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Filters State
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterArticle, setFilterArticle] = useState<string>('all');
+  const [filterDateDebut, setFilterDateDebut] = useState<string>('');
+  const [filterDateFin, setFilterDateFin] = useState<string>('');
+
   // Edit & Delete State
   const [editingMouvement, setEditingMouvement] = useState<EnrichedMouvement | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string }>({ isOpen: false, id: '' });
@@ -30,10 +36,38 @@ export const MouvementsList: React.FC = () => {
     };
   });
 
-  const filteredMouvements = enrichedMouvements.filter(m =>
-    m.matiereNom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (m.motif && m.motif.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredMouvements = enrichedMouvements.filter(m => {
+    // Filtre par recherche textuelle
+    const matchSearch = m.matiereNom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (m.motif && m.motif.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    // Filtre par type
+    const matchType = filterType === 'all' || m.type === filterType;
+
+    // Filtre par article
+    const matchArticle = filterArticle === 'all' || m.matiereId === filterArticle;
+
+    // Filtre par date
+    let matchDate = true;
+    if (filterDateDebut || filterDateFin) {
+      const mouvementDate = new Date(m.date);
+      mouvementDate.setHours(0, 0, 0, 0);
+
+      if (filterDateDebut) {
+        const dateDebut = new Date(filterDateDebut);
+        dateDebut.setHours(0, 0, 0, 0);
+        matchDate = matchDate && mouvementDate >= dateDebut;
+      }
+
+      if (filterDateFin) {
+        const dateFin = new Date(filterDateFin);
+        dateFin.setHours(23, 59, 59, 999);
+        matchDate = matchDate && mouvementDate <= dateFin;
+      }
+    }
+
+    return matchSearch && matchType && matchArticle && matchDate;
+  });
 
   const handleDelete = async () => {
     if (!deleteConfirm.id) return;
@@ -68,6 +102,14 @@ export const MouvementsList: React.FC = () => {
     return <ArrowUpRight size={16} className="mr-1" />;
   };
 
+  const resetFilters = () => {
+    setFilterType('all');
+    setFilterArticle('all');
+    setFilterDateDebut('');
+    setFilterDateFin('');
+    setSearchTerm('');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -81,6 +123,88 @@ export const MouvementsList: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none w-64"
           />
+        </div>
+      </div>
+
+      {/* Filtres */}
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Filtre Type */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Type de mouvement</label>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+            >
+              <option value="all">Tous les types</option>
+              <option value="achat">Achat / Entrée</option>
+              <option value="consommation">Consommation</option>
+              <option value="perte">Perte</option>
+              <option value="correction">Correction</option>
+              <option value="retour_fournisseur">Retour fournisseur</option>
+            </select>
+          </div>
+
+          {/* Filtre Article */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Article</label>
+            <select
+              value={filterArticle}
+              onChange={(e) => setFilterArticle(e.target.value)}
+              className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+            >
+              <option value="all">Tous les articles</option>
+              {matieres
+                .filter(m => m.active)
+                .sort((a, b) => a.nom.localeCompare(b.nom))
+                .map(matiere => (
+                  <option key={matiere.id} value={matiere.id}>
+                    {matiere.nom}
+                  </option>
+                ))
+              }
+            </select>
+          </div>
+
+          {/* Filtre Date Début */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Date début</label>
+            <input
+              type="date"
+              value={filterDateDebut}
+              onChange={(e) => setFilterDateDebut(e.target.value)}
+              className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+            />
+          </div>
+
+          {/* Filtre Date Fin */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Date fin</label>
+            <input
+              type="date"
+              value={filterDateFin}
+              onChange={(e) => setFilterDateFin(e.target.value)}
+              className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Bouton Reset */}
+        <div className="mt-3 flex justify-end">
+          <button
+            onClick={resetFilters}
+            className="text-sm text-orange-600 hover:text-orange-700 font-medium">
+            Réinitialiser les filtres
+          </button>
+        </div>
+
+        {/* Résumé des filtres actifs */}
+        <div className="mt-2 text-xs text-gray-600">
+          <span className="font-medium">{filteredMouvements.length}</span> mouvement(s) affiché(s)
+          {mouvements.length !== filteredMouvements.length && (
+            <span> sur {mouvements.length} au total</span>
+          )}
         </div>
       </div>
 
