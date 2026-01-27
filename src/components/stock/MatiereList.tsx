@@ -86,6 +86,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
         unite: formData.unite as UniteMesure || 'kg',
         stockMinimum: Number(formData.stockMinimum) || 0,
         stockActuel: 0, // Force 0 initial
+        prixUnitaireMoyen: 0, // Prix moyen pondéré initial
         active: true,
         createdAt: formData.dateCreation ? new Date(formData.dateCreation) : new Date()
       });
