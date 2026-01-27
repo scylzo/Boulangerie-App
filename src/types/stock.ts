@@ -18,6 +18,7 @@ export interface MatierePremiere {
     unite: UniteMesure;
     stockActuel: number;
     stockMinimum: number; // Seuil d'alerte
+    prixUnitaireMoyen: number; // Prix moyen pondéré (PMP) pour valorisation
     fournisseurPrincipalId?: string;
     active: boolean;
     createdAt: Date;
@@ -39,4 +40,9 @@ export interface MouvementStock {
     fournisseurId?: string; // Lien avec le fournisseur (pour achats)
     userId: string; // Qui a saisi le mouvement
     createdAt: Date;
+
+    // Champs financiers
+    prixUnitaire?: number; // C'est le Coût Unitaire (HT si TVA déduite)
+    montantPaye?: number; // C'est le Cash Out réel (TTC) pour les Dépenses
+    inclusTVA?: boolean; // Pour info
 }

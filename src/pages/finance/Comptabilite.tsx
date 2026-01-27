@@ -37,10 +37,10 @@ export const Comptabilite: React.FC = () => {
         loading: false
     });
 
-    const { chargerDonnees: chargerStock } = useStockStore();
     const { chargerDepenses, getDepensesProRata, depenses } = useDepenseStore();
     const { chargerFactures, factures } = useFacturationStore();
     const { getVentesPeriode } = useBoutiqueStore();
+    const { chargerDonnees: chargerStock, mouvements, matieres } = useStockStore();
 
     // Charger les données au montage et quand la période change
     useEffect(() => {
@@ -52,7 +52,7 @@ export const Comptabilite: React.FC = () => {
     useEffect(() => {
         calculerStats();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [factures, depenses, periode.debut, periode.fin]);
+    }, [factures, depenses, mouvements, matieres, periode.debut, periode.fin]);
 
     // Calculs dérivés pour l'affichage (garantit la cohérence)
     const totalRecettes = stats.caBoutique + stats.caLivraison;
@@ -62,7 +62,6 @@ export const Comptabilite: React.FC = () => {
     const chargerDonnees = async () => {
         setStats(prev => ({ ...prev, loading: true }));
 
-        // Définir les bornes (début de journée au début, fin de journée à la fin)
         const debut = new Date(periode.debut);
         debut.setHours(0, 0, 0, 0);
 
@@ -72,7 +71,6 @@ export const Comptabilite: React.FC = () => {
         try {
             console.log("Calcul comptabilité pour la période:", debut.toLocaleString(), "au", fin.toLocaleString());
 
-            // Charger toutes les données en parallèle
             const [caBoutique] = await Promise.all([
                 getVentesPeriode(debut, fin),
                 chargerFactures(debut, fin),
@@ -88,23 +86,19 @@ export const Comptabilite: React.FC = () => {
     };
 
     const calculerStats = () => {
-        // Définir les bornes pour le filtrage
         const debut = new Date(periode.debut);
         debut.setHours(0, 0, 0, 0);
         const fin = new Date(periode.fin);
         fin.setHours(23, 59, 59, 999);
 
-        // Calculs dérivés des stores après mise à jour
+        // 1. REVENUS LIVRAISON (Facturés)
         const facturesDuMois = factures.filter(f => {
             if (f.statut === 'annulee') return false;
             const d = new Date(f.dateLivraison);
             return d >= debut && d <= fin;
         });
 
-        // DEDUPLICATION : Garder seulement la facture la plus pertinente par Client/Jour
-        // Cela corrige le problème si des doublons ont été générés accidentellement
         const facturesUniquesMap = new Map<string, typeof factures[0]>();
-
         facturesDuMois.forEach(f => {
             const dayKey = new Date(f.dateLivraison).toISOString().split('T')[0];
             const key = `${f.clientId}_${dayKey}`;
@@ -113,7 +107,6 @@ export const Comptabilite: React.FC = () => {
                 facturesUniquesMap.set(key, f);
             } else {
                 const existing = facturesUniquesMap.get(key)!;
-                // Priorité : Payée > Envoyée > Validée > En attente > Brouillon
                 const getScore = (statut: string) => {
                     switch (statut) {
                         case 'payee': return 5;
@@ -123,14 +116,11 @@ export const Comptabilite: React.FC = () => {
                         default: return 1;
                     }
                 };
-
                 const scoreNew = getScore(f.statut);
                 const scoreExist = getScore(existing.statut);
-
                 if (scoreNew > scoreExist) {
                     facturesUniquesMap.set(key, f);
                 } else if (scoreNew === scoreExist) {
-                    // Si égalité, on prend la plus récente (updatedAt)
                     if (new Date(f.updatedAt).getTime() > new Date(existing.updatedAt).getTime()) {
                         facturesUniquesMap.set(key, f);
                     }
@@ -141,25 +131,53 @@ export const Comptabilite: React.FC = () => {
         const facturesNettoyees = Array.from(facturesUniquesMap.values());
         const caLivraison = facturesNettoyees.reduce((sum, f) => sum + f.totalTTC, 0);
 
-        // COUTS (Basé sur les Dépenses Réelles avec Prorata Temporis si applicable)
-        // Utilisation de getDepensesProRata pour gérer les chevauchements de période (ex: carburant)
+
+        // 2. COUTS : MATIÈRES CONSOMMÉES (Comptabilité Analytique)
+        // On ne regarde plus les factures d'achat ('Intrants'), mais la consommation réelle.
+        let coutMatieresConsommees = 0;
+
+        mouvements.forEach(mvt => {
+            const dateMvt = new Date(mvt.date);
+            if (dateMvt >= debut && dateMvt <= fin && mvt.type === 'consommation') {
+                // Trouver le prix unitaire moyen de la matière
+                // Note: Idéalement le PMP devrait être historisé dans le mouvement pour exactitude parfaite
+                // Ici on prend le PMP actuel (approximation acceptable pour PME)
+                const matiere = matieres.find(m => m.id === mvt.matiereId);
+                if (matiere && matiere.prixUnitaireMoyen) {
+                    // mvt.quantite est positif dans la BDD pour 'consommation' via addMouvement ?
+                    // Vérif: addMouvement stock signedQuantity dans 'newStock' calcul, mais enregistre 'mouvementData.quantite' tel quel.
+                    // Dans MouvementModal, onSubmit passe 'quantite' tjrs positive. 
+                    // Donc on prend mvt.quantite * PMP
+                    coutMatieresConsommees += (Math.abs(mvt.quantite) * matiere.prixUnitaireMoyen);
+                }
+            }
+        });
+
+
+        // 3. COUTS : CHARGES EXTERNES (Dépenses Classiques)
+        // On exclut strictement la catégorie 'Intrants' car elle est gérée par le stock ci-dessus
+        // On exclut aussi 'Carburant Four' s'il est géré en stock maintenant.
+        // La logique utilisateur est "plus de dépense intrant". Donc on filtre tout ce qui est Intrant.
         const statsCouts = getDepensesProRata(debut, fin);
-        const totalDepenses = statsCouts.total;
-        const depensesParCategorie = statsCouts.parCategorie;
+        const depensesParCategorie = { ...statsCouts.parCategorie };
 
-        // On isole les "Intrants" (Achats Matières) des autres charges pour l'analyse
-        const achatsMatieres = depensesParCategorie['Intrants'] || 0;
-        const autresCharges = totalDepenses - achatsMatieres;
+        // SUPPRESSION DES INTRANTS des Dépenses pour éviter doublon
+        // Si l'utilisateur a quand même saisi des intrants dans "Dépenses", on les ignore ici pour la Marge sur Prod.
+        const { Intrants: _ignored, ...depensesFiltrees } = depensesParCategorie;
 
-        // Note: caBoutique est mis à jour par chargerDonnees (getVentesPeriode) séparément
+        const totalChargesExternes = Object.values(depensesFiltrees).reduce((acc, curr) => acc + curr, 0);
+
+        // TOTAL COUTS = MATIERES + CHARGES
+        const totalCouts = coutMatieresConsommees + totalChargesExternes;
+
 
         setStats(prev => ({
             ...prev,
             caLivraison,
-            totalCouts: totalDepenses,
-            achatsMatieres,
-            autresCharges,
-            depensesParCategorie
+            totalCouts,
+            achatsMatieres: coutMatieresConsommees, // On remplace sémantiquement "Achats" par "Consommation"
+            autresCharges: totalChargesExternes,
+            depensesParCategorie: depensesFiltrees
         }));
     };
 

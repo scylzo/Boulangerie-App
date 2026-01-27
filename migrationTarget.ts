@@ -17,7 +17,7 @@ async function main() {
 
     const COLLECTION_NAME = "productionPrograms";
 
-    console.log("📥 Lecture de la collection source...");
+
 
     const snapshot = await db.collection(COLLECTION_NAME).get();
 

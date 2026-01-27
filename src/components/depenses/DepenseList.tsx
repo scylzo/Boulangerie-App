@@ -7,15 +7,37 @@ import type { Depense } from '../../types/depense';
 
 interface DepenseListProps {
   onEdit?: (depense: Depense) => void;
+  onDeleteStock?: (id: string) => void;
   depenses?: Depense[];
+  readOnly?: boolean;
 }
 
-export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, depenses: propDepenses }) => {
+export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, onDeleteStock, depenses: propDepenses, readOnly = false }) => {
   const { depenses: storeDepenses, supprimerDepense, isLoading } = useDepenseStore();
   const depenses = propDepenses || storeDepenses;
   const { isOpen, title, message, confirm, handleConfirm, handleCancel } = useConfirmModal();
 
   const handleDelete = async (id: string) => {
+    if (id.startsWith('stock_')) {
+      if (onDeleteStock) {
+        const confirmed = await confirm({
+          title: 'Supprimer ce mouvement de stock ?',
+          message: "Attention : Cette action supprimera définitivement le mouvement de l'historique de stock et mettra à jour les quantités. Êtes-vous sûr ?",
+          type: 'danger',
+          confirmText: 'Oui, supprimer du Stock',
+          cancelText: 'Annuler'
+        });
+
+        if (confirmed) {
+          onDeleteStock(id);
+        }
+      } else {
+        // Fallback si la fonction n'est pas fournie (ne devrait pas arriver avec la modif parent)
+        alert("Action impossible ici.");
+      }
+      return;
+    }
+
     const confirmed = await confirm({
       title: 'Supprimer cette dépense ?',
       message: 'Cette action est irréversible.',
@@ -68,9 +90,11 @@ export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, depenses: prop
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Montant
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                {!readOnly && (
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -100,26 +124,28 @@ export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, depenses: prop
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">
                     {depense.montant.toLocaleString()} FCFA
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end space-x-2">
-                      {onEdit && (
+                  {!readOnly && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end space-x-2">
+                        {onEdit && (
+                          <button
+                            onClick={() => onEdit(depense)}
+                            className="text-gray-400 hover:text-orange-600 transition-colors p-2 hover:bg-orange-50 rounded-full"
+                            title="Modifier"
+                          >
+                            <Edit2 size={18} />
+                          </button>
+                        )}
                         <button
-                          onClick={() => onEdit(depense)}
-                          className="text-gray-400 hover:text-orange-600 transition-colors p-2 hover:bg-orange-50 rounded-full"
-                          title="Modifier"
+                          onClick={() => handleDelete(depense.id)}
+                          className="text-gray-400 hover:text-red-900 transition-colors p-2 hover:bg-red-50 rounded-full"
+                          title="Supprimer"
                         >
-                          <Edit2 size={18} />
+                          <Trash2 size={18} />
                         </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(depense.id)}
-                        className="text-gray-400 hover:text-red-900 transition-colors p-2 hover:bg-red-50 rounded-full"
-                        title="Supprimer"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

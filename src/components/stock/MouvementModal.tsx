@@ -32,29 +32,23 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
     inputUnit: 'initial' as string,
     bagWeight: 50,
     cartonWeight: 10,
-    sachetWeight: 0.5
+    sachetWeight: 0.5,
+    // Nouveaux champs pour le prix
+    prixUnitaire: '' as number | '', // Prix pour 1 unité de base (ex: 1kg) -> C'est celui qu'on stocke
+    prixTotalPaye: '' as number | '', // Pour faciliter la saisie (ex: j'ai payé 20000 pour 50 sacs)
+    inclusTVA: false // Si coché, on déduira la TVA (18%) pour trouver le HT
   });
 
   useEffect(() => {
     if (isOpen && selectedMatiere) {
       if (isEditing && initialData) {
-        // Mode Édition : Charger les données
-        // Essayer de déduire l'unité d'entrée depuis le motif (ex: "3 sacs")
+        // Mode Édition
         let inputUnit: string = selectedMatiere.unite;
         let bagWeight = 50;
         let qte = initialData.quantite;
 
-        // Simple heuristique pour pré-remplir le formulaire d'édition
-        // Si le motif contient "sac", on se met en mode sac
         if (initialData.motif && initialData.motif.includes('sac')) {
           inputUnit = 'sac';
-          // Trouver le poids approximatif si possible ou garder 50
-          // Si qte = 150 et on a 'sacs', alors c'est peut-être 3 sacs de 50.
-          // Mais pour l'édition "simple", on remet souvent en kg (unité de base) pour éviter des erreurs de conversion 
-          // SAUF si on veut vraiment éditer le nombre de sacs.
-          // Simplifions : on édite en unité de base (kg) par défaut, sauf si l'utilisateur change.
-          // Pour l'instant on laisse en unité de base pour l'édition pour ne pas casser la data.
-          inputUnit = selectedMatiere.unite;
         }
 
         setFormData({
@@ -69,7 +63,10 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
           inputUnit: inputUnit,
           bagWeight,
           cartonWeight: 10,
-          sachetWeight: 0.5
+          sachetWeight: 0.5,
+          prixUnitaire: initialData.prixUnitaire || '',
+          prixTotalPaye: (initialData.prixUnitaire && initialData.quantite) ? (initialData.prixUnitaire * initialData.quantite) : '',
+          inclusTVA: false
         });
       } else {
         // Mode Création (Reset)
@@ -85,7 +82,10 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
           inputUnit: selectedMatiere.unite,
           bagWeight: 50,
           cartonWeight: 10,
-          sachetWeight: 0.5
+          sachetWeight: 0.5,
+          prixUnitaire: '',
+          prixTotalPaye: '',
+          inclusTVA: false
         });
       }
     }
@@ -93,10 +93,95 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
 
   if (!isOpen || !selectedMatiere) return null;
 
-  const handleQuantiteChange = (val: string) => {
-    const qty = val === '' ? '' : parseFloat(val);
-    setFormData({ ...formData, quantite: qty });
+  const calculatePrixUnitaire = (total: number, qty: number, withTVA: boolean, unitWeight: number) => {
+    if (qty <= 0 || total <= 0) return '';
+
+    const totalHT = withTVA ? (total / 1.18) : total;
+
+    // Convertir qty en unité de base
+    const totalBaseUnits = qty * unitWeight;
+
+    return totalHT / totalBaseUnits;
   };
+
+  const getUnitWeight = (unit: string, form: typeof formData) => {
+    if (unit === 'sac') return form.bagWeight;
+    if (unit === 'carton') return form.cartonWeight;
+    if (unit === 'sachet') return form.sachetWeight;
+    return 1;
+  };
+
+  const handleQuantiteChange = (val: string) => {
+    const qty: number | '' = val === '' ? '' : parseFloat(val);
+
+    // Si on a un prix total renseigné, on recalcule le prix unitaire
+    // Si on a un prix unitaire renseigné et pas de total, on recalcule le total ??
+    // Généralement: Si je change la quantité, et que j'ai un Total Fixe (ex: j'ai payé 50000), le prix unitaire change.
+    // OU: Si je change la quantité, et que j'ai un Prix Unitaire Fixe, le total change.
+    // UX: Souvent on saisit Qte puis Prix.
+
+    // Cas: J'ai saisi Qte=10, PrixTotal=100. Unitaire=10.
+    // Je change Qte=20. Est-ce que Total reste 100 (donc Unitaire=5) ou Unitaire reste 10 (donc Total=200) ?
+    // Pour un stock, souvent le prix unitaire est la donnée "stable" du produit, mais pour un achat ponctuel, le total est la donnée "facture".
+    // Gardons la logique précédente : Priorité au maintien du Prix Unitaire si déjà calculé ?
+    // L'ancien code recalculait le Total. Gardons ça.
+
+    let newFormData = { ...formData, quantite: qty };
+
+    if (typeof qty === 'number' && typeof formData.prixUnitaire === 'number') {
+      const factor = getUnitWeight(formData.inputUnit, formData);
+      const totalBaseUnits = qty * factor;
+
+      // Prix Unitaire est HT.
+      const totalHT = totalBaseUnits * formData.prixUnitaire;
+
+      // Le prix Total affiché doit être TTC si TVA cochée
+      newFormData.prixTotalPaye = formData.inclusTVA ? (totalHT * 1.18) : totalHT;
+    }
+
+    setFormData(newFormData);
+  };
+
+  const handlePrixTotalChange = (val: string) => {
+    const total: number | '' = val === '' ? '' : parseFloat(val);
+    let newFormData = { ...formData, prixTotalPaye: total };
+
+    // Recalcul du prix unitaire de BASE (toujours HT)
+    const qty = typeof formData.quantite === 'number' ? formData.quantite : 0;
+    if (qty > 0 && typeof total === 'number') {
+      const factor = getUnitWeight(formData.inputUnit, formData);
+      newFormData.prixUnitaire = calculatePrixUnitaire(total, qty, formData.inclusTVA, factor);
+    }
+    setFormData(newFormData);
+  };
+
+  const handleTVAChange = (checked: boolean) => {
+    // On garde le Prix Total Payé affiché constant, mais on recalcule le Prix Unitaire HT stocké
+    let newFormData = { ...formData, inclusTVA: checked };
+
+    const qty = typeof formData.quantite === 'number' ? formData.quantite : 0;
+    const total = typeof formData.prixTotalPaye === 'number' ? formData.prixTotalPaye : 0;
+
+    if (qty > 0 && total > 0) {
+      const factor = getUnitWeight(formData.inputUnit, formData);
+      newFormData.prixUnitaire = calculatePrixUnitaire(total, qty, checked, factor);
+    }
+
+    setFormData(newFormData);
+  };
+
+  // Helper pour afficher le prix unitaire "compris par l'humain" (ex: prix du sac)
+  const getHumanUnitPrice = () => {
+    if (!formData.prixUnitaire || !formData.quantite) return null;
+    let factor = 1;
+    if (formData.inputUnit === 'sac') factor = formData.bagWeight;
+    if (formData.inputUnit === 'carton') factor = formData.cartonWeight;
+    if (formData.inputUnit === 'sachet') factor = formData.sachetWeight;
+
+    const pricePerInputUnit = (formData.prixUnitaire as number) * factor;
+    return Math.round(pricePerInputUnit).toLocaleString();
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +190,7 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
       let finalQuantity = Number(formData.quantite) || 0;
       let motifSuffix = '';
 
-      // Gestion conversion (seulement si on change l'unité d'input)
+      // Gestion conversion
       if (formData.inputUnit === 'sac') {
         finalQuantity *= (Number(formData.bagWeight) || 1);
         motifSuffix = ` (${formData.quantite} sacs de ${formData.bagWeight}kg)`;
@@ -117,32 +202,19 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
         motifSuffix = ` (${formData.quantite} sachets de ${formData.sachetWeight}kg)`;
       }
 
-      // Nettoyage motif pour éviter duplication suffixes en édition
       let finalMotif = formData.motif;
-      if (motifSuffix && !finalMotif.includes(motifSuffix)) {
-        // Si on ajoute, on concatène. Mais en édition attention.
-        // En édition, l'utilisateur voit déjà le motif complet, s'il ne le change pas, on le garde.
-        // S'il change la quantité/unité, on ajoute le suffixe.
-      }
-      // Simplification : si inputUnit est diff de base, on force le suffixe pour la clarté
       if (formData.inputUnit !== selectedMatiere.unite) {
         finalMotif += motifSuffix;
       }
 
-      // create a new date object from formData.date (YYYY-MM-DD)
       const submitDate = new Date(formData.date);
-      // If the selected date is today, use current time. Else default to noon or keep 00:00?
-      // User requested "heure correcte". If date is today, let's inject current time.
       const now = new Date();
+      // Si la date choisie est aujourd'hui, on met l'heure actuelle
       if (submitDate.toDateString() === now.toDateString()) {
         submitDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
       } else {
-        // If past date, user probably meant that day. 00:00 is technically correct for "that day generally".
-        // But to avoid "00:00" looking like a bug, we could set it to 12:00? 
-        // Or just leave it and let the List component hide it if it's 00:00 (which we just did).
-        // However, if they edit, they might want to specify time? 
-        // The current input is type="date" so it strips time. 
-        // Let's stick to: "If Today -> Current Time". "If Other Day -> 00:00 (Hidden in List)".
+        // Sinon on fixe à midi pour éviter les décalages de fuseau horaire inverses qui changeraient la date
+        submitDate.setHours(12, 0, 0, 0);
       }
 
       const mouvementData = {
@@ -156,6 +228,9 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
         referenceDocument: formData.referenceDocument,
         fournisseurId: formData.fournisseurId || undefined,
         userId: 'current-user-id',
+        prixUnitaire: formData.prixUnitaire !== '' ? Number(formData.prixUnitaire) : undefined,
+        montantPaye: formData.prixTotalPaye !== '' ? Number(formData.prixTotalPaye) : undefined,
+        inclusTVA: formData.inclusTVA
       };
 
       if (isEditing && initialData) {
@@ -264,6 +339,7 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
               </div>
             </div>
 
+            {/* WEIGHT INPUTS START */}
             {formData.inputUnit === 'sac' && (
               <div className="mt-2 p-3 bg-orange-50 rounded-lg border border-orange-100">
                 <label className="block text-xs font-medium text-orange-800 mb-1">Poids par sac (kg)</label>
@@ -274,12 +350,8 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
                   onChange={e => setFormData({ ...formData, bagWeight: Number(e.target.value) })}
                   className="w-full p-1.5 text-sm border-orange-200 rounded focus:ring-1 focus:ring-orange-500 outline-none"
                 />
-                <p className="text-xs text-orange-600 mt-1">
-                  Total : <b>{(Number(formData.quantite) || 0) * (Number(formData.bagWeight) || 0)} kg</b> {isSortie ? 'retirés du' : 'ajoutés au'} stock.
-                </p>
               </div>
             )}
-
             {formData.inputUnit === 'carton' && (
               <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
                 <label className="block text-xs font-medium text-blue-800 mb-1">Poids par carton (kg)</label>
@@ -291,12 +363,8 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
                   onChange={e => setFormData({ ...formData, cartonWeight: Number(e.target.value) })}
                   className="w-full p-1.5 text-sm border-blue-200 rounded focus:ring-1 focus:ring-blue-500 outline-none"
                 />
-                <p className="text-xs text-blue-600 mt-1">
-                  Total : <b>{(Number(formData.quantite) || 0) * (Number(formData.cartonWeight) || 0)} kg</b> {isSortie ? 'retirés du' : 'ajoutés au'} stock.
-                </p>
               </div>
             )}
-
             {formData.inputUnit === 'sachet' && (
               <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-100">
                 <label className="block text-xs font-medium text-green-800 mb-1">Poids par sachet (kg)</label>
@@ -308,11 +376,70 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
                   onChange={e => setFormData({ ...formData, sachetWeight: Number(e.target.value) })}
                   className="w-full p-1.5 text-sm border-green-200 rounded focus:ring-1 focus:ring-green-500 outline-none"
                 />
-                <p className="text-xs text-green-600 mt-1">
-                  Total : <b>{((Number(formData.quantite) || 0) * (Number(formData.sachetWeight) || 0)).toFixed(2)} kg</b> {isSortie ? 'retirés du' : 'ajoutés au'} stock.
-                </p>
               </div>
             )}
+            {/* WEIGHT INPUTS END */}
+
+            {/* PRICE INPUTS START (Only for Achat) */}
+            {formData.type === 'achat' && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <h4 className="text-sm font-bold text-gray-700 mb-3">💰 Valorisation du Stock</h4>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Prix TOTAL Payé (FCFA)
+                      <span className="text-gray-400 font-normal ml-1">(Facultatif si Prix Unitaire renseigné)</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Ex: 50000"
+                      value={formData.prixTotalPaye}
+                      onChange={e => handlePrixTotalChange(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 outline-none font-medium"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="checkTVA"
+                      checked={formData.inclusTVA}
+                      onChange={(e) => handleTVAChange(e.target.checked)}
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="checkTVA" className="text-sm text-gray-700">
+                      Ce prix inclut la TVA (18%)
+                    </label>
+                  </div>
+
+                  {/* Prix Unitaire calculé (informatif + override) */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Coût unitaire estimé (FCFA / {selectedMatiere.unite})
+                      </label>
+                      <div className="px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-700 font-mono text-sm">
+                        {formData.prixUnitaire ? (typeof formData.prixUnitaire === 'number' ? formData.prixUnitaire.toFixed(2) : formData.prixUnitaire) : '-'}
+                      </div>
+                    </div>
+                    {getHumanUnitPrice() && (
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-orange-600 mb-1">
+                          Soit prix par {formData.inputUnit}
+                        </label>
+                        <div className="px-3 py-2 bg-orange-50 border border-orange-100 rounded-md text-orange-800 font-bold text-sm">
+                          {getHumanUnitPrice()} FCFA
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* PRICE INPUTS END */}
+
           </div>
 
           {formData.type === 'achat' && (

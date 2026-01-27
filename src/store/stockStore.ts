@@ -74,8 +74,12 @@ export const useStockStore = create<StockState>((set, get) => ({
             });
 
             set({
-                matieres: matieres.map(convertDates) as MatierePremiere[],
-                mouvements: mouvements.map(convertDates).sort((a: any, b: any) => b.date.getTime() - a.date.getTime()) as MouvementStock[],
+                matieres: matieres.map(convertDates).sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime()) as MatierePremiere[],
+                mouvements: mouvements.map(convertDates).sort((a: any, b: any) => {
+                    const dateDiff = b.date.getTime() - a.date.getTime();
+                    if (dateDiff !== 0) return dateDiff;
+                    return b.createdAt.getTime() - a.createdAt.getTime();
+                }) as MouvementStock[],
                 fournisseurs: fournisseurs.map(convertDates) as Fournisseur[],
                 isLoading: false
             });
@@ -100,7 +104,7 @@ export const useStockStore = create<StockState>((set, get) => ({
             const matiereAvecId: MatierePremiere = { id: docRef.id, ...newMatiere };
 
             set(state => ({
-                matieres: [...state.matieres, matiereAvecId],
+                matieres: [matiereAvecId, ...state.matieres],
                 isLoading: false
             }));
         } catch (error: any) {
@@ -177,11 +181,32 @@ export const useStockStore = create<StockState>((set, get) => ({
                 const matiere = matiereDoc.data() as MatierePremiere;
 
                 let newStock = matiere.stockActuel;
+                let newPMP = matiere.prixUnitaireMoyen || 0;
 
                 // 2. Calculer les nouvelles valeurs
                 if (mouvementData.type === 'achat') {
                     const quantiteAchat = mouvementData.quantite;
+
+                    // Calcul du PMP (Prix Moyen Pondéré)
+                    // Formule : ((AncienStock * AncienPMP) + (QteAchat * PrixAchat)) / (AncienStock + QteAchat)
+                    if (mouvementData.prixUnitaire && mouvementData.prixUnitaire > 0) {
+                        const ancienStockVal = Math.max(0, newStock) * newPMP; // On évite les stocks négatifs pour la valo
+                        const nouvelAchatVal = quantiteAchat * mouvementData.prixUnitaire;
+                        const stockTotalTheorique = Math.max(0, newStock) + quantiteAchat;
+
+                        if (stockTotalTheorique > 0) {
+                            newPMP = (ancienStockVal + nouvelAchatVal) / stockTotalTheorique;
+                        } else {
+                            // Si stock total est 0 ou moins (bizarre après un achat positif), on prend le prix du dernier achat
+                            newPMP = mouvementData.prixUnitaire;
+                        }
+                    } else if (newPMP === 0 && mouvementData.prixUnitaire) {
+                        // Si pas de PMP avant (0) et qu'on a un prix, c'est le nouveau PMP
+                        newPMP = mouvementData.prixUnitaire;
+                    }
+
                     newStock += quantiteAchat;
+
                 } else {
                     // Pour les sorties, on valorise au PMP actuel
                     // Mais attention, on garde la convention : newValeurTotale = Stock * PMP
@@ -218,7 +243,7 @@ export const useStockStore = create<StockState>((set, get) => ({
                     id: newMouvementRef.id,
                     ...mouvementData,
                     createdAt: new Date(),
-                    date: mouvementData.date || new Date(),
+                    date: mouvementData.date ? new Date(mouvementData.date) : new Date(),
                 };
 
                 // Nettoyer les undefined pour Firestore
@@ -232,6 +257,7 @@ export const useStockStore = create<StockState>((set, get) => ({
                 transaction.set(newMouvementRef, newMouvement);
                 transaction.update(matiereRef, {
                     stockActuel: newStock,
+                    prixUnitaireMoyen: newPMP, // Mise à jour du PMP
                     updatedAt: new Date()
                 });
             });

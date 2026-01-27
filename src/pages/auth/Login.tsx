@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { useAuthStore } from '../../store';
 import logo from '../../assets/logo.png';
@@ -7,7 +8,14 @@ export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,9 +32,9 @@ export const Login: React.FC = () => {
         {/* Logo et titre - Version moderne Odoo */}
         <div className="text-center">
           <div className="mx-auto w-50 h-50 flex items-center justify-center transform hover:scale-105 transition-transform -mb-8">
-            <img 
-              src={logo} 
-              alt="Logo Boulangerie" 
+            <img
+              src={logo}
+              alt="Logo Boulangerie"
               className="w-full h-full object-contain"
             />
           </div>
@@ -118,7 +126,7 @@ export const Login: React.FC = () => {
             </button>
           </form>
 
-  
+
         </div>
 
       </div>

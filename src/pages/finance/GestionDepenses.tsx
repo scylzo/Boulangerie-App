@@ -2,14 +2,17 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import React, { useState, useEffect } from 'react';
 import { useDepenseStore } from '../../store/depenseStore';
+import { useStockStore } from '../../store/stockStore';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { DepenseForm } from '../../components/depenses/DepenseForm';
 import { DepenseList } from '../../components/depenses/DepenseList';
 import { FournisseurList } from '../../components/stock/FournisseurList';
-import { TrendingDown, Plus, Users, Wallet, FileText } from 'lucide-react';
+import { TrendingDown, Plus, Users, Wallet, FileText, RefreshCw, Package } from 'lucide-react';
 import type { Depense, CategorieDepense } from '../../types/depense';
 
 const CATEGORIES: CategorieDepense[] = [
   'Carburant Véhicule',
+  'Carburant Moto',
   'Carburant Four',
   'Électricité',
   'Eau',
@@ -23,8 +26,9 @@ const CATEGORIES: CategorieDepense[] = [
 ];
 
 export const GestionDepenses: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'depenses' | 'fournisseurs'>('depenses');
+  const [activeTab, setActiveTab] = useState<'generales' | 'stock' | 'fournisseurs'>('generales');
   const [showForm, setShowForm] = useState(false);
+  const [showStockAlert, setShowStockAlert] = useState(false);
   const [editingDepense, setEditingDepense] = useState<Depense | null>(null);
   const [dateFilter, setDateFilter] = useState({
     debut: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
@@ -32,56 +36,114 @@ export const GestionDepenses: React.FC = () => {
   });
   const [selectedCategory, setSelectedCategory] = useState<CategorieDepense | 'Toutes'>('Toutes');
 
-  const { chargerDepenses, getTotalDepenses, getDepensesParCategorie, getDepensesProRata, depenses } = useDepenseStore();
+  const { chargerDepenses, depenses } = useDepenseStore();
+  const { chargerDonnees: chargerStock, mouvements, matieres, fournisseurs } = useStockStore();
 
   useEffect(() => {
     if (dateFilter.debut && dateFilter.fin) {
       chargerDepenses(new Date(dateFilter.debut), new Date(dateFilter.fin));
+      chargerStock();
     }
-  }, [chargerDepenses, dateFilter.debut, dateFilter.fin]);
+  }, [chargerDepenses, chargerStock, dateFilter.debut, dateFilter.fin]); // Added chargerStock
 
-  let totalDepenses = getTotalDepenses();
-  let parCategorie = getDepensesParCategorie();
+  // Transformation des achats de stock en "Dépenses Virtuelles"
+  const stockExpenses: Depense[] = mouvements
+    .filter(m => m.type === 'achat')
+    .map(m => {
+      const matiere = matieres.find(mat => mat.id === m.matiereId);
+      const fournisseur = fournisseurs.find(f => f.id === m.fournisseurId);
 
-  // Si on filtre par date, on utilise le calcul au prorata pour plus de précision
-  if (dateFilter.debut && dateFilter.fin) {
-    const statsProrata = getDepensesProRata(new Date(dateFilter.debut), new Date(dateFilter.fin));
-    totalDepenses = statsProrata.total;
-    parCategorie = statsProrata.parCategorie;
-  }
+      // Le coût est toujours Quantité * Prix Unitaire (stocké en HT normalement)
+      // Consistance : Si l'utilisateur a saisi TTC, le Form a converti en HT si case cochée.
+      // Ici on affiche ce qui est en base. Pour la trésorerie on veut le HT ou TTC?
+      // En général Trésorerie = Cash Out = TTC.
+      // Mais on a stocké le HT (Coût).
+      // Dilemme comptable : Si récup TVA, CashOut = HT + TVA.
+      // Si pas récup, CashOut = TTC.
+      // Simplification: On affiche le montant stocké * Quantité.
+      let montant = 0;
 
-  // Filtrage local pour la liste (après chargement store)
-  const filteredDepenses = depenses.filter(d => {
+      if (m.montantPaye) {
+        montant = m.montantPaye;
+      } else if (m.prixUnitaire) {
+        montant = m.quantite * m.prixUnitaire;
+        // Si c'était du TTC déduit, on affiche du HT ici pour les vieilles données.
+        // C'est le compromis accepté.
+      }
+
+      montant = Math.round(montant);
+
+      return {
+        id: `stock_${m.id}`,
+        date: new Date(m.date), // Objet Date requis pour le tri
+        montant: montant,
+        categorie: 'Intrants', // On les classe en Intrants
+        description: `Achat Stock : ${matiere ? matiere.nom : 'Matière inconnue'} (${m.quantite} ${matiere?.unite})`,
+        fournisseur: fournisseur ? fournisseur.nom : undefined,
+        auteur: m.auteur,
+        validee: true,
+        createdAt: m.createdAt,
+        updatedAt: m.createdAt || new Date(),
+        userId: m.userId || 'system' // Ajout du userId requis
+      } as Depense;
+    });
+
+  // Filtrage local unifié
+  const allExpenses = [...depenses, ...stockExpenses];
+
+  const filteredDepenses = allExpenses.filter(d => {
     // 1. Filtrer par Categorie
     if (selectedCategory !== 'Toutes' && d.categorie !== selectedCategory) {
-      return false;
+      // Exception: Si on sélectionne 'Intrants', on veut voir le stock
+      if (selectedCategory === 'Intrants' && d.id.startsWith('stock_')) {
+        // keep it
+      } else if (d.categorie !== selectedCategory) {
+        return false;
+      }
     }
 
-    // 2. Filtrer par Date (Assurer que l'affichage correspond exactement à la période demandée)
-    // C'est nécessaire car chargerDepenses peut charger plus large pour les calculs de prorata (via q2 sur dateFinUsage)
+    // 2. Filtrer par Date stricte (Date de la dépense/paiement uniquement)
     const startFilter = new Date(dateFilter.debut); startFilter.setHours(0, 0, 0, 0);
     const endFilter = new Date(dateFilter.fin); endFilter.setHours(23, 59, 59, 999);
 
-    if (d.dateDebutUsage && d.dateFinUsage) {
-      // Pour les dépenses sur période : on affiche si ça chevauche la période sélectionnée
-      const usageStart = new Date(d.dateDebutUsage); usageStart.setHours(0, 0, 0, 0);
-      const usageEnd = new Date(d.dateFinUsage); usageEnd.setHours(23, 59, 59, 999);
-      return usageStart <= endFilter && usageEnd >= startFilter;
-    } else {
-      // Pour les dépenses ponctuelles : on compare la date simple
-      const simpleDate = new Date(d.date);
-      return simpleDate >= startFilter && simpleDate <= endFilter;
-    }
+    const simpleDate = new Date(d.date);
+    return simpleDate >= startFilter && simpleDate <= endFilter;
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  // Calculer les totaux basés sur la liste affichée (WYSIWYG)
+  const totalDepenses = filteredDepenses.reduce((sum, d) => sum + d.montant, 0);
+
+  const parCategorie = filteredDepenses.reduce((acc, d) => {
+    acc[d.categorie] = (acc[d.categorie] || 0) + d.montant;
+    return acc;
+  }, {} as Record<string, number>);
+
   const handleEditDepense = (depense: Depense) => {
+    // Si c'est une dépense de stock, on ne peut pas l'éditer ici (il faut aller dans Stock)
+    if (depense.id.startsWith('stock_')) {
+      setShowStockAlert(true);
+      return;
+    }
     setEditingDepense(depense);
     setShowForm(true);
   };
 
+
+  // ... suite du code (closeForm, genererRapportPDF qui utilisera filteredDepenses donc c'est bon) ...
+
+
   const closeForm = () => {
     setShowForm(false);
     setEditingDepense(null);
+  };
+
+  const handleRefresh = async () => {
+    if (dateFilter.debut && dateFilter.fin) {
+      await Promise.all([
+        chargerDepenses(new Date(dateFilter.debut), new Date(dateFilter.fin)),
+        chargerStock()
+      ]);
+    }
   };
 
   const genererRapportPDF = () => {
@@ -198,8 +260,15 @@ export const GestionDepenses: React.FC = () => {
           <p className="text-gray-500">Suivi des coûts d'exploitation et gestion des fournisseurs</p>
         </div>
         <div className="flex gap-2">
-          {activeTab === 'depenses' && (
+          {activeTab !== 'fournisseurs' && (
             <>
+              <button
+                onClick={handleRefresh}
+                className="p-2 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors border border-gray-200 bg-white shadow-sm"
+                title="Actualiser les données"
+              >
+                <RefreshCw size={20} />
+              </button>
               <button
                 onClick={genererRapportPDF}
                 className="flex items-center space-x-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors shadow-sm"
@@ -208,22 +277,24 @@ export const GestionDepenses: React.FC = () => {
                 <FileText size={20} />
                 <span className="hidden sm:inline">Rapport</span>
               </button>
-              <button
-                onClick={() => {
-                  setEditingDepense(null);
-                  setShowForm(!showForm);
-                }}
-                className="flex items-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
-              >
-                <Plus size={20} />
-                <span>Nouvelle Dépense</span>
-              </button>
+              {activeTab === 'generales' && (
+                <button
+                  onClick={() => {
+                    setEditingDepense(null);
+                    setShowForm(!showForm);
+                  }}
+                  className="flex items-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+                >
+                  <Plus size={20} />
+                  <span>Nouvelle Dépense</span>
+                </button>
+              )}
             </>
           )}
         </div>
       </div>
 
-      {activeTab === 'depenses' && (
+      {activeTab !== 'fournisseurs' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
@@ -294,14 +365,24 @@ export const GestionDepenses: React.FC = () => {
         <div className="border-b border-gray-100">
           <nav className="flex space-x-4 px-6" aria-label="Tabs">
             <button
-              onClick={() => setActiveTab('depenses')}
-              className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'depenses'
+              onClick={() => setActiveTab('generales')}
+              className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'generales'
                 ? 'border-orange-500 text-orange-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               <Wallet size={18} />
-              <span>Dépenses</span>
+              <span>Dépenses Générales</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('stock')}
+              className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'stock'
+                ? 'border-orange-500 text-orange-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+            >
+              <Package size={18} />
+              <span>Achats Stock</span>
             </button>
             <button
               onClick={() => setActiveTab('fournisseurs')}
@@ -317,7 +398,7 @@ export const GestionDepenses: React.FC = () => {
         </div>
 
         <div className="p-6">
-          {activeTab === 'depenses' && (
+          {activeTab === 'generales' && (
             <>
               {showForm && (
                 <DepenseForm
@@ -325,8 +406,18 @@ export const GestionDepenses: React.FC = () => {
                   initialData={editingDepense || undefined}
                 />
               )}
-              <DepenseList onEdit={handleEditDepense} depenses={filteredDepenses} />
+              <DepenseList
+                onEdit={handleEditDepense}
+                depenses={filteredDepenses.filter(d => !d.id.startsWith('stock_'))}
+              />
             </>
+          )}
+
+          {activeTab === 'stock' && (
+            <DepenseList
+              depenses={filteredDepenses.filter(d => d.id.startsWith('stock_'))}
+              readOnly={true}
+            />
           )}
 
           {activeTab === 'fournisseurs' && (
@@ -334,6 +425,16 @@ export const GestionDepenses: React.FC = () => {
           )}
         </div>
       </div>
+      <ConfirmModal
+        isOpen={showStockAlert}
+        onClose={() => setShowStockAlert(false)}
+        onConfirm={() => setShowStockAlert(false)}
+        title="Modification impossible"
+        message="Ceci est un mouvement de stock. Pour modifier cette dépense (prix, quantité...), veuillez passer par le module 'Gestion de Stock'."
+        confirmText="Compris"
+        cancelText="Fermer"
+        type="info"
+      />
     </div>
   );
 };

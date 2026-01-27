@@ -1,5 +1,6 @@
 export type CategorieDepense =
     | 'Carburant Véhicule'
+    | 'Carburant Moto'
     | 'Carburant Four'
     | 'Électricité'
     | 'Eau'

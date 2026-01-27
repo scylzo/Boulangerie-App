@@ -19,7 +19,7 @@ import { GestionFactures } from './pages/facturation/GestionFactures';
 import { GestionStock } from './pages/stock/GestionStock';
 import { GestionDepenses } from './pages/finance/GestionDepenses';
 import { Comptabilite } from './pages/finance/Comptabilite';
-import { StockDeclaration } from './pages/stock/StockDeclaration';
+import { SaisieConsommations } from './pages/stock/SaisieConsommations';
 import { useAuthStore } from './store';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -172,7 +172,7 @@ function App() {
 
         <Route path="/stocks/declaration" element={
           <ProtectedRoute>
-            <StockDeclaration />
+            <SaisieConsommations />
           </ProtectedRoute>
         } />
 

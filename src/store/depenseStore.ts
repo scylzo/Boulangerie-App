@@ -249,24 +249,32 @@ export const useDepenseStore = create<DepenseStore>()(
 
                         // Vérifier s'il y a chevauchement avec la période filtrée
                         if (usageStart <= endFilter && usageEnd >= startFilter) {
-                            // Calculer la durée totale d'usage en jours
-                            const totalDurationMs = usageEnd.getTime() - usageStart.getTime();
+                            // Calculer la durée totale d'usage en jours (inclusive)
                             const MS_PER_DAY = 1000 * 60 * 60 * 24;
-                            // Math.ceil pour avoir des jours entiers au minimum, +1 pour inclure le dernier jour partiel si < 1 jour plein, mais ici on a déjà setHours...
-                            // Si 15 nov 00h à 15 nov 23h59 = 0.99 jour -> Math.ceil = 1 jour. Correct.
-                            const totalDurationDays = Math.max(1, Math.ceil(totalDurationMs / MS_PER_DAY));
 
-                            const coutParJour = depense.montant / totalDurationDays;
+                            // On normalise strictement à midi pour éviter les pépins de changement d'heure ou de ms
+                            const startU = new Date(usageStart); startU.setHours(12, 0, 0, 0);
+                            const endU = new Date(usageEnd); endU.setHours(12, 0, 0, 0);
+
+                            // Durée totale en jours = diff + 1
+                            const totalDurationDays = Math.round((endU.getTime() - startU.getTime()) / MS_PER_DAY) + 1;
+
+                            const coutParJour = depense.montant / Math.max(1, totalDurationDays);
 
                             // Calculer le chevauchement (overlap)
-                            const overlapStart = usageStart > startFilter ? usageStart : startFilter;
-                            const overlapEnd = usageEnd < endFilter ? usageEnd : endFilter;
+                            // On normalise les filtres aussi
+                            const startF = new Date(startFilter); startF.setHours(12, 0, 0, 0);
+                            const endF = new Date(endFilter); endF.setHours(12, 0, 0, 0);
 
-                            const overlapMs = Math.max(0, overlapEnd.getTime() - overlapStart.getTime());
-                            const overlapDays = Math.max(0, Math.ceil(overlapMs / MS_PER_DAY));
+                            const overlapStartStrict = startU > startF ? startU : startF;
+                            const overlapEndStrict = endU < endF ? endU : endF;
 
-                            const finalOverlapDays = Math.min(overlapDays, totalDurationDays);
-                            montantACompter = coutParJour * finalOverlapDays;
+                            let overlapDays = 0;
+                            if (overlapEndStrict >= overlapStartStrict) {
+                                overlapDays = Math.round((overlapEndStrict.getTime() - overlapStartStrict.getTime()) / MS_PER_DAY) + 1;
+                            }
+
+                            montantACompter = coutParJour * overlapDays;
                         }
                     } else {
                         // Cas standard (Date de paiement)
