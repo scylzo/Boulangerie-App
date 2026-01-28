@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Facture } from '../types';
+import type { Facture, RapportJournalier, IndicateursPerformance } from '../types';
 import { formatCurrencyCompact } from './currency';
 import logoUrl from '../assets/logo.png';
 
@@ -233,6 +233,156 @@ export const downloadFacturePDF = async (facture: Facture) => {
   try {
     const doc = await generateFacturePDF(facture);
     const fileName = `Facture_${facture.numeroFacture}_${facture.client?.nom?.replace(/\s/g, '_') || 'Client'}.pdf`;
+    doc.save(fileName);
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de la génération du PDF:', error);
+    throw new Error('Impossible de générer le PDF');
+  }
+};
+
+export const generateRapportJournalierPDF = async (rapport: RapportJournalier, indicateurs: IndicateursPerformance | null) => {
+  const doc = new jsPDF();
+
+  // Configuration des couleurs
+  const primaryColor: [number, number, number] = [79, 70, 229]; // Indigo
+  const secondaryColor: [number, number, number] = [107, 114, 128]; // Gris
+
+  // En-tête
+  try {
+    const logoImg = await loadImage(logoUrl);
+    doc.addImage(logoImg, 'PNG', 20, 15, 20, 20);
+  } catch (error) {
+    console.error('Erreur chargement logo', error);
+  }
+
+  doc.setFontSize(20);
+  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+  doc.text('RAPPORT JOURNALIER', 50, 25);
+
+  doc.setFontSize(10);
+  doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+  doc.text(`Date: ${new Date(rapport.date).toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })}`, 50, 32);
+  doc.text(`Statut: ${rapport.statut.toUpperCase()}`, 50, 37);
+
+  // Ligne de séparation
+  doc.setDrawColor(229, 231, 235);
+  doc.line(20, 45, 190, 45);
+
+  // Section Indicateurs (KPIs)
+  if (indicateurs) {
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Indicateurs de Performance', 20, 55);
+
+    const kpiData = [
+      ['Taux de Vente Global', `${indicateurs.tauxVenteGlobal.toFixed(1)}%`],
+      ['Taux Vente Clients', `${indicateurs.tauxVenteClients.toFixed(1)}%`],
+      ['Taux Vente Boutique', `${indicateurs.tauxVenteBoutique.toFixed(1)}%`],
+      ['Pertes Totales', `${indicateurs.pertesTotales} unités`],
+      ['Invendus Clients', `${indicateurs.pertesClients} unités`],
+      ['Invendus Boutique', `${indicateurs.pertesBoutique} unités`]
+    ];
+
+    autoTable(doc, {
+      startY: 60,
+      body: kpiData,
+      theme: 'plain',
+      styles: { fontSize: 10, cellPadding: 2 },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 50 },
+        1: { halign: 'left' }
+      },
+      margin: { left: 20 }
+    });
+  }
+
+  // Section Totaux
+  const currentY = (doc as any).lastAutoTable?.finalY || 60;
+  doc.setFontSize(14);
+  doc.setTextColor(0, 0, 0);
+  doc.text('Totaux de la journée', 20, currentY + 15);
+
+  const totalData = [
+    ['Quantité Prévue', rapport.totaux.quantitePrevue.toString()],
+    ['Quantité Produite', rapport.totaux.quantiteProduite.toString()],
+    ['Quantité Vendue', rapport.totaux.quantiteVendueTotal.toString()],
+    ['Pertes / Invendus', rapport.totaux.invendusTotal.toString()]
+  ];
+
+  autoTable(doc, {
+    startY: currentY + 20,
+    head: [['Désignation', 'Valeur']],
+    body: totalData,
+    theme: 'grid',
+    headStyles: { fillColor: primaryColor as any, textColor: [255, 255, 255] },
+    styles: { fontSize: 10 },
+    margin: { left: 20, right: 120 }
+  });
+
+  // Section Détail par Produit
+  const detailY = (doc as any).lastAutoTable.finalY + 15;
+  doc.setFontSize(14);
+  doc.text('Détail par Produit', 20, detailY);
+
+  const productData = rapport.produits.map(p => [
+    p.produit?.nom || p.produitId,
+    p.quantitePrevue.toString(),
+    p.quantiteProduite.toString(),
+    p.quantiteVendueTotal.toString(),
+    p.invendusTotal.toString(),
+    `${p.tauxVenteGlobal.toFixed(1)}%`
+  ]);
+
+  autoTable(doc, {
+    startY: detailY + 5,
+    head: [['Produit', 'Prévu', 'Prod.', 'Vendu', 'Inv.', 'Taux']],
+    body: productData,
+    theme: 'striped',
+    headStyles: { fillColor: primaryColor as any, fontSize: 9, textColor: [255, 255, 255] },
+    styles: { fontSize: 8 },
+    columnStyles: {
+      0: { cellWidth: 'auto' },
+      1: { halign: 'center' },
+      2: { halign: 'center' },
+      3: { halign: 'center' },
+      4: { halign: 'center' },
+      5: { halign: 'center' }
+    },
+    margin: { left: 20, right: 20 }
+  });
+
+  // Pied de page
+  const pageCount = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+    doc.text(
+      `Rapport généré le ${new Date().toLocaleString('fr-FR')}`,
+      20,
+      doc.internal.pageSize.height - 10
+    );
+    doc.text(
+      `Page ${i} sur ${pageCount}`,
+      doc.internal.pageSize.width - 40,
+      doc.internal.pageSize.height - 10
+    );
+  }
+
+  return doc;
+};
+
+export const downloadRapportJournalierPDF = async (rapport: RapportJournalier, indicateurs: IndicateursPerformance | null) => {
+  try {
+    const doc = await generateRapportJournalierPDF(rapport, indicateurs);
+    const dateStr = new Date(rapport.date).toISOString().split('T')[0];
+    const fileName = `Rapport_Journalier_${dateStr}.pdf`;
     doc.save(fileName);
     return true;
   } catch (error) {

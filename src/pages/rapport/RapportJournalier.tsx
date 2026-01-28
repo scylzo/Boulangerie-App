@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { useRapportStore } from '../../store';
+import { downloadRapportJournalierPDF } from '../../utils/pdfGenerator';
 
 export const RapportJournalier: React.FC = () => {
   const {
@@ -27,6 +28,15 @@ export const RapportJournalier: React.FC = () => {
     } catch (error) {
       console.error('❌ Erreur lors de la génération du rapport:', error);
       alert('Erreur lors de la génération du rapport: ' + error);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!rapportJour) return;
+    try {
+      await downloadRapportJournalierPDF(rapportJour, indicateurs);
+    } catch (error) {
+      alert('Erreur lors du téléchargement du PDF');
     }
   };
 
@@ -95,6 +105,15 @@ export const RapportJournalier: React.FC = () => {
                   >
                     <Icon icon="mdi:check-circle" className="text-lg" />
                     <span className="font-medium">Valider le rapport</span>
+                  </button>
+                )}
+                {rapportJour && (
+                  <button
+                    onClick={handleDownloadPDF}
+                    className="flex items-center gap-2 px-4 py-2 text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
+                  >
+                    <Icon icon="mdi:file-pdf-box" className="text-lg" />
+                    <span className="font-medium">PDF</span>
                   </button>
                 )}
               </>
@@ -291,20 +310,28 @@ export const RapportJournalier: React.FC = () => {
                               })}
                             </h3>
                             <div className="flex items-center gap-2">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                rapport.statut === 'valide'
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-yellow-100 text-yellow-800'
-                              }`}>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${rapport.statut === 'valide'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                                }`}>
                                 {rapport.statut}
                               </span>
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTauxVenteBadgeColor(rapport.totaux.tauxVenteGlobal)}`}>
-                            {rapport.totaux.tauxVenteGlobal.toFixed(1)}%
-                          </span>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTauxVenteBadgeColor(rapport.totaux.tauxVenteGlobal)}`}>
+                              {rapport.totaux.tauxVenteGlobal.toFixed(1)}%
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => downloadRapportJournalierPDF(rapport, null)}
+                            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                            title="Télécharger le PDF"
+                          >
+                            <Icon icon="mdi:file-pdf-box" className="text-xl" />
+                          </button>
                         </div>
                       </div>
 
