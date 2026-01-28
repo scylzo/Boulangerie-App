@@ -247,16 +247,19 @@ export const MouvementsList: React.FC = () => {
                   <div className="font-bold text-gray-900">
                     {m.quantite.toLocaleString('fr-FR')} {m.matiereUnite}
                   </div>
-                  {/* Parsing du motif pour afficher les sacs si présents */}
+                  {/* Parsing du motif pour afficher les sacs ou sachets si présents */}
                   {(() => {
-                    // Cherche motifs du type "(3 sacs)" ou "2 sacs"
-                    const sacMatch = m.motif && m.motif.match(/(\d+(?:[.,]\d+)?)\s*sacs?/i);
+                    // Cherche motifs du type "(3 sacs)" ou "2 sachets", etc.
+                    const containerMatch = m.motif && m.motif.match(/(\d+(?:[.,]\d+)?)\s*(sachets?|sacs?)\b/i);
                     const weightMatch = m.motif && m.motif.match(/de\s*(\d+)/i); // Cherche "de 50" dans "sacs de 50kg"
 
-                    if (sacMatch) {
+                    if (containerMatch) {
+                      const count = containerMatch[1];
+                      const unitLabel = containerMatch[2].toLowerCase();
+
                       return (
                         <div className="text-xs text-blue-600 font-medium">
-                          {sacMatch[1]} sacs {weightMatch ? `x ${weightMatch[1]}kg` : ''}
+                          {count} {unitLabel} {weightMatch ? `x ${weightMatch[1]}kg` : ''}
                         </div>
                       );
                     }

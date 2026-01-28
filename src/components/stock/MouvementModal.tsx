@@ -316,6 +316,13 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
                     >
                       Carton
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, inputUnit: 'sachet' })}
+                      className={`px-2 py-0.5 rounded ${formData.inputUnit === 'sachet' ? 'bg-orange-100 text-orange-700 font-bold' : 'text-gray-500 hover:bg-gray-100'}`}
+                    >
+                      Sachet
+                    </button>
                   </>
                 )}
               </div>

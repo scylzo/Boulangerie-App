@@ -318,9 +318,13 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                   </td>
                   <td className="px-6 py-4 text-right font-medium text-gray-900">
                     {matiere.stockActuel.toLocaleString()} <span className="text-gray-500 text-sm">{matiere.unite}</span>
-                    {matiere.unite === 'kg' && matiere.stockActuel >= 50 && (
+                    {matiere.unite === 'kg' && matiere.stockActuel > 0 && (
                       <div className="text-xs text-blue-600 mt-1">
-                        (~{(matiere.stockActuel / 50).toLocaleString(undefined, { maximumFractionDigits: 1 })} sacs de 50kg)
+                        {matiere.nom.toLowerCase().includes('ameliorant') || matiere.nom.toLowerCase().includes('levure') ? (
+                          <span>(~{(matiere.stockActuel / 0.5).toLocaleString(undefined, { maximumFractionDigits: 1 })} sachets de 0.5kg)</span>
+                        ) : matiere.stockActuel >= 25 ? (
+                          <span>(~{(matiere.stockActuel / 50).toLocaleString(undefined, { maximumFractionDigits: 1 })} sacs de 50kg)</span>
+                        ) : null}
                       </div>
                     )}
                   </td>
