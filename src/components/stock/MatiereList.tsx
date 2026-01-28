@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStockStore } from '../../store/stockStore';
 import { Plus, Edit2, Trash2, AlertTriangle, ArrowRightLeft } from 'lucide-react';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { Modal } from '../ui/Modal';
 import type { MatierePremiere, UniteMesure } from '../../types';
 
 interface MatiereListProps {
@@ -72,7 +73,6 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isEditing) {
-      // Destructure to remove fields we don't want to update via this form anymore
       const { stockActuel, ...updates } = formData;
       updateMatiere(isEditing, {
         ...updates,
@@ -85,8 +85,8 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
         nom: formData.nom || '',
         unite: formData.unite as UniteMesure || 'kg',
         stockMinimum: Number(formData.stockMinimum) || 0,
-        stockActuel: 0, // Force 0 initial
-        prixUnitaireMoyen: 0, // Prix moyen pondéré initial
+        stockActuel: 0,
+        prixUnitaireMoyen: 0,
         active: true,
         createdAt: formData.dateCreation ? new Date(formData.dateCreation) : new Date()
       });
@@ -119,7 +119,6 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
     setDeleteConfirm({ isOpen: false, matiereId: '', matiereNom: '' });
   };
 
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -137,8 +136,13 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
         </button>
       </div>
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
+      <Modal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        title={isEditing ? 'Modifier la Matière' : 'Nouvelle Matière'}
+        size="lg"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
@@ -147,8 +151,8 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                 type="text"
                 value={formData.nom}
                 onChange={e => setFormData({ ...formData, nom: e.target.value })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                placeholder="Ex: Farine T55"
+                className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                placeholder="Ex: Farine GMD (Sac 50kg)"
               />
             </div>
             <div>
@@ -157,7 +161,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                 type="date"
                 value={formData.dateCreation}
                 onChange={e => setFormData({ ...formData, dateCreation: e.target.value })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
               />
             </div>
             <div>
@@ -165,7 +169,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
               <select
                 value={formData.unite}
                 onChange={e => setFormData({ ...formData, unite: e.target.value as UniteMesure })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
               >
                 <option value="kg">Kilogramme (kg)</option>
                 <option value="g">Gramme (g)</option>
@@ -175,7 +179,6 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                 <option value="sac_25kg">Sac 25kg</option>
               </select>
             </div>
-            {/* Removed Stock Initial Input to enforce using Movements */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Seuil d'alerte</label>
               <input
@@ -183,37 +186,36 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                 min="0"
                 value={formData.stockMinimum}
                 onChange={e => setFormData({ ...formData, stockMinimum: e.target.value === '' ? '' : parseFloat(e.target.value) })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
               />
             </div>
 
-            <div className="col-span-1 md:col-span-2 bg-blue-50 p-3 rounded-lg flex items-start space-x-2">
-              <div className="text-blue-500 mt-0.5"><AlertTriangle size={16} /></div>
-              <div className="text-sm text-blue-700">
-                <span className="font-bold">Note :</span> Créez d'abord la matière avec son unité de base (ex: kg).
-                Vous pourrez ensuite ajouter du stock en <b>Cartons</b> ou <b>Sacs</b> via le bouton "Mouvements" <ArrowRightLeft className="inline" size={14} /> dans la liste.
+            <div className="col-span-1 md:col-span-2 bg-orange-50/50 p-4 rounded-xl flex items-start space-x-3 border border-orange-100">
+              <div className="text-orange-600 mt-0.5"><AlertTriangle size={18} /></div>
+              <div className="text-sm text-orange-800 leading-relaxed">
+                <span className="font-bold">Note :</span> Créez d'abord la matière avec son unité de base.
+                Vous pourrez ensuite ajouter du stock via le bouton <b>Mouvements</b> <ArrowRightLeft className="inline mx-1" size={14} /> dans la liste.
               </div>
             </div>
           </div>
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex gap-3 pt-6">
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              className="flex-1 px-5 py-3 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl transition-all"
             >
               Annuler
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              className="flex-1 px-5 py-3 text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-xl shadow-md hover:shadow-lg transition-all"
             >
-              {isEditing ? 'Mettre à jour' : 'Créer'}
+              {isEditing ? 'Mettre à jour' : 'Créer la matière'}
             </button>
           </div>
         </form>
-      )}
+      </Modal>
 
-      {/* Conversion Modal */}
       {conversionState.isOpen && conversionState.matiere && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -225,7 +227,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                 onClick={() => setConversionState({ ...conversionState, isOpen: false })}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <Plus className="rotate-45" size={20} />
               </button>
             </div>
 
@@ -239,7 +241,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                 <select
                   value={conversionState.targetUnit}
                   onChange={(e) => setConversionState({ ...conversionState, targetUnit: e.target.value as UniteMesure })}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                  className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
                 >
                   <option value="kg">Kilogramme (kg)</option>
                   <option value="g">Gramme (g)</option>
@@ -257,7 +259,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                   step="0.1"
                   value={conversionState.factor}
                   onChange={(e) => setConversionState({ ...conversionState, factor: e.target.value })}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none font-bold"
+                  className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none font-bold"
                   placeholder="Ex: 50"
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -305,7 +307,6 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
           <tbody className="divide-y divide-gray-100">
             {matieres.map((matiere) => {
               const isLowStock = matiere.stockActuel <= matiere.stockMinimum;
-              // Check if unit is convertible (sac)
               const isConvertible = matiere.unite.includes('sac');
 
               return (
@@ -318,15 +319,6 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                   </td>
                   <td className="px-6 py-4 text-right font-medium text-gray-900">
                     {matiere.stockActuel.toLocaleString()} <span className="text-gray-500 text-sm">{matiere.unite}</span>
-                    {matiere.unite === 'kg' && matiere.stockActuel > 0 && (
-                      <div className="text-xs text-blue-600 mt-1">
-                        {matiere.nom.toLowerCase().includes('ameliorant') || matiere.nom.toLowerCase().includes('levure') ? (
-                          <span>(~{(matiere.stockActuel / 0.5).toLocaleString(undefined, { maximumFractionDigits: 1 })} sachets de 0.5kg)</span>
-                        ) : matiere.stockActuel >= 25 ? (
-                          <span>(~{(matiere.stockActuel / 50).toLocaleString(undefined, { maximumFractionDigits: 1 })} sacs de 50kg)</span>
-                        ) : null}
-                      </div>
-                    )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     {isLowStock ? (
@@ -342,36 +334,21 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end space-x-2">
-                      {/* Conversion quick action */}
                       {isConvertible && (
                         <button
                           onClick={() => openConversion(matiere)}
                           className="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100 mr-2"
-                          title="Convertir en kg"
                         >
                           Convertir kg
                         </button>
                       )}
-
-                      <button
-                        onClick={() => onAddMouvement(matiere)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                        title="Ajouter un mouvement"
-                      >
+                      <button onClick={() => onAddMouvement(matiere)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
                         <ArrowRightLeft size={18} />
                       </button>
-                      <button
-                        onClick={() => startEdit(matiere)}
-                        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                        title="Modifier"
-                      >
+                      <button onClick={() => startEdit(matiere)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
                         <Edit2 size={18} />
                       </button>
-                      <button
-                        onClick={() => handleDelete(matiere.id, matiere.nom)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                        title="Supprimer"
-                      >
+                      <button onClick={() => handleDelete(matiere.id, matiere.nom)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -379,13 +356,6 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                 </tr>
               );
             })}
-            {matieres.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                  Aucune matière première enregistrée.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
@@ -395,7 +365,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
         onClose={() => setDeleteConfirm({ isOpen: false, matiereId: '', matiereNom: '' })}
         onConfirm={confirmDelete}
         title="Confirmer la suppression"
-        message={`Êtes-vous sûr de vouloir supprimer la matière première "${deleteConfirm.matiereNom}" ?\n\nCette action est irréversible.`}
+        message={`Voulez-vous supprimer "${deleteConfirm.matiereNom}" ? Cette action est irréversible.`}
         confirmText="Supprimer"
         cancelText="Annuler"
         type="danger"

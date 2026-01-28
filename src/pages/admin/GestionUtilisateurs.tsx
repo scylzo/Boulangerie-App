@@ -127,7 +127,7 @@ export const GestionUtilisateurs: React.FC = () => {
           createdAt: new Date(),
           updatedAt: new Date()
         });
-        
+
         // deleteApp(secondaryApp); // Cleanup if possible
         toast.success('Utilisateur créé avec succès');
       }
@@ -136,7 +136,7 @@ export const GestionUtilisateurs: React.FC = () => {
       setEditingUser(null);
       setNewUser({ email: '', password: '', nom: '', prenom: '', role: 'livreur' });
       fetchUsers();
-      
+
     } catch (error: any) {
       console.error('Error saving user:', error);
       toast.error(`Erreur: ${error.message}`);
@@ -163,7 +163,7 @@ export const GestionUtilisateurs: React.FC = () => {
       fetchUsers();
       setDeleteConfirm({ isOpen: false, userId: '', userNom: '' });
     } catch (error) {
-       toast.error('Erreur lors de la suppression');
+      toast.error('Erreur lors de la suppression');
     }
   };
 
@@ -196,16 +196,15 @@ export const GestionUtilisateurs: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
-                      user.role === 'livreur' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                    }`}>
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                        user.role === 'livreur' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                      }`}>
                       {user.role}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button 
-                      onClick={() => handleOpenModal(user)} 
+                    <button
+                      onClick={() => handleOpenModal(user)}
                       className="text-blue-600 hover:text-blue-900 mr-3"
                       title="Modifier"
                     >
@@ -235,38 +234,41 @@ export const GestionUtilisateurs: React.FC = () => {
       >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Input 
-              label="Nom" 
-              value={newUser.nom} 
-              onChange={(e) => setNewUser({...newUser, nom: e.target.value})} 
+            <Input
+              label="Nom"
+              value={newUser.nom}
+              onChange={(e) => setNewUser({ ...newUser, nom: e.target.value })}
+              placeholder="Ex: Ndiaye"
             />
-            <Input 
-              label="Prénom" 
-              value={newUser.prenom} 
-              onChange={(e) => setNewUser({...newUser, prenom: e.target.value})} 
+            <Input
+              label="Prénom"
+              value={newUser.prenom}
+              onChange={(e) => setNewUser({ ...newUser, prenom: e.target.value })}
+              placeholder="Ex: Moussa"
             />
           </div>
-          <Input 
-            label="Email" 
-            type="email" 
-            value={newUser.email} 
-            onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+          <Input
+            label="Email"
+            type="email"
+            value={newUser.email}
+            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
             disabled={!!editingUser} // Read-only in edit mode
             className={editingUser ? "bg-gray-100" : ""}
+            placeholder="Ex: moussa.ndiaye@boulangerie.sn"
           />
           {!editingUser && (
-            <Input 
-              label="Mot de passe" 
-              type="password" 
-              value={newUser.password} 
-              onChange={(e) => setNewUser({...newUser, password: e.target.value})} 
+            <Input
+              label="Mot de passe"
+              type="password"
+              value={newUser.password}
+              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
             />
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
-            <select 
+            <select
               value={newUser.role}
-              onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
             >
               <option value="admin">Administrateur</option>

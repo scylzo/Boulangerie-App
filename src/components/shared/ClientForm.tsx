@@ -89,7 +89,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           label="Nom du client *"
           value={formData.nom}
           onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-          placeholder="ex: Restaurant Central"
+          placeholder="ex: Boutique Chez Moussa"
           required
         />
 
@@ -97,7 +97,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           label="Adresse *"
           value={formData.adresse}
           onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-          placeholder="Adresse complète"
+          placeholder="ex: HLM Grand Yoff, Villa 124"
           required
         />
 
@@ -106,7 +106,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
             label="Téléphone"
             value={formData.telephone}
             onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-            placeholder="ex: +221 33 123 45 67"
+            placeholder="ex: 77 123 45 67"
           />
 
           <Input
@@ -114,7 +114,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder="ex: contact@restaurant.sn"
+            placeholder="ex: contact@chezmoussa.sn"
           />
         </div>
 

@@ -168,7 +168,7 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-              placeholder="Ex: Plein Partner, Facture Senelec..."
+              placeholder="Ex: Facture Senelec, Achat gazole, Réparation vanne..."
             />
           </div>
 
@@ -202,7 +202,7 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
                 value={formData.fournisseur}
                 onChange={e => setFormData({ ...formData, fournisseur: e.target.value })}
                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none mt-2"
-                placeholder="Saisir le nom du fournisseur..."
+                placeholder="Ex: Senelec, Sen'Eau, Total, Shell..."
                 autoFocus={showManualInput && formData.fournisseur === ''}
               />
             )}

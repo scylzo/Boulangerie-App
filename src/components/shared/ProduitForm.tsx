@@ -23,8 +23,8 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
 
   const [formData, setFormData] = useState({
     nom: '',
-    prixClient: 0,
-    prixBoutique: 0,
+    prixClient: '' as number | '',
+    prixBoutique: '' as number | '',
     active: true,
     recette: [] as Ingredient[]
   });
@@ -43,8 +43,8 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     if (produit) {
       setFormData({
         nom: produit.nom,
-        prixClient: produit.prixClient || 0,
-        prixBoutique: produit.prixBoutique || 0,
+        prixClient: produit.prixClient || '',
+        prixBoutique: produit.prixBoutique || '',
         active: produit.active,
         recette: produit.recette || []
       });
@@ -84,21 +84,21 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     try {
       const produitData = {
         nom: formData.nom,
-        prixClient: formData.prixClient,
-        prixBoutique: formData.prixBoutique,
+        prixClient: Number(formData.prixClient) || 0,
+        prixBoutique: Number(formData.prixBoutique) || 0,
         active: formData.active,
         recette: formData.recette, // Include recipe
         description: '',
         unite: 'piece' as const,
-        prixUnitaire: formData.prixBoutique // Legacy
+        prixUnitaire: Number(formData.prixBoutique) || 0 // Legacy
       };
       await onSave(produitData);
       // Reset form if adding new
       if (!produit) {
         setFormData({
           nom: '',
-          prixClient: 0,
-          prixBoutique: 0,
+          prixClient: '',
+          prixBoutique: '',
           active: true,
           recette: []
         });
@@ -120,7 +120,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
             label="Nom du produit *"
             value={formData.nom}
             onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-            placeholder="ex: Pain de campagne"
+            placeholder="ex: Baguette sénégalaise"
             required
           />
 
@@ -131,7 +131,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
               step="1"
               min="0"
               value={formData.prixClient}
-              onChange={(e) => setFormData({ ...formData, prixClient: parseFloat(e.target.value) || 0 })}
+              onChange={(e) => setFormData({ ...formData, prixClient: e.target.value === '' ? '' : parseFloat(e.target.value) })}
               placeholder="0"
               required
             />
@@ -142,7 +142,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
               step="1"
               min="0"
               value={formData.prixBoutique}
-              onChange={(e) => setFormData({ ...formData, prixBoutique: parseFloat(e.target.value) || 0 })}
+              onChange={(e) => setFormData({ ...formData, prixBoutique: e.target.value === '' ? '' : parseFloat(e.target.value) })}
               placeholder="0"
               required
             />
@@ -189,7 +189,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                   type="number"
                   step="0.001"
                   min="0"
-                  placeholder="Ex: 0.250, 1.5, 50"
+                  placeholder="Ex: 0.25 (pour 250g de farine)"
                   value={newIngredient.quantite}
                   onChange={(e) => setNewIngredient({ ...newIngredient, quantite: e.target.value })}
                   className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 outline-none"
@@ -255,8 +255,6 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           </div>
         </div>
 
-        {/* Section Analyse de Rentabilité retirée car plus de gestion financière dans le stock */}
-
 
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
           <Button
@@ -269,7 +267,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           <Button
             type="submit"
             isLoading={isLoading}
-            disabled={!formData.nom.trim() || formData.prixClient <= 0 || formData.prixBoutique <= 0}
+            disabled={!formData.nom.trim() || !formData.prixClient || !formData.prixBoutique || Number(formData.prixClient) <= 0 || Number(formData.prixBoutique) <= 0}
           >
             {produit ? 'Enregistrer les modifications' : 'Créer le produit'}
           </Button>

@@ -229,7 +229,7 @@ export const StockDeclaration: React.FC = () => {
                         </div>
                         <input
                             type="text"
-                            placeholder="Rechercher une matière..."
+                            placeholder="Ex: Farine, Sucre, Levure..."
                             className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2"
                             value={filterText}
                             onChange={(e) => setFilterText(e.target.value)}

@@ -144,7 +144,7 @@ export const FournisseurList: React.FC = () => {
                 value={formData.adresse}
                 onChange={e => setFormData({ ...formData, adresse: e.target.value })}
                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                placeholder="Adresse du dépôt / bureau"
+                placeholder="Ex: Rue 10 x Avenue Lamine Gueye, Plateau"
               />
             </div>
             <div className="md:col-span-2 space-y-3">

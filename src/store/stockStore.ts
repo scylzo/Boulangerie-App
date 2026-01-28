@@ -492,10 +492,14 @@ export const useStockStore = create<StockState>((set, get) => ({
                 }
 
                 // Update du Mouvement lui-même
-                transaction.update(mouvementRef, {
-                    ...updates,
-                    updatedAt: new Date()
+                const cleanUpdates: any = { ...updates, updatedAt: new Date() };
+                Object.keys(cleanUpdates).forEach(key => {
+                    if (cleanUpdates[key] === undefined) {
+                        delete cleanUpdates[key];
+                    }
                 });
+
+                transaction.update(mouvementRef, cleanUpdates);
             });
 
             await get().chargerDonnees();

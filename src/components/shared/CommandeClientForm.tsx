@@ -124,29 +124,29 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
       const client = clients.find(c => c.id === selectedClientId);
       if (client?.commandeType && client.commandeType.length > 0) {
         setProduitsCommandes(client.commandeType.map(p => {
-            // 1. Récupération du prix (Si 0 ou manquant, on prend le prix actuel du catalogue)
-            let prix = p.prixUnitaire;
-            if (!prix) {
-                const productInfo = produits.find(prod => prod.id === p.produitId);
-                // Si boutique, prix boutique. Sinon, prix client.
-                prix = client.typeClient === 'boutique' ? productInfo?.prixBoutique : productInfo?.prixClient;
-            }
+          // 1. Récupération du prix (Si 0 ou manquant, on prend le prix actuel du catalogue)
+          let prix = p.prixUnitaire;
+          if (!prix) {
+            const productInfo = produits.find(prod => prod.id === p.produitId);
+            // Si boutique, prix boutique. Sinon, prix client.
+            prix = client.typeClient === 'boutique' ? productInfo?.prixBoutique : productInfo?.prixClient;
+          }
 
-            // 2. Migration / Fallback : Si pas de répartition mais une quantité totale (vieux format)
-            let repartition = p.repartitionCars;
-            if (!repartition && p.quantiteCommandee > 0) {
-                repartition = {
-                    car1_matin: p.quantiteCommandee,
-                    car2_matin: '',
-                    car_soir: ''
-                };
-            }
-
-            return {
-                ...p,
-                prixUnitaire: prix || 0,
-                repartitionCars: repartition || { car1_matin: '', car2_matin: '', car_soir: '' }
+          // 2. Migration / Fallback : Si pas de répartition mais une quantité totale (vieux format)
+          let repartition = p.repartitionCars;
+          if (!repartition && p.quantiteCommandee > 0) {
+            repartition = {
+              car1_matin: p.quantiteCommandee,
+              car2_matin: '',
+              car_soir: ''
             };
+          }
+
+          return {
+            ...p,
+            prixUnitaire: prix || 0,
+            repartitionCars: repartition || { car1_matin: '', car2_matin: '', car_soir: '' }
+          };
         }));
         toast.success("📋 Commande type chargée !");
       }
@@ -154,24 +154,24 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
   }, [selectedClientId]);
 
   const handleSauvegarderType = async () => {
-      if (!selectedClientId || produitsCommandes.length === 0) return;
-      try {
-        // Nettoyer les données avant sauvegarde
-        const produitsClean = produitsCommandes.map(p => ({
-            produitId: p.produitId,
-            quantiteCommandee: p.quantiteCommandee,
-            repartitionCars: {
-                car1_matin: Number(p.repartitionCars?.car1_matin) || 0,
-                car2_matin: Number(p.repartitionCars?.car2_matin) || 0,
-                car_soir: Number(p.repartitionCars?.car_soir) || 0
-            }
-        }));
-        
-        await sauvegarderCommandeType(selectedClientId, produitsClean);
-        toast.success("💾 Commande type sauvegardée pour ce client !");
-      } catch (error) {
-          toast.error("Erreur lors de la sauvegarde de la commande type");
-      }
+    if (!selectedClientId || produitsCommandes.length === 0) return;
+    try {
+      // Nettoyer les données avant sauvegarde
+      const produitsClean = produitsCommandes.map(p => ({
+        produitId: p.produitId,
+        quantiteCommandee: p.quantiteCommandee,
+        repartitionCars: {
+          car1_matin: Number(p.repartitionCars?.car1_matin) || 0,
+          car2_matin: Number(p.repartitionCars?.car2_matin) || 0,
+          car_soir: Number(p.repartitionCars?.car_soir) || 0
+        }
+      }));
+
+      await sauvegarderCommandeType(selectedClientId, produitsClean);
+      toast.success("💾 Commande type sauvegardée pour ce client !");
+    } catch (error) {
+      toast.error("Erreur lors de la sauvegarde de la commande type");
+    }
   };
 
   // Recalculer les prix quand on change le type de prix
@@ -248,8 +248,8 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
     if (field === 'repartitionCars') {
       const repartition = value;
       const total = (Number(repartition?.car1_matin) || 0) +
-                   (Number(repartition?.car2_matin) || 0) +
-                   (Number(repartition?.car_soir) || 0);
+        (Number(repartition?.car2_matin) || 0) +
+        (Number(repartition?.car_soir) || 0);
       nouveauxProduits[index].quantiteCommandee = total;
     }
 
@@ -272,8 +272,8 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
 
     // Calculer la nouvelle quantité totale
     const newTotal = (Number(newRepartition.car1_matin) || 0) +
-                     (Number(newRepartition.car2_matin) || 0) +
-                     (Number(newRepartition.car_soir) || 0);
+      (Number(newRepartition.car2_matin) || 0) +
+      (Number(newRepartition.car_soir) || 0);
 
     nouveauxProduits[index] = {
       ...nouveauxProduits[index],
@@ -294,8 +294,8 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
 
     const commandeValide = produitsCommandes.filter(p => {
       const total = (Number(p.repartitionCars?.car1_matin) || 0) +
-                   (Number(p.repartitionCars?.car2_matin) || 0) +
-                   (Number(p.repartitionCars?.car_soir) || 0);
+        (Number(p.repartitionCars?.car2_matin) || 0) +
+        (Number(p.repartitionCars?.car_soir) || 0);
       return p.produitId && total > 0;
     });
 
@@ -305,23 +305,23 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
     }
 
     const produitsFormat = commandeValide.map(p => {
-        // Sécurité : Si le prix est à 0, on le récupère du catalogue
-        let prix = p.prixUnitaire;
-        if (!prix) {
-            const productInfo = produits.find(prod => prod.id === p.produitId);
-            const client = clients.find(c => c.id === selectedClientId);
-            prix = client?.typeClient === 'boutique' ? productInfo?.prixBoutique : productInfo?.prixClient;
-        }
+      // Sécurité : Si le prix est à 0, on le récupère du catalogue
+      let prix = p.prixUnitaire;
+      if (!prix) {
+        const productInfo = produits.find(prod => prod.id === p.produitId);
+        const client = clients.find(c => c.id === selectedClientId);
+        prix = client?.typeClient === 'boutique' ? productInfo?.prixBoutique : productInfo?.prixClient;
+      }
 
-        return {
-          ...p,
-          prixUnitaire: prix || 0,
-          repartitionCars: {
-            car1_matin: Number(p.repartitionCars?.car1_matin) || 0,
-            car2_matin: Number(p.repartitionCars?.car2_matin) || 0,
-            car_soir: Number(p.repartitionCars?.car_soir) || 0
-          }
-        };
+      return {
+        ...p,
+        prixUnitaire: prix || 0,
+        repartitionCars: {
+          car1_matin: Number(p.repartitionCars?.car1_matin) || 0,
+          car2_matin: Number(p.repartitionCars?.car2_matin) || 0,
+          car_soir: Number(p.repartitionCars?.car_soir) || 0
+        }
+      };
     });
 
     const commande: Omit<CommandeClient, 'id' | 'createdAt' | 'updatedAt'> = {
@@ -354,9 +354,9 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
       <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <p className="text-gray-700 text-sm">
           {mode === 'addProducts' ? "Ajoutez des produits à la commande existante. Les quantités seront fusionnées avec les produits déjà commandés." :
-           mode === 'edit' ? "Modifiez les détails de la commande. Cette action remplacera tous les produits actuels." :
-           mode === 'editSpecific' ? "Modifiez les détails de ce produit spécifique dans la commande." :
-           "Créez une nouvelle commande pour le client sélectionné."}
+            mode === 'edit' ? "Modifiez les détails de la commande. Cette action remplacera tous les produits actuels." :
+              mode === 'editSpecific' ? "Modifiez les détails de ce produit spécifique dans la commande." :
+                "Créez une nouvelle commande pour le client sélectionné."}
         </p>
       </div>
 
@@ -472,8 +472,8 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
               {produitsCommandes.map((item, index) => {
                 const produitSelectionne = produits.find(p => p.id === item.produitId);
                 const repartitionTotal = (Number(item.repartitionCars?.car1_matin) || 0) +
-                                       (Number(item.repartitionCars?.car2_matin) || 0) +
-                                       (Number(item.repartitionCars?.car_soir) || 0);
+                  (Number(item.repartitionCars?.car2_matin) || 0) +
+                  (Number(item.repartitionCars?.car_soir) || 0);
 
                 return (
                   <div
@@ -510,8 +510,8 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                             type="number"
                             step="1"
                             placeholder="Prix"
-                            value={item.prixUnitaire || produitSelectionne?.prixUnitaire || ''}
-                            onChange={(e) => modifierProduit(index, 'prixUnitaire', parseFloat(e.target.value) || 0)}
+                            value={item.prixUnitaire ?? produitSelectionne?.prixUnitaire ?? ''}
+                            onChange={(e) => modifierProduit(index, 'prixUnitaire', e.target.value === '' ? '' : parseFloat(e.target.value))}
                             className="bg-gray-50"
                           />
                         </div>
@@ -642,30 +642,30 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
             disabled={!selectedClientId || produitsCommandes.length === 0}
           >
             {mode === 'addProducts' ? 'Ajouter les produits' :
-             mode === 'edit' ? 'Modifier la commande' :
-             mode === 'editSpecific' ? 'Modifier le produit' :
-             'Créer la commande'}
+              mode === 'edit' ? 'Modifier la commande' :
+                mode === 'editSpecific' ? 'Modifier le produit' :
+                  'Créer la commande'}
           </Button>
         </div>
-        
+
         {/* Bouton Commande Type (visible seulement en création/édition si des produits sont présents) */}
         {mode !== 'editSpecific' && produitsCommandes.length > 0 && selectedClientId && (
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h4 className="text-sm font-semibold text-blue-900">Commande Type</h4>
-                        <p className="text-xs text-blue-700">Sauvegarder cette configuration pour ce client ?</p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={handleSauvegarderType}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm hover:shadow-md text-sm font-medium"
-                    >
-                        <Icon icon="mdi:content-save-settings" className="text-lg" />
-                        Définir comme commande type
-                    </button>
-                </div>
+          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-semibold text-blue-900">Commande Type</h4>
+                <p className="text-xs text-blue-700">Sauvegarder cette configuration pour ce client ?</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSauvegarderType}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm hover:shadow-md text-sm font-medium"
+              >
+                <Icon icon="mdi:content-save-settings" className="text-lg" />
+                Définir comme commande type
+              </button>
             </div>
+          </div>
         )}
       </form>
     </div>

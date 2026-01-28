@@ -63,7 +63,7 @@ export const LivreurForm: React.FC<LivreurFormProps> = ({
           label="Nom du livreur *"
           value={formData.nom}
           onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-          placeholder="ex: Jean Dupont"
+          placeholder="ex: Modou Fall"
           required
         />
 
@@ -72,14 +72,14 @@ export const LivreurForm: React.FC<LivreurFormProps> = ({
             label="Téléphone"
             value={formData.telephone}
             onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-            placeholder="ex: +226 70 12 34 56"
+            placeholder="ex: 77 123 45 67"
           />
 
           <Input
             label="Véhicule / Plaque"
             value={formData.vehicule}
             onChange={(e) => setFormData({ ...formData, vehicule: e.target.value })}
-            placeholder="ex: Moto 125cc - AB123CD"
+            placeholder="ex: Tricycle - DK 1234 A"
           />
         </div>
 
