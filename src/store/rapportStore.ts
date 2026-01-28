@@ -85,6 +85,11 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
       await boutiqueStore.chargerVentes(date);
       console.log('✅ Ventes boutique chargées');
 
+      // 2b. Charger le stock boutique du jour (pour les produits ajoutés manuellement)
+      console.log('🏪 Chargement stock boutique...');
+      await boutiqueStore.chargerStockJour(date);
+      console.log('✅ Stock boutique chargé');
+
       // 3. Charger les retours clients
       console.log('📦 Chargement retours clients...');
       await livraisonStore.chargerInvendusDuJour(date);
@@ -105,14 +110,15 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
 
       const programme = productionState.programmeActuel;
       const ventesJour = boutiqueState.ventesJour;
+      const stockJour = boutiqueState.stockJour;
       const invendusClients = livraisonState.invendusClients;
       const commandesClients = programme?.commandesClients || productionState.commandesClients;
       const produits = referentielState.produits;
 
       console.log('🔍 Debug - Données récupérées:', {
         'programme': programme,
-        // 'programme.produits': programme?.produits,
         'ventesJour': ventesJour,
+        'stockJour': stockJour,
         'invendusClients': invendusClients,
         'commandesClients': commandesClients,
         'produits': produits,
@@ -130,44 +136,7 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
       }
 
       if (!programme || !programme.totauxParProduit || programme.totauxParProduit.length === 0) {
-        console.warn('⚠️ Aucun programme de production trouvé pour cette date. Génération d\'un rapport vide...');
-
-        // Créer un rapport vide
-        const rapportVide: RapportJournalier = {
-          id: `rapport_${date.getTime()}`,
-          date,
-          produits: [],
-          totaux: {
-            quantitePrevue: 0,
-            quantiteProduite: 0,
-            quantiteVendueTotal: 0,
-            invendusTotal: 0,
-            tauxVenteGlobal: 0,
-            pertesTotales: 0
-          },
-          statut: 'genere',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        set({
-          rapportJour: rapportVide,
-          isLoading: false
-        });
-
-        console.log('✅ Rapport vide généré:', rapportVide);
-
-        // Sauvegarder le rapport vide en Firebase
-        try {
-          const dateStr = date.toISOString().split('T')[0];
-          const docId = `rapport_${dateStr}`;
-          const docRef = doc(db, 'dailyReports', docId);
-          await setDoc(docRef, rapportVide, { merge: true });
-          console.log('✅ Rapport vide sauvegardé en Firebase');
-        } catch (saveError) {
-          console.error('❌ Erreur lors de la sauvegarde du rapport vide:', saveError);
-        }
-        return;
+        console.warn('⚠️ Aucun programme de production trouvé pour cette date. Recherche d\'autres données (boutique, clients)...');
       }
 
       console.log('📊 Données chargées:', {
@@ -179,18 +148,46 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         'commandesClients détail': commandesClients
       });
 
-      // Calculer le rapport pour chaque produit
-      const rapportProduits = programme.totauxParProduit.map(progProduit => {
-        const produit = produits.find(p => p.id === progProduit.produitId);
+      // 1. Collecter tous les IDs de produits uniques de toutes les sources
+      const allProduitIds = new Set<string>();
+
+      if (programme?.totauxParProduit) {
+        programme.totauxParProduit.forEach(p => allProduitIds.add(p.produitId));
+      }
+
+      if (ventesJour?.produits) {
+        ventesJour.produits.forEach(p => allProduitIds.add(p.produitId));
+      }
+
+      if (stockJour?.produits) {
+        stockJour.produits.forEach(p => allProduitIds.add(p.produitId));
+      }
+
+      if (invendusClients) {
+        invendusClients.forEach(inv => inv.produits.forEach(p => allProduitIds.add(p.produitId)));
+      }
+
+      if (commandesClients) {
+        commandesClients.forEach(cmd => cmd.produits.forEach(p => allProduitIds.add(p.produitId)));
+      }
+
+      console.log('📋 Liste exhaustive des produits identifiés:', Array.from(allProduitIds));
+
+      // Calculer le rapport pour chaque produit identifié
+      const rapportProduits = Array.from(allProduitIds).map(produitId => {
+        const produit = produits.find(p => p.id === produitId);
+
+        // Données du programme
+        const progProduit = programme?.totauxParProduit?.find(p => p.produitId === produitId);
 
         // Quantités prévues et boutique
-        const quantitePrevue = progProduit.totalGlobal; // Total prévu global
-        const quantiteBoutique = progProduit.totalBoutique || 0;
+        const quantitePrevue = progProduit?.totalGlobal || 0;
+        const quantiteBoutique = progProduit?.totalBoutique || 0;
 
         // Quantités livrées aux clients
         const quantiteLivreeClients = commandesClients
           .flatMap(cmd => cmd.produits)
-          .filter(p => p.produitId === progProduit.produitId)
+          .filter(p => p.produitId === produitId)
           .reduce((sum, p) => {
             const total = Object.values(p.repartitionCars || {})
               .reduce((carSum, qte) => carSum + (Number(qte) || 0), 0);
@@ -198,22 +195,23 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
           }, 0);
 
         // Ventes boutique
-        const venteBoutiqueProduit = ventesJour?.produits.find(v => v.produitId === progProduit.produitId);
+        const venteBoutiqueProduit = ventesJour?.produits.find(v => v.produitId === produitId);
         const venduBoutique = venteBoutiqueProduit?.venduTotal || 0;
         const invenduBoutique = venteBoutiqueProduit?.invenduBoutique || 0;
+        const stockDebutBoutique = venteBoutiqueProduit?.stockDebut || quantiteBoutique;
 
         // Invendus clients (retours)
         const invendusClientsProduit = invendusClients
           .flatMap(inv => inv.produits)
-          .filter(p => p.produitId === progProduit.produitId)
+          .filter(p => p.produitId === produitId)
           .reduce((sum, p) => sum + p.invendus, 0);
 
         // Ventes clients = Livré - Invendus
-        const venduClients = quantiteLivreeClients - invendusClientsProduit;
+        const venduClients = Math.max(0, quantiteLivreeClients - invendusClientsProduit);
 
         // Calculs totaux
         // Utiliser la quantité réelle si saisie dans le programme, sinon l'estimation
-        const quantiteProduite = progProduit.quantiteProduiteReelle ?? (quantiteLivreeClients + quantiteBoutique);
+        const quantiteProduite = progProduit?.quantiteProduiteReelle ?? (quantiteLivreeClients + stockDebutBoutique);
         const quantiteVendueTotal = venduClients + venduBoutique;
         const invendusTotal = invendusClientsProduit + invenduBoutique;
 
@@ -223,11 +221,11 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         };
 
         const tauxVenteClients = calculerTaux(venduClients, quantiteLivreeClients);
-        const tauxVenteBoutique = calculerTaux(venduBoutique, quantiteBoutique);
+        const tauxVenteBoutique = calculerTaux(venduBoutique, stockDebutBoutique);
         const tauxVenteGlobal = calculerTaux(quantiteVendueTotal, quantiteProduite);
 
         return {
-          produitId: progProduit.produitId,
+          produitId: produitId,
           produit: produit,
           quantitePrevue,
           quantiteProduite,

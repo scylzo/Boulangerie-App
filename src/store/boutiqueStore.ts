@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { dateToTimestamp } from '../firebase/collections';
 import type { StockBoutique, EquipeBoutique, VentesBoutique, Produit } from '../types';
@@ -49,7 +49,6 @@ interface BoutiqueStore {
   chargerVentes: (date: Date) => Promise<void>;
   getVentesPeriode: (dateDebut: Date, dateFin: Date) => Promise<number>;
 
-
   // Setters
   setLoading: (loading: boolean) => void;
 }
@@ -68,14 +67,15 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
 
   // Actions Stock
   creerStockJour: (date: Date, produits) => {
+    const dateStr = date.toISOString().split('T')[0];
     const nouveauStock: StockBoutique = {
-      id: `stock_${date.getTime()}`,
+      id: `stock_${dateStr}`,
       date,
       produits: produits.map(p => ({
         produitId: p.produitId,
         stockDebut: p.stockDebut
       })),
-      isJourneeContinue: date.getDay() === 0 || date.getDay() === 6, // Auto-détection Week-end (Samedi/Dimanche)
+      isJourneeContinue: date.getDay() === 0 || date.getDay() === 6,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -86,26 +86,13 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
   chargerStockJour: async (date: Date) => {
     set({ isLoading: true });
     try {
-      const dateStart = new Date(date);
-      dateStart.setHours(0, 0, 0, 0);
-      const dateEnd = new Date(date);
-      dateEnd.setHours(23, 59, 59, 999);
+      const dateStr = date.toISOString().split('T')[0];
+      const docId = `stock_${dateStr}`;
+      const docRef = doc(db, 'shopStock', docId);
+      const docSnap = await getDoc(docRef);
 
-      console.log('Recherche stock pour date (local):', dateStart.toLocaleString());
-
-      const stockQuery = query(
-        collection(db, 'shopStock'),
-        where('date', '>=', dateToTimestamp(dateStart)),
-        where('date', '<=', dateToTimestamp(dateEnd))
-      );
-
-      const stockSnapshot = await getDocs(stockQuery);
-      console.log('Nombre de stocks trouvés:', stockSnapshot.docs.length);
-
-      if (!stockSnapshot.empty) {
-        const stockData = stockSnapshot.docs[0].data();
-        console.log('Données stock brutes:', stockData);
-
+      if (docSnap.exists()) {
+        const stockData = docSnap.data();
         const stock: StockBoutique = {
           ...stockData,
           date: stockData.date.toDate(),
@@ -114,12 +101,36 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
         } as StockBoutique;
 
         set({ stockJour: stock });
-        console.log('Stock boutique chargé:', stock);
+        console.log('Stock boutique chargé (docId):', stock);
       } else {
-        console.log('Aucun stock existant trouvé');
-        set({ stockJour: null });
-      }
+        // Fallback: ancienne recherche par query (pour compatibilité)
+        const dateStart = new Date(date);
+        dateStart.setHours(0, 0, 0, 0);
+        const dateEnd = new Date(date);
+        dateEnd.setHours(23, 59, 59, 999);
 
+        const stockQuery = query(
+          collection(db, 'shopStock'),
+          where('date', '>=', dateToTimestamp(dateStart)),
+          where('date', '<=', dateToTimestamp(dateEnd))
+        );
+
+        const stockSnapshot = await getDocs(stockQuery);
+        if (!stockSnapshot.empty) {
+          const stockData = stockSnapshot.docs[0].data();
+          const stock: StockBoutique = {
+            ...stockData,
+            date: stockData.date.toDate(),
+            createdAt: stockData.createdAt.toDate(),
+            updatedAt: stockData.updatedAt.toDate(),
+          } as StockBoutique;
+
+          set({ stockJour: stock });
+          console.log('Stock boutique chargé (query):', stock);
+        } else {
+          set({ stockJour: null });
+        }
+      }
       set({ isLoading: false });
     } catch (error) {
       set({ isLoading: false });
@@ -131,14 +142,10 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
   creerStockDepuisProduction: async (date: Date, forceUpdate = false) => {
     set({ isLoading: true });
     try {
-      // Récupérer le programme de production du jour
-      // Utiliser les bornes locales pour correspondre à la création du programme
       const dateStart = new Date(date);
       dateStart.setHours(0, 0, 0, 0);
       const dateEnd = new Date(date);
       dateEnd.setHours(23, 59, 59, 999);
-
-      console.log('Plage de recherche production:', dateStart.toLocaleString(), 'à', dateEnd.toLocaleString());
 
       const programmeQuery = query(
         collection(db, 'productionPrograms'),
@@ -147,20 +154,8 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
       );
 
       const programmeSnapshot = await getDocs(programmeQuery);
-      console.log('Programmes trouvés:', programmeSnapshot.docs.length);
 
       if (programmeSnapshot.empty) {
-        console.log('Aucun programme de production trouvé pour cette date');
-
-        // Essayons aussi sans filtre de date pour voir tous les programmes
-        const allProgrammesQuery = query(collection(db, 'productionPrograms'));
-        const allProgrammes = await getDocs(allProgrammesQuery);
-        console.log('Total programmes en base:', allProgrammes.docs.length);
-        allProgrammes.docs.forEach(doc => {
-          const data = doc.data();
-          console.log('Programme trouvé:', doc.id, data.date);
-        });
-
         set({ isLoading: false, stockJour: null });
         return;
       }
@@ -168,12 +163,7 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
       const programmeData = programmeSnapshot.docs[0].data();
       const quantitesBoutique = programmeData.quantitesBoutique || [];
 
-      console.log('Programme trouvé:', programmeData);
-      console.log('Quantités boutique:', quantitesBoutique);
-
-      // Si pas de quantités boutique définies
       if (quantitesBoutique.length === 0) {
-        console.log('Aucune quantité boutique définie dans le programme');
         set({ isLoading: false, stockJour: null });
         return;
       }
@@ -182,19 +172,11 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
       const produitsSnapshot = await getDocs(collection(db, 'produits'));
       const produitsMap = new Map();
       produitsSnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        produitsMap.set(doc.id, data);
+        produitsMap.set(doc.id, doc.data());
       });
 
-      console.log('Produits chargés:', Array.from(produitsMap.keys()));
-
-      // Créer le stock boutique basé sur les quantités boutique définies
-      // Note: On ignore les quantités sans repartitionCars (anciennes données)
       const stockProduits = quantitesBoutique.map((qte: any) => {
-        console.log('Traitement quantité:', qte);
         const produit = produitsMap.get(qte.produitId);
-        console.log('Produit trouvé:', produit);
-
         return {
           produitId: qte.produitId,
           stockDebut: qte.quantite,
@@ -203,44 +185,21 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
         };
       }).filter((p: any) => p.stockDebut > 0);
 
-      console.log('Stock produits final:', stockProduits);
-
-      if (stockProduits.length === 0) {
-        console.log('Aucun produit avec quantité > 0 pour la boutique');
-        set({ isLoading: false, stockJour: null });
-        return;
-      }
-
-      // Si forceUpdate ou pas de stock existant, créer/recréer le stock
       const { stockJour: stockExistant } = get();
 
       if (forceUpdate || !stockExistant) {
-        // Créer le stock boutique
+        const dateStr = date.toISOString().split('T')[0];
+        const docId = `stock_${dateStr}`;
+
         const nouveauStock: StockBoutique = {
-          id: `stock_${date.getTime()}`,
+          id: docId,
           date,
           produits: stockProduits,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
 
-        // Si un stock existant, le supprimer d'abord
-        if (stockExistant && forceUpdate) {
-          console.log('Suppression de l\'ancien stock pour mise à jour');
-          // Trouver et supprimer l'ancien stock
-          const oldStockQuery = query(
-            collection(db, 'shopStock'),
-            where('date', '>=', dateToTimestamp(dateStart)),
-            where('date', '<=', dateToTimestamp(dateEnd))
-          );
-          const oldStockSnapshot = await getDocs(oldStockQuery);
-          for (const doc of oldStockSnapshot.docs) {
-            await deleteDoc(doc.ref);
-          }
-        }
-
-        // Sauvegarder le nouveau stock en base
-        await addDoc(collection(db, 'shopStock'), {
+        await setDoc(doc(db, 'shopStock', docId), {
           ...nouveauStock,
           date: date,
           createdAt: new Date(),
@@ -248,21 +207,15 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
         });
 
         set({ stockJour: nouveauStock, isLoading: false });
-        console.log('Stock boutique créé/mis à jour depuis les quantités définies:', nouveauStock);
       } else {
-        // Stock existant, juste mettre à jour le state local
         set({ isLoading: false });
-        console.log('Stock existant conservé');
       }
-
     } catch (error) {
       set({ isLoading: false, stockJour: null });
       console.error('Erreur lors de la création du stock depuis production:', error);
-      // Ne pas throw l'erreur pour éviter les blocages
     }
   },
 
-  // Nouvelle fonction pour forcer la mise à jour du stock
   mettreAJourStockBoutique: async (date: Date) => {
     await get().creerStockDepuisProduction(date, true);
   },
@@ -273,17 +226,15 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
       const { stockJour, produits } = get();
       const produit = produits.find(p => p.id === produitId);
 
-      if (!produit) {
-        throw new Error('Produit introuvable');
-      }
+      if (!produit) throw new Error('Produit introuvable');
 
-      // 1. Mettre à jour le stock du jour
       let n_stockJour = stockJour;
+      const dateStr = date.toISOString().split('T')[0];
+      const stockDocId = `stock_${dateStr}`;
 
       if (!n_stockJour) {
-        // Créer un nouveau stock si inexistant
         n_stockJour = {
-          id: `stock_${date.getTime()}`,
+          id: stockDocId,
           date,
           produits: [],
           createdAt: new Date(),
@@ -291,7 +242,6 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
         };
       }
 
-      // Ajouter ou mettre à jour le produit dans le stock
       const existingProductIndex = n_stockJour.produits.findIndex(p => p.produitId === produitId);
       const newStockProducts = [...n_stockJour.produits];
 
@@ -305,7 +255,7 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
           produitId,
           produit,
           stockDebut: quantite,
-          repartitionCars: { car1_matin: 0, car2_matin: 0, car_soir: 0 } // Stock manuel
+          repartitionCars: { car1_matin: 0, car2_matin: 0, car_soir: 0 }
         });
       }
 
@@ -315,36 +265,21 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
         updatedAt: new Date()
       };
 
-      // Sauvegarder le stock
+      await setDoc(doc(db, 'shopStock', stockDocId), {
+        ...updatedStock,
+        date: date,
+        produits: updatedStock.produits.map(p => ({
+          ...p,
+          produit: p.produit ? { ...p.produit } : null
+        }))
+      }, { merge: true });
+
       set({ stockJour: updatedStock });
 
-      // Sauvegarder le stock
-      if (stockJour) {
-        await setDoc(doc(db, 'shopStock', stockJour.id), {
-          ...updatedStock,
-          date: date, // important pour Firestore
-          produits: updatedStock.produits.map(p => ({
-            ...p,
-            produit: p.produit ? { ...p.produit } : null // Nettoyer l'objet produit
-          }))
-        }, { merge: true });
-      } else {
-        // Utiliser le même ID que celui généré localement pour éviter les doublons/incohérences
-        await setDoc(doc(db, 'shopStock', updatedStock.id), {
-          ...updatedStock,
-          date: date,
-          produits: updatedStock.produits.map(p => ({
-            ...p,
-            produit: p.produit ? { ...p.produit } : null
-          }))
-        });
-      }
-
-      // 2. Propager aux équipes actives
+      // Propager aux équipes actives
       const currentEquipeMatin = get().equipeMatin;
       const currentEquipeSoir = get().equipeSoir;
 
-      // Mise à jour Équipe Matin (si elle existe)
       if (currentEquipeMatin) {
         const newMatinProducts = [...currentEquipeMatin.produits];
         const pIndex = newMatinProducts.findIndex(p => p.produitId === produitId);
@@ -365,26 +300,14 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
             reste: quantite - (periode === 'matin' ? (vendu || 0) : 0)
           });
         }
-
-        const updatedMatin = {
-          ...currentEquipeMatin,
-          produits: newMatinProducts,
-          updatedAt: new Date()
-        };
-        console.log('Mise à jour équipe matin:', updatedMatin);
-        set({ equipeMatin: updatedMatin });
+        set({ equipeMatin: { ...currentEquipeMatin, produits: newMatinProducts, updatedAt: new Date() } });
         await get().sauvegarderEquipe('matin');
       }
 
-      // Mise à jour Équipe Soir (si elle existe)
       if (currentEquipeSoir) {
         const newSoirProducts = [...currentEquipeSoir.produits];
         const pIndex = newSoirProducts.findIndex(p => p.produitId === produitId);
-
-        // La quantité qui arrive au soir dépend de si elle a été vendue le matin
         const quantityAddedToSoir = quantite - (periode === 'matin' ? (vendu || 0) : 0);
-
-        // Si soldé en soirée, on déduit du reste du soir
         const venduSoir = periode === 'soir' ? (vendu || 0) : 0;
 
         if (pIndex >= 0) {
@@ -403,27 +326,16 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
             reste: quantityAddedToSoir - venduSoir
           });
         }
-
-        const updatedSoir = {
-          ...currentEquipeSoir,
-          produits: newSoirProducts,
-          updatedAt: new Date()
-        };
-        console.log('Mise à jour équipe soir:', updatedSoir);
-        set({ equipeSoir: updatedSoir });
+        set({ equipeSoir: { ...currentEquipeSoir, produits: newSoirProducts, updatedAt: new Date() } });
         await get().sauvegarderEquipe('soir');
       }
 
-      // 3. Recalculer les ventes globale
       get().calculerVentesBoutique();
       await get().sauvegarderVentes();
-
       set({ isLoading: false });
-      console.log(`✅ Stock manuel ajouté: ${quantite} x ${produit.nom}`);
-
     } catch (error) {
-      console.error('Erreur ajout stock manuel:', error);
       set({ isLoading: false });
+      console.error('Erreur ajout stock manuel:', error);
       throw error;
     }
   },
@@ -432,111 +344,52 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const { stockJour, equipeMatin, equipeSoir } = get();
-
       if (!stockJour) return;
 
-      // 1. Calculer la différence
       const currentProduct = stockJour.produits.find(p => p.produitId === produitId);
-      if (!currentProduct) {
-        throw new Error("Produit non trouvé dans le stock du jour");
-      }
-      const ancienStock = currentProduct.stockDebut;
-      const difference = nouvelleQuantite - ancienStock;
+      if (!currentProduct) throw new Error("Produit non trouvé");
 
+      const difference = nouvelleQuantite - currentProduct.stockDebut;
       if (difference === 0) {
         set({ isLoading: false });
         return;
       }
 
-      // 2. Mettre à jour stockJour
-      const newStockProducts = stockJour.produits.map(p =>
+      const updatedProducts = stockJour.produits.map(p =>
         p.produitId === produitId ? { ...p, stockDebut: nouvelleQuantite } : p
       );
 
-      const updatedStock = {
-        ...stockJour,
-        produits: newStockProducts,
-        updatedAt: new Date()
-      };
-
+      const updatedStock = { ...stockJour, produits: updatedProducts, updatedAt: new Date() };
       await setDoc(doc(db, 'shopStock', stockJour.id), {
         ...updatedStock,
-        date: date,
-        produits: updatedStock.produits.map(p => ({
-          ...p,
-          produit: p.produit ? { ...p.produit } : null
-        }))
+        date,
+        produits: updatedStock.produits.map(p => ({ ...p, produit: p.produit ? { ...p.produit } : null }))
       }, { merge: true });
 
       set({ stockJour: updatedStock });
 
-      // 3. Propager la différence aux équipes actives
-
-      // Équipe Matin
-      if (equipeMatin && (equipeMatin.statut === 'en_cours' || equipeMatin.statut === 'termine')) {
-        const newMatinProducts = [...equipeMatin.produits];
-        const pIndex = newMatinProducts.findIndex(p => p.produitId === produitId);
-
-        if (pIndex >= 0) {
-          // On ajuste le stock de début
-          newMatinProducts[pIndex] = {
-            ...newMatinProducts[pIndex],
-            stockDebut: newMatinProducts[pIndex].stockDebut + difference,
-            reste: newMatinProducts[pIndex].reste + difference
-          };
-
-          const updatedMatin = {
-            ...equipeMatin,
-            produits: newMatinProducts,
-            updatedAt: new Date()
-          };
-
-          set({ equipeMatin: updatedMatin });
-          await get().sauvegarderEquipe('matin');
-        }
+      if (equipeMatin) {
+        const newMatinProds = equipeMatin.produits.map(p =>
+          p.produitId === produitId ? { ...p, stockDebut: p.stockDebut + difference, reste: p.reste + difference } : p
+        );
+        set({ equipeMatin: { ...equipeMatin, produits: newMatinProds, updatedAt: new Date() } });
+        await get().sauvegarderEquipe('matin');
       }
 
-      // Équipe Soir
-      if (equipeSoir && (equipeSoir.statut === 'en_cours' || equipeSoir.statut === 'termine')) {
-        const newSoirProducts = [...equipeSoir.produits];
-        const pIndex = newSoirProducts.findIndex(p => p.produitId === produitId);
-
-        if (pIndex >= 0) {
-          // On ajuste le stock de début du soir aussi (car il dépend souvent du reste matin ou stock global)
-          // Note: Si le soir est initialisé, son stockDebut est censé être fixe, mais si on corrige le stock "source",
-          // il est logique que la correction se propage.
-          newSoirProducts[pIndex] = {
-            ...newSoirProducts[pIndex],
-            stockDebut: newSoirProducts[pIndex].stockDebut + difference,
-            reste: newSoirProducts[pIndex].reste + difference
-          };
-
-          const updatedSoir = {
-            ...equipeSoir,
-            produits: newSoirProducts,
-            updatedAt: new Date()
-          };
-
-          set({ equipeSoir: updatedSoir });
-          await get().sauvegarderEquipe('soir');
-        } else if (equipeMatin?.statut === 'termine') {
-          // Si le produit n'était pas là, c'est peut-être qu'il a été ajouté manuellement hors flux
-          // Mais modifierQuantite suppose qu'il existe déjà dans stockJour.
-          // Si on modifie une quantité existante, on suppose qu'il devrait être là.
-        }
+      if (equipeSoir) {
+        const newSoirProds = equipeSoir.produits.map(p =>
+          p.produitId === produitId ? { ...p, stockDebut: p.stockDebut + difference, reste: p.reste + difference } : p
+        );
+        set({ equipeSoir: { ...equipeSoir, produits: newSoirProds, updatedAt: new Date() } });
+        await get().sauvegarderEquipe('soir');
       }
 
-      // 4. Recalculer les ventes
       get().calculerVentesBoutique();
       await get().sauvegarderVentes();
-
       set({ isLoading: false });
-      console.log(`✅ Stock ajusté: ${produitId} de ${ancienStock} à ${nouvelleQuantite} (Diff: ${difference})`);
-
     } catch (error) {
-      console.error('Erreur ajustement stock:', error);
       set({ isLoading: false });
-      throw error;
+      console.error('Erreur modification stock:', error);
     }
   },
 
@@ -544,71 +397,37 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const { stockJour, equipeMatin, equipeSoir } = get();
-
       if (!stockJour) return;
 
-      // 1. Mettre à jour stockJour
-      const newStockProducts = stockJour.produits.filter(p => p.produitId !== produitId);
-
-      const updatedStock = {
-        ...stockJour,
-        produits: newStockProducts,
-        updatedAt: new Date()
-      };
+      const updatedProducts = stockJour.produits.filter(p => p.produitId !== produitId);
+      const updatedStock = { ...stockJour, produits: updatedProducts, updatedAt: new Date() };
 
       await setDoc(doc(db, 'shopStock', stockJour.id), {
         ...updatedStock,
-        date: date,
-        produits: updatedStock.produits.map(p => ({
-          ...p,
-          produit: p.produit ? { ...p.produit } : null
-        }))
+        date,
+        produits: updatedStock.produits.map(p => ({ ...p, produit: p.produit ? { ...p.produit } : null }))
       }, { merge: true });
 
       set({ stockJour: updatedStock });
 
-
-      // 2. Propager la suppression aux équipes actives
-
-      // Mise à jour Équipe Matin (si elle existe)
       if (equipeMatin) {
-        const newMatinProducts = equipeMatin.produits.filter(p => p.produitId !== produitId);
-
-        const updatedMatin = {
-          ...equipeMatin,
-          produits: newMatinProducts,
-          updatedAt: new Date()
-        };
-
-        set({ equipeMatin: updatedMatin });
+        const newProds = equipeMatin.produits.filter(p => p.produitId !== produitId);
+        set({ equipeMatin: { ...equipeMatin, produits: newProds, updatedAt: new Date() } });
         await get().sauvegarderEquipe('matin');
       }
 
-      // Mise à jour Équipe Soir (si elle existe)
       if (equipeSoir) {
-        const newSoirProducts = equipeSoir.produits.filter(p => p.produitId !== produitId);
-
-        const updatedSoir = {
-          ...equipeSoir,
-          produits: newSoirProducts,
-          updatedAt: new Date()
-        };
-
-        set({ equipeSoir: updatedSoir });
+        const newProds = equipeSoir.produits.filter(p => p.produitId !== produitId);
+        set({ equipeSoir: { ...equipeSoir, produits: newProds, updatedAt: new Date() } });
         await get().sauvegarderEquipe('soir');
       }
 
-      // 3. Recalculer les ventes
       get().calculerVentesBoutique();
       await get().sauvegarderVentes();
-
       set({ isLoading: false });
-      console.log(`✅ Produit supprimé du stock: ${produitId}`);
-
     } catch (error) {
-      console.error('Erreur suppression produit stock:', error);
       set({ isLoading: false });
-      throw error;
+      console.error('Erreur suppression produit:', error);
     }
   },
 
@@ -619,42 +438,17 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const nouveauMode = !stockJour.isJourneeContinue;
+      const updatedStock = { ...stockJour, isJourneeContinue: nouveauMode, updatedAt: new Date() };
 
-      console.log(`Basculement mode Journée Continue: ${stockJour.isJourneeContinue} -> ${nouveauMode}`);
+      await setDoc(doc(db, 'shopStock', stockJour.id), { isJourneeContinue: nouveauMode, updatedAt: new Date() }, { merge: true });
 
-      // 1. Mise à jour locale
-      const nouveauStockJour = { ...stockJour, isJourneeContinue: nouveauMode, updatedAt: new Date() };
-      set({ stockJour: nouveauStockJour });
-
-      // 2. Mise à jour Firestore
-      const dateStart = new Date(stockJour.date);
-      dateStart.setHours(0, 0, 0, 0);
-      const dateEnd = new Date(stockJour.date);
-      dateEnd.setHours(23, 59, 59, 999);
-
-      const q = query(
-        collection(db, 'shopStock'),
-        where('date', '>=', dateToTimestamp(dateStart)),
-        where('date', '<=', dateToTimestamp(dateEnd))
-      );
-
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        const docRef = snapshot.docs[0].ref;
-        await setDoc(docRef, { isJourneeContinue: nouveauMode, updatedAt: new Date() }, { merge: true });
-        console.log('✅ Mode Journée Continue mis à jour en base');
-      } else {
-        console.warn('⚠️ Stock non trouvé en base pour mise à jour du mode (stock local uniquement ?)');
-      }
-
-      // 3. Recalculer les ventes (pour masquer/afficher produits du soir)
+      set({ stockJour: updatedStock });
       get().calculerVentesBoutique();
       await get().sauvegarderVentes();
-
       set({ isLoading: false });
     } catch (error) {
-      console.error('Erreur toggleModeJourneeContinue:', error);
       set({ isLoading: false });
+      console.error('Erreur toggle mode continue:', error);
     }
   },
 
@@ -662,59 +456,46 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const store = get();
-
-      // 1. Force Mode Journée Continue et update local
       if (store.stockJour && !store.stockJour.isJourneeContinue) {
         await store.toggleModeJourneeContinue();
       }
 
-      // 2. Init Team
-      const freshStore = get();
-      if (!freshStore.equipeMatin) {
-        freshStore.commencerEquipeMatin("Vente Express", date);
-      } else if (freshStore.equipeMatin.statut === 'termine') {
-        freshStore.rouvrirEquipeMatin();
+      if (!get().equipeMatin) {
+        get().commencerEquipeMatin("Vente Express", date);
+      } else if (get().equipeMatin?.statut === 'termine') {
+        get().rouvrirEquipeMatin();
       }
 
-      // 3. Apply sales
       Object.entries(ventes).forEach(([prodId, qte]) => {
         get().saisirVenteMatin(prodId, qte);
       });
 
-      // 4. Terminate & Save
       get().terminerEquipeMatin();
       await get().sauvegarderEquipe('matin');
-
-      // 5. Finalize
       get().calculerVentesBoutique();
       await get().sauvegarderVentes();
-
       set({ isLoading: false });
     } catch (e) {
-      console.error("Erreur validation directe:", e);
       set({ isLoading: false });
-      throw e;
+      console.error("Erreur vente directe:", e);
     }
   },
 
   chargerProduits: async () => {
     try {
-      const q = query(collection(db, 'produits'));
-      const snapshot = await getDocs(q);
-      const produits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Produit));
-      set({ produits });
+      const snapshot = await getDocs(query(collection(db, 'produits')));
+      set({ produits: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Produit)) });
     } catch (error) {
       console.error("Erreur chargement produits:", error);
     }
   },
 
-  // Actions Équipes
   commencerEquipeMatin: (vendeuse: string, date: Date) => {
     const { stockJour } = get();
     if (!stockJour) return;
 
     const nouvelleEquipe: EquipeBoutique = {
-      id: `equipe_matin_${date.getTime()}`,
+      id: `${date.toISOString().split('T')[0]}_matin`,
       date,
       periode: 'matin',
       vendeuse,
@@ -729,7 +510,6 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-
     set({ equipeMatin: nouvelleEquipe });
   },
 
@@ -738,21 +518,13 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     if (!equipeMatin || !stockJour) return;
 
     const nouvelleEquipe: EquipeBoutique = {
-      id: `equipe_soir_${date.getTime()}`,
+      id: `${date.toISOString().split('T')[0]}_soir`,
       date,
       periode: 'soir',
       vendeuse,
       produits: stockJour.produits.map(stockProd => {
-        // Trouver le produit correspondant dans l'équipe du matin
         const prodMatin = equipeMatin.produits.find(p => p.produitId === stockProd.produitId);
-
-        // Vendu du matin (0 si le produit n'était pas là le matin)
-        const venduMatin = prodMatin?.vendu || 0;
-
-        // Le stock de départ du soir = Stock Total Jour - Vendu Matin
-        // Cela inclut automatiquement les ajouts manuels faits dans stockJour
-        const stockPourSoir = stockProd.stockDebut - venduMatin;
-
+        const stockPourSoir = stockProd.stockDebut - (prodMatin?.vendu || 0);
         return {
           produitId: stockProd.produitId,
           stockDebut: stockPourSoir,
@@ -760,389 +532,212 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
           reste: stockPourSoir,
           produit: stockProd.produit
         };
-      }).filter(p => p.stockDebut > 0), // On ne garde que ce qui a du stock
+      }).filter(p => p.stockDebut > 0),
       statut: 'en_cours',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-
     set({ equipeSoir: nouvelleEquipe });
   },
 
   saisirVenteMatin: (produitId: string, vendu: number) => {
     set((state) => {
       if (!state.equipeMatin) return state;
-
       return {
         equipeMatin: {
           ...state.equipeMatin,
           produits: state.equipeMatin.produits.map(p =>
-            p.produitId === produitId
-              ? {
-                ...p,
-                vendu,
-                reste: p.stockDebut - vendu
-              }
-              : p
+            p.produitId === produitId ? { ...p, vendu, reste: p.stockDebut - vendu } : p
           ),
           updatedAt: new Date()
         }
       };
     });
 
-    // Sauvegarde automatique avec debounce
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
-      try {
-        console.log('💾 Sauvegarde automatique équipe matin...');
-        await get().sauvegarderEquipe('matin');
-      } catch (error) {
-        console.error('❌ Erreur sauvegarde automatique matin:', error);
-      }
-    }, 2000); // Attendre 2 secondes après la dernière modification
+      try { await get().sauvegarderEquipe('matin'); } catch (e) { console.error(e); }
+    }, 2000);
   },
 
   saisirVenteSoir: (produitId: string, vendu: number) => {
     set((state) => {
       if (!state.equipeSoir) return state;
-
       return {
         equipeSoir: {
           ...state.equipeSoir,
           produits: state.equipeSoir.produits.map(p =>
-            p.produitId === produitId
-              ? {
-                ...p,
-                vendu,
-                reste: p.stockDebut - vendu // reste = invendu boutique
-              }
-              : p
+            p.produitId === produitId ? { ...p, vendu, reste: p.stockDebut - vendu } : p
           ),
           updatedAt: new Date()
         }
       };
     });
 
-    // Sauvegarde automatique avec debounce
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
-      try {
-        console.log('💾 Sauvegarde automatique équipe soir...');
-        await get().sauvegarderEquipe('soir');
-      } catch (error) {
-        console.error('❌ Erreur sauvegarde automatique soir:', error);
-      }
-    }, 2000); // Attendre 2 secondes après la dernière modification
+      try { await get().sauvegarderEquipe('soir'); } catch (e) { console.error(e); }
+    }, 2000);
   },
 
   terminerEquipeMatin: () => {
     set((state) => ({
-      equipeMatin: state.equipeMatin ? {
-        ...state.equipeMatin,
-        statut: 'termine' as const,
-        updatedAt: new Date()
-      } : null
+      equipeMatin: state.equipeMatin ? { ...state.equipeMatin, statut: 'termine', updatedAt: new Date() } : null
     }));
   },
 
   terminerEquipeSoir: () => {
     set((state) => ({
-      equipeSoir: state.equipeSoir ? {
-        ...state.equipeSoir,
-        statut: 'termine' as const,
-        updatedAt: new Date()
-      } : null
+      equipeSoir: state.equipeSoir ? { ...state.equipeSoir, statut: 'termine', updatedAt: new Date() } : null
     }));
-
-    // Calculer automatiquement les ventes de la journée
     get().calculerVentesBoutique();
   },
 
   rouvrirEquipeMatin: () => {
     set((state) => ({
-      equipeMatin: state.equipeMatin ? {
-        ...state.equipeMatin,
-        statut: 'en_cours' as const,
-        updatedAt: new Date()
-      } : null
+      equipeMatin: state.equipeMatin ? { ...state.equipeMatin, statut: 'en_cours', updatedAt: new Date() } : null
     }));
   },
 
   rouvrirEquipeSoir: () => {
     set((state) => ({
-      equipeSoir: state.equipeSoir ? {
-        ...state.equipeSoir,
-        statut: 'en_cours' as const,
-        updatedAt: new Date()
-      } : null
+      equipeSoir: state.equipeSoir ? { ...state.equipeSoir, statut: 'en_cours', updatedAt: new Date() } : null
     }));
   },
 
-  // Actions Calculs
   calculerVentesBoutique: () => {
     const { stockJour, equipeMatin, equipeSoir } = get();
-
-    // En journee continue, equipeSoir peut etre null
     if (!stockJour || !equipeMatin) return;
     if (!stockJour.isJourneeContinue && !equipeSoir) return;
 
+    // Collecter tous les IDs de produits uniques présents dans le stock OU les équipes
+    const allProduitIds = new Set<string>();
+    stockJour.produits.forEach(p => allProduitIds.add(p.produitId));
+    equipeMatin.produits.forEach(p => allProduitIds.add(p.produitId));
+    if (equipeSoir) equipeSoir.produits.forEach(p => allProduitIds.add(p.produitId));
+
+    const dateStr = stockJour.date.toISOString().split('T')[0];
     const ventesJour: VentesBoutique = {
-      id: `ventes_${stockJour.date.getTime()}`,
+      id: `ventes_${dateStr}`,
       date: stockJour.date,
-      produits: stockJour.produits.map(stockProduit => {
-        const produitMatin = equipeMatin.produits.find(p => p.produitId === stockProduit.produitId);
-        const produitSoir = equipeSoir?.produits.find(p => p.produitId === stockProduit.produitId);
+      produits: Array.from(allProduitIds).map(produitId => {
+        const stockProduit = stockJour.produits.find(p => p.produitId === produitId);
+        const pMatin = equipeMatin.produits.find(p => p.produitId === produitId);
+        const pSoir = equipeSoir?.produits.find(p => p.produitId === produitId);
 
-        const venduMatin = produitMatin?.vendu || 0;
-        const resteMidi = produitMatin?.reste || 0;
+        const vMatin = pMatin?.vendu || 0;
+        const rMidi = pMatin?.reste || 0;
+        const vSoir = stockJour.isJourneeContinue ? 0 : (pSoir?.vendu || 0);
+        const invendu = stockJour.isJourneeContinue ? rMidi : (pSoir?.reste || 0);
 
-        let venduSoir = 0;
-        let invenduBoutique = 0;
-        let venduTotal = 0;
-
-        if (stockJour.isJourneeContinue) {
-          // Mode Journée Continue: Une seule équipe (Matin -> Journée)
-          // Le "Matin" couvre toute la journée
-          venduSoir = 0; // Pas de vente soir
-          invenduBoutique = resteMidi; // L'invendu est ce qui reste de l'équipe unique
-          venduTotal = venduMatin;
-        } else {
-          // Mode Normal (2 rotations)
-          venduSoir = produitSoir?.vendu || 0;
-          invenduBoutique = produitSoir?.reste || 0;
-          venduTotal = venduMatin + venduSoir;
-        }
+        // Récupérer les infos produit depuis n'importe quelle source disponible
+        const infoProduit = stockProduit?.produit || pMatin?.produit || pSoir?.produit;
 
         return {
-          produitId: stockProduit.produitId,
-          produit: stockProduit.produit,
-          stockDebut: stockProduit.stockDebut,
-          venduMatin,
-          resteMidi,
-          venduSoir,
-          invenduBoutique,
-          venduTotal
+          produitId,
+          produit: infoProduit,
+          stockDebut: stockProduit?.stockDebut || pMatin?.stockDebut || 0,
+          venduMatin: vMatin,
+          resteMidi: rMidi,
+          venduSoir: vSoir,
+          invenduBoutique: invendu,
+          venduTotal: vMatin + vSoir
         };
       }),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-
     set({ ventesJour });
   },
 
   calculerResteMidi: (produitId: string) => {
-    const { equipeMatin } = get();
-    if (!equipeMatin) return 0;
-
-    const produit = equipeMatin.produits.find(p => p.produitId === produitId);
-    if (!produit) return 0;
-
-    return produit.stockDebut - produit.vendu;
+    const p = get().equipeMatin?.produits.find(p => p.produitId === produitId);
+    if (!p) return 0;
+    return p.stockDebut - p.vendu;
   },
 
   calculerInvenduBoutique: (produitId: string) => {
-    const { equipeSoir } = get();
-    if (!equipeSoir) return 0;
-
-    const produit = equipeSoir.produits.find(p => p.produitId === produitId);
-    if (!produit) return 0;
-
-    return produit.reste;
+    const p = get().equipeSoir?.produits.find(p => p.produitId === produitId);
+    if (!p) return 0;
+    return p.reste;
   },
 
-  // Actions Sauvegarde
   sauvegarderEquipe: async (periode: 'matin' | 'soir') => {
-    const { equipeMatin, equipeSoir } = get();
-    const equipe = periode === 'matin' ? equipeMatin : equipeSoir;
-
+    const equipe = periode === 'matin' ? get().equipeMatin : get().equipeSoir;
     if (!equipe) return;
-
     set({ isLoading: true });
     try {
-      console.log(`🔄 Début sauvegarde équipe ${periode}:`, equipe);
-
-      // Utiliser un ID prévisible pour éviter les requêtes complexes
-      const dateStr = equipe.date.toISOString().split('T')[0];
-      const docId = `${dateStr}_${periode}`;
-
-      // Préparer les données pour Firebase
-      const firestoreData = {
-        ...equipe,
-        date: equipe.date, // Firebase convertira automatiquement
-        createdAt: equipe.createdAt,
-        updatedAt: new Date()
-      };
-
-      console.log(`💾 Sauvegarde vers document ID: ${docId}`);
-
-      // Utiliser setDoc() avec merge pour créer ou mettre à jour
-      const docRef = doc(db, 'shopShifts', docId);
-      await setDoc(docRef, firestoreData, { merge: true });
-      console.log(`✅ Équipe ${periode} sauvegardée avec succès - ID: ${docId}`);
-
+      const docId = `${equipe.date.toISOString().split('T')[0]}_${periode}`;
+      await setDoc(doc(db, 'shopShifts', docId), { ...equipe, updatedAt: new Date() }, { merge: true });
       set({ isLoading: false });
     } catch (error) {
       set({ isLoading: false });
-      console.error(`❌ Erreur lors de la sauvegarde de l'équipe ${periode}:`, error);
-      throw error;
+      console.error(error);
     }
   },
 
   sauvegarderVentes: async () => {
     const { ventesJour } = get();
     if (!ventesJour) return;
-
     set({ isLoading: true });
     try {
-      console.log('🔄 Début sauvegarde ventes boutique:', ventesJour);
-
-      // Utiliser un ID prévisible basé sur la date
-      const dateStr = ventesJour.date.toISOString().split('T')[0];
-      const docId = `ventes_${dateStr}`;
-
-      // Préparer les données pour Firebase
-      const firestoreData = {
-        ...ventesJour,
-        date: ventesJour.date,
-        createdAt: ventesJour.createdAt,
-        updatedAt: new Date()
-      };
-
-      console.log(`💾 Sauvegarde ventes vers document ID: ${docId}`);
-
-      // Utiliser setDoc() avec merge pour créer ou mettre à jour
-      const docRef = doc(db, 'shopSales', docId);
-      await setDoc(docRef, firestoreData, { merge: true });
-      console.log(`✅ Ventes boutique sauvegardées avec succès - ID: ${docId}`);
-
+      const docId = `ventes_${ventesJour.date.toISOString().split('T')[0]}`;
+      await setDoc(doc(db, 'shopSales', docId), { ...ventesJour, updatedAt: new Date() }, { merge: true });
       set({ isLoading: false });
     } catch (error) {
       set({ isLoading: false });
-      console.error('❌ Erreur lors de la sauvegarde des ventes:', error);
-      throw error;
+      console.error(error);
     }
   },
 
-  // Actions Chargement
   chargerEquipe: async (date: Date, periode: 'matin' | 'soir') => {
     try {
-      const dateStr = date.toISOString().split('T')[0];
-      const docId = `${dateStr}_${periode}`;
-
-      console.log(`🔄 Chargement équipe ${periode} pour ${dateStr}...`);
-
-      const docRef = doc(db, 'shopShifts', docId);
-      const docSnap = await getDoc(docRef);
-
+      const docId = `${date.toISOString().split('T')[0]}_${periode}`;
+      const docSnap = await getDoc(doc(db, 'shopShifts', docId));
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const equipe: EquipeBoutique = {
-          ...data,
-          date: data.date.toDate(),
-          createdAt: data.createdAt.toDate(),
-          updatedAt: data.updatedAt.toDate(),
-        } as EquipeBoutique;
-
-        if (periode === 'matin') {
-          set({ equipeMatin: equipe });
-        } else {
-          set({ equipeSoir: equipe });
-        }
-
-        console.log(`✅ Équipe ${periode} chargée depuis Firebase`);
+        const equipe = { ...data, date: data.date.toDate(), createdAt: data.createdAt.toDate(), updatedAt: data.updatedAt.toDate() } as EquipeBoutique;
+        if (periode === 'matin') set({ equipeMatin: equipe }); else set({ equipeSoir: equipe });
       } else {
-        console.log(`ℹ️ Aucune équipe ${periode} trouvée pour cette date`);
-        if (periode === 'matin') {
-          set({ equipeMatin: null });
-        } else {
-          set({ equipeSoir: null });
-        }
+        if (periode === 'matin') set({ equipeMatin: null }); else set({ equipeSoir: null });
       }
-    } catch (error) {
-      console.error(`❌ Erreur lors du chargement de l'équipe ${periode}:`, error);
-    }
+    } catch (e) { console.error(e); }
   },
 
   chargerVentes: async (date: Date) => {
     try {
-      const dateStr = date.toISOString().split('T')[0];
-      const docId = `ventes_${dateStr}`;
-
-      console.log(`🔄 Chargement ventes pour ${dateStr}...`);
-
-      const docRef = doc(db, 'shopSales', docId);
-      const docSnap = await getDoc(docRef);
-
+      const docId = `ventes_${date.toISOString().split('T')[0]}`;
+      const docSnap = await getDoc(doc(db, 'shopSales', docId));
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const ventes: VentesBoutique = {
-          ...data,
-          date: data.date.toDate(),
-          createdAt: data.createdAt.toDate(),
-          updatedAt: data.updatedAt.toDate(),
-        } as VentesBoutique;
-
-        set({ ventesJour: ventes });
-        console.log(`✅ Ventes chargées depuis Firebase`);
+        set({ ventesJour: { ...data, date: data.date.toDate(), createdAt: data.createdAt.toDate(), updatedAt: data.updatedAt.toDate() } as VentesBoutique });
       } else {
-        console.log(`ℹ️ Aucunes ventes trouvées pour cette date`);
         set({ ventesJour: null });
       }
-    } catch (error) {
-      console.error(`❌ Erreur lors du chargement des ventes:`, error);
-    }
+    } catch (e) { console.error(e); }
   },
 
   getVentesPeriode: async (dateDebut: Date, dateFin: Date) => {
     try {
-      if (!dateDebut || !dateFin) return 0;
-
-      const q = query(
-        collection(db, 'shopSales'),
-        where('date', '>=', dateToTimestamp(dateDebut)),
-        where('date', '<=', dateToTimestamp(dateFin))
-      );
-
+      const q = query(collection(db, 'shopSales'), where('date', '>=', dateToTimestamp(dateDebut)), where('date', '<=', dateToTimestamp(dateFin)));
       const snapshot = await getDocs(q);
-
-      // Assurer que le catalogue produits est chargé pour le fallback de prix
-      if (get().produits.length === 0) {
-        await get().chargerProduits();
-      }
+      if (get().produits.length === 0) await get().chargerProduits();
       const catalogue = get().produits;
-
-      console.log(`📊 Calcul Recettes Boutique: ${snapshot.size} rapports de ventes trouvés.`);
-
-      let totalPeriode = 0;
-
+      let total = 0;
       snapshot.docs.forEach(doc => {
         const data = doc.data() as VentesBoutique;
-        const totalJour = data.produits.reduce((acc, p) => {
-          // Prix prioritaire: celui stocké dans la vente. Sinon: catalogue.
+        total += data.produits.reduce((acc, p) => {
           let prix = p.produit?.prixBoutique || p.produit?.prixUnitaire || 0;
-
-          if (!prix && p.produitId) {
+          if (!prix) {
             const inCat = catalogue.find(cp => cp.id === p.produitId);
-            if (inCat) {
-              prix = inCat.prixBoutique || inCat.prixUnitaire || 0;
-            }
+            prix = inCat?.prixBoutique || inCat?.prixUnitaire || 0;
           }
-
           return acc + (p.venduTotal * prix);
         }, 0);
-        totalPeriode += totalJour;
       });
-
-      return totalPeriode;
-    } catch (error) {
-      console.error('Erreur calcul CA boutique période:', error);
-      return 0;
-    }
+      return total;
+    } catch (e) { console.error(e); return 0; }
   },
 
-  // Setters
-  setLoading: (loading: boolean) => {
-    set({ isLoading: loading });
-  },
+  setLoading: (loading: boolean) => set({ isLoading: loading }),
 }));

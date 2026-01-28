@@ -834,8 +834,22 @@ export const PageBoutique: React.FC = () => {
                         {equipeMatin.produits.map((produit) => (
                           <div
                             key={produit.produitId}
-                            className="bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 hover:border-orange-300 hover:shadow-md transition-all"
+                            className="group relative bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 hover:border-orange-300 hover:shadow-md transition-all"
                           >
+                            {/* Bouton de suppression rapide */}
+                            <button
+                              onClick={() => {
+                                setProductToDelete({
+                                  id: produit.produitId,
+                                  nom: produit.produit?.nom || 'Produit inconnu'
+                                });
+                                setShowDeleteConfirm(true);
+                              }}
+                              className="absolute top-2 right-2 p-1.5 text-orange-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                              title="Supprimer du stock"
+                            >
+                              <Icon icon="mdi:close-circle-outline" className="text-lg" />
+                            </button>
                             <div className="flex items-center gap-3 mb-4">
                               <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-md">
                                 <Icon
@@ -1040,8 +1054,22 @@ export const PageBoutique: React.FC = () => {
                           {equipeSoir.produits.map((produit) => (
                             <div
                               key={produit.produitId}
-                              className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-md transition-all"
+                              className="group relative bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-md transition-all"
                             >
+                              {/* Bouton de suppression rapide */}
+                              <button
+                                onClick={() => {
+                                  setProductToDelete({
+                                    id: produit.produitId,
+                                    nom: produit.produit?.nom || 'Produit inconnu'
+                                  });
+                                  setShowDeleteConfirm(true);
+                                }}
+                                className="absolute top-2 right-2 p-1.5 text-indigo-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                title="Supprimer du stock"
+                              >
+                                <Icon icon="mdi:close-circle-outline" className="text-lg" />
+                              </button>
                               <div className="flex items-center gap-3 mb-4">
                                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-md">
                                   <Icon
