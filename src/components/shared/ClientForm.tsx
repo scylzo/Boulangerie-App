@@ -30,6 +30,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     livreurId: '',
     conditionsPaiement: '',
     eligibleRistourne: false,
+    aKiosque: false,
     active: true
   });
 
@@ -48,6 +49,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         livreurId: client.livreurId || '',
         conditionsPaiement: client.conditionsPaiement || '',
         eligibleRistourne: client.eligibleRistourne || false,
+        aKiosque: client.aKiosque || false,
         active: client.active
       });
     }
@@ -68,6 +70,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           livreurId: '',
           conditionsPaiement: '',
           eligibleRistourne: false,
+          aKiosque: false,
           active: true
         });
       }
@@ -185,17 +188,32 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center">
-          <input
-            id="active"
-            type="checkbox"
-            checked={formData.active}
-            onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <label htmlFor="active" className="ml-2 block text-sm text-gray-900">
-            Client actif
-          </label>
+        <div className="flex items-center space-x-6 bg-gray-50 p-3 rounded-lg border border-gray-100">
+          <div className="flex items-center">
+            <input
+              id="aKiosque"
+              type="checkbox"
+              checked={formData.aKiosque}
+              onChange={(e) => setFormData({ ...formData, aKiosque: e.target.checked })}
+              className="h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer"
+            />
+            <label htmlFor="aKiosque" className="ml-2 block text-sm font-medium text-gray-900 cursor-pointer">
+              A un kiosque
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              id="active"
+              type="checkbox"
+              checked={formData.active}
+              onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+              className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+            />
+            <label htmlFor="active" className="ml-2 block text-sm font-medium text-gray-900 cursor-pointer">
+              Client actif
+            </label>
+          </div>
         </div>
 
         <div className="flex justify-end space-x-3 pt-4">

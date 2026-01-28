@@ -226,10 +226,30 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
                 </div>
               )}
               {facture.paidAt && (
-                <div>
-                  <span className="font-medium text-gray-700">Payée le : </span>
-                  <span className="text-gray-900">{facture.paidAt.toLocaleDateString('fr-FR')}</span>
-                </div>
+                <>
+                  <div>
+                    <span className="font-medium text-gray-700">Payée le : </span>
+                    <span className="text-gray-900">{facture.paidAt.toLocaleDateString('fr-FR')}</span>
+                  </div>
+                  {facture.modePaiement && (
+                    <div>
+                      <span className="font-medium text-gray-700">Mode de paiement : </span>
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-sm font-medium bg-gray-100 text-gray-800 capitalize">
+                        <Icon
+                          icon={
+                            facture.modePaiement === 'espece' ? 'mdi:cash' :
+                              facture.modePaiement === 'om' ? 'mdi:cellphone-nfc' : 'mdi:wave'
+                          }
+                          className={
+                            facture.modePaiement === 'espece' ? 'text-green-600' :
+                              facture.modePaiement === 'om' ? 'text-orange-600' : 'text-blue-600'
+                          }
+                        />
+                        {facture.modePaiement === 'espece' ? 'Espèce' : facture.modePaiement === 'om' ? 'Orange Money' : 'Wave'}
+                      </span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

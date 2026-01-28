@@ -8,6 +8,8 @@ export interface LigneFacture {
   montantLigne: number; // quantiteFacturee * prixUnitaire
 }
 
+export type ModePaiement = 'espece' | 'om' | 'wave';
+
 export interface Facture {
   id: string;
   numeroFacture: string; // Format: FACT-YYYYMMDD-001
@@ -27,6 +29,7 @@ export interface Facture {
   montantRegle?: number; // Montant effectivement réglé
   soldeUtilise?: number; // Montant du solde/avoir utilisé pour cette facture
   netAPayer?: number; // Montant restant à payer (TotalTTC - soldeUtilise)
+  modePaiement?: ModePaiement;
 
   // État de la facture
   statut: 'brouillon' | 'en_attente_retours' | 'validee' | 'envoyee' | 'payee' | 'annulee';

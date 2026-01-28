@@ -24,7 +24,7 @@ interface FacturationStore {
   chargerFacture: (factureId: string) => Promise<void>;
   validerFacture: (factureId: string) => Promise<void>;
   envoyerFacture: (factureId: string) => Promise<void>;
-  marquerPayee: (factureId: string, montantRecu?: number, datePaiement?: Date) => Promise<void>;
+  marquerPayee: (factureId: string, montantRecu?: number, modePaiement?: string, datePaiement?: Date) => Promise<void>;
   annulerFacture: (factureId: string, motif?: string) => Promise<void>;
   actualiserStatutsFactures: (background?: boolean) => Promise<void>;
   modifierTauxTVA: (factureId: string, nouveauTaux: number) => Promise<void>;
@@ -809,7 +809,7 @@ export const useFacturationStore = create<FacturationStore>()(
         }
       },
 
-      marquerPayee: async (factureId: string, montantRecu?: number, datePaiement = new Date()) => {
+      marquerPayee: async (factureId: string, montantRecu?: number, modePaiement?: string, datePaiement = new Date()) => {
         try {
           const facture = get().factures.find(f => f.id === factureId);
           if (!facture) throw new Error("Facture introuvable");
@@ -821,6 +821,7 @@ export const useFacturationStore = create<FacturationStore>()(
             statut: 'payee' as const,
             paidAt: datePaiement,
             montantRegle: recu,
+            modePaiement: modePaiement || 'espece',
             updatedAt: new Date()
           };
 

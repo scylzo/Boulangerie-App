@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase/config';
 import { Layout } from './components/layout/Layout';
 import { Login } from './pages/auth/Login';
+import { Dashboard } from './pages/Dashboard';
 import { ProgrammeProduction } from './pages/production/ProgrammeProduction';
 import { VueBoulanger } from './pages/production/VueBoulanger';
 import { PageLivraison } from './pages/livraison/PageLivraison';
@@ -97,6 +98,12 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
 
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+
         <Route path="/production" element={
           <ProtectedRoute>
             <ProgrammeProduction />
@@ -188,7 +195,7 @@ function App() {
           </ProtectedRoute>
         } />
 
-        <Route path="/" element={<Navigate to="/production" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>
   );

@@ -9,7 +9,7 @@ interface PaymentModalProps {
     facture: Facture | null;
     isOpen: boolean;
     onClose: () => void;
-    onConfirm: (amount: number) => Promise<void>;
+    onConfirm: (amount: number, mode: string) => Promise<void>;
 }
 
 export const PaymentModal: React.FC<PaymentModalProps> = ({
@@ -19,6 +19,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     onConfirm
 }) => {
     const [amount, setAmount] = useState<string>('');
+    const [modePaiement, setModePaiement] = useState<'espece' | 'om' | 'wave'>('espece');
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -26,6 +27,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             // Default to net to pay, or total TTC if undefined
             const toPay = facture.netAPayer ?? facture.totalTTC;
             setAmount(toPay.toString());
+            setModePaiement('espece');
         }
     }, [facture, isOpen]);
 
@@ -38,7 +40,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
         setIsLoading(true);
         try {
-            await onConfirm(val);
+            await onConfirm(val, modePaiement);
             onClose();
         } catch (error) {
             console.error(error);
@@ -79,6 +81,42 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     required
                     autoFocus
                 />
+
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Mode de paiement</label>
+                    <div className="flex bg-gray-100 p-1 rounded-lg">
+                        <button
+                            type="button"
+                            onClick={() => setModePaiement('espece')}
+                            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${modePaiement === 'espece'
+                                ? 'bg-white text-gray-900 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                        >
+                            Espèce
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setModePaiement('om')}
+                            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${modePaiement === 'om'
+                                ? 'bg-white text-orange-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                        >
+                            Orange Money
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setModePaiement('wave')}
+                            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${modePaiement === 'wave'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                        >
+                            Wave
+                        </button>
+                    </div>
+                </div>
 
                 {isOverpayment && (
                     <div className="bg-blue-50 text-blue-700 p-3 rounded-md text-sm">

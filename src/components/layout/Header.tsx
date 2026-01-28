@@ -2,12 +2,34 @@ import React from 'react';
 import { useAuthStore } from '../../store';
 
 import { Menu } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { user, logout } = useAuthStore();
+  const location = useLocation();
+
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path === '/dashboard') return 'Tableau de bord';
+    if (path === '/production') return 'Programme Production';
+    if (path === '/boulanger') return 'Vue Boulanger';
+    if (path === '/livraison') return 'Livraisons';
+    if (path === '/retours') return 'Retours Clients';
+    if (path === '/boutique') return 'Boutique';
+    if (path === '/facturation') return 'Facturation';
+    if (path === '/stocks') return 'Gestion des Stocks';
+    if (path === '/admin/produits') return 'Gestion Produits';
+    if (path === '/admin/clients') return 'Gestion Clients';
+    if (path === '/admin/livreurs') return 'Gestion Livreurs';
+    if (path === '/admin/users') return 'Gestion Utilisateurs';
+    if (path === '/depenses') return 'Dépenses';
+    if (path === '/comptabilite') return 'Comptabilité';
+    return 'Tableau de bord';
+  };
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -22,8 +44,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             </button>
             {/* Breadcrumb ou titre de page */}
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Tableau de bord</h2>
-              {/* <p className="text-sm text-gray-500">Gérez votre boulangerie</p> */}
+              <h2 className="text-lg font-bold text-gray-900 tracking-tight uppercase">{getPageTitle()}</h2>
             </div>
           </div>
 

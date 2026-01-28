@@ -27,6 +27,7 @@ export interface Client {
   livreurId?: string; // Livreur assigné à ce client
   conditionsPaiement?: string; // Conditions spécifiques au client (ex: "Payable à 15 jours", "Comptant")
   eligibleRistourne?: boolean; // Si true, le client accumule une ristourne (Différence Prix Boutique - Prix Client)
+  aKiosque?: boolean; // Si true, le client a un kiosque
   solde?: number; // Solde positif = Avoir (crédit) à déduire des prochaines factures. Négatif = Dette (non géré pour l'instant)
   commandeType?: Array<{
     produitId: string;

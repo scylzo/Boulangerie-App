@@ -997,10 +997,10 @@ export const GestionFactures: React.FC = () => {
         facture={factureAPayer}
         isOpen={showPaymentModal}
         onClose={() => { setShowPaymentModal(false); setFactureAPayer(null); }}
-        onConfirm={async (amount) => {
+        onConfirm={async (amount, mode) => {
           if (factureAPayer) {
-            await marquerPayee(factureAPayer.id, amount);
-            toast.success(`💰 Réglée`);
+            await marquerPayee(factureAPayer.id, amount, mode);
+            toast.success(`💰 Réglée (${mode.toUpperCase()})`);
           }
         }}
       />

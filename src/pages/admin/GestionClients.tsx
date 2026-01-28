@@ -141,9 +141,11 @@ export const GestionClients: React.FC = () => {
 
               <div className="flex items-center gap-4">
                 <div className="text-sm text-gray-600">
-                  <span className="font-medium">{clients.filter(c => c.active).length}</span> actifs
+                  <span className="font-medium text-green-600">{clients.filter(c => c.active).length}</span> actifs
                   <span className="mx-2">•</span>
-                  <span className="font-medium">{clients.filter(c => !c.active).length}</span> inactifs
+                  <span className="font-medium text-red-600">{clients.filter(c => !c.active).length}</span> inactifs
+                  <span className="mx-2">•</span>
+                  <span className="font-medium text-orange-600">{clients.filter(c => c.aKiosque).length}</span> avec kiosque
                 </div>
               </div>
             </div>
@@ -199,6 +201,12 @@ export const GestionClients: React.FC = () => {
                                 <Icon icon={client.active ? 'mdi:check-circle' : 'mdi:pause-circle'} className="text-xs" />
                                 {client.active ? 'Actif' : 'Inactif'}
                               </span>
+                              {client.aKiosque && (
+                                <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-700">
+                                  <Icon icon="mdi:store-outline" className="text-xs" />
+                                  Kiosque
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
