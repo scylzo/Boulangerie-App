@@ -13,6 +13,7 @@ import { QuantiteBoutiqueForm } from '../../components/shared/QuantiteBoutiqueFo
 import { useProductionStore } from '../../store';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
 import { htmlPrintService } from '../../services/htmlPrintService';
+import { downloadProductionProgramPDF } from '../../utils/pdfGenerator';
 import { useLivreurStore } from '../../store/livreurStore'; // Ajout Import
 import { ScrollToTopBottom } from '../../components/ui/ScrollToTopBottom';
 import type { CommandeClient } from '../../types';
@@ -434,6 +435,16 @@ export const ProgrammeProduction: React.FC = () => {
     }
   };
 
+  const handleTelechargerRapport = async () => {
+    if (!programmeActuel) return;
+    try {
+      await downloadProductionProgramPDF(programmeActuel);
+      toast.success('📄 Rapport de production généré !');
+    } catch (error) {
+      toast.error('❌ Erreur lors de la génération du rapport');
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -493,6 +504,19 @@ export const ProgrammeProduction: React.FC = () => {
                   <span className="font-medium">
                     {programmeActuel.statut === 'brouillon' ? 'Envoyer' : 'Renvoyer'}
                   </span>
+                </button>
+              )}
+
+              {/* Bouton Rapport */}
+              {programmeActuel && (
+                <button
+                  onClick={handleTelechargerRapport}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 shadow-sm"
+                  title="Télécharger le rapport de production"
+                >
+                  <Icon icon="mdi:file-pdf-box" className="text-lg text-red-600" />
+                  <span className="font-medium">Rapport</span>
                 </button>
               )}
 

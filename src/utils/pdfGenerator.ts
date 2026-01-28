@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Facture, RapportJournalier, IndicateursPerformance } from '../types';
+import type { Facture, RapportJournalier, IndicateursPerformance, ProgrammeProduction } from '../types';
 import { formatCurrencyCompact } from './currency';
 import logoUrl from '../assets/logo.png';
 
@@ -427,6 +427,147 @@ export const downloadRapportJournalierPDF = async (rapport: RapportJournalier, i
     return true;
   } catch (error) {
     console.error('Erreur lors de la génération du PDF:', error);
+    throw new Error('Impossible de générer le PDF');
+  }
+};
+export const generateProductionProgramPDF = async (programme: ProgrammeProduction) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const colors = {
+    primary: [67, 56, 202],    // Indigo 700
+    secondary: [107, 114, 128], // Gray 500
+    text: [31, 41, 55],        // Gray 800
+    highlight: [249, 250, 251] // Gray 50
+  };
+
+  // En-tête
+  doc.setFillColor(colors.highlight[0], colors.highlight[1], colors.highlight[2]);
+  doc.rect(0, 0, pageWidth, 40, 'F');
+
+  try {
+    const logoImg = await loadImage(logoUrl);
+    doc.addImage(logoImg, 'PNG', 15, 8, 20, 20);
+  } catch (e) { }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.text('PROGRAMME DE PRODUCTION', 40, 20);
+
+  doc.setFontSize(10);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  const dateStr = new Date(programme.dateProduction).toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+  doc.text(dateStr.toUpperCase(), 40, 27);
+
+  let yPos = 50;
+
+  // Résumé Global
+  const totalClient = programme.totauxParProduit.reduce((acc, p) => acc + (p.totalClient || 0), 0);
+  const totalBoutique = programme.totauxParProduit.reduce((acc, p) => acc + (p.totalBoutique || 0), 0);
+  const totalGlobal = programme.totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0);
+
+  doc.setFontSize(12);
+  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+  doc.text('Bilan de Production', 15, yPos);
+
+  const summaryData = [[
+    `Total Client: ${totalClient}`,
+    `Total Boutique: ${totalBoutique}`,
+    `TOTAL GÉNÉRAL: ${totalGlobal}`
+  ]];
+
+  autoTable(doc, {
+    startY: yPos + 2,
+    body: summaryData,
+    theme: 'plain',
+    styles: { fontSize: 10, fontStyle: 'bold', textColor: colors.primary as any },
+    margin: { left: 15 }
+  });
+
+  yPos = (doc as any).lastAutoTable.finalY + 10;
+
+  // Détail par Produit
+  doc.setFontSize(11);
+  doc.text('DÉTAIL PAR PRODUIT', 15, yPos);
+
+  const tableData = programme.totauxParProduit.map(p => [
+    p.produit?.nom || p.produitId,
+    (p.totalClient ?? 0).toString(),
+    (p.totalBoutique ?? 0).toString(),
+    (p.totalGlobal ?? 0).toString(),
+    (p.quantiteProduiteReelle !== undefined && p.quantiteProduiteReelle !== null) ? p.quantiteProduiteReelle.toString() : '-'
+  ]);
+
+  autoTable(doc, {
+    startY: yPos + 2,
+    head: [['Produit', 'Qté Clients', 'Qté Boutique', 'Total Prévu', 'Réel']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: { fillColor: colors.primary as any, fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 2 },
+    columnStyles: {
+      0: { cellWidth: 'auto' },
+      1: { halign: 'center', cellWidth: 25 },
+      2: { halign: 'center', cellWidth: 25 },
+      3: { halign: 'center', cellWidth: 25 },
+      4: { halign: 'center', cellWidth: 25 }
+    },
+    margin: { left: 15, right: 15 }
+  });
+
+  yPos = (doc as any).lastAutoTable.finalY + 10;
+
+  // Répartition par Car
+  doc.setFontSize(11);
+  doc.text('RÉPARTITION PAR CAR', 15, yPos);
+
+  const carData = programme.totauxParProduit
+    .filter(p => ((p.repartitionCar1Matin ?? 0) + (p.repartitionCar2Matin ?? 0) + (p.repartitionCarSoir ?? 0)) > 0)
+    .map(p => [
+      p.produit?.nom || p.produitId,
+      (p.repartitionCar1Matin ?? 0).toString(),
+      (p.repartitionCar2Matin ?? 0).toString(),
+      (p.repartitionCarSoir ?? 0).toString(),
+      ((p.repartitionCar1Matin ?? 0) + (p.repartitionCar2Matin ?? 0) + (p.repartitionCarSoir ?? 0)).toString()
+    ]);
+
+  autoTable(doc, {
+    startY: yPos + 2,
+    head: [['Produit', 'Car 1 Matin', 'Car 2 Matin', 'Car Soir', 'Total']],
+    body: carData,
+    theme: 'striped',
+    headStyles: { fillColor: [75, 85, 99], fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 2 },
+    columnStyles: {
+      0: { cellWidth: 'auto' },
+      1: { halign: 'center', cellWidth: 30 },
+      2: { halign: 'center', cellWidth: 30 },
+      3: { halign: 'center', cellWidth: 30 },
+      4: { halign: 'center', cellWidth: 20 }
+    },
+    margin: { left: 15, right: 15 }
+  });
+
+  // Pied de page
+  const pageHeight = doc.internal.pageSize.height;
+  doc.setFontSize(7);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.text(`Généré le ${new Date().toLocaleString('fr-FR')} - Module Production`, 15, pageHeight - 10);
+
+  return doc;
+};
+
+export const downloadProductionProgramPDF = async (programme: ProgrammeProduction) => {
+  try {
+    const doc = await generateProductionProgramPDF(programme);
+    const dateStr = new Date(programme.dateProduction).toISOString().split('T')[0];
+    const fileName = `Programme_Production_${dateStr}.pdf`;
+    doc.save(fileName);
+    return true;
+  } catch (error) {
+    console.error('Erreur PDF Production:', error);
     throw new Error('Impossible de générer le PDF');
   }
 };
