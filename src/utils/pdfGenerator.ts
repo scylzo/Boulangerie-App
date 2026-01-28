@@ -349,13 +349,15 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
   doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
   doc.text('DÉTAIL LIVRAISONS CLIENTS', 15, yPos);
 
-  const clientData = rapport.produits.map(p => [
-    p.produit?.nom || p.produitId,
-    (p.quantiteVendueClients + p.invendusClients).toString(),
-    p.quantiteVendueClients.toString(),
-    p.invendusClients.toString(),
-    `${p.tauxVenteClients.toFixed(1)}%`
-  ]);
+  const clientData = rapport.produits
+    .filter(p => p.destineClients)
+    .map(p => [
+      p.produit?.nom || p.produitId,
+      (p.quantiteVendueClients + p.invendusClients).toString(),
+      p.quantiteVendueClients.toString(),
+      p.invendusClients.toString(),
+      `${p.tauxVenteClients.toFixed(1)}%`
+    ]);
 
   autoTable(doc, {
     startY: yPos + 2,
@@ -379,13 +381,15 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
   // Tableau Boutique
   doc.text('DÉTAIL VENTES BOUTIQUE', 15, yPos);
 
-  const boutiqueData = rapport.produits.map(p => [
-    p.produit?.nom || p.produitId,
-    (p.quantiteVendueBoutique + p.invendusBoutique).toString(),
-    p.quantiteVendueBoutique.toString(),
-    p.invendusBoutique.toString(),
-    `${p.tauxVenteBoutique.toFixed(1)}%`
-  ]);
+  const boutiqueData = rapport.produits
+    .filter(p => p.destineBoutique)
+    .map(p => [
+      p.produit?.nom || p.produitId,
+      (p.quantiteVendueBoutique + p.invendusBoutique).toString(),
+      p.quantiteVendueBoutique.toString(),
+      p.invendusBoutique.toString(),
+      `${p.tauxVenteBoutique.toFixed(1)}%`
+    ]);
 
   autoTable(doc, {
     startY: yPos + 2,

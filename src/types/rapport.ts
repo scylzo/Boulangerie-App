@@ -6,6 +6,8 @@ export interface RapportJournalier {
   produits: Array<{
     produitId: string;
     produit?: Produit;
+    destineClients: boolean;
+    destineBoutique: boolean;
     quantitePrevue: number;      // du programme
     quantiteProduite: number;    // saisie production
     quantiteVendueClients: number; // calculé des livraisons

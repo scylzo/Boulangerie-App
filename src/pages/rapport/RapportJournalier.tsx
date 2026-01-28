@@ -404,75 +404,117 @@ export const RapportJournalier: React.FC = () => {
                 </div>
               </div>
 
-              {/* Grille des produits */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                  <Icon icon="mdi:view-grid" className="text-gray-500" />
-                  <h3 className="text-lg font-semibold text-gray-800">Détail par produit</h3>
-                  <span className="ml-auto text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">
-                    {rapportJour.produits.length} produit{rapportJour.produits.length > 1 ? 's' : ''}
-                  </span>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {rapportJour.produits.map((produit) => (
-                    <div
-                      key={produit.produitId}
-                      className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-md transition-all"
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                            <Icon icon="mdi:food-variant" className="text-white" />
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-900 text-sm">
-                              {produit.produit?.nom || produit.produitId}
-                            </h4>
-                          </div>
-                        </div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteGlobal)}`}>
-                          {produit.tauxVenteGlobal.toFixed(1)}%
-                        </span>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-4 text-center">
-                          <div>
-                            <div className="text-lg font-bold text-gray-800">{produit.quantitePrevue}</div>
-                            <div className="text-xs text-gray-600">Prévu</div>
-                          </div>
-                          <div>
-                            <div className="text-lg font-bold text-blue-600">{produit.quantiteProduite}</div>
-                            <div className="text-xs text-gray-600">Produite</div>
-                          </div>
-                        </div>
-
-                        <div className="border-t border-gray-200 pt-3">
-                          <div className="grid grid-cols-3 gap-3 text-center">
-                            <div>
-                              <div className="text-sm font-bold text-green-600">{produit.quantiteVendueTotal}</div>
-                              <div className="text-xs text-gray-600">Total vendu</div>
-                            </div>
-                            <div>
-                              <div className="text-sm font-bold text-green-500">{produit.quantiteVendueClients}</div>
-                              <div className="text-xs text-gray-600">Clients</div>
-                            </div>
-                            <div>
-                              <div className="text-sm font-bold text-green-400">{produit.quantiteVendueBoutique}</div>
-                              <div className="text-xs text-gray-600">Boutique</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-red-50 rounded-lg p-3 text-center">
-                          <div className="text-lg font-bold text-red-600">{produit.invendusTotal}</div>
-                          <div className="text-xs text-gray-600">Invendus total</div>
-                        </div>
-                      </div>
+              {/* Grille des produits - Séparation Boutique / Clients */}
+              <div className="space-y-8">
+                {/* SECTION BOUTIQUE */}
+                {rapportJour.produits.some(p => p.destineBoutique) && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-emerald-200">
+                      <Icon icon="mdi:storefront" className="text-emerald-600" />
+                      <h3 className="text-lg font-semibold text-gray-800">Ventes Boutique</h3>
+                      <span className="ml-auto text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                        {rapportJour.produits.filter(p => p.destineBoutique).length} produit(s)
+                      </span>
                     </div>
-                  ))}
-                </div>
+
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {rapportJour.produits.filter(p => p.destineBoutique).map((produit) => (
+                        <div
+                          key={`boutique-${produit.produitId}`}
+                          className="bg-gradient-to-br from-white to-emerald-50/30 border border-gray-200 rounded-xl p-6 hover:border-emerald-300 hover:shadow-md transition-all"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                                <Icon icon="mdi:food-variant" className="text-white" />
+                              </div>
+                              <h4 className="font-semibold text-gray-900 text-sm">
+                                {produit.produit?.nom || produit.produitId}
+                              </h4>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteBoutique)}`}>
+                              {produit.tauxVenteBoutique.toFixed(1)}%
+                            </span>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-4 text-center">
+                              <div>
+                                <div className="text-lg font-bold text-gray-800">
+                                  {produit.quantiteVendueBoutique + produit.invendusBoutique}
+                                </div>
+                                <div className="text-xs text-gray-600">Stock Initial</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-bold text-emerald-600">{produit.quantiteVendueBoutique}</div>
+                                <div className="text-xs text-gray-600">Vendu</div>
+                              </div>
+                            </div>
+                            <div className="bg-red-50 rounded-lg p-3 text-center">
+                              <div className="text-lg font-bold text-red-600">{produit.invendusBoutique}</div>
+                              <div className="text-xs text-gray-600">Invendus Boutique</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* SECTION CLIENTS */}
+                {rapportJour.produits.some(p => p.destineClients) && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-blue-200">
+                      <Icon icon="mdi:account-group" className="text-blue-600" />
+                      <h3 className="text-lg font-semibold text-gray-800">Livraisons Clients</h3>
+                      <span className="ml-auto text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">
+                        {rapportJour.produits.filter(p => p.destineClients).length} produit(s)
+                      </span>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {rapportJour.produits.filter(p => p.destineClients).map((produit) => (
+                        <div
+                          key={`clients-${produit.produitId}`}
+                          className="bg-gradient-to-br from-white to-blue-50/30 border border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-md transition-all"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                                <Icon icon="mdi:truck-delivery" className="text-white" />
+                              </div>
+                              <h4 className="font-semibold text-gray-900 text-sm">
+                                {produit.produit?.nom || produit.produitId}
+                              </h4>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteClients)}`}>
+                              {produit.tauxVenteClients.toFixed(1)}%
+                            </span>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-4 text-center">
+                              <div>
+                                <div className="text-lg font-bold text-gray-800">
+                                  {produit.quantiteVendueClients + produit.invendusClients}
+                                </div>
+                                <div className="text-xs text-gray-600">Total Livré</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-bold text-blue-600">{produit.quantiteVendueClients}</div>
+                                <div className="text-xs text-gray-600">Vendu</div>
+                              </div>
+                            </div>
+                            <div className="bg-orange-50 rounded-lg p-3 text-center">
+                              <div className="text-lg font-bold text-orange-600">{produit.invendusClients}</div>
+                              <div className="text-xs text-gray-600">Retours Clients</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

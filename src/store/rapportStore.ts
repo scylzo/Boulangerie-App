@@ -224,9 +224,15 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         const tauxVenteBoutique = calculerTaux(venduBoutique, stockDebutBoutique);
         const tauxVenteGlobal = calculerTaux(quantiteVendueTotal, quantiteProduite);
 
+        // Flag de destination
+        const destineClients = (progProduit?.totalClient || 0) > 0 || quantiteLivreeClients > 0 || (commandesClients?.some(cmd => cmd.produits.some(p => p.produitId === produitId)) ?? false);
+        const destineBoutique = (progProduit?.totalBoutique || 0) > 0 || stockDebutBoutique > 0 || (ventesJour?.produits.some(v => v.produitId === produitId) ?? false);
+
         return {
           produitId: produitId,
           produit: produit,
+          destineClients,
+          destineBoutique,
           quantitePrevue,
           quantiteProduite,
           quantiteVendueClients: venduClients,
