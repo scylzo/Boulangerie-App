@@ -243,137 +243,173 @@ export const downloadFacturePDF = async (facture: Facture) => {
 
 export const generateRapportJournalierPDF = async (rapport: RapportJournalier, indicateurs: IndicateursPerformance | null) => {
   const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
 
-  // Configuration des couleurs
-  const primaryColor: [number, number, number] = [79, 70, 229]; // Indigo
-  const secondaryColor: [number, number, number] = [107, 114, 128]; // Gris
+  // Configuration des couleurs - Palette Moderne
+  const colors = {
+    primary: [67, 56, 202],    // Indigo 700
+    secondary: [107, 114, 128], // Gray 500
+    accent: [79, 70, 229],     // Indigo 600
+    bgHeader: [249, 250, 251], // Gray 50
+    text: [31, 41, 55],        // Gray 800
+    client: [59, 130, 246],    // Blue 500
+    boutique: [16, 185, 129]   // Emerald 500
+  };
 
-  // En-tête
+  // 1. En-tête Moderne style Banner
+  doc.setFillColor(colors.bgHeader[0], colors.bgHeader[1], colors.bgHeader[2]);
+  doc.rect(0, 0, pageWidth, 45, 'F');
+  doc.setDrawColor(229, 231, 235);
+  doc.line(0, 45, pageWidth, 45);
+
   try {
     const logoImg = await loadImage(logoUrl);
-    doc.addImage(logoImg, 'PNG', 20, 15, 20, 20);
+    doc.addImage(logoImg, 'PNG', 15, 10, 22, 22);
   } catch (error) {
     console.error('Erreur chargement logo', error);
   }
 
-  doc.setFontSize(20);
-  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.text('RAPPORT JOURNALIER', 50, 25);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.text('RAPPORT JOURNALIER', 45, 22);
 
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-  doc.text(`Date: ${new Date(rapport.date).toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })}`, 50, 32);
-  doc.text(`Statut: ${rapport.statut.toUpperCase()}`, 50, 37);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  const dateStr = new Date(rapport.date).toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+  doc.text(dateStr.toUpperCase(), 45, 29);
 
-  // Ligne de séparation
-  doc.setDrawColor(229, 231, 235);
-  doc.line(20, 45, 190, 45);
+  // Badge Statut
+  const statusX = pageWidth - 50;
+  const statusLabel = rapport.statut.toUpperCase();
+  doc.setFillColor(rapport.statut === 'valide' ? 220 : 254, rapport.statut === 'valide' ? 252 : 243, rapport.statut === 'valide' ? 231 : 199);
+  doc.roundedRect(statusX, 18, 35, 8, 1, 1, 'F');
+  doc.setFontSize(8);
+  doc.setTextColor(rapport.statut === 'valide' ? 22 : 146, rapport.statut === 'valide' ? 101 : 64, rapport.statut === 'valide' ? 52 : 14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(statusLabel, statusX + 17.5, 23.5, { align: 'center' });
 
-  // Section Indicateurs (KPIs)
+  // 2. Section Indicateurs et Totaux (Colonnes pour optimiser l'espace)
+  let yPos = 55;
+
+  // KPIs en format Cartes (2 colonnes)
   if (indicateurs) {
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Indicateurs de Performance', 20, 55);
+    doc.setFontSize(12);
+    doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+    doc.text('Indicateurs Clés', 15, yPos);
 
-    const kpiData = [
-      ['Taux de Vente Global', `${indicateurs.tauxVenteGlobal.toFixed(1)}%`],
-      ['Taux Vente Clients', `${indicateurs.tauxVenteClients.toFixed(1)}%`],
-      ['Taux Vente Boutique', `${indicateurs.tauxVenteBoutique.toFixed(1)}%`],
-      ['Pertes Totales', `${indicateurs.pertesTotales} unités`],
-      ['Invendus Clients', `${indicateurs.pertesClients} unités`],
-      ['Invendus Boutique', `${indicateurs.pertesBoutique} unités`]
+    const kpiRows = [
+      ['Taux Global', `${indicateurs.tauxVenteGlobal.toFixed(1)}%`, 'Taux Clients', `${indicateurs.tauxVenteClients.toFixed(1)}%`],
+      ['Taux Boutique', `${indicateurs.tauxVenteBoutique.toFixed(1)}%`, 'Pertes Totales', `${indicateurs.pertesTotales} u.`]
     ];
 
     autoTable(doc, {
-      startY: 60,
-      body: kpiData,
+      startY: yPos + 2,
+      body: kpiRows,
       theme: 'plain',
-      styles: { fontSize: 10, cellPadding: 2 },
+      styles: { fontSize: 9, cellPadding: 1 },
       columnStyles: {
-        0: { fontStyle: 'bold', cellWidth: 50 },
-        1: { halign: 'left' }
+        0: { fontStyle: 'bold', cellWidth: 40 },
+        1: { cellWidth: 40 },
+        2: { fontStyle: 'bold', cellWidth: 40 },
+        3: { cellWidth: 40 }
       },
-      margin: { left: 20 }
+      margin: { left: 15 }
     });
+    yPos = (doc as any).lastAutoTable.finalY + 8;
   }
 
-  // Section Totaux
-  const currentY = (doc as any).lastAutoTable?.finalY || 60;
-  doc.setFontSize(14);
-  doc.setTextColor(0, 0, 0);
-  doc.text('Totaux de la journée', 20, currentY + 15);
-
-  const totalData = [
-    ['Quantité Prévue', rapport.totaux.quantitePrevue.toString()],
-    ['Quantité Produite', rapport.totaux.quantiteProduite.toString()],
-    ['Quantité Vendue', rapport.totaux.quantiteVendueTotal.toString()],
-    ['Pertes / Invendus', rapport.totaux.invendusTotal.toString()]
-  ];
+  // Totaux Compacts
+  doc.setFontSize(12);
+  doc.text('Bilan Quantitatif', 15, yPos);
+  const totalRow = [[
+    `Prévu: ${rapport.totaux.quantitePrevue}`,
+    `Produit: ${rapport.totaux.quantiteProduite}`,
+    `Vendu: ${rapport.totaux.quantiteVendueTotal}`,
+    `Invendus: ${rapport.totaux.invendusTotal}`
+  ]];
 
   autoTable(doc, {
-    startY: currentY + 20,
-    head: [['Désignation', 'Valeur']],
-    body: totalData,
-    theme: 'grid',
-    headStyles: { fillColor: primaryColor as any, textColor: [255, 255, 255] },
-    styles: { fontSize: 10 },
-    margin: { left: 20, right: 120 }
+    startY: yPos + 2,
+    body: totalRow,
+    theme: 'plain',
+    styles: { fontSize: 10, fontStyle: 'bold', textColor: colors.primary as any },
+    columnStyles: { 0: { halign: 'left' } },
+    margin: { left: 15 }
   });
+  yPos = (doc as any).lastAutoTable.finalY + 8;
 
-  // Section Détail par Produit
-  const detailY = (doc as any).lastAutoTable.finalY + 15;
-  doc.setFontSize(14);
-  doc.text('Détail par Produit', 20, detailY);
+  // 3. Tableaux de Données (Optimisés)
 
-  const productData = rapport.produits.map(p => [
+  // Tableau Clients
+  doc.setFontSize(11);
+  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+  doc.text('DÉTAIL LIVRAISONS CLIENTS', 15, yPos);
+
+  const clientData = rapport.produits.map(p => [
     p.produit?.nom || p.produitId,
-    p.quantitePrevue.toString(),
-    p.quantiteProduite.toString(),
-    p.quantiteVendueTotal.toString(),
-    p.invendusTotal.toString(),
-    `${p.tauxVenteGlobal.toFixed(1)}%`
+    (p.quantiteVendueClients + p.invendusClients).toString(),
+    p.quantiteVendueClients.toString(),
+    p.invendusClients.toString(),
+    `${p.tauxVenteClients.toFixed(1)}%`
   ]);
 
   autoTable(doc, {
-    startY: detailY + 5,
-    head: [['Produit', 'Prévu', 'Prod.', 'Vendu', 'Inv.', 'Taux']],
-    body: productData,
-    theme: 'striped',
-    headStyles: { fillColor: primaryColor as any, fontSize: 9, textColor: [255, 255, 255] },
-    styles: { fontSize: 8 },
+    startY: yPos + 2,
+    head: [['Produit', 'Livré', 'Vendu', 'Retours', 'Taux']],
+    body: clientData,
+    theme: 'grid',
+    headStyles: { fillColor: colors.client as any, fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 1.5 },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'center' },
-      2: { halign: 'center' },
-      3: { halign: 'center' },
-      4: { halign: 'center' },
-      5: { halign: 'center' }
+      1: { halign: 'center', cellWidth: 20 },
+      2: { halign: 'center', cellWidth: 20 },
+      3: { halign: 'center', cellWidth: 20 },
+      4: { halign: 'center', cellWidth: 20 }
     },
-    margin: { left: 20, right: 20 }
+    margin: { left: 15, right: 15 }
   });
 
-  // Pied de page
-  const pageCount = (doc as any).internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-    doc.text(
-      `Rapport généré le ${new Date().toLocaleString('fr-FR')}`,
-      20,
-      doc.internal.pageSize.height - 10
-    );
-    doc.text(
-      `Page ${i} sur ${pageCount}`,
-      doc.internal.pageSize.width - 40,
-      doc.internal.pageSize.height - 10
-    );
-  }
+  yPos = (doc as any).lastAutoTable.finalY + 8;
+
+  // Tableau Boutique
+  doc.text('DÉTAIL VENTES BOUTIQUE', 15, yPos);
+
+  const boutiqueData = rapport.produits.map(p => [
+    p.produit?.nom || p.produitId,
+    (p.quantiteVendueBoutique + p.invendusBoutique).toString(),
+    p.quantiteVendueBoutique.toString(),
+    p.invendusBoutique.toString(),
+    `${p.tauxVenteBoutique.toFixed(1)}%`
+  ]);
+
+  autoTable(doc, {
+    startY: yPos + 2,
+    head: [['Produit', 'En rayon', 'Vendu', 'Invendus', 'Taux']],
+    body: boutiqueData,
+    theme: 'grid',
+    headStyles: { fillColor: colors.boutique as any, fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 1.5 },
+    columnStyles: {
+      0: { cellWidth: 'auto' },
+      1: { halign: 'center', cellWidth: 20 },
+      2: { halign: 'center', cellWidth: 20 },
+      3: { halign: 'center', cellWidth: 20 },
+      4: { halign: 'center', cellWidth: 20 }
+    },
+    margin: { left: 15, right: 15 }
+  });
+
+  // 4. Pied de page discret
+  const pageHeight = doc.internal.pageSize.height;
+  doc.setFontSize(7);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.text(`Document généré le ${new Date().toLocaleString('fr-FR')} - BOULANGERIE ERP`, 15, pageHeight - 10);
+  doc.text(`Page 1/1`, pageWidth - 25, pageHeight - 10);
 
   return doc;
 };
