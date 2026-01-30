@@ -40,6 +40,7 @@ export interface Client {
     };
   }>;
   estRegulier?: boolean; // Le client commande-t-il tous les jours ?
+  modePaiementPreference?: 'espece' | 'om' | 'wave' | 'cheque' | 'virement';
   active: boolean;
   createdAt: Date;
   updatedAt: Date;

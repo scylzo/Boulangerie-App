@@ -7,6 +7,8 @@ import { ClientForm } from '../../components/shared/ClientForm';
 import { useReferentielStore } from '../../store/referentielStore';
 import { useLivreurStore } from '../../store/livreurStore';
 import type { Client } from '../../types';
+import omLogo from '../../assets/om.svg';
+import waveLogo from '../../assets/wave.svg';
 
 export const GestionClients: React.FC = () => {
   const {
@@ -70,8 +72,17 @@ export const GestionClients: React.FC = () => {
     setShowForm(true);
   };
 
-  const getTypeClientLabel = (type: string) => {
-    return type === 'client' ? 'Client (prix réduit)' : 'Boutique (prix normal)';
+
+
+  const getModePaiementInfo = (mode?: string) => {
+    switch (mode) {
+      case 'espece': return { label: 'Espèces', color: 'bg-green-100 text-green-800', icon: 'mdi:cash', isImage: false };
+      case 'om': return { label: 'Orange Money', color: 'bg-orange-100 text-orange-800', image: omLogo, isImage: true };
+      case 'wave': return { label: 'Wave', color: 'bg-blue-100 text-blue-800', image: waveLogo, isImage: true };
+      case 'cheque': return { label: 'Chèque', color: 'bg-gray-100 text-gray-800', icon: 'mdi:checkbook', isImage: false };
+      case 'virement': return { label: 'Virement', color: 'bg-purple-100 text-purple-800', icon: 'mdi:bank-transfer', isImage: false };
+      default: return null;
+    }
   };
 
   return (
@@ -235,20 +246,50 @@ export const GestionClients: React.FC = () => {
                       </div>
 
                       {/* Type et Paiement */}
-                      <div className="grid grid-cols-1 gap-3 mb-6">
+                      <div className="grid grid-cols-2 gap-3 mb-6">
                         <div className="bg-gray-50 rounded-xl p-3">
                           <div className="flex items-center gap-2 mb-1">
-                            <Icon icon="mdi:tag" className="text-gray-500 text-sm" />
-                            <span className="text-xs font-medium text-gray-600">Type de client</span>
+                            <Icon icon="mdi:tag" className="text-gray-500 text-xs" />
+                            <span className="text-[10px] font-medium text-gray-600 uppercase">Type</span>
                           </div>
                           <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-lg ${client.typeClient === 'client'
                             ? 'bg-blue-100 text-blue-800'
                             : 'bg-purple-100 text-purple-800'
                             }`}>
                             <Icon icon={client.typeClient === 'client' ? 'mdi:account-heart' : 'mdi:storefront'} className="text-xs" />
-                            {getTypeClientLabel(client.typeClient)}
+                            {client.typeClient === 'client' ? 'Client' : 'Boutique'}
                           </span>
                         </div>
+
+                        {client.modePaiementPreference ? (
+                          <div className="bg-gray-50 rounded-xl p-3">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Icon icon="mdi:credit-card-outline" className="text-gray-500 text-xs" />
+                              <span className="text-[10px] font-medium text-gray-600 uppercase">Paiement</span>
+                            </div>
+                            {(() => {
+                              const info = getModePaiementInfo(client.modePaiementPreference);
+                              return info ? (
+                                <span className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs font-semibold rounded-lg ${info.color}`}>
+                                  {info.isImage ? (
+                                    <img src={info.image} alt={info.label} className="w-5 h-5 object-contain" />
+                                  ) : (
+                                    <Icon icon={info.icon || ''} className="text-sm" />
+                                  )}
+                                  {info.label}
+                                </span>
+                              ) : <span className="text-xs text-gray-400">-</span>;
+                            })()}
+                          </div>
+                        ) : (
+                          <div className="bg-gray-50 rounded-xl p-3 opacity-50">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Icon icon="mdi:credit-card-off-outline" className="text-gray-500 text-xs" />
+                              <span className="text-[10px] font-medium text-gray-600 uppercase">Paiement</span>
+                            </div>
+                            <span className="text-xs text-gray-400 italic">Non défini</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Livreur assigné */}

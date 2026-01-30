@@ -16,6 +16,9 @@ import type { Facture, Client } from '../../types';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 
+import omLogo from '../../assets/om.svg';
+import waveLogo from '../../assets/wave.svg';
+
 // Types pour la vue
 type ViewMode = 'clients_list' | 'client_details';
 
@@ -413,6 +416,35 @@ export const GestionFactures: React.FC = () => {
                   <Icon icon="mdi:phone" className="text-gray-400 shrink-0" />
                   <span className="truncate">{client.telephone || 'Non renseigné'}</span>
                 </p>
+                {client.modePaiementPreference && (
+                  <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${client.modePaiementPreference === 'espece' ? 'bg-green-100 text-green-800' :
+                      client.modePaiementPreference === 'om' ? 'bg-orange-100 text-orange-800' :
+                        client.modePaiementPreference === 'wave' ? 'bg-blue-100 text-blue-800' :
+                          client.modePaiementPreference === 'cheque' ? 'bg-gray-100 text-gray-800' :
+                            'bg-purple-100 text-purple-800'
+                    }`}>
+                    {(client.modePaiementPreference === 'om' || client.modePaiementPreference === 'wave') ? (
+                      <img
+                        src={client.modePaiementPreference === 'om' ? omLogo : waveLogo}
+                        alt={client.modePaiementPreference}
+                        className="w-4 h-4 object-contain"
+                      />
+                    ) : (
+                      <Icon icon={
+                        client.modePaiementPreference === 'espece' ? 'mdi:cash' :
+                          client.modePaiementPreference === 'cheque' ? 'mdi:checkbook' :
+                            'mdi:bank-transfer'
+                      } />
+                    )}
+                    <span>{
+                      client.modePaiementPreference === 'espece' ? 'Espèces' :
+                        client.modePaiementPreference === 'om' ? 'Orange Money' :
+                          client.modePaiementPreference === 'wave' ? 'Wave' :
+                            client.modePaiementPreference === 'cheque' ? 'Chèque' :
+                              'Virement'
+                    }</span>
+                  </div>
+                )}
               </div>
             </div>
           );

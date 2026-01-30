@@ -29,6 +29,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     typeClient: 'client' as 'client' | 'boutique',
     livreurId: '',
     conditionsPaiement: '',
+    modePaiementPreference: '' as 'espece' | 'om' | 'wave' | 'cheque' | 'virement' | '',
     eligibleRistourne: false,
     aKiosque: false,
     estRegulier: false,
@@ -49,6 +50,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         typeClient: client.typeClient,
         livreurId: client.livreurId || '',
         conditionsPaiement: client.conditionsPaiement || '',
+        modePaiementPreference: client.modePaiementPreference || '',
         eligibleRistourne: client.eligibleRistourne || false,
         aKiosque: client.aKiosque || false,
         estRegulier: client.estRegulier || false,
@@ -60,7 +62,10 @@ export const ClientForm: React.FC<ClientFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await onSave(formData);
+      await onSave({
+        ...formData,
+        modePaiementPreference: (formData.modePaiementPreference || undefined) as any
+      });
       // Reset form si c'est un ajout
       if (!client) {
         setFormData({
@@ -71,6 +76,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           typeClient: 'client',
           livreurId: '',
           conditionsPaiement: '',
+          modePaiementPreference: '',
           eligibleRistourne: false,
           aKiosque: false,
           estRegulier: false,
@@ -130,6 +136,27 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         <p className="text-xs text-gray-500 -mt-3">
           Conditions spécifiques à ce client. Si vide, les conditions par défaut seront utilisées.
         </p>
+
+        <div className="md:col-span-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Mode de paiement préféré
+          </label>
+          <select
+            value={formData.modePaiementPreference}
+            onChange={(e) => setFormData({ ...formData, modePaiementPreference: e.target.value as any })}
+            className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-orange-500 focus:ring-orange-500 focus:ring-1 sm:text-sm transition-colors bg-white"
+          >
+            <option value="">Non défini</option>
+            <option value="espece">Espèces 💵</option>
+            <option value="om">Orange Money 🟠</option>
+            <option value="wave">Wave 🔵</option>
+            <option value="cheque">Chèque 🏦</option>
+            <option value="virement">Virement 💳</option>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Aide à distinguer les paiements (OM, Wave, etc.)
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
