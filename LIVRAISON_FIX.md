@@ -1,32 +1,29 @@
 # ✅ Page Livraison - Correction Input Date & Layout
 
 ## 📋 Résumé
-Correction d'un problème de débordement de l'input et amélioration de l'agencement des filtres sur mobile dans la page **Programme de Livraison**.
+Correction d'un problème de débordement de l'input et amélioration de l'agencement des filtres sur mobile (optimisé pour iPhone 12).
 
 ## 🔧 Corrections Appliquées
 
 ### 1. Regroupement Date & Car
-Les filtres "Date" et "Car" sont maintenant regroupés sur une seule ligne, même sur mobile, pour gagner de l'espace vertical.
+Les filtres "Date" et "Car" sont regroupés sur une seule ligne.
 
-**Structure :**
+### 2. Optimisation Mobile (iPhone 12)
+- **Espacement** : Augmentation du gap à `gap-4` pour bien séparer les deux champs.
+- **Padding** : Réduction du padding interne à `px-1` sur mobile pour gagner de l'espace.
+- **Typographie** : Utilisation de `text-xs` pour les labels et les inputs afin de rester compact.
+- **Structure** : `flex-1` + `min-w-0` garantit que chaque champ prend exactement 50% de l'espace disponible (moins le gap) sans déborder.
+
 ```tsx
-<div className="grid grid-cols-1 md:grid-cols-2 ...">
-  {/* Colonne 1 : Recherche (pleine largeur sur mobile) */}
-  <div>Rechercher...</div>
-  
-  {/* Colonne 2 : Date + Car (côte à côte sur mobile) */}
-  <div className="flex gap-3">
-     <div className="flex-1 min-w-0">Input Date</div>
-     <div className="flex-1 min-w-0">Select Car</div>
+<div className="flex gap-4">
+  <div className="flex-1 min-w-0">
+     <input className="w-full px-1 ... text-xs" />
+  </div>
+  <div className="flex-1 min-w-0">
+     <select className="w-full px-1 ... text-xs" />
   </div>
 </div>
 ```
 
-### 2. Largeur et Débordement
-- Utilisation de `min-w-0` sur les conteneurs flex et les inputs pour empêcher le débordement.
-- Utilisation de `w-full` pour que les champs remplissent leur espace alloué.
-- Ajout de `truncate` et `appearance-none` sur le select pour gérer les noms de cars longs sur petits écrans.
-- Raccourcissement des labels : "Date de livraison" -> "Date", "Car de livraison" -> "Car".
-
 ## 🚀 Résultat
-Les filtres sont plus compacts et robustes sur mobile, évitant scroll horizontal et perte d'espace.
+Les filtres sont parfaitement alignés, lisibles et espacés, même sur des écrans étroits comme celui de l'iPhone 12.

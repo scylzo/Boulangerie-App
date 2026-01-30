@@ -214,23 +214,23 @@ export const PageLivraison: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <div className="flex-1 min-w-0">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Date</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Date</label>
                 <input
                   type="date"
                   value={dateSelectionnee}
                   onChange={(e) => setDateSelectionnee(e.target.value)}
-                  className="w-full px-2 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs sm:text-sm min-w-0"
+                  className="w-full px-1 sm:px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs min-w-0"
                 />
               </div>
 
               <div className="flex-1 min-w-0">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Car</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Car</label>
                 <select
                   value={carSelectionne}
                   onChange={(e) => setCarSelectionne(e.target.value as CarLivraison | 'tous')}
-                  className="w-full px-2 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs sm:text-sm min-w-0 appearance-none bg-white truncate"
+                  className="w-full px-1 sm:px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs min-w-0 appearance-none bg-white truncate"
                 >
                   <option value="tous">Tous</option>
                   <option value="car1_matin">Car 1 Matin</option>
