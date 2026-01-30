@@ -43,8 +43,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               <Menu size={24} />
             </button>
             {/* Breadcrumb ou titre de page */}
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 tracking-tight uppercase">{getPageTitle()}</h2>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 tracking-tight uppercase truncate">{getPageTitle()}</h2>
             </div>
           </div>
 
@@ -53,8 +53,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             {user && (
               <>
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center border border-orange-200">
-                    <span className="text-sm font-bold text-orange-700">
+                  <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center border border-gray-200">
+                    <span className="text-sm font-bold text-gray-900">
                       {(user.nom || user.email || 'U').charAt(0).toUpperCase()}
                       {(user.prenom || '').charAt(0).toUpperCase()}
                     </span>

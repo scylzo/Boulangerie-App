@@ -224,6 +224,13 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         const tauxVenteBoutique = calculerTaux(venduBoutique, stockDebutBoutique);
         const tauxVenteGlobal = calculerTaux(quantiteVendueTotal, quantiteProduite);
 
+        // Valeurs monétaires
+        const prixBoutique = produit?.prixBoutique || produit?.prixUnitaire || 0;
+        const prixClient = produit?.prixClient || produit?.prixUnitaire || 0;
+        const valeurVenteBoutique = venduBoutique * prixBoutique;
+        const valeurVenteClients = venduClients * prixClient;
+        const valeurVenteTotal = valeurVenteBoutique + valeurVenteClients;
+
         // Flag de destination
         const destineClients = (progProduit?.totalClient || 0) > 0 || quantiteLivreeClients > 0 || (commandesClients?.some(cmd => cmd.produits.some(p => p.produitId === produitId)) ?? false);
         const destineBoutique = (progProduit?.totalBoutique || 0) > 0 || stockDebutBoutique > 0 || (ventesJour?.produits.some(v => v.produitId === produitId) ?? false);
@@ -241,6 +248,9 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
           invendusClients: invendusClientsProduit,
           invendusBoutique: invenduBoutique,
           invendusTotal,
+          valeurVenteClients,
+          valeurVenteBoutique,
+          valeurVenteTotal,
           tauxVenteClients,
           tauxVenteBoutique,
           tauxVenteGlobal,
@@ -256,14 +266,20 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         quantiteVendueTotal: acc.quantiteVendueTotal + produit.quantiteVendueTotal,
         invendusTotal: acc.invendusTotal + produit.invendusTotal,
         tauxVenteGlobal: 0, // Calculé après
-        pertesTotales: acc.pertesTotales + produit.invendusTotal
+        pertesTotales: acc.pertesTotales + produit.invendusTotal,
+        valeurVenteClients: acc.valeurVenteClients + produit.valeurVenteClients,
+        valeurVenteBoutique: acc.valeurVenteBoutique + produit.valeurVenteBoutique,
+        valeurVenteTotal: acc.valeurVenteTotal + produit.valeurVenteTotal
       }), {
         quantitePrevue: 0,
         quantiteProduite: 0,
         quantiteVendueTotal: 0,
         invendusTotal: 0,
         tauxVenteGlobal: 0,
-        pertesTotales: 0
+        pertesTotales: 0,
+        valeurVenteClients: 0,
+        valeurVenteBoutique: 0,
+        valeurVenteTotal: 0
       });
 
       // Calculer le taux de vente global
@@ -455,7 +471,10 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
       tauxVenteGlobal: rapportJour.totaux.tauxVenteGlobal,
       pertesClients: totauxClients.invendus,
       pertesBoutique: totauxBoutique.invendus,
-      pertesTotales: rapportJour.totaux.pertesTotales
+      pertesTotales: rapportJour.totaux.pertesTotales,
+      valeurVenteClients: rapportJour.totaux.valeurVenteClients,
+      valeurVenteBoutique: rapportJour.totaux.valeurVenteBoutique,
+      valeurVenteTotal: rapportJour.totaux.valeurVenteTotal
     };
 
     set({ indicateurs });

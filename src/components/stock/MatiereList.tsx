@@ -120,18 +120,18 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-800">Matières Premières</h2>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h2 className="text-base sm:text-lg font-bold text-gray-800">Matières Premières</h2>
         <button
           onClick={() => {
             setIsEditing(null);
             setFormData({ nom: '', unite: 'kg', stockMinimum: '', stockActuel: '', dateCreation: new Date().toISOString().split('T')[0] });
             setShowForm(!showForm);
           }}
-          className="flex items-center space-x-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+          className="flex items-center justify-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto text-sm sm:text-base"
         >
-          <Plus size={20} />
+          <Plus size={18} className="sm:w-5 sm:h-5" />
           <span>Nouvelle Matière</span>
         </button>
       </div>
@@ -208,7 +208,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
             </button>
             <button
               type="submit"
-              className="flex-1 px-5 py-3 text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-xl shadow-md hover:shadow-lg transition-all"
+              className="flex-1 px-5 py-3 text-sm font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-xl shadow-sm hover:shadow-md transition-all"
             >
               {isEditing ? 'Mettre à jour' : 'Créer la matière'}
             </button>
@@ -297,11 +297,11 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Nom</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Date Création</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">Stock Actuel</th>
-              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">État</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600">Actions</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-600">Nom</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-600">Date Création</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-gray-600">Stock Actuel</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm font-semibold text-gray-600">État</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -311,45 +311,46 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
 
               return (
                 <tr key={matiere.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{matiere.nom}</div>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4">
+                    <div className="text-xs sm:text-sm font-medium text-gray-900">{matiere.nom}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-600">
                     {new Date(matiere.createdAt).toLocaleDateString('fr-FR')}
                   </td>
-                  <td className="px-6 py-4 text-right font-medium text-gray-900">
-                    {matiere.stockActuel.toLocaleString()} <span className="text-gray-500 text-sm">{matiere.unite}</span>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-medium text-gray-900">
+                    {matiere.stockActuel.toLocaleString()} <span className="text-gray-500 text-xs">{matiere.unite}</span>
                   </td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
                     {isLowStock ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                         <AlertTriangle size={12} className="mr-1" />
                         Critique
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         OK
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end space-x-2">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                    <div className="flex justify-end space-x-1 sm:space-x-2">
                       {isConvertible && (
                         <button
                           onClick={() => openConversion(matiere)}
-                          className="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100 mr-2"
+                          className="px-1.5 sm:px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100"
                         >
-                          Convertir kg
+                          <span className="hidden sm:inline">Convertir kg</span>
+                          <span className="sm:hidden">Conv.</span>
                         </button>
                       )}
-                      <button onClick={() => onAddMouvement(matiere)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
-                        <ArrowRightLeft size={18} />
+                      <button onClick={() => onAddMouvement(matiere)} className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
+                        <ArrowRightLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
-                      <button onClick={() => startEdit(matiere)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <Edit2 size={18} />
+                      <button onClick={() => startEdit(matiere)} className="p-1.5 sm:p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
-                      <button onClick={() => handleDelete(matiere.id, matiere.nom)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                        <Trash2 size={18} />
+                      <button onClick={() => handleDelete(matiere.id, matiere.nom)} className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                        <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
                     </div>
                   </td>

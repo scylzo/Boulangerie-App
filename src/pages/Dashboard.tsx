@@ -98,20 +98,20 @@ export const Dashboard: React.FC = () => {
     }, [clients]);
 
     return (
-        <div className="space-y-6 md:space-y-8 p-4 md:p-6 pb-20 bg-slate-50/30 min-h-screen">
+        <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 pb-20 bg-gray-50 min-h-screen overflow-x-hidden">
             {/* Welcome Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Tableau de bord</h1>
-                    <p className="text-slate-400 mt-1 font-medium italic text-xs md:text-sm text-pretty">Gestion centralisée de l'activité du jour</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="min-w-0 flex-1">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight truncate">Tableau de bord</h1>
+                    <p className="text-gray-500 mt-1 text-xs sm:text-sm truncate">Gestion centralisée de l'activité du jour</p>
                 </div>
-                <div className="flex bg-white px-4 md:px-5 py-2 md:py-3 rounded-2xl shadow-sm border border-slate-200 items-center gap-3 self-start sm:self-center">
-                    <div className="w-8 h-8 md:w-10 md:h-10 bg-slate-100 rounded-lg md:rounded-xl flex items-center justify-center">
-                        <Icon icon="mdi:calendar-today" className="text-slate-600 text-xl md:text-2xl" />
+                <div className="flex bg-white px-3 sm:px-4 md:px-5 py-2 md:py-3 rounded-xl shadow-sm border border-gray-200 items-center gap-2 sm:gap-3 self-start sm:self-center shrink-0">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Icon icon="mdi:calendar-today" className="text-gray-600 text-lg md:text-xl" />
                     </div>
-                    <div className="flex flex-col">
-                        <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-1">Date du jour</span>
-                        <span className="font-bold text-slate-700 capitalize text-sm md:text-base">
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-[9px] md:text-[10px] text-gray-400 font-semibold uppercase tracking-wide leading-none mb-1">Date du jour</span>
+                        <span className="font-semibold text-gray-700 capitalize text-xs sm:text-sm md:text-base truncate">
                             {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
                         </span>
                     </div>
@@ -119,7 +119,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Main Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
                 <StatCard
                     title="Ventes du jour"
                     value={formatCurrency(statsFinances.totalVentesToday)}
@@ -151,13 +151,12 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Grid Layout for details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {/* Production Details */}
                 <DashboardBox
                     title="Production du jour"
                     icon="mdi:bread"
                     className="md:col-span-2"
-                    color="slate"
                     headerAction={
                         <div className="flex items-center gap-2 sm:gap-3">
                             <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${programmeActuel?.statut === 'produit' ? 'bg-slate-100 text-slate-600' : 'bg-orange-50 text-orange-600'
@@ -205,7 +204,7 @@ export const Dashboard: React.FC = () => {
                 <div className="space-y-6 md:space-y-8 flex flex-col md:col-span-2 xl:col-span-1">
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6 md:gap-8">
                         {/* Stock Alerts Small Box */}
-                        <DashboardBox title="Alertes Stock" icon="mdi:alert-box" color="orange" className="h-full">
+                        <DashboardBox title="Alertes Stock" icon="mdi:alert-box" className="h-full">
                             {lowStockItems.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-10 text-center">
                                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
@@ -237,7 +236,7 @@ export const Dashboard: React.FC = () => {
                         </DashboardBox>
 
                         {/* Client Box Small */}
-                        <DashboardBox title="Base Clients" icon="mdi:account-group" color="slate">
+                        <DashboardBox title="Base Clients" icon="mdi:account-group">
                             <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
                                 <div className="bg-slate-50 p-3 md:p-4 rounded-2xl border border-slate-200">
                                     <p className="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Actifs</p>
@@ -284,34 +283,30 @@ export const Dashboard: React.FC = () => {
 
 const StatCard: React.FC<{ title: string; value: string; subtitle: string; icon: string; color: 'blue' | 'red' | 'orange' | 'green' | 'slate'; progress?: number }> = ({ title, value, subtitle, icon, color, progress }) => {
     const colorConfig = {
-        blue: { bg: 'bg-slate-50', text: 'text-slate-600', accent: 'bg-slate-600', light: 'bg-slate-100' },
-        red: { bg: 'bg-red-50/50', text: 'text-red-600', accent: 'bg-red-600', light: 'bg-red-100' },
-        orange: { bg: 'bg-orange-50/50', text: 'text-orange-600', accent: 'bg-orange-600', light: 'bg-orange-100' },
-        green: { bg: 'bg-emerald-50/50', text: 'text-emerald-600', accent: 'bg-emerald-600', light: 'bg-emerald-100' },
-        slate: { bg: 'bg-slate-50', text: 'text-slate-600', accent: 'bg-slate-600', light: 'bg-slate-100' },
+        blue: { bg: 'bg-gray-50', text: 'text-gray-600', accent: 'bg-gray-600', light: 'bg-gray-100' },
+        red: { bg: 'bg-red-50', text: 'text-red-600', accent: 'bg-red-500', light: 'bg-red-100' },
+        orange: { bg: 'bg-orange-50', text: 'text-orange-600', accent: 'bg-orange-500', light: 'bg-orange-100' },
+        green: { bg: 'bg-emerald-50', text: 'text-emerald-600', accent: 'bg-emerald-500', light: 'bg-emerald-100' },
+        slate: { bg: 'bg-gray-50', text: 'text-gray-600', accent: 'bg-gray-600', light: 'bg-gray-100' },
     };
 
     const cfg = colorConfig[color];
 
     return (
-        <div className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 p-5 md:p-7 relative overflow-hidden group hover:shadow-md transition-all duration-300">
-            <div className={`absolute -top-6 -right-6 p-8 opacity-[0.03] group-hover:scale-110 transition-transform duration-700`}>
-                <Icon icon={icon} className="text-[8rem] md:text-[10rem]" />
-            </div>
-
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl ${cfg.bg} ${cfg.text} flex items-center justify-center border border-slate-100`}>
-                    <Icon icon={icon} className="text-xl md:text-2xl" />
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 md:p-6 relative overflow-hidden group hover:shadow-md transition-all duration-200">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg ${cfg.bg} ${cfg.text} flex items-center justify-center shrink-0`}>
+                    <Icon icon={icon} className="text-xl sm:text-2xl" />
                 </div>
                 {progress !== undefined && (
-                    <span className={`text-[9px] md:text-[10px] font-black px-2 py-1 rounded-full ${cfg.bg} ${cfg.text} uppercase tracking-widest border border-slate-100`}>Direct</span>
+                    <span className={`text-[9px] sm:text-[10px] font-semibold px-2 py-1 rounded-full ${cfg.bg} ${cfg.text} uppercase tracking-wide`}>Direct</span>
                 )}
             </div>
 
-            <div className="relative z-10">
-                <h3 className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1 md:mb-2">{title}</h3>
-                <p className="text-xl md:text-2xl font-black text-slate-800 tracking-tight mb-1 truncate" title={value}>{value}</p>
-                <p className="text-[9px] md:text-[10px] text-slate-400 font-bold tracking-tight uppercase truncate">{subtitle}</p>
+            <div className="relative z-10 min-w-0">
+                <h3 className="text-[9px] sm:text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1 sm:mb-2 truncate">{title}</h3>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 tracking-tight mb-1 truncate" title={value}>{value}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500 truncate" title={subtitle}>{subtitle}</p>
             </div>
         </div>
     );
@@ -322,24 +317,23 @@ const DashboardBox: React.FC<{
     icon: string;
     children: React.ReactNode;
     className?: string;
-    color?: string;
     headerAction?: React.ReactNode;
-}> = ({ title, icon, children, className, color = "orange", headerAction }) => (
-    <div className={`bg-white rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-xl transition-shadow duration-500 ${className}`}>
-        <div className="px-5 py-4 md:px-8 md:py-6 border-b border-gray-50 flex items-center justify-between bg-white">
-            <div className="flex items-center gap-3 md:gap-4">
-                <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-50 rounded-lg md:rounded-xl flex items-center justify-center shadow-sm">
-                    <Icon icon={icon} className={`text-xl md:text-2xl text-${color}-600`} />
+}> = ({ title, icon, children, className, headerAction }) => (
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition-all duration-200 ${className}`}>
+        <div className="px-4 py-3 sm:px-5 sm:py-4 md:px-6 md:py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon={icon} className="text-lg sm:text-xl text-gray-600" />
                 </div>
-                <h3 className="font-black text-gray-900 uppercase tracking-tight text-sm md:text-base">{title}</h3>
+                <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{title}</h3>
             </div>
             {headerAction ? headerAction : (
-                <button className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 transition-colors">
-                    <Icon icon="mdi:dots-horizontal" className="text-xl md:text-2xl" />
+                <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 transition-colors shrink-0">
+                    <Icon icon="mdi:dots-horizontal" className="text-lg sm:text-xl" />
                 </button>
             )}
         </div>
-        <div className="p-5 md:p-8 flex-1">
+        <div className="p-4 sm:p-5 md:p-6 flex-1 overflow-hidden">
             {children}
         </div>
     </div>

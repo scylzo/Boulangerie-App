@@ -339,201 +339,203 @@ export const Comptabilite: React.FC = () => {
     };
 
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Comptabilité</h1>
-                    <p className="text-gray-500">Recettes - Dépenses = Résultat (Trésorerie)</p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4">
-                    <button
-                        onClick={genererRapportPDF}
-                        disabled={stats.loading}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-                        title="Télécharger le rapport PDF"
-                    >
-                        <FileText size={18} />
-                        <span className="hidden sm:inline">Générer Rapport</span>
-                    </button>
-
-                    <button
-                        onClick={chargerDonnees}
-                        disabled={stats.loading}
-                        className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                        title="Actualiser les données"
-                    >
-                        <RefreshCw size={20} className={stats.loading ? "animate-spin" : ""} />
-                    </button>
-
-                    <div className="flex items-center gap-4 bg-gray-50 p-2 rounded-lg border border-gray-200">
-                        <div className="flex items-center gap-2">
-                            <Calendar size={18} className="text-gray-500" />
-                            <span className="text-sm font-medium text-gray-700">Période :</span>
+        <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                        <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+                            <Coins className="w-5 h-5 text-white" />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="date"
-                                value={periode.debut}
-                                onChange={(e) => setPeriode(p => ({ ...p, debut: e.target.value }))}
-                                className="bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-1.5"
-                            />
-                            <span className="text-gray-400">à</span>
-                            <input
-                                type="date"
-                                value={periode.fin}
-                                onChange={(e) => setPeriode(p => ({ ...p, fin: e.target.value }))}
-                                className="bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-1.5"
-                            />
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">Comptabilité</h1>
+                            <p className="text-xs sm:text-sm text-gray-500 truncate">Recettes - Dépenses = Résultat (Trésorerie)</p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                        <button
+                            onClick={genererRapportPDF}
+                            disabled={stats.loading}
+                            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors shadow-sm text-xs sm:text-sm font-medium disabled:opacity-50"
+                            title="Télécharger le rapport PDF"
+                        >
+                            <FileText size={16} className="sm:w-[18px] sm:h-[18px]" />
+                            <span>Générer Rapport</span>
+                        </button>
+
+                        <button
+                            onClick={chargerDonnees}
+                            disabled={stats.loading}
+                            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                            title="Actualiser les données"
+                        >
+                            <RefreshCw size={18} className={`sm:w-5 sm:h-5 ${stats.loading ? "animate-spin" : ""}`} />
+                        </button>
+
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                            <div className="flex items-center gap-2">
+                                <Calendar size={16} className="text-gray-500 sm:w-[18px] sm:h-[18px]" />
+                                <span className="text-xs sm:text-sm font-medium text-gray-700">Période :</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="date"
+                                    value={periode.debut}
+                                    onChange={(e) => setPeriode(p => ({ ...p, debut: e.target.value }))}
+                                    className="bg-white border border-gray-300 text-gray-900 text-xs sm:text-sm rounded-md focus:ring-gray-900 focus:border-gray-900 block p-1.5 w-full sm:w-auto"
+                                />
+                                <span className="text-gray-400 text-xs sm:text-sm">à</span>
+                                <input
+                                    type="date"
+                                    value={periode.fin}
+                                    onChange={(e) => setPeriode(p => ({ ...p, fin: e.target.value }))}
+                                    className="bg-white border border-gray-300 text-gray-900 text-xs sm:text-sm rounded-md focus:ring-gray-900 focus:border-gray-900 block p-1.5 w-full sm:w-auto"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Recettes */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                        <TrendingUp size={100} className="text-emerald-600" />
-                    </div>
-                    <div className="flex items-center justify-between mb-4 relative z-10">
-                        <div className="p-3 bg-emerald-50 rounded-lg">
-                            <TrendingUp className="text-emerald-600" size={24} />
-                        </div>
-                        <span className="text-sm font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">Recettes (Entrées)</span>
-                    </div>
-                    <div className="space-y-2 relative z-10">
-                        <h3 className="text-3xl font-bold text-gray-900">{formatCurrency(totalRecettes)}</h3>
-                        <div className="grid grid-cols-2 gap-2 text-sm pt-2">
-                            <div className="bg-emerald-50/50 p-2 rounded">
-                                <p className="text-emerald-800 text-xs uppercase tracking-wider font-semibold">Boutique</p>
-                                <p className="font-medium text-emerald-900">{formatCurrency(stats.caBoutique)}</p>
+            {/* Contenu principal */}
+            <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+                {/* KPI Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                    {/* Recettes */}
+                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 relative overflow-hidden">
+                        <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
+                            <div className="p-2 sm:p-3 bg-emerald-50 rounded-lg">
+                                <TrendingUp className="text-emerald-600" size={20} />
                             </div>
-                            <div className="bg-emerald-50/50 p-2 rounded">
-                                <p className="text-emerald-800 text-xs uppercase tracking-wider font-semibold">Livraisons</p>
-                                <p className="font-medium text-emerald-900">{formatCurrency(stats.caLivraison)}</p>
-                            </div>
+                            <span className="text-[10px] sm:text-xs font-medium text-emerald-700 bg-emerald-50 px-2 sm:px-3 py-1 rounded-full truncate">Recettes</span>
                         </div>
-                    </div>
-                </div>
-
-                {/* Coûts */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-red-100 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                        <TrendingDown size={100} className="text-red-600" />
-                    </div>
-                    <div className="flex items-center justify-between mb-4 relative z-10">
-                        <div className="p-3 bg-red-50 rounded-lg">
-                            <TrendingDown className="text-red-600" size={24} />
-                        </div>
-                        <span className="text-sm font-medium text-red-700 bg-red-50 px-3 py-1 rounded-full">Dépenses (Sorties)</span>
-                    </div>
-                    <div className="space-y-2 relative z-10">
-                        <h3 className="text-3xl font-bold text-gray-900">{formatCurrency(stats.totalCouts)}</h3>
-                        <div className="grid grid-cols-2 gap-2 text-sm pt-2">
-                            <div className="bg-red-50/50 p-2 rounded">
-                                <p className="text-red-800 text-xs uppercase tracking-wider font-semibold">Achats Matières</p>
-                                <p className="font-medium text-red-900">{formatCurrency(stats.achatsMatieres)}</p>
-                            </div>
-                            <div className="bg-red-50/50 p-2 rounded">
-                                <p className="text-red-800 text-xs uppercase tracking-wider font-semibold">Autres Charges</p>
-                                <p className="font-medium text-red-900">{formatCurrency(stats.autresCharges)}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Résultat */}
-                <div className={`bg-white p-6 rounded-xl shadow-sm border relative overflow-hidden ${resultat >= 0 ? 'border-blue-100' : 'border-orange-100'}`}>
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                        <Activity size={100} className={resultat >= 0 ? 'text-blue-600' : 'text-orange-600'} />
-                    </div>
-                    <div className="flex items-center justify-between mb-4 relative z-10">
-                        <div className={`p-3 rounded-lg ${resultat >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
-                            <Activity className={resultat >= 0 ? 'text-blue-600' : 'text-orange-600'} size={24} />
-                        </div>
-                        <span className={`text-sm font-medium px-3 py-1 rounded-full ${resultat >= 0 ? 'text-blue-700 bg-blue-50' : 'text-orange-700 bg-orange-50'}`}>
-                            Résultat Net
-                        </span>
-                    </div>
-                    <div className="space-y-2 relative z-10">
-                        <h3 className={`text-3xl font-bold ${resultat >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-                            {resultat > 0 ? '+' : ''}{formatCurrency(resultat)}
-                        </h3>
-                        <div className="flex items-center justify-between pt-2">
-                            <p className="text-sm text-gray-500">Marge Nette</p>
-                            <p className={`text-lg font-bold ${marge >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                                {marge.toFixed(1)}%
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Détails */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Graphique de répartition des Coûts */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                        <PieChartIcon className="mr-2 text-gray-500" size={20} />
-                        Répartition des Charges
-                    </h3>
-                    <div className="space-y-6">
-                        <div>
-                            <div className="flex justify-between text-sm mb-2">
-                                <span className="text-gray-600">Matières Premières (Intrants)</span>
-                                <span className="font-bold text-gray-900">{stats.totalCouts > 0 ? Math.round((stats.achatsMatieres / stats.totalCouts) * 100) : 0}%</span>
-                            </div>
-                            <div className="w-full bg-gray-100 rounded-full h-3">
-                                <div className="bg-orange-500 h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? (stats.achatsMatieres / stats.totalCouts) * 100 : 0}%` }}></div>
-                            </div>
-                            <p className="text-xs text-gray-400 mt-1 text-right">{formatCurrency(stats.achatsMatieres)}</p>
-                        </div>
-                        {Object.entries(stats.depensesParCategorie).map(([categ, montant]) => {
-                            if (categ === 'Intrants' || montant === 0) return null;
-                            return (
-                                <div key={categ}>
-                                    <div className="flex justify-between text-sm mb-2">
-                                        <span className="text-gray-600">{categ}</span>
-                                        <span className="font-bold text-gray-900">{stats.totalCouts > 0 ? Math.round(((montant as number) / stats.totalCouts) * 100) : 0}%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-100 rounded-full h-3">
-                                        <div className="bg-slate-500 h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? ((montant as number) / stats.totalCouts) * 100 : 0}%` }}></div>
-                                    </div>
-                                    <p className="text-xs text-gray-400 mt-1 text-right">{formatCurrency(montant as number)}</p>
+                        <div className="space-y-2 relative z-10">
+                            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">{formatCurrency(totalRecettes)}</h3>
+                            <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm pt-2">
+                                <div className="bg-emerald-50/50 p-2 rounded">
+                                    <p className="text-emerald-800 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Boutique</p>
+                                    <p className="font-medium text-emerald-900 truncate">{formatCurrency(stats.caBoutique)}</p>
                                 </div>
-                            );
-                        })}
+                                <div className="bg-emerald-50/50 p-2 rounded">
+                                    <p className="text-emerald-800 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Livraisons</p>
+                                    <p className="font-medium text-emerald-900 truncate">{formatCurrency(stats.caLivraison)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Coûts */}
+                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 relative overflow-hidden">
+                        <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
+                            <div className="p-2 sm:p-3 bg-red-50 rounded-lg">
+                                <TrendingDown className="text-red-600" size={20} />
+                            </div>
+                            <span className="text-[10px] sm:text-xs font-medium text-red-700 bg-red-50 px-2 sm:px-3 py-1 rounded-full truncate">Dépenses</span>
+                        </div>
+                        <div className="space-y-2 relative z-10">
+                            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">{formatCurrency(stats.totalCouts)}</h3>
+                            <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm pt-2">
+                                <div className="bg-red-50/50 p-2 rounded">
+                                    <p className="text-red-800 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Matières</p>
+                                    <p className="font-medium text-red-900 truncate">{formatCurrency(stats.achatsMatieres)}</p>
+                                </div>
+                                <div className="bg-red-50/50 p-2 rounded">
+                                    <p className="text-red-800 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Charges</p>
+                                    <p className="font-medium text-red-900 truncate">{formatCurrency(stats.autresCharges)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Résultat */}
+                    <div className={`bg-white p-4 sm:p-6 rounded-xl shadow-sm border relative overflow-hidden ${resultat >= 0 ? 'border-gray-200' : 'border-gray-200'}`}>
+                        <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
+                            <div className={`p-2 sm:p-3 rounded-lg ${resultat >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
+                                <Activity className={resultat >= 0 ? 'text-blue-600' : 'text-orange-600'} size={20} />
+                            </div>
+                            <span className={`text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 rounded-full truncate ${resultat >= 0 ? 'text-blue-700 bg-blue-50' : 'text-orange-700 bg-orange-50'}`}>
+                                Résultat Net
+                            </span>
+                        </div>
+                        <div className="space-y-2 relative z-10">
+                            <h3 className={`text-xl sm:text-2xl md:text-3xl font-bold truncate ${resultat >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+                                {resultat > 0 ? '+' : ''}{formatCurrency(resultat)}
+                            </h3>
+                            <div className="flex items-center justify-between pt-2">
+                                <p className="text-xs sm:text-sm text-gray-500">Marge Nette</p>
+                                <p className={`text-base sm:text-lg font-bold ${marge >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                                    {marge.toFixed(1)}%
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Structure du CA */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                        <Coins className="mr-2 text-gray-500" size={20} />
-                        Sources de Revenus
-                    </h3>
-                    <div className="space-y-6">
-                        <div>
-                            <div className="flex justify-between text-sm mb-2">
-                                <span className="text-gray-600">Ventes Boutique</span>
-                                <span className="font-bold text-gray-900">{totalRecettes > 0 ? Math.round((stats.caBoutique / totalRecettes) * 100) : 0}%</span>
+                {/* Détails */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    {/* Graphique de répartition des Coûts */}
+                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 sm:mb-6 flex items-center">
+                            <PieChartIcon className="mr-2 text-gray-500" size={18} />
+                            <span className="truncate">Répartition des Charges</span>
+                        </h3>
+                        <div className="space-y-4 sm:space-y-6">
+                            <div>
+                                <div className="flex justify-between text-xs sm:text-sm mb-2">
+                                    <span className="text-gray-600 truncate">Matières Premières</span>
+                                    <span className="font-bold text-gray-900 shrink-0">{stats.totalCouts > 0 ? Math.round((stats.achatsMatieres / stats.totalCouts) * 100) : 0}%</span>
+                                </div>
+                                <div className="w-full bg-gray-100 rounded-full h-2 sm:h-3">
+                                    <div className="bg-orange-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? (stats.achatsMatieres / stats.totalCouts) * 100 : 0}%` }}></div>
+                                </div>
+                                <p className="text-[10px] sm:text-xs text-gray-400 mt-1 text-right truncate">{formatCurrency(stats.achatsMatieres)}</p>
                             </div>
-                            <div className="w-full bg-gray-100 rounded-full h-3">
-                                <div className="bg-blue-500 h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caBoutique / totalRecettes) * 100 : 0}%` }}></div>
-                            </div>
-                            <p className="text-xs text-gray-400 mt-1 text-right">{formatCurrency(stats.caBoutique)}</p>
+                            {Object.entries(stats.depensesParCategorie).map(([categ, montant]) => {
+                                if (categ === 'Intrants' || montant === 0) return null;
+                                return (
+                                    <div key={categ}>
+                                        <div className="flex justify-between text-xs sm:text-sm mb-2">
+                                            <span className="text-gray-600 truncate">{categ}</span>
+                                            <span className="font-bold text-gray-900 shrink-0">{stats.totalCouts > 0 ? Math.round(((montant as number) / stats.totalCouts) * 100) : 0}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-100 rounded-full h-2 sm:h-3">
+                                            <div className="bg-gray-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? ((montant as number) / stats.totalCouts) * 100 : 0}%` }}></div>
+                                        </div>
+                                        <p className="text-[10px] sm:text-xs text-gray-400 mt-1 text-right truncate">{formatCurrency(montant as number)}</p>
+                                    </div>
+                                );
+                            })}
                         </div>
-                        <div>
-                            <div className="flex justify-between text-sm mb-2">
-                                <span className="text-gray-600">Livraisons (Facturées)</span>
-                                <span className="font-bold text-gray-900">{totalRecettes > 0 ? Math.round((stats.caLivraison / totalRecettes) * 100) : 0}%</span>
+                    </div>
+
+                    {/* Structure du CA */}
+                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 sm:mb-6 flex items-center">
+                            <Coins className="mr-2 text-gray-500" size={18} />
+                            <span className="truncate">Sources de Revenus</span>
+                        </h3>
+                        <div className="space-y-4 sm:space-y-6">
+                            <div>
+                                <div className="flex justify-between text-xs sm:text-sm mb-2">
+                                    <span className="text-gray-600 truncate">Ventes Boutique</span>
+                                    <span className="font-bold text-gray-900 shrink-0">{totalRecettes > 0 ? Math.round((stats.caBoutique / totalRecettes) * 100) : 0}%</span>
+                                </div>
+                                <div className="w-full bg-gray-100 rounded-full h-2 sm:h-3">
+                                    <div className="bg-blue-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caBoutique / totalRecettes) * 100 : 0}%` }}></div>
+                                </div>
+                                <p className="text-[10px] sm:text-xs text-gray-400 mt-1 text-right truncate">{formatCurrency(stats.caBoutique)}</p>
                             </div>
-                            <div className="w-full bg-gray-100 rounded-full h-3">
-                                <div className="bg-purple-500 h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caLivraison / totalRecettes) * 100 : 0}%` }}></div>
+                            <div>
+                                <div className="flex justify-between text-xs sm:text-sm mb-2">
+                                    <span className="text-gray-600 truncate">Livraisons (Facturées)</span>
+                                    <span className="font-bold text-gray-900 shrink-0">{totalRecettes > 0 ? Math.round((stats.caLivraison / totalRecettes) * 100) : 0}%</span>
+                                </div>
+                                <div className="w-full bg-gray-100 rounded-full h-2 sm:h-3">
+                                    <div className="bg-purple-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caLivraison / totalRecettes) * 100 : 0}%` }}></div>
+                                </div>
+                                <p className="text-[10px] sm:text-xs text-gray-400 mt-1 text-right truncate">{formatCurrency(stats.caLivraison)}</p>
                             </div>
-                            <p className="text-xs text-gray-400 mt-1 text-right">{formatCurrency(stats.caLivraison)}</p>
                         </div>
                     </div>
                 </div>

@@ -447,30 +447,32 @@ export const ProgrammeProduction: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header moderne type Odoo */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-linear-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      {/* Header moderne */}
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          {/* Titre et icône */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
               <Icon icon="mdi:clipboard-text" className="text-xl text-white" />
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                 Programme de Production
               </h1>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500 truncate">
                 Gestion des commandes clients et quantités boutique
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Indicateur de statut visible */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium ${programmeActuel?.statut === 'brouillon' ? 'bg-gray-100 text-gray-600 border-gray-200' :
+          {/* Statut et actions */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Indicateur de statut */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs sm:text-sm font-medium self-start ${programmeActuel?.statut === 'brouillon' ? 'bg-gray-100 text-gray-600 border-gray-200' :
               programmeActuel?.statut === 'modifie' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                 programmeActuel?.statut === 'envoye' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                  'bg-green-50 text-green-700 border-green-200'
+                  'bg-emerald-50 text-emerald-700 border-emerald-200'
               }`}>
               <Icon
                 icon={
@@ -479,7 +481,7 @@ export const ProgrammeProduction: React.FC = () => {
                       programmeActuel?.statut === 'envoye' ? "mdi:send-check" :
                         "mdi:factory"
                 }
-                className="text-lg"
+                className="text-base sm:text-lg"
               />
               <span>
                 {programmeActuel?.statut === 'brouillon' && 'Brouillon'}
@@ -489,21 +491,20 @@ export const ProgrammeProduction: React.FC = () => {
               </span>
             </div>
 
-            <div className="h-8 w-px bg-gray-200 mx-2 hidden sm:block"></div>
-
             {/* Actions Toolbar */}
-            <div className="flex items-center gap-2">
-              {/* Bouton Envoyer/Renvoyer - Toujours visible pour permettre le renvoi */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Bouton Envoyer/Renvoyer */}
               {programmeActuel && (
                 <button
                   onClick={handleEnvoyerAuBoulanger}
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                  className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-xs sm:text-sm font-medium"
                 >
-                  <Icon icon="mdi:send" className="text-lg" />
-                  <span className="font-medium">
+                  <Icon icon="mdi:send" className="text-base sm:text-lg" />
+                  <span className="hidden sm:inline">
                     {programmeActuel.statut === 'brouillon' ? 'Envoyer' : 'Renvoyer'}
                   </span>
+                  <span className="sm:hidden">Envoi</span>
                 </button>
               )}
 
@@ -512,11 +513,11 @@ export const ProgrammeProduction: React.FC = () => {
                 <button
                   onClick={handleTelechargerRapport}
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 shadow-sm"
+                  className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 shadow-sm text-xs sm:text-sm font-medium"
                   title="Télécharger le rapport de production"
                 >
-                  <Icon icon="mdi:file-pdf-box" className="text-lg text-red-600" />
-                  <span className="font-medium">Rapport</span>
+                  <Icon icon="mdi:file-pdf-box" className="text-base sm:text-lg text-red-600" />
+                  <span className="hidden sm:inline">Rapport</span>
                 </button>
               )}
 
@@ -525,65 +526,74 @@ export const ProgrammeProduction: React.FC = () => {
                 <button
                   onClick={handleValiderProduction}
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
+                  className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all disabled:opacity-50 shadow-sm text-xs sm:text-sm font-medium"
                 >
-                  <Icon icon="mdi:check-circle-outline" className="text-lg" />
-                  <span className="font-medium">Clôturer</span>
+                  <Icon icon="mdi:check-circle-outline" className="text-base sm:text-lg" />
+                  <span className="hidden sm:inline">Clôturer</span>
+                  <span className="sm:hidden">OK</span>
                 </button>
               )}
-
-              {/* Bouton Régulariser Stock */}
             </div>
-
-            <ConfirmModal
-              isOpen={confirmModal.isOpen}
-              onClose={confirmModal.handleCancel}
-              onConfirm={confirmModal.handleConfirm}
-              title={confirmModal.title}
-              message={confirmModal.message}
-              confirmText={confirmModal.confirmText}
-              cancelText={confirmModal.cancelText}
-              type={confirmModal.type}
-            />
           </div>
         </div>
       </div>
 
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={confirmModal.handleCancel}
+        onConfirm={confirmModal.handleConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        type={confirmModal.type}
+      />
+
       {/* Contenu principal */}
-      <div className="max-w-7xl mx-auto p-4 space-y-4">
+      <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
 
         {/* Widget de sélection de date moderne */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Icon icon="mdi:calendar" className="text-lg text-blue-600" />
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5 overflow-hidden">
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+              <Icon icon="mdi:calendar" className="text-lg text-gray-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Date de production</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">Date de production</h2>
           </div>
 
-          <div className="flex items-center justify-between">
-            {/* Sélecteur de date à gauche */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
+            {/* Sélecteur de date */}
             <div className="flex items-center gap-3">
               <input
                 type="date"
                 value={dateSelectionnee}
                 onChange={(e) => handleDateChange(e.target.value)}
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 font-medium shadow-sm hover:border-gray-400 transition-all"
+                className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 font-medium shadow-sm hover:border-gray-400 transition-all text-sm sm:text-base w-full sm:w-auto"
               />
             </div>
 
-            {/* Carte d'information de production à droite */}
-            <div className="bg-gradient-to-l from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 shadow-sm min-w-[300px]">
-              <div className="flex items-center gap-3">
-                <div className="flex-1 text-right">
-                  <div className="flex items-center justify-end gap-2 mb-1">
-                    <span className="text-xs font-medium text-green-700">Production programmée</span>
-                    <Icon icon="mdi:calendar-check" className="text-green-600 text-sm" />
+            {/* Carte d'information de production */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+                  <Icon icon="mdi:factory" className="text-lg sm:text-xl text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Production programmée</span>
+                    <Icon icon="mdi:calendar-check" className="text-gray-400 text-xs" />
                   </div>
-                  <div className="text-base font-bold text-gray-900">
+                  <div className="text-xs sm:text-sm font-semibold text-gray-900 truncate" title={(() => {
+                    const dateProduction = new Date(dateSelectionnee);
+                    return dateProduction.toLocaleDateString('fr-FR', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    });
+                  })()}>
                     {(() => {
                       const dateProduction = new Date(dateSelectionnee);
-                      // La date de production EST la date sélectionnée
                       return dateProduction.toLocaleDateString('fr-FR', {
                         weekday: 'long',
                         day: 'numeric',
@@ -593,14 +603,11 @@ export const ProgrammeProduction: React.FC = () => {
                     })()}
                   </div>
                   {programmeActuel && (
-                    <div className="flex items-center justify-end gap-1 mt-1 text-xs text-gray-600">
-                      <span>Créé le {programmeActuel.dateCreation.toLocaleDateString('fr-FR')} à {programmeActuel.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                    <div className="flex items-center gap-1 mt-0.5 text-[9px] sm:text-[10px] text-gray-500">
                       <Icon icon="mdi:clock-outline" className="text-gray-400" />
+                      <span className="truncate">Créé le {programmeActuel.dateCreation.toLocaleDateString('fr-FR')} à {programmeActuel.dateCreation.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   )}
-                </div>
-                <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                  <Icon icon="mdi:factory" className="text-xl text-white" />
                 </div>
               </div>
             </div>
@@ -656,42 +663,42 @@ export const ProgrammeProduction: React.FC = () => {
         )}
 
         {/* Section Commandes Clients avec design moderne */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           {/* Header de la section */}
-          <div className="px-6 py-4 border-b border-gray-100">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Icon icon="mdi:account-group" className="text-lg text-green-600" />
+          <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon="mdi:account-group" className="text-lg text-gray-600" />
                   </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Commandes Clients</h2>
-                    <p className="text-sm text-gray-500">Ajoutez les commandes des clients pour le jour sélectionné</p>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">Commandes Clients</h2>
+                    <p className="text-xs sm:text-sm text-gray-500 truncate">Ajoutez les commandes des clients pour le jour sélectionné</p>
                   </div>
                 </div>
 
                 <button
                   onClick={() => handleAjouterCommande()}
                   disabled={showCommandeForm}
-                  className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 shadow-md"
+                  className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all disabled:opacity-50 shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto shrink-0"
                 >
-                  <Icon icon="mdi:plus" className="text-lg" />
-                  <span className="font-medium">Nouvelle commande</span>
+                  <Icon icon="mdi:plus" className="text-base sm:text-lg" />
+                  <span>Nouvelle commande</span>
                 </button>
               </div>
 
               {/* Barre de recherche */}
               {commandesClients.length > 0 && (
-                <div className="flex items-center gap-4">
-                  <div className="relative flex-1 max-w-md">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                  <div className="relative flex-1 max-w-full sm:max-w-md">
                     <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
                       placeholder="Rechercher un client..."
                       value={rechercheClient}
                       onChange={(e) => setRechercheClient(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                      className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-xs sm:text-sm"
                     />
                     {rechercheClient && (
                       <button
@@ -702,7 +709,7 @@ export const ProgrammeProduction: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-xs sm:text-sm text-gray-500 shrink-0">
                     {commandesFiltrees.length === commandesClients.length
                       ? `${commandesClients.length} commande(s)`
                       : `${commandesFiltrees.length} sur ${commandesClients.length} commande(s)`
@@ -714,54 +721,54 @@ export const ProgrammeProduction: React.FC = () => {
           </div>
 
           {/* Contenu de la section */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
 
             {commandesFiltrees.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Icon icon={rechercheClient ? "mdi:magnify" : "mdi:clipboard-outline"} className="text-3xl text-gray-400" />
+              <div className="text-center py-12 sm:py-16">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <Icon icon={rechercheClient ? "mdi:magnify" : "mdi:clipboard-outline"} className="text-3xl sm:text-4xl text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                   {rechercheClient
                     ? `Aucun client trouvé pour "${rechercheClient}"`
                     : "Aucune commande client"
                   }
                 </h3>
-                <p className="text-gray-500 mb-6">
+                <p className="text-sm sm:text-base text-gray-500 mb-6 sm:mb-8 max-w-md mx-auto px-4">
                   {rechercheClient
                     ? "Essayez avec d'autres termes de recherche ou ajoutez une nouvelle commande"
                     : "Commencez par ajouter une commande client pour ce jour de production"
                   }
                 </p>
                 {rechercheClient ? (
-                  <div className="flex gap-3 justify-center">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                     <button
                       onClick={() => setRechercheClient('')}
-                      className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                      className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-xs sm:text-sm font-medium"
                     >
-                      <Icon icon="mdi:close" className="text-lg" />
-                      <span className="font-medium">Effacer la recherche</span>
+                      <Icon icon="mdi:close" className="text-base sm:text-lg" />
+                      <span>Effacer la recherche</span>
                     </button>
                     <button
                       onClick={() => handleAjouterCommande()}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-md"
+                      className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all shadow-sm text-xs sm:text-sm font-medium"
                     >
-                      <Icon icon="mdi:plus" className="text-lg" />
-                      <span className="font-medium">Nouvelle commande</span>
+                      <Icon icon="mdi:plus" className="text-base sm:text-lg" />
+                      <span>Nouvelle commande</span>
                     </button>
                   </div>
                 ) : (
                   <button
                     onClick={() => handleAjouterCommande()}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-md"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-6 py-2 sm:py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all shadow-sm text-xs sm:text-sm font-medium"
                   >
-                    <Icon icon="mdi:plus" className="text-lg" />
-                    <span className="font-medium">Ajouter la première commande</span>
+                    <Icon icon="mdi:plus" className="text-base sm:text-lg" />
+                    <span>Ajouter la première commande</span>
                   </button>
                 )}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {commandesFiltrees.map((commande) => {
                   const client = clients.find(c => c.id === commande.clientId);
                   const totalCommande = commande.produits.reduce((total, item) =>
@@ -785,25 +792,25 @@ export const ProgrammeProduction: React.FC = () => {
                   return (
                     <div
                       key={commande.id}
-                      className="relative bg-linear-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-4 hover:border-green-300 hover:shadow-xl transition-all duration-300 group"
+                      className="relative bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:border-gray-300 hover:shadow-md transition-all duration-200 overflow-hidden"
                     >
                       {/* En-tête de la commande */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                            <Icon icon="mdi:account" className="text-xl text-white" />
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+                        <div className="flex items-start gap-2 sm:gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+                            <Icon icon="mdi:account" className="text-lg sm:text-xl text-white" />
                           </div>
-                          <div>
-                            <h3 className="font-bold text-lg text-gray-900 mb-0.5">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-1 truncate" title={client?.nom || 'Client inconnu'}>
                               {client?.nom || 'Client inconnu'}
                             </h3>
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-1 text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded-lg">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded-lg">
                                 <Icon icon="mdi:calendar-clock" className="text-gray-500" />
-                                <span>{new Date(commande.dateLivraison).toLocaleDateString('fr-FR')}</span>
+                                <span className="truncate">{new Date(commande.dateLivraison).toLocaleDateString('fr-FR')}</span>
                               </div>
                               {commande.statut === 'annulee' && (
-                                <span className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                                <span className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 text-[10px] sm:text-xs font-medium rounded-full">
                                   <Icon icon="mdi:cancel" className="text-red-600" />
                                   ANNULÉE
                                 </span>
@@ -811,12 +818,12 @@ export const ProgrammeProduction: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-xl font-bold text-gray-800">
+                        <div className="text-left sm:text-right shrink-0">
+                          <div className="text-lg sm:text-xl font-bold text-gray-800">
                             {totalCommande.toLocaleString('fr-FR')}
                           </div>
-                          <div className="text-xs text-gray-400 font-medium">FCFA</div>
-                          <div className="flex items-center justify-end gap-1 text-sm text-gray-500 mt-1">
+                          <div className="text-[10px] sm:text-xs text-gray-400 font-medium">FCFA</div>
+                          <div className="flex items-center sm:justify-end gap-1 text-xs sm:text-sm text-gray-500 mt-1">
                             <Icon icon="mdi:package-variant-closed" className="text-gray-400" />
                             {commande.produits.length} article{commande.produits.length > 1 ? 's' : ''}
                           </div>
@@ -824,18 +831,20 @@ export const ProgrammeProduction: React.FC = () => {
                       </div>
 
                       {/* Liste des produits commandés */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                          <Icon icon="mdi:view-list" className="text-gray-500" />
-                          <h4 className="text-lg font-semibold text-gray-800">
-                            Produits commandés
-                          </h4>
-                          <span className="ml-auto text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">
-                            {commande.produits.length} item{commande.produits.length > 1 ? 's' : ''}
-                          </span>
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pb-2 border-b border-gray-200">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <Icon icon="mdi:view-list" className="text-gray-500 shrink-0" />
+                            <h4 className="text-sm sm:text-base font-semibold text-gray-800 truncate">
+                              Produits commandés
+                            </h4>
+                            <span className="text-xs sm:text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-lg shrink-0">
+                              {commande.produits.length} item{commande.produits.length > 1 ? 's' : ''}
+                            </span>
+                          </div>
 
                           {/* Boutons d'action avec icônes Lucide */}
-                          <div className="flex gap-1 ml-2">
+                          <div className="flex gap-1 shrink-0">
                             <button
                               onClick={() => {
                                 // Résoudre le nom du livreur
@@ -846,14 +855,14 @@ export const ProgrammeProduction: React.FC = () => {
                                 };
                                 htmlPrintService.generateDeliveryReceiptHTML(commande, clientAvecLivreur, produits);
                               }}
-                              className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-md transition-colors"
+                              className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
                               title="Bon de livraison"
                             >
                               <FileText size={16} />
                             </button>
                             <button
                               onClick={() => handleAjouterCommande(commande.clientId)}
-                              className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-100 rounded-md transition-colors"
+                              className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors"
                               title="Ajouter des produits"
                             >
                               <Plus size={16} />
@@ -863,7 +872,7 @@ export const ProgrammeProduction: React.FC = () => {
                                 annulerCommandeClient(commande.id);
                                 toast.success(`Commande de ${client?.nom || 'le client'} annulée`);
                               }}
-                              className="p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-100 rounded-md transition-colors"
+                              className="p-1.5 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-md transition-colors"
                               title="Annuler la commande"
                             >
                               <Ban size={16} />
@@ -877,38 +886,38 @@ export const ProgrammeProduction: React.FC = () => {
                               confirmText="Supprimer définitivement"
                               cancelText="Annuler"
                               type="danger"
-                              className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-md transition-colors"
+                              className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
                               title="Supprimer définitivement"
                             >
                               <Trash2 size={16} />
                             </ConfirmButton>
                           </div>
                         </div>
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
                           {commande.produits.map((item, index) => {
                             const produit = produits.find(p => p.id === item.produitId);
                             return (
-                              <div key={index} className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-3 hover:border-gray-300 hover:shadow-md transition-all group">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <div className="w-9 h-9 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center shadow-md">
+                              <div key={index} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-gray-300 hover:shadow-sm transition-all overflow-hidden">
+                                <div className="flex items-start gap-2 sm:gap-3 mb-2">
+                                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
                                     <Icon
                                       icon={getProductIcon(produit?.nom || '')}
-                                      className="text-base text-white"
+                                      className="text-base sm:text-lg text-white"
                                     />
                                   </div>
-                                  <div className="flex-1">
-                                    <h5 className="font-semibold text-sm text-gray-900">
+                                  <div className="min-w-0 flex-1">
+                                    <h5 className="font-semibold text-sm sm:text-base text-gray-900 truncate mb-1" title={produit?.nom || 'Produit inconnu'}>
                                       {produit?.nom || 'Produit inconnu'}
                                     </h5>
-                                    <div className="flex items-center justify-between mt-1">
-                                      <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded-lg font-medium">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                      <span className="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded-lg font-medium shrink-0 w-fit">
                                         x{item.quantiteCommandee}
                                       </span>
-                                      <div className="flex items-center gap-2">
-                                        <div className="text-base font-bold text-gray-800">
+                                      <div className="flex items-center justify-between sm:justify-end gap-2 flex-1">
+                                        <div className="text-sm sm:text-base font-bold text-gray-800">
                                           {((item.prixUnitaire || 0) * item.quantiteCommandee).toLocaleString('fr-FR')} F
                                         </div>
-                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center gap-1">
                                           <button
                                             onClick={(e) => {
                                               e.stopPropagation();
@@ -917,7 +926,7 @@ export const ProgrammeProduction: React.FC = () => {
                                             className="p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
                                             title="Modifier ce produit"
                                           >
-                                            <Icon icon="mdi:pencil" className="text-lg" />
+                                            <Icon icon="mdi:pencil" className="text-base sm:text-lg" />
                                           </button>
                                           <ConfirmButton
                                             onConfirm={() => {
@@ -928,11 +937,11 @@ export const ProgrammeProduction: React.FC = () => {
                                             confirmText="Supprimer le produit"
                                             cancelText="Annuler"
                                             type="warning"
-                                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded"
+                                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
                                             onClick={(e: React.MouseEvent<HTMLButtonElement>) => e.stopPropagation()}
                                             title="Supprimer ce produit de la commande"
                                           >
-                                            <Icon icon="mdi:close" className="text-lg" />
+                                            <Icon icon="mdi:close" className="text-base sm:text-lg" />
                                           </ConfirmButton>
                                         </div>
                                       </div>
@@ -942,27 +951,27 @@ export const ProgrammeProduction: React.FC = () => {
 
                                 {/* Répartition par cars */}
                                 {item.repartitionCars && (
-                                  <div className="pt-3 border-t border-gray-200">
-                                    <div className="text-xs font-medium text-gray-600 mb-2 flex items-center gap-1">
+                                  <div className="pt-2 sm:pt-3 border-t border-gray-200">
+                                    <div className="text-[10px] sm:text-xs font-medium text-gray-600 mb-2 flex items-center gap-1">
                                       <Icon icon="mdi:truck-delivery" className="text-gray-500" />
                                       Livraisons programmées
                                     </div>
-                                    <div className="flex gap-2 flex-wrap">
+                                    <div className="flex gap-1.5 sm:gap-2 flex-wrap">
                                       {item.repartitionCars.car1_matin && Number(item.repartitionCars.car1_matin) > 0 && (
-                                        <div className="flex items-center gap-1 px-3 py-1 bg-linear-to-r from-orange-100 to-orange-200 text-orange-800 text-xs font-semibold rounded-full shadow-sm">
-                                          <Icon icon="mdi:truck" className="text-sm" />
+                                        <div className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 text-[10px] sm:text-xs font-medium rounded-full border border-orange-200">
+                                          <Icon icon="mdi:truck" className="text-xs" />
                                           <span>Car 1M: {item.repartitionCars.car1_matin}</span>
                                         </div>
                                       )}
                                       {item.repartitionCars.car2_matin && Number(item.repartitionCars.car2_matin) > 0 && (
-                                        <div className="flex items-center gap-1 px-3 py-1 bg-linear-to-r from-blue-100 to-blue-200 text-blue-800 text-xs font-semibold rounded-full shadow-sm">
-                                          <Icon icon="mdi:truck-outline" className="text-sm" />
+                                        <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-[10px] sm:text-xs font-medium rounded-full border border-blue-200">
+                                          <Icon icon="mdi:truck-outline" className="text-xs" />
                                           <span>Car 2M: {item.repartitionCars.car2_matin}</span>
                                         </div>
                                       )}
                                       {item.repartitionCars.car_soir && Number(item.repartitionCars.car_soir) > 0 && (
-                                        <div className="flex items-center gap-1 px-3 py-1 bg-linear-to-r from-purple-100 to-purple-200 text-purple-800 text-xs font-semibold rounded-full shadow-sm">
-                                          <Icon icon="mdi:truck-fast" className="text-sm" />
+                                        <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 text-[10px] sm:text-xs font-medium rounded-full border border-purple-200">
+                                          <Icon icon="mdi:truck-fast" className="text-xs" />
                                           <span>Car S: {item.repartitionCars.car_soir}</span>
                                         </div>
                                       )}

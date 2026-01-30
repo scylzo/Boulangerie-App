@@ -17,6 +17,11 @@ export interface RapportJournalier {
     invendusBoutique: number;      // calculé boutique
     invendusTotal: number;         // clients + boutique
 
+    // Indicateurs financiers
+    valeurVenteClients: number;
+    valeurVenteBoutique: number;
+    valeurVenteTotal: number;
+
     // Indicateurs de performance
     tauxVenteClients: number;      // vendu / livré * 100
     tauxVenteBoutique: number;     // vendu / stock * 100
@@ -35,6 +40,9 @@ export interface RapportJournalier {
     invendusTotal: number;
     tauxVenteGlobal: number;
     pertesTotales: number; // invendus total
+    valeurVenteClients: number;
+    valeurVenteBoutique: number;
+    valeurVenteTotal: number;
   };
 
   statut: 'genere' | 'valide';
@@ -50,4 +58,7 @@ export interface IndicateursPerformance {
   pertesClients: number;
   pertesBoutique: number;
   pertesTotales: number;
+  valeurVenteClients: number;
+  valeurVenteBoutique: number;
+  valeurVenteTotal: number;
 }

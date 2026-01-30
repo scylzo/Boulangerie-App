@@ -119,31 +119,28 @@ export const DatabaseAdmin: React.FC = () => {
 
               {/* Status */}
               {resetStatus && (
-                <div className={`mt-4 p-4 rounded-lg ${
-                  resetStatus.includes('succès')
+                <div className={`mt-4 p-4 rounded-lg ${resetStatus.includes('succès')
                     ? 'bg-green-50 border border-green-200'
                     : resetStatus.startsWith('❌')
-                    ? 'bg-red-50 border border-red-200'
-                    : 'bg-blue-50 border border-blue-200'
-                }`}>
+                      ? 'bg-red-50 border border-red-200'
+                      : 'bg-blue-50 border border-blue-200'
+                  }`}>
                   <div className="flex items-center gap-2">
                     <Icon
                       icon={
                         resetStatus.includes('succès') ? 'mdi:check-circle' :
-                        resetStatus.startsWith('❌') ? 'mdi:alert-circle' :
-                        'mdi:information'
+                          resetStatus.startsWith('❌') ? 'mdi:alert-circle' :
+                            'mdi:information'
                       }
-                      className={`text-lg ${
-                        resetStatus.includes('succès') ? 'text-green-600' :
-                        resetStatus.startsWith('❌') ? 'text-red-600' :
-                        'text-blue-600'
-                      }`}
+                      className={`text-lg ${resetStatus.includes('succès') ? 'text-green-600' :
+                          resetStatus.startsWith('❌') ? 'text-red-600' :
+                            'text-blue-600'
+                        }`}
                     />
-                    <span className={`font-medium ${
-                      resetStatus.includes('succès') ? 'text-green-800' :
-                      resetStatus.startsWith('❌') ? 'text-red-800' :
-                      'text-blue-800'
-                    }`}>
+                    <span className={`font-medium ${resetStatus.includes('succès') ? 'text-green-800' :
+                        resetStatus.startsWith('❌') ? 'text-red-800' :
+                          'text-blue-800'
+                      }`}>
                       {resetStatus}
                     </span>
                   </div>

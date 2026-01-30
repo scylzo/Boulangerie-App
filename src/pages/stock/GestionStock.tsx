@@ -32,56 +32,67 @@ export const GestionStock: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestion des Stocks</h1>
-          <p className="text-gray-500">Suivi des matières premières</p>
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+              <Package className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">Gestion des Stocks</h1>
+              <p className="text-xs sm:text-sm text-gray-500 truncate">Suivi des matières premières</p>
+            </div>
+          </div>
+          <Link
+            to="/stocks/declaration"
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto shrink-0"
+          >
+            <Package className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span>Saisie Journalière</span>
+          </Link>
         </div>
-        <Link
-          to="/stocks/declaration"
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-        >
-          <Package className="w-5 h-5 mr-2" />
-          Saisie Journalière
-        </Link>
       </div>
 
-      <StockDashboard />
+      {/* Contenu principal */}
+      <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+        <StockDashboard />
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="border-b border-gray-100">
-          <nav className="flex space-x-4 px-6" aria-label="Tabs">
-            <button
-              onClick={() => setActiveTab('stock')}
-              className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'stock'
-                ? 'border-orange-500 text-orange-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-            >
-              <Package size={18} />
-              <span>Inventaire</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('mouvements')} // Placeholder for future implementation
-              className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'mouvements'
-                ? 'border-orange-500 text-orange-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-            >
-              <History size={18} />
-              <span>Historique Mouvements</span>
-            </button>
-          </nav>
-        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="border-b border-gray-100 bg-gray-50/50">
+            <nav className="flex space-x-2 sm:space-x-4 px-4 sm:px-6 overflow-x-auto" aria-label="Tabs">
+              <button
+                onClick={() => setActiveTab('stock')}
+                className={`flex items-center space-x-1.5 sm:space-x-2 py-3 sm:py-4 px-2 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${activeTab === 'stock'
+                  ? 'border-gray-900 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+              >
+                <Package size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <span>Inventaire</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('mouvements')}
+                className={`flex items-center space-x-1.5 sm:space-x-2 py-3 sm:py-4 px-2 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${activeTab === 'mouvements'
+                  ? 'border-gray-900 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+              >
+                <History size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <span>Historique Mouvements</span>
+              </button>
+            </nav>
+          </div>
 
-        <div className="p-6">
-          {activeTab === 'stock' && (
-            <MatiereList onAddMouvement={handleOpenMouvement} />
-          )}
-          {activeTab === 'mouvements' && (
-            <MouvementsList />
-          )}
+          <div className="p-4 sm:p-6">
+            {activeTab === 'stock' && (
+              <MatiereList onAddMouvement={handleOpenMouvement} />
+            )}
+            {activeTab === 'mouvements' && (
+              <MouvementsList />
+            )}
+          </div>
         </div>
       </div>
 

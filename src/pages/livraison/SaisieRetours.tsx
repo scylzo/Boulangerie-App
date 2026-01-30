@@ -317,25 +317,26 @@ export const SaisieRetours: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header moderne type Odoo */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-linear-to-r from-red-600 to-rose-600 rounded-lg flex items-center justify-center">
-              <Icon icon="mdi:keyboard-return" className="text-2xl text-white" />
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      {/* Header moderne */}
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+              <Icon icon="mdi:keyboard-return" className="text-xl text-white" />
             </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                 Saisie des Retours Clients
               </h1>
-              <p className="text-sm text-gray-500">
-                Enregistrez les invendus de chaque client pour la facturation
+              <p className="text-xs sm:text-sm text-gray-500 truncate">
+                <span className="hidden sm:inline">Enregistrez les invendus de chaque client pour la facturation</span>
+                <span className="sm:hidden">Enregistrement des invendus</span>
               </p>
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={async () => {
                 const clientsSansRetours = clientsAvecDonnees.filter(c => !clientARetoursCompletes(c.id!));
@@ -359,22 +360,23 @@ export const SaisieRetours: React.FC = () => {
                   toast.success(`✅ ${clientIds.length} clients marqués sans retour !`);
                 }
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-all shadow-md shrink-0"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
               disabled={isLoading || clientsAvecDonnees.every(c => clientARetoursCompletes(c.id!))}
             >
-              <Icon icon="mdi:check-all" className="text-lg" />
+              <Icon icon="mdi:check-all" className="text-base sm:text-lg" />
               <span className="hidden sm:inline">Tout marquer sans retour</span>
+              <span className="sm:hidden">Tout valider</span>
             </button>
           </div>
         </div>
 
         {/* Barre de recherche et filtres */}
-        <div className="flex flex-col md:flex-row gap-4 mt-4">
+        <div className="flex flex-col md:flex-row gap-3 sm:gap-4 mt-3 sm:mt-4">
           {/* Filtres */}
           <div className="flex items-center bg-gray-100 rounded-lg p-1 shrink-0">
             <button
               onClick={() => setFilterStatus('all')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterStatus === 'all'
+              className={`px-2 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filterStatus === 'all'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
                 }`}
@@ -383,7 +385,7 @@ export const SaisieRetours: React.FC = () => {
             </button>
             <button
               onClick={() => setFilterStatus('with_returns')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterStatus === 'with_returns'
+              className={`px-2 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filterStatus === 'with_returns'
                 ? 'bg-white text-red-600 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
                 }`}
@@ -392,8 +394,8 @@ export const SaisieRetours: React.FC = () => {
             </button>
             <button
               onClick={() => setFilterStatus('without_returns')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterStatus === 'without_returns'
-                ? 'bg-white text-green-600 shadow-sm'
+              className={`px-2 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filterStatus === 'without_returns'
+                ? 'bg-white text-emerald-600 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
@@ -403,13 +405,13 @@ export const SaisieRetours: React.FC = () => {
 
           {/* Barre de recherche */}
           <div className="flex-1 relative">
-            <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+            <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base sm:text-lg" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Rechercher un client..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-xs sm:text-sm"
             />
           </div>
         </div>
@@ -483,99 +485,99 @@ export const SaisieRetours: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="bg-linear-to-br from-gray-700 to-gray-800 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <Icon icon="mdi:account-group" className="text-2xl text-white" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon="mdi:account-group" className="text-lg sm:text-xl text-gray-600" />
                   </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold">
+                  <div className="text-left sm:text-right w-full sm:w-auto">
+                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                       {clientsAvecDonnees.length}
                     </div>
-                    <div className="text-gray-300 text-xs">clients</div>
+                    <div className="text-gray-500 text-xs">clients</div>
                   </div>
                 </div>
-                <div className="text-lg font-semibold">Clients Livrés</div>
+                <div className="text-sm sm:text-base font-semibold text-gray-700 truncate">Clients Livrés</div>
               </div>
 
-              <div className="bg-linear-to-br from-gray-600 to-gray-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <Icon icon="mdi:package-variant" className="text-2xl text-white" />
+              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon="mdi:package-variant" className="text-lg sm:text-xl text-blue-600" />
                   </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold">
+                  <div className="text-left sm:text-right w-full sm:w-auto">
+                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                       {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.quantiteLivree, 0), 0
                       )}
                     </div>
-                    <div className="text-gray-300 text-xs">pièces</div>
+                    <div className="text-gray-500 text-xs">pièces</div>
                   </div>
                 </div>
-                <div className="text-lg font-semibold">Total Livré</div>
+                <div className="text-sm sm:text-base font-semibold text-gray-700 truncate">Total Livré</div>
               </div>
 
-              <div className="bg-linear-to-br from-gray-700 to-gray-800 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <Icon icon="mdi:package-down" className="text-2xl text-white" />
+              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
+                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon="mdi:package-down" className="text-lg sm:text-xl text-red-600" />
                   </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold">
+                  <div className="text-left sm:text-right w-full sm:w-auto">
+                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                       {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.invendus, 0), 0
                       )}
                     </div>
-                    <div className="text-gray-300 text-xs">pièces</div>
+                    <div className="text-gray-500 text-xs">pièces</div>
                   </div>
                 </div>
-                <div className="text-lg font-semibold">Total Invendus</div>
+                <div className="text-sm sm:text-base font-semibold text-gray-700 truncate">Total Invendus</div>
               </div>
 
-              <div className="bg-linear-to-br from-gray-600 to-gray-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <Icon icon="mdi:chart-line" className="text-2xl text-white" />
+              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon="mdi:chart-line" className="text-lg sm:text-xl text-emerald-600" />
                   </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold">
+                  <div className="text-left sm:text-right w-full sm:w-auto">
+                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                       {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.vendu, 0), 0
                       )}
                     </div>
-                    <div className="text-gray-300 text-xs">pièces</div>
+                    <div className="text-gray-500 text-xs">pièces</div>
                   </div>
                 </div>
-                <div className="text-lg font-semibold">Total Vendu</div>
+                <div className="text-sm sm:text-base font-semibold text-gray-700 truncate">Total Vendu</div>
               </div>
             </div>
 
             {/* Liste des clients */}
             {clientsAvecDonnees.map((client) => (
               <div key={client.id} className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                <div className="px-6 py-4 border-b border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 ${clientARetoursCompletes(client.id!) ? 'bg-green-100' : 'bg-orange-100'} rounded-lg flex items-center justify-center`}>
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-gray-100">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className={`w-8 h-8 ${clientARetoursCompletes(client.id!) ? 'bg-emerald-100' : 'bg-orange-100'} rounded-lg flex items-center justify-center shrink-0`}>
                         <Icon
                           icon={clientARetoursCompletes(client.id!) ? "mdi:check" : "mdi:account"}
-                          className={`text-lg ${clientARetoursCompletes(client.id!) ? 'text-green-600' : 'text-orange-600'}`}
+                          className={`text-base sm:text-lg ${clientARetoursCompletes(client.id!) ? 'text-emerald-600' : 'text-orange-600'}`}
                         />
                       </div>
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900">{client.nom}</h2>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <Icon icon="mdi:map-marker" className="text-sm" />
-                            {client.adresse}
+                      <div className="min-w-0 flex-1">
+                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{client.nom}</h2>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-gray-500">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <Icon icon="mdi:map-marker" className="text-xs sm:text-sm shrink-0" />
+                            <span className="truncate">{client.adresse}</span>
                           </div>
                           {client.telephone && (
                             <div className="flex items-center gap-1">
-                              <Icon icon="mdi:phone" className="text-sm" />
-                              {client.telephone}
+                              <Icon icon="mdi:phone" className="text-xs sm:text-sm shrink-0" />
+                              <span>{client.telephone}</span>
                             </div>
                           )}
                         </div>
@@ -583,55 +585,55 @@ export const SaisieRetours: React.FC = () => {
                     </div>
 
                     {clientARetoursCompletes(client.id!) ? (
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                          <Icon icon="mdi:check-circle" className="text-sm" />
-                          <span className="text-sm font-medium">Retours finalisés</span>
+                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        <div className="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-2 sm:px-3 py-1 rounded-full">
+                          <Icon icon="mdi:check-circle" className="text-xs sm:text-sm" />
+                          <span className="text-xs sm:text-sm font-medium">Retours finalisés</span>
                         </div>
                         <button
                           onClick={() => handleAnnulerValidation(client.id!)}
                           disabled={isLoading}
-                          className="flex items-center gap-2 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all text-sm"
+                          className="flex items-center gap-1.5 px-2 sm:px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all text-xs sm:text-sm"
                           title="Modifier les retours"
                         >
-                          <Icon icon="mdi:pencil" className="text-sm" />
-                          <span>Modifier</span>
+                          <Icon icon="mdi:pencil" className="text-xs sm:text-sm" />
+                          <span className="hidden sm:inline">Modifier</span>
                         </button>
                         <button
                           onClick={() => handleSupprimerRetour(client.id!)}
                           disabled={isLoading}
-                          className="flex items-center gap-2 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all text-sm"
+                          className="flex items-center gap-1.5 px-2 sm:px-3 py-1 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all text-xs sm:text-sm"
                           title="Supprimer le retour"
                         >
-                          <Icon icon="mdi:trash-can" className="text-sm" />
+                          <Icon icon="mdi:trash-can" className="text-xs sm:text-sm" />
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                         <button
                           onClick={() => handleEnregistrerRetours(client.id!)}
                           disabled={isLoading}
-                          className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 shadow-md"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all disabled:opacity-50 shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
                         >
                           <Icon icon="mdi:content-save-check" className="text-sm" />
-                          <span className="text-sm font-medium">Enregistrer</span>
+                          <span>Enregistrer</span>
                         </button>
                         <button
                           onClick={() => handleAucunRetour(client.id!)}
                           disabled={isLoading}
-                          className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 shadow-md"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all disabled:opacity-50 shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
                         >
                           <Icon icon="mdi:check-bold" className="text-sm" />
-                          <span className="text-sm font-medium">Aucun retour</span>
+                          <span>Aucun retour</span>
                         </button>
                         {clientASauvegarde(client.id!) && (
                           <button
                             onClick={() => handleSupprimerRetour(client.id!)}
                             disabled={isLoading}
-                            className="flex items-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all text-sm shadow-sm"
+                            className="flex items-center gap-1.5 px-2 sm:px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all text-xs sm:text-sm shadow-sm"
                             title="Supprimer le retour"
                           >
-                            <Icon icon="mdi:trash-can" className="text-lg" />
+                            <Icon icon="mdi:trash-can" className="text-base sm:text-lg" />
                           </button>
                         )}
                       </div>

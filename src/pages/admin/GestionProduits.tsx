@@ -86,18 +86,18 @@ export const GestionProduits: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header moderne type Odoo */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
-              <Icon icon="mdi:bread-slice" className="text-2xl text-white" />
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center shrink-0">
+              <Icon icon="mdi:bread-slice" className="text-lg sm:text-2xl text-white" />
             </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">
                 Gestion des Produits
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500 truncate">
                 Gérez votre catalogue de produits de boulangerie
               </p>
             </div>
@@ -106,10 +106,10 @@ export const GestionProduits: React.FC = () => {
           <button
             onClick={() => setShowForm(true)}
             disabled={showForm}
-            className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-lg hover:from-orange-700 hover:to-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto"
           >
-            <Icon icon="mdi:plus" className="text-lg" />
-            <span className="font-medium">Nouveau produit</span>
+            <Icon icon="mdi:plus" className="text-base sm:text-lg" />
+            <span>Nouveau produit</span>
           </button>
         </div>
       </div>
@@ -175,7 +175,7 @@ export const GestionProduits: React.FC = () => {
                 </p>
                 <button
                   onClick={() => setShowForm(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-lg hover:from-orange-700 hover:to-red-700 transition-all shadow-md"
+                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium"
                 >
                   <Icon icon="mdi:plus" className="text-lg" />
                   <span className="font-medium">Ajouter le premier produit</span>
@@ -186,22 +186,22 @@ export const GestionProduits: React.FC = () => {
                 {produits.map((produit) => (
                   <div
                     key={produit.id}
-                    className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-2xl p-6 hover:border-orange-300 hover:shadow-2xl transition-all duration-300 group"
+                    className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 hover:border-orange-300 hover:shadow-lg transition-all duration-300 group"
                   >
                     {/* Header du produit */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start gap-4">
-                        <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-orange-600 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                           <Icon icon={getProductIcon(produit.nom)} className="text-2xl text-white" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg text-gray-900 mb-1">
+                          <h3 className="font-bold text-sm sm:text-lg text-gray-900 mb-1 line-clamp-2">
                             {produit.nom}
                           </h3>
                           <div className="flex items-center gap-2">
                             <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${produit.active
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
                               }`}>
                               <Icon icon={produit.active ? 'mdi:check-circle' : 'mdi:pause-circle'} className="text-xs" />
                               {produit.active ? 'Actif' : 'Inactif'}
@@ -212,24 +212,24 @@ export const GestionProduits: React.FC = () => {
                     </div>
 
                     {/* Prix */}
-                    <div className="space-y-3 mb-6">
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="bg-blue-50 rounded-xl p-3">
+                    <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                      <div className="grid grid-cols-1 gap-2 sm:gap-3">
+                        <div className="bg-blue-50 rounded-xl p-2 sm:p-3">
                           <div className="flex items-center gap-2 mb-1">
-                            <Icon icon="mdi:account-group" className="text-blue-500 text-sm" />
-                            <span className="text-xs font-medium text-blue-700">Prix Client</span>
+                            <Icon icon="mdi:account-group" className="text-blue-500 text-xs sm:text-sm" />
+                            <span className="text-[10px] sm:text-xs font-medium text-blue-700">Prix Client</span>
                           </div>
-                          <div className="text-xl font-bold text-blue-800">
+                          <div className="text-base sm:text-xl font-bold text-blue-800">
                             {produit.prixClient ? `${produit.prixClient.toLocaleString('fr-FR')} F` : 'Non défini'}
                           </div>
                         </div>
 
-                        <div className="bg-purple-50 rounded-xl p-3">
+                        <div className="bg-purple-50 rounded-xl p-2 sm:p-3">
                           <div className="flex items-center gap-2 mb-1">
-                            <Icon icon="mdi:storefront" className="text-purple-500 text-sm" />
-                            <span className="text-xs font-medium text-purple-700">Prix Boutique</span>
+                            <Icon icon="mdi:storefront" className="text-purple-500 text-xs sm:text-sm" />
+                            <span className="text-[10px] sm:text-xs font-medium text-purple-700">Prix Boutique</span>
                           </div>
-                          <div className="text-xl font-bold text-purple-800">
+                          <div className="text-base sm:text-xl font-bold text-purple-800">
                             {produit.prixBoutique ? `${produit.prixBoutique.toLocaleString('fr-FR')} F` : 'Non défini'}
                           </div>
                         </div>
@@ -243,17 +243,17 @@ export const GestionProduits: React.FC = () => {
                       <button
                         onClick={() => handleEditer(produit)}
                         disabled={showForm}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-xl transition-all font-medium shadow-sm hover:shadow-md disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
                       >
-                        <Icon icon="mdi:pencil" className="text-lg" />
-                        <span>Modifier</span>
+                        <Icon icon="mdi:pencil" className="text-base sm:text-lg" />
+                        <span className="hidden sm:inline">Modifier</span>
                       </button>
                       <button
                         onClick={() => handleSupprimer(produit)}
                         disabled={isLoadingProduits}
-                        className="flex items-center justify-center gap-2 px-4 py-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-all font-medium shadow-sm hover:shadow-md disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
                       >
-                        <Icon icon="mdi:delete-outline" className="text-lg" />
+                        <Icon icon="mdi:delete-outline" className="text-base sm:text-lg" />
                       </button>
                     </div>
                   </div>

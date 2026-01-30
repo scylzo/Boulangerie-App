@@ -282,15 +282,6 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
   });
   doc.text(dateStr.toUpperCase(), 45, 29);
 
-  // Badge Statut
-  const statusX = pageWidth - 50;
-  const statusLabel = rapport.statut.toUpperCase();
-  doc.setFillColor(rapport.statut === 'valide' ? 220 : 254, rapport.statut === 'valide' ? 252 : 243, rapport.statut === 'valide' ? 231 : 199);
-  doc.roundedRect(statusX, 18, 35, 8, 1, 1, 'F');
-  doc.setFontSize(8);
-  doc.setTextColor(rapport.statut === 'valide' ? 22 : 146, rapport.statut === 'valide' ? 101 : 64, rapport.statut === 'valide' ? 52 : 14);
-  doc.setFont('helvetica', 'bold');
-  doc.text(statusLabel, statusX + 17.5, 23.5, { align: 'center' });
 
   // 2. Section Indicateurs et Totaux (Colonnes pour optimiser l'espace)
   let yPos = 55;
@@ -322,8 +313,9 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
     yPos = (doc as any).lastAutoTable.finalY + 8;
   }
 
-  // Totaux Compacts
+  // Bilan Quantitatif
   doc.setFontSize(12);
+  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
   doc.text('Bilan Quantitatif', 15, yPos);
   const totalRow = [[
     `Prévu: ${rapport.totaux.quantitePrevue}`,
@@ -342,6 +334,27 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
   });
   yPos = (doc as any).lastAutoTable.finalY + 8;
 
+  // Bilan Financier Global
+  doc.setFontSize(12);
+  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+  doc.text('Bilan Financier Global', 15, yPos);
+
+  const financialRow = [[
+    `CA Total: ${formatCurrencyCompact(rapport.totaux.valeurVenteTotal)}`,
+    `CA Clients: ${formatCurrencyCompact(rapport.totaux.valeurVenteClients)}`,
+    `CA Boutique: ${formatCurrencyCompact(rapport.totaux.valeurVenteBoutique)}`
+  ]];
+
+  autoTable(doc, {
+    startY: yPos + 2,
+    body: financialRow,
+    theme: 'plain',
+    styles: { fontSize: 10, fontStyle: 'bold', textColor: [22, 101, 52] as any }, // Vert sombre
+    columnStyles: { 0: { halign: 'left' } },
+    margin: { left: 15 }
+  });
+  yPos = (doc as any).lastAutoTable.finalY + 8;
+
   // 3. Tableaux de Données (Optimisés)
 
   // Tableau Clients
@@ -355,23 +368,37 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
       p.produit?.nom || p.produitId,
       (p.quantiteVendueClients + p.invendusClients).toString(),
       p.quantiteVendueClients.toString(),
+      formatCurrencyCompact(p.valeurVenteClients),
       p.invendusClients.toString(),
       `${p.tauxVenteClients.toFixed(1)}%`
     ]);
 
+  const totalClientLivre = rapport.produits.filter(p => p.destineClients).reduce((acc, p) => acc + (p.quantiteVendueClients + p.invendusClients), 0);
+  const totalClientVendu = rapport.produits.filter(p => p.destineClients).reduce((acc, p) => acc + p.quantiteVendueClients, 0);
+  const totalClientValeur = rapport.produits.filter(p => p.destineClients).reduce((acc, p) => acc + p.valeurVenteClients, 0);
+  const totalClientInvendus = rapport.produits.filter(p => p.destineClients).reduce((acc, p) => acc + p.invendusClients, 0);
+
   autoTable(doc, {
     startY: yPos + 2,
-    head: [['Produit', 'Livré', 'Vendu', 'Retours', 'Taux']],
+    head: [['Produit', 'Livré', 'Vendu', 'Valeur', 'Retours', 'Taux']],
     body: clientData,
+    foot: [['TOTAL', totalClientLivre.toString(), totalClientVendu.toString(), formatCurrencyCompact(totalClientValeur), totalClientInvendus.toString(), '']],
     theme: 'grid',
     headStyles: { fillColor: colors.client as any, fontSize: 8 },
+    footStyles: { fillColor: [243, 244, 246], textColor: colors.text as any, fontStyle: 'bold', fontSize: 8, halign: 'center' },
     styles: { fontSize: 8, cellPadding: 1.5 },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'center', cellWidth: 20 },
-      2: { halign: 'center', cellWidth: 20 },
-      3: { halign: 'center', cellWidth: 20 },
-      4: { halign: 'center', cellWidth: 20 }
+      1: { halign: 'center', cellWidth: 15 },
+      2: { halign: 'center', cellWidth: 15 },
+      3: { halign: 'right', cellWidth: 25 },
+      4: { halign: 'center', cellWidth: 15 },
+      5: { halign: 'center', cellWidth: 15 }
+    },
+    didParseCell: (data) => {
+      if (data.section === 'foot' && data.column.index === 0) {
+        data.cell.styles.halign = 'left';
+      }
     },
     margin: { left: 15, right: 15 }
   });
@@ -387,23 +414,37 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
       p.produit?.nom || p.produitId,
       (p.quantiteVendueBoutique + p.invendusBoutique).toString(),
       p.quantiteVendueBoutique.toString(),
+      formatCurrencyCompact(p.valeurVenteBoutique),
       p.invendusBoutique.toString(),
       `${p.tauxVenteBoutique.toFixed(1)}%`
     ]);
 
+  const totalBoutiqueStock = rapport.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + (p.quantiteVendueBoutique + p.invendusBoutique), 0);
+  const totalBoutiqueVendu = rapport.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + p.quantiteVendueBoutique, 0);
+  const totalBoutiqueValeur = rapport.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + p.valeurVenteBoutique, 0);
+  const totalBoutiqueInvendus = rapport.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + p.invendusBoutique, 0);
+
   autoTable(doc, {
     startY: yPos + 2,
-    head: [['Produit', 'En rayon', 'Vendu', 'Invendus', 'Taux']],
+    head: [['Produit', 'En rayon', 'Vendu', 'Valeur', 'Invendus', 'Taux']],
     body: boutiqueData,
+    foot: [['TOTAL', totalBoutiqueStock.toString(), totalBoutiqueVendu.toString(), formatCurrencyCompact(totalBoutiqueValeur), totalBoutiqueInvendus.toString(), '']],
     theme: 'grid',
     headStyles: { fillColor: colors.boutique as any, fontSize: 8 },
+    footStyles: { fillColor: [243, 244, 246], textColor: colors.text as any, fontStyle: 'bold', fontSize: 8, halign: 'center' },
     styles: { fontSize: 8, cellPadding: 1.5 },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'center', cellWidth: 20 },
-      2: { halign: 'center', cellWidth: 20 },
-      3: { halign: 'center', cellWidth: 20 },
-      4: { halign: 'center', cellWidth: 20 }
+      1: { halign: 'center', cellWidth: 15 },
+      2: { halign: 'center', cellWidth: 15 },
+      3: { halign: 'right', cellWidth: 25 },
+      4: { halign: 'center', cellWidth: 15 },
+      5: { halign: 'center', cellWidth: 15 }
+    },
+    didParseCell: (data) => {
+      if (data.section === 'foot' && data.column.index === 0) {
+        data.cell.styles.halign = 'left';
+      }
     },
     margin: { left: 15, right: 15 }
   });
@@ -430,6 +471,7 @@ export const downloadRapportJournalierPDF = async (rapport: RapportJournalier, i
     throw new Error('Impossible de générer le PDF');
   }
 };
+
 export const generateProductionProgramPDF = async (programme: ProgrammeProduction) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;

@@ -323,28 +323,31 @@ export const GestionFactures: React.FC = () => {
   // --- Render Functions ---
 
   const renderClientsList = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Global Daily Stats Card */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Chiffre d'Affaires Facturé</h2>
-            <p className="text-gray-500 text-sm">Total global de tous les clients pour la journée sélectionnée</p>
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 truncate">Chiffre d'Affaires Facturé</h2>
+            <p className="text-xs sm:text-sm text-gray-500 truncate">
+              <span className="hidden sm:inline">Total global de tous les clients pour la journée sélectionnée</span>
+              <span className="sm:hidden">Total journalier tous clients</span>
+            </p>
           </div>
 
-          <div className="flex items-center gap-4 bg-gray-50 p-2 rounded-lg border border-gray-200">
+          <div className="flex items-center gap-2 sm:gap-4 bg-gray-50 p-2 rounded-lg border border-gray-200 w-full sm:w-auto">
             <button
               onClick={() => {
                 const d = new Date(globalDate); d.setDate(d.getDate() - 1); setGlobalDate(d);
               }}
               className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600"
             >
-              <Icon icon="mdi:chevron-left" className="text-xl" />
+              <Icon icon="mdi:chevron-left" className="text-lg sm:text-xl" />
             </button>
 
-            <div className="flex flex-col items-center min-w-[140px]">
-              <span className="font-bold text-gray-900 text-lg capitalize">{globalDate.toLocaleDateString('fr-FR', { weekday: 'long' })}</span>
-              <span className="text-sm text-gray-500">{globalDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+            <div className="flex flex-col items-center min-w-[120px] sm:min-w-[140px] flex-1 sm:flex-none">
+              <span className="font-semibold text-gray-900 text-sm sm:text-base capitalize truncate w-full text-center">{globalDate.toLocaleDateString('fr-FR', { weekday: 'long' })}</span>
+              <span className="text-xs sm:text-sm text-gray-500 truncate w-full text-center">{globalDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
             </div>
 
             <button
@@ -353,78 +356,73 @@ export const GestionFactures: React.FC = () => {
               }}
               className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600"
             >
-              <Icon icon="mdi:chevron-right" className="text-xl" />
+              <Icon icon="mdi:chevron-right" className="text-lg sm:text-xl" />
             </button>
           </div>
 
-          <div className="text-right pl-6 border-l border-gray-100 min-w-[180px]">
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Total Journalier</p>
-            <p className="text-2xl font-bold text-indigo-600">{formatCurrency(globalDailyStats.totalTTC)}</p>
+          <div className="text-left sm:text-right pl-0 sm:pl-6 border-l-0 sm:border-l border-gray-100 w-full sm:w-auto sm:min-w-[180px]">
+            <p className="text-[10px] sm:text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Total Journalier</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{formatCurrency(globalDailyStats.totalTTC)}</p>
             <p className="text-xs text-gray-400">{globalDailyStats.count} facture(s)</p>
           </div>
         </div>
       </div>
 
       {/* Search & Actions Bar */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <div className="relative w-full md:w-96">
-          <Icon icon="mdi:search" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl" />
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <div className="relative w-full sm:w-96">
+          <Icon icon="mdi:search" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg sm:text-xl" />
           <input
             type="text"
             placeholder="Rechercher un client..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+            className="w-full pl-9 sm:pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-sm sm:text-base"
           />
         </div>
-        <div className="flex gap-2">
-          {/* Bouton Ristournes uniquement */}
-          <Button
-            onClick={() => setShowRistourneModal(true)}
-            variant="outline"
-            className="flex items-center gap-2 text-orange-600 hover:bg-orange-50 border-orange-200"
-          >
-            <Icon icon="mdi:calculator" className="text-xl" />
-            Ristournes
-          </Button>
-        </div>
+        <Button
+          onClick={() => setShowRistourneModal(true)}
+          variant="outline"
+          className="flex items-center justify-center gap-2 text-gray-700 hover:bg-gray-50 border-gray-300 w-full sm:w-auto"
+        >
+          <Icon icon="mdi:calculator" className="text-lg sm:text-xl" />
+          <span className="text-sm sm:text-base">Ristournes</span>
+        </Button>
       </div>
 
       {/* Grid of Clients */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         {filteredClients.map(client => {
           return (
             <div
               key={client.id}
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all group relative"
+              className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all group relative overflow-hidden"
             >
               <div
                 onClick={() => handleSelectClient(client)}
                 className="cursor-pointer"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center font-bold text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                <div className="flex items-start justify-between mb-3 sm:mb-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 text-gray-900 rounded-full flex items-center justify-center font-bold text-base sm:text-xl group-hover:bg-gray-900 group-hover:text-white transition-colors shrink-0">
                     {client.nom.charAt(0).toUpperCase()}
                   </div>
-                  <Icon icon="mdi:chevron-right" className="text-gray-300 group-hover:text-purple-500 text-2xl" />
+                  <Icon icon="mdi:chevron-right" className="text-gray-300 group-hover:text-gray-900 text-xl sm:text-2xl" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">{client.nom}</h3>
-                <p className="text-sm text-gray-500 flex items-center gap-2 mb-4">
-                  <Icon icon="mdi:phone" className="text-gray-400" />
-                  {client.telephone || 'Non renseigné'}
+                <h3 className="font-semibold text-gray-900 text-base sm:text-lg mb-1 truncate" title={client.nom}>{client.nom}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2 mb-3 sm:mb-4 truncate">
+                  <Icon icon="mdi:phone" className="text-gray-400 shrink-0" />
+                  <span className="truncate">{client.telephone || 'Non renseigné'}</span>
                 </p>
               </div>
-
-
             </div>
           );
         })}
       </div>
 
       {filteredClients.length === 0 && (
-        <div className="text-center py-20 text-gray-500">
-          <Icon icon="mdi:account-off" className="text-6xl mx-auto mb-4 text-gray-300" />
-          <p>Aucun client trouvé pour "{searchTerm}"</p>
+        <div className="text-center py-12 sm:py-20 text-gray-500">
+          <Icon icon="mdi:account-off" className="text-5xl sm:text-6xl mx-auto mb-4 text-gray-300" />
+          <p className="text-sm sm:text-base">Aucun client trouvé pour "{searchTerm}"</p>
         </div>
       )}
     </div>
@@ -454,104 +452,106 @@ export const GestionFactures: React.FC = () => {
     .reduce((sum, f) => sum + (f.netAPayer ?? f.totalTTC), 0);
 
   const renderClientDetails = () => (
-    <div className="space-y-6 animate-in slide-in-from-right duration-300">
+    <div className="space-y-4 sm:space-y-6 animate-in slide-in-from-right duration-300">
       {/* Header Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <button
           onClick={handleBackToClients}
-          className="flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors font-medium"
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium text-sm sm:text-base"
         >
-          <Icon icon="mdi:arrow-left" className="text-xl" />
-          Retour aux clients
+          <Icon icon="mdi:arrow-left" className="text-lg sm:text-xl" />
+          <span>Retour aux clients</span>
         </button>
 
-        <div className="flex items-center gap-4 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex items-center gap-2 sm:gap-4 bg-white p-2 rounded-lg shadow-sm border border-gray-200 w-full sm:w-auto">
           <button onClick={() => handleChangeMonth(-1)} className="p-2 hover:bg-gray-100 rounded-lg">
-            <Icon icon="mdi:chevron-left" className="text-xl" />
+            <Icon icon="mdi:chevron-left" className="text-lg sm:text-xl" />
           </button>
-          <span className="font-bold text-gray-900 min-w-32 text-center capitalize">
+          <span className="font-semibold text-gray-900 min-w-[120px] sm:min-w-32 text-center capitalize text-sm sm:text-base truncate">
             {selectedMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
           </span>
           <button onClick={() => handleChangeMonth(1)} className="p-2 hover:bg-gray-100 rounded-lg">
-            <Icon icon="mdi:chevron-right" className="text-xl" />
+            <Icon icon="mdi:chevron-right" className="text-lg sm:text-xl" />
           </button>
         </div>
       </div>
 
       {/* Client Stats Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl shadow-xs border border-gray-200">
-          <h4 className="text-gray-500 text-sm font-medium mb-1">Montant Total</h4>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(clientStats.montantTotal)}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
+          <h4 className="text-gray-500 text-xs sm:text-sm font-medium mb-1 truncate">Montant Total</h4>
+          <p className="text-lg sm:text-2xl font-bold text-gray-900 truncate">{formatCurrency(clientStats.montantTotal)}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow-xs border border-gray-200">
-          <h4 className="text-gray-500 text-sm font-medium mb-1">Reste à payer</h4>
-          <p className={`text-2xl font-bold ${clientStats.montantImpaye > 0 ? 'text-red-500' : 'text-green-500'}`}>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
+          <h4 className="text-gray-500 text-xs sm:text-sm font-medium mb-1 truncate">Reste à payer</h4>
+          <p className={`text-lg sm:text-2xl font-bold truncate ${clientStats.montantImpaye > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
             {formatCurrency(clientStats.montantImpaye)}
           </p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow-xs border border-gray-200">
-          <h4 className="text-gray-500 text-sm font-medium mb-1">Produits Livrés</h4>
-          <p className="text-2xl font-bold text-blue-600">{clientStats.totalLivres}</p>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
+          <h4 className="text-gray-500 text-xs sm:text-sm font-medium mb-1 truncate">Produits Livrés</h4>
+          <p className="text-lg sm:text-2xl font-bold text-blue-600 truncate">{clientStats.totalLivres}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow-xs border border-gray-200">
-          <h4 className="text-gray-500 text-sm font-medium mb-1">Invendus</h4>
-          <p className="text-2xl font-bold text-orange-500">{clientStats.totalInvendus}</p>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
+          <h4 className="text-gray-500 text-xs sm:text-sm font-medium mb-1 truncate">Invendus</h4>
+          <p className="text-lg sm:text-2xl font-bold text-orange-600 truncate">{clientStats.totalInvendus}</p>
         </div>
       </div>
 
       {/* Filters & Content */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <Icon icon="mdi:account-details" className="text-purple-600" />
-                {selectedClient?.nom}
-              </h2>
-              <p className="text-sm text-gray-500">Historique des commandes et règlements</p>
+        <div className="border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2 mb-1 truncate">
+                  <Icon icon="mdi:account-details" className="text-gray-900 shrink-0" />
+                  <span className="truncate">{selectedClient?.nom}</span>
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-500 truncate">Historique des commandes et règlements</p>
+              </div>
+
+              {/* Somme sélectionnée */}
+              {selectedInvoiceIds.length > 0 && (
+                <div className="bg-gray-100 border border-gray-200 px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 sm:gap-3 animate-in fade-in zoom-in duration-200 w-full sm:w-auto">
+                  <span className="text-gray-700 font-medium text-xs sm:text-sm truncate">{selectedInvoiceIds.length} sélectionnée(s)</span>
+                  <div className="h-4 w-px bg-gray-300"></div>
+                  <span className="text-gray-900 font-bold text-sm sm:text-base truncate">Total: {formatCurrency(totalSelectedAmount)}</span>
+                </div>
+              )}
             </div>
 
-            {/* Somme sélectionnée */}
-            {selectedInvoiceIds.length > 0 && (
-              <div className="bg-purple-100 border border-purple-200 px-4 py-2 rounded-lg flex items-center gap-3 animate-in fade-in zoom-in duration-200">
-                <span className="text-purple-700 font-medium text-sm">{selectedInvoiceIds.length} sélectionnée(s)</span>
-                <div className="h-4 w-px bg-purple-300"></div>
-                <span className="text-purple-900 font-bold text-lg">Total: {formatCurrency(totalSelectedAmount)}</span>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
+              <Button
+                onClick={() => selectedClient && handleGenererFacturesClient(selectedClient.id)}
+                isLoading={selectedClient ? generatingClientId === selectedClient.id : false}
+                className="bg-gray-900 text-white hover:bg-gray-800 h-9 text-xs sm:text-sm w-full sm:w-auto"
+                size="sm"
+              >
+                <Icon icon="mdi:refresh-auto" className="text-base sm:text-lg mr-2" />
+                <span className="truncate">Générer Factures</span>
+              </Button>
+
+              <div className="flex bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
+                <button
+                  onClick={() => setFiltreStatut('tous')}
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filtreStatut === 'tous' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  Tout
+                </button>
+                <button
+                  onClick={() => setFiltreStatut('payee')}
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filtreStatut === 'payee' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  Payé
+                </button>
+                <button
+                  onClick={() => setFiltreStatut('impayee')}
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filtreStatut === 'impayee' ? 'bg-white text-red-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  Impayé
+                </button>
               </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={() => selectedClient && handleGenererFacturesClient(selectedClient.id)}
-              isLoading={selectedClient ? generatingClientId === selectedClient.id : false}
-              className="bg-indigo-600 text-white hover:bg-indigo-700 h-9"
-              size="sm"
-            >
-              <Icon icon="mdi:refresh-auto" className="text-lg mr-2" />
-              Générer Factures
-            </Button>
-
-            <div className="flex bg-gray-100 p-1 rounded-lg">
-              <button
-                onClick={() => setFiltreStatut('tous')}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${filtreStatut === 'tous' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                Tout
-              </button>
-              <button
-                onClick={() => setFiltreStatut('payee')}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${filtreStatut === 'payee' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                Payé
-              </button>
-              <button
-                onClick={() => setFiltreStatut('impayee')}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${filtreStatut === 'impayee' ? 'bg-white text-red-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                Impayé
-              </button>
             </div>
           </div>
         </div>
@@ -960,21 +960,24 @@ export const GestionFactures: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-6">
-      {/* En-tête Global */}
-      <header className="bg-white shadow-sm sticky top-0 z-10 flex items-center justify-between p-4 mb-6 rounded-2xl">
-        <div className="flex items-center gap-3">
-          <div className="bg-orange-100 p-2 rounded-lg">
-            <Icon icon="mdi:invoice-text-multiple" className="text-2xl text-orange-600" />
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+            <Icon icon="mdi:invoice-text-multiple" className="text-xl text-white" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900">Facturation</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">Facturation</h1>
+            <p className="text-xs sm:text-sm text-gray-500 truncate">Gestion des factures clients</p>
+          </div>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-7xl mx-auto">
+      {/* Contenu principal */}
+      <main className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6">
         {viewMode === 'clients_list' && renderClientsList()}
         {viewMode === 'client_details' && renderClientDetails()}
-
       </main>
 
       {/* Modals & Loaders */}
@@ -1014,8 +1017,8 @@ export const GestionFactures: React.FC = () => {
 
       {isLoading && (
         <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-4" />
-          <p className="font-medium text-purple-900">Traitement en cours...</p>
+          <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mb-4" />
+          <p className="font-medium text-gray-900 text-sm sm:text-base">Traitement en cours...</p>
         </div>
       )}
     </div>

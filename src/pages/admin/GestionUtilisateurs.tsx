@@ -3,11 +3,9 @@ import { Icon } from '@iconify/react';
 import { collection, getDocs, query, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'; // Careful with this!
-import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
-import { Input } from '../../components/ui/Input';
 import toast from 'react-hot-toast';
 
 // NOTE: Creating users via client-side SDK logs out the current user. 
@@ -167,120 +165,226 @@ export const GestionUtilisateurs: React.FC = () => {
     }
   };
 
+  const getRoleStyle = (role: string) => {
+    switch (role) {
+      case 'admin': return { bg: 'bg-purple-100', text: 'text-purple-700', icon: 'mdi:shield-crown' };
+      case 'livreur': return { bg: 'bg-blue-100', text: 'text-blue-700', icon: 'mdi:truck-delivery' };
+      case 'boulanger': return { bg: 'bg-orange-100', text: 'text-orange-700', icon: 'mdi:chef-hat' };
+      case 'vendeuse': return { bg: 'bg-pink-100', text: 'text-pink-700', icon: 'mdi:store' };
+      case 'gestionnaire': return { bg: 'bg-emerald-100', text: 'text-emerald-700', icon: 'mdi:briefcase-check' };
+      default: return { bg: 'bg-gray-100', text: 'text-gray-700', icon: 'mdi:account' };
+    }
+  };
+
+  const getInitials = (nom: string, prenom: string) => {
+    return `${nom?.charAt(0) || ''}${prenom?.charAt(0) || ''}`.toUpperCase();
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
-        <Button onClick={() => handleOpenModal()}>
-          <Icon icon="mdi:account-plus" className="mr-2" />
-          Nouvel Utilisateur
-        </Button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Responsive */}
+      <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+              <Icon icon="mdi:account-group-outline" className="text-lg sm:text-2xl text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">
+                Gestion des Utilisateurs
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 truncate">
+                Gestion des accès utilisateurs
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto"
+          >
+            <Icon icon="mdi:account-plus" className="text-base sm:text-lg" />
+            <span>Nouvel Utilisateur</span>
+          </button>
+        </div>
       </div>
 
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Utilisateur</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rôle</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{user.nom} {user.prenom}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                        user.role === 'livreur' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                      }`}>
-                      {user.role}
+      {/* Contenu Principal */}
+      <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+
+        {/* Liste des utilisateurs (Cards) */}
+        {!users || users.length === 0 ? (
+          <div className="text-center py-12 sm:py-16 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <Icon icon="mdi:account-off-outline" className="text-3xl sm:text-4xl text-gray-400" />
+            </div>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
+              Aucun utilisateur trouvé
+            </h3>
+            <p className="text-sm sm:text-base text-gray-500 mb-6 sm:mb-8 max-w-md mx-auto px-4">
+              Commencez par ajouter des utilisateurs pour gérer les accès à l'application.
+            </p>
+            <button
+              onClick={() => handleOpenModal()}
+              className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all shadow-sm font-medium"
+            >
+              <Icon icon="mdi:plus" className="text-lg" />
+              Ajouter un utilisateur
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {users.map((user) => {
+              const roleStyle = getRoleStyle(user.role);
+              return (
+                <div key={user.id} className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:border-indigo-300 hover:shadow-md transition-all duration-200 group flex flex-col">
+                  {/* Header Card */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center shrink-0 border border-gray-200 text-gray-600 font-bold text-sm sm:text-base">
+                        {getInitials(user.nom, user.prenom)}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-sm sm:text-base text-gray-900 truncate" title={`${user.nom} ${user.prenom}`}>
+                          {user.nom} {user.prenom}
+                        </h3>
+                        <p className="text-xs text-gray-500 truncate" title={user.email}>
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Role Badge */}
+                  <div className="mb-4">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${roleStyle.bg} ${roleStyle.text}`}>
+                      <Icon icon={roleStyle.icon} className="text-sm" />
+                      {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Utilisateur'}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  </div>
+
+                  {/* Actions Footer */}
+                  <div className="mt-auto flex gap-2 pt-4 border-t border-gray-50">
                     <button
                       onClick={() => handleOpenModal(user)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                      title="Modifier"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all text-xs sm:text-sm font-medium"
                     >
-                      <Icon icon="mdi:pencil" className="text-xl" />
+                      <Icon icon="mdi:pencil" className="text-base" />
+                      <span>Modifier</span>
                     </button>
                     <button
                       onClick={() => handleDeleteUser(user.id, `${user.nom} ${user.prenom}`)}
-                      className="text-red-600 hover:text-red-900"
+                      className="flex items-center justify-center px-3 py-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-all"
                       title="Supprimer"
                     >
-                      <Icon icon="mdi:trash-can" className="text-xl" />
+                      <Icon icon="mdi:trash-can-outline" className="text-lg" />
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingUser ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}
         position="center"
-        size="lg"
+        size="md" // Taille adaptée
       >
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Nom"
-              value={newUser.nom}
-              onChange={(e) => setNewUser({ ...newUser, nom: e.target.value })}
-              placeholder="Ex: Ndiaye"
-            />
-            <Input
-              label="Prénom"
-              value={newUser.prenom}
-              onChange={(e) => setNewUser({ ...newUser, prenom: e.target.value })}
-              placeholder="Ex: Moussa"
-            />
+        <div className="space-y-4 sm:space-y-5 py-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700">Nom</label>
+              <input
+                type="text"
+                value={newUser.nom}
+                onChange={(e) => setNewUser({ ...newUser, nom: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
+                placeholder="Ex: Ndiaye"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700">Prénom</label>
+              <input
+                type="text"
+                value={newUser.prenom}
+                onChange={(e) => setNewUser({ ...newUser, prenom: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
+                placeholder="Ex: Moussa"
+              />
+            </div>
           </div>
-          <Input
-            label="Email"
-            type="email"
-            value={newUser.email}
-            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-            disabled={!!editingUser} // Read-only in edit mode
-            className={editingUser ? "bg-gray-100" : ""}
-            placeholder="Ex: moussa.ndiaye@boulangerie.sn"
-          />
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Icon icon="mdi:email-outline" className="text-gray-400" />
+              </div>
+              <input
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                disabled={!!editingUser}
+                className={`w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors ${editingUser ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
+                placeholder="Ex: nom@boulangerie.sn"
+              />
+            </div>
+          </div>
+
           {!editingUser && (
-            <Input
-              label="Mot de passe"
-              type="password"
-              value={newUser.password}
-              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-            />
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Icon icon="mdi:lock-outline" className="text-gray-400" />
+                </div>
+                <input
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
           )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
-            <select
-              value={newUser.role}
-              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
-            >
-              <option value="admin">Administrateur</option>
-              <option value="livreur">Livreur</option>
-              <option value="boulanger">Boulanger</option>
-              <option value="vendeuse">Vendeuse</option>
-              <option value="gestionnaire">Gestionnaire</option>
-            </select>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Rôle</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Icon icon="mdi:badge-account-outline" className="text-gray-400" />
+              </div>
+              <select
+                value={newUser.role}
+                onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors appearance-none bg-white"
+              >
+                <option value="livreur">Livreur</option>
+                <option value="vendeuse">Vendeuse</option>
+                <option value="boulanger">Boulanger</option>
+                <option value="gestionnaire">Gestionnaire</option>
+                <option value="admin">Administrateur</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <Icon icon="mdi:chevron-down" className="text-gray-400" />
+              </div>
+            </div>
           </div>
-          <div className="flex justify-end pt-4">
-            <Button onClick={handleSaveUser} isLoading={loading}>
-              {editingUser ? "Enregistrer les modifications" : "Créer l'utilisateur"}
+
+          <div className="flex justify-end pt-4 gap-3">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Annuler
+            </button>
+            <Button onClick={handleSaveUser} isLoading={loading} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors">
+              {editingUser ? "Enregistrer" : "Créer l'utilisateur"}
             </Button>
           </div>
         </div>

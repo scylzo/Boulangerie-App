@@ -76,19 +76,19 @@ export const GestionClients: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header moderne type Odoo */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <Icon icon="mdi:account-group" className="text-2xl text-white" />
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+              <Icon icon="mdi:account-group" className="text-lg sm:text-2xl text-white" />
             </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">
                 Gestion des Clients
               </h1>
-              <p className="text-sm text-gray-500">
-                Gérez votre base de clients et définissez les types de tarification
+              <p className="text-xs sm:text-sm text-gray-500 truncate">
+                Base clients et tarifs
               </p>
             </div>
           </div>
@@ -96,10 +96,10 @@ export const GestionClients: React.FC = () => {
           <button
             onClick={() => setShowForm(true)}
             disabled={showForm}
-            className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto"
           >
-            <Icon icon="mdi:plus" className="text-lg" />
-            <span className="font-medium">Nouveau client</span>
+            <Icon icon="mdi:plus" className="text-base sm:text-lg" />
+            <span>Nouveau client</span>
           </button>
         </div>
       </div>
@@ -167,7 +167,7 @@ export const GestionClients: React.FC = () => {
                 </p>
                 <button
                   onClick={() => setShowForm(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
+                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium"
                 >
                   <Icon icon="mdi:plus" className="text-lg" />
                   <span className="font-medium">Ajouter le premier client</span>
@@ -181,16 +181,16 @@ export const GestionClients: React.FC = () => {
                   return (
                     <div
                       key={client.id}
-                      className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-2xl p-6 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 group"
+                      className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group"
                     >
                       {/* Header du client */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start gap-4">
-                          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                             <Icon icon="mdi:account" className="text-2xl text-white" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-xl text-gray-900 mb-1">
+                            <h3 className="font-bold text-sm sm:text-lg text-gray-900 mb-1 line-clamp-2">
                               {client.nom}
                             </h3>
                             <div className="flex items-center gap-2">
@@ -253,7 +253,7 @@ export const GestionClients: React.FC = () => {
 
                       {/* Livreur assigné */}
                       {livreur ? (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 mb-6">
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2 sm:p-3 mb-4 sm:mb-6">
                           <div className="flex items-center gap-2 mb-1">
                             <Icon icon="mdi:truck-delivery" className="text-green-600 text-sm" />
                             <span className="text-xs font-medium text-green-700">Livreur assigné</span>
@@ -284,17 +284,17 @@ export const GestionClients: React.FC = () => {
                         <button
                           onClick={() => handleEditer(client)}
                           disabled={showForm}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all font-medium shadow-sm hover:shadow-md disabled:opacity-50"
+                          className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
                         >
-                          <Icon icon="mdi:pencil" className="text-lg" />
-                          <span>Modifier</span>
+                          <Icon icon="mdi:pencil" className="text-base sm:text-lg" />
+                          <span className="hidden sm:inline">Modifier</span>
                         </button>
                         <button
                           onClick={() => handleSupprimer(client)}
                           disabled={isLoadingClients}
-                          className="flex items-center justify-center gap-2 px-4 py-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-all font-medium shadow-sm hover:shadow-md disabled:opacity-50"
+                          className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
                         >
-                          <Icon icon="mdi:delete-outline" className="text-lg" />
+                          <Icon icon="mdi:delete-outline" className="text-base sm:text-lg" />
                         </button>
                       </div>
                     </div>

@@ -451,7 +451,7 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
           </button>
           <button
             type="submit"
-            className={`flex-1 px-5 py-3 text-sm font-bold text-white rounded-xl shadow-md hover:shadow-lg transition-all ${isSortie ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-emerald-500 to-emerald-600'
+            className={`flex-1 px-5 py-3 text-sm font-bold text-white rounded-xl shadow-sm hover:shadow-md transition-all ${isSortie ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
               }`}
           >
             {isEditing ? 'Modifier' : (isSortie ? 'Valider la Sortie' : "Valider l'Entrée")}

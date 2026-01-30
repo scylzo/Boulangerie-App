@@ -111,31 +111,31 @@ export const MouvementsList: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-800">Historique des Mouvements</h3>
-        <div className="relative">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-800">Historique des Mouvements</h3>
+        <div className="relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
             placeholder="Rechercher..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none w-64"
+            className="pl-10 pr-4 py-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 outline-none w-full sm:w-64"
           />
         </div>
       </div>
 
       {/* Filtres */}
-      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Filtre Type */}
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Type de mouvement</label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 outline-none bg-white"
             >
               <option value="all">Tous les types</option>
               <option value="achat">Achat / Entrée</option>
@@ -152,7 +152,7 @@ export const MouvementsList: React.FC = () => {
             <select
               value={filterArticle}
               onChange={(e) => setFilterArticle(e.target.value)}
-              className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 outline-none bg-white"
             >
               <option value="all">Tous les articles</option>
               {matieres
@@ -174,7 +174,7 @@ export const MouvementsList: React.FC = () => {
               type="date"
               value={filterDateDebut}
               onChange={(e) => setFilterDateDebut(e.target.value)}
-              className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 outline-none"
             />
           </div>
 
@@ -185,7 +185,7 @@ export const MouvementsList: React.FC = () => {
               type="date"
               value={filterDateFin}
               onChange={(e) => setFilterDateFin(e.target.value)}
-              className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 outline-none"
             />
           </div>
         </div>
@@ -194,7 +194,7 @@ export const MouvementsList: React.FC = () => {
         <div className="mt-3 flex justify-end">
           <button
             onClick={resetFilters}
-            className="text-sm text-orange-600 hover:text-orange-700 font-medium">
+            className="text-xs sm:text-sm text-orange-600 hover:text-orange-700 font-medium">
             Réinitialiser les filtres
           </button>
         </div>

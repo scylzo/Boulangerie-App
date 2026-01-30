@@ -50,9 +50,9 @@ export const Input: React.FC<InputProps> = ({
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
             tabIndex={-1}
           >
-            <Icon 
-              icon={showPassword ? 'mdi:eye-off' : 'mdi:eye'} 
-              className="h-5 w-5" 
+            <Icon
+              icon={showPassword ? 'mdi:eye-off' : 'mdi:eye'}
+              className="h-5 w-5"
             />
           </button>
         )}

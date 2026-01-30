@@ -18,33 +18,35 @@ export const StockDashboard: React.FC = () => {
   return (
     <>
       {/* Filtre de Date */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-            <Icon icon="mdi:chart-box" className="text-xl" />
+      <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-blue-50 rounded-lg text-blue-600 shrink-0">
+              <Icon icon="mdi:chart-box" className="text-lg sm:text-xl" />
+            </div>
+            <h2 className="text-sm sm:text-base font-semibold text-gray-800">Tableau de Bord Stock</h2>
           </div>
-          <h2 className="font-semibold text-gray-800">Tableau de Bord Stock</h2>
-        </div>
 
-        <div className="flex items-center gap-4 bg-gray-50 p-2 rounded-lg border border-gray-200">
-          <div className="flex items-center gap-2">
-            <Calendar size={18} className="text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Période :</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              value={dateDebut}
-              onChange={(e) => setDateDebut(e.target.value)}
-              className="bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-1.5"
-            />
-            <span className="text-gray-400">à</span>
-            <input
-              type="date"
-              value={dateFin}
-              onChange={(e) => setDateFin(e.target.value)}
-              className="bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-1.5"
-            />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 bg-gray-50 p-2 rounded-lg border border-gray-200 w-full sm:w-auto">
+            <div className="flex items-center gap-2">
+              <Calendar size={16} className="text-gray-500 shrink-0 sm:w-[18px] sm:h-[18px]" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Période :</span>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <input
+                type="date"
+                value={dateDebut}
+                onChange={(e) => setDateDebut(e.target.value)}
+                className="bg-white border border-gray-300 text-gray-900 text-xs sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-1.5 flex-1 sm:flex-none min-w-0"
+              />
+              <span className="text-gray-400 text-xs sm:text-sm shrink-0">à</span>
+              <input
+                type="date"
+                value={dateFin}
+                onChange={(e) => setDateFin(e.target.value)}
+                className="bg-white border border-gray-300 text-gray-900 text-xs sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-1.5 flex-1 sm:flex-none min-w-0"
+              />
+            </div>
           </div>
         </div>
       </div>
