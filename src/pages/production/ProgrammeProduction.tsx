@@ -271,41 +271,41 @@ export const ProgrammeProduction: React.FC = () => {
     }
   };
 
-  // const handleAnnulerCommande = async (commandeId: string) => {
-  //   const commande = commandesClients.find(c => c.id === commandeId);
-  //   const client = clients.find(c => c.id === commande?.clientId);
+  const handleAnnulerCommande = async (commandeId: string) => {
+    const commande = commandesClients.find(c => c.id === commandeId);
+    const client = clients.find(c => c.id === commande?.clientId);
 
-  //   const confirmation = await confirmModal.confirm({
-  //     title: 'Annuler la commande',
-  //     message: `Êtes-vous sûr de vouloir annuler la commande de "${client?.nom || 'Client inconnu'}" ?\n\nCette action supprimera la commande du programme.`,
-  //     confirmText: 'Annuler la commande',
-  //     cancelText: 'Conserver',
-  //     type: 'warning'
-  //   });
+    const confirmation = await confirmModal.confirm({
+      title: 'Annuler la commande',
+      message: `Êtes-vous sûr de vouloir annuler la commande de "${client?.nom || 'Client inconnu'}" ?\n\nCette action supprimera la commande du programme.`,
+      confirmText: 'Annuler la commande',
+      cancelText: 'Conserver',
+      type: 'warning'
+    });
 
-  //   if (confirmation) {
-  //     annulerCommandeClient(commandeId);
-  //     toast.success(`Commande de ${client?.nom || 'le client'} annulée`);
-  //   }
-  // };
+    if (confirmation) {
+      annulerCommandeClient(commandeId);
+      toast.success(`Commande de ${client?.nom || 'le client'} annulée`);
+    }
+  };
 
-  // const handleSupprimerCommande = async (commandeId: string) => {
-  //   const commande = commandesClients.find(c => c.id === commandeId);
-  //   const client = clients.find(c => c.id === commande?.clientId);
+  const handleSupprimerCommande = async (commandeId: string) => {
+    const commande = commandesClients.find(c => c.id === commandeId);
+    const client = clients.find(c => c.id === commande?.clientId);
 
-  //   const confirmation = await confirmModal.confirm({
-  //     title: 'Supprimer définitivement',
-  //     message: `Êtes-vous sûr de vouloir supprimer définitivement la commande de "${client?.nom || 'Client inconnu'}" ?\n\nCette action est irréversible.`,
-  //     confirmText: 'Supprimer définitivement',
-  //     cancelText: 'Annuler',
-  //     type: 'danger'
-  //   });
+    const confirmation = await confirmModal.confirm({
+      title: 'Supprimer définitivement',
+      message: `Êtes-vous sûr de vouloir supprimer définitivement la commande de "${client?.nom || 'Client inconnu'}" ?\n\nCette action est irréversible.`,
+      confirmText: 'Supprimer définitivement',
+      cancelText: 'Annuler',
+      type: 'danger'
+    });
 
-  //   if (confirmation) {
-  //     supprimerCommandeClient(commandeId);
-  //     toast.success(`Commande de ${client?.nom || 'le client'} supprimée`);
-  //   }
-  // };
+    if (confirmation) {
+      supprimerCommandeClient(commandeId);
+      toast.success(`Commande de ${client?.nom || 'le client'} supprimée`);
+    }
+  };
 
   const handleAnnulerFormulaire = () => {
     setShowCommandeForm(false);
@@ -315,24 +315,24 @@ export const ProgrammeProduction: React.FC = () => {
     resetFormulaireCommande(); // Réinitialiser le formulaire lors de l'annulation
   };
 
-  // const handleSupprimerProduitDeCommande = async (commandeId: string, produitIndex: number) => {
-  //   const commande = commandesClients.find(c => c.id === commandeId);
-  //   const produit = commande?.produits[produitIndex];
-  //   const produitRef = produits.find(p => p.id === produit?.produitId);
+  const handleSupprimerProduitDeCommande = async (commandeId: string, produitIndex: number) => {
+    const commande = commandesClients.find(c => c.id === commandeId);
+    const produit = commande?.produits[produitIndex];
+    const produitRef = produits.find(p => p.id === produit?.produitId);
 
-  //   const confirmation = await confirmModal.confirm({
-  //     title: 'Supprimer le produit',
-  //     message: `Êtes-vous sûr de vouloir supprimer "${produitRef?.nom || 'ce produit'}" de cette commande ?\n\n${commande?.produits.length === 1 ? '⚠️ Cette action supprimera complètement la commande car c\'est le seul produit.' : 'Les autres produits de la commande seront conservés.'}`,
-  //     confirmText: 'Supprimer le produit',
-  //     cancelText: 'Annuler',
-  //     type: 'warning'
-  //   });
+    const confirmation = await confirmModal.confirm({
+      title: 'Supprimer le produit',
+      message: `Êtes-vous sûr de vouloir supprimer "${produitRef?.nom || 'ce produit'}" de cette commande ?\n\n${commande?.produits.length === 1 ? '⚠️ Cette action supprimera complètement la commande car c\'est le seul produit.' : 'Les autres produits de la commande seront conservés.'}`,
+      confirmText: 'Supprimer le produit',
+      cancelText: 'Annuler',
+      type: 'warning'
+    });
 
-  //   if (confirmation) {
-  //     supprimerProduitDeCommande(commandeId, produitIndex);
-  //     toast.success(`Produit "${produitRef?.nom || 'Produit'}" supprimé de la commande`);
-  //   }
-  // };
+    if (confirmation) {
+      supprimerProduitDeCommande(commandeId, produitIndex);
+      toast.success(`Produit "${produitRef?.nom || 'Produit'}" supprimé de la commande`);
+    }
+  };
 
 
 
@@ -906,29 +906,19 @@ export const ProgrammeProduction: React.FC = () => {
                               <Plus size={16} />
                             </button>
                             <button
-                              onClick={() => {
-                                annulerCommandeClient(commande.id);
-                                toast.success(`Commande de ${client?.nom || 'le client'} annulée`);
-                              }}
+                              onClick={() => handleAnnulerCommande(commande.id)}
                               className="p-1.5 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-md transition-colors"
                               title="Annuler la commande"
                             >
                               <Ban size={16} />
                             </button>
-                            <ConfirmButton
-                              onConfirm={() => {
-                                supprimerCommandeClient(commande.id);
-                                toast.success(`Commande de ${client?.nom || 'le client'} supprimée`);
-                              }}
-                              message={`Êtes-vous sûr de vouloir supprimer définitivement la commande de "${client?.nom || 'Client inconnu'}" ?\n\nCette action est irréversible.`}
-                              confirmText="Supprimer définitivement"
-                              cancelText="Annuler"
-                              type="danger"
+                            <button
+                              onClick={() => handleSupprimerCommande(commande.id)}
                               className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
                               title="Supprimer définitivement"
                             >
                               <Trash2 size={16} />
-                            </ConfirmButton>
+                            </button>
                           </div>
                         </div>
                         <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
@@ -966,21 +956,16 @@ export const ProgrammeProduction: React.FC = () => {
                                           >
                                             <Icon icon="mdi:pencil" className="text-base sm:text-lg" />
                                           </button>
-                                          <ConfirmButton
-                                            onConfirm={() => {
-                                              supprimerProduitDeCommande(commande.id, index);
-                                              toast.success(`Produit "${produit?.nom || 'Produit'}" supprimé de la commande`);
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleSupprimerProduitDeCommande(commande.id, index);
                                             }}
-                                            message={`Êtes-vous sûr de vouloir supprimer "${produit?.nom || 'ce produit'}" de cette commande ?\n\n${commande?.produits.length === 1 ? '⚠️ Cette action supprimera complètement la commande car c\'est le seul produit.' : 'Les autres produits de la commande seront conservés.'}`}
-                                            confirmText="Supprimer le produit"
-                                            cancelText="Annuler"
-                                            type="warning"
                                             className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-                                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => e.stopPropagation()}
                                             title="Supprimer ce produit de la commande"
                                           >
                                             <Icon icon="mdi:close" className="text-base sm:text-lg" />
-                                          </ConfirmButton>
+                                          </button>
                                         </div>
                                       </div>
                                     </div>

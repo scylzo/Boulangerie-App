@@ -25,6 +25,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     nom: '',
     prixClient: '' as number | '',
     prixBoutique: '' as number | '',
+    categorie: 'boulangerie' as 'boulangerie' | 'viennoiserie',
     active: true,
     recette: [] as Ingredient[]
   });
@@ -45,6 +46,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         nom: produit.nom,
         prixClient: produit.prixClient || '',
         prixBoutique: produit.prixBoutique || '',
+        categorie: produit.categorie || 'boulangerie',
         active: produit.active,
         recette: produit.recette || []
       });
@@ -86,6 +88,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         nom: formData.nom,
         prixClient: Number(formData.prixClient) || 0,
         prixBoutique: Number(formData.prixBoutique) || 0,
+        categorie: formData.categorie,
         active: formData.active,
         recette: formData.recette, // Include recipe
         description: '',
@@ -99,6 +102,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           nom: '',
           prixClient: '',
           prixBoutique: '',
+          categorie: 'boulangerie',
           active: true,
           recette: []
         });
@@ -146,6 +150,49 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
               placeholder="0"
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Catégorie *
+            </label>
+            <div className="flex gap-4">
+              <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all ${formData.categorie === 'boulangerie' ? 'bg-orange-50 border-orange-200 ring-1 ring-orange-500' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                <input
+                  type="radio"
+                  className="sr-only"
+                  name="categorie"
+                  value="boulangerie"
+                  checked={formData.categorie === 'boulangerie'}
+                  onChange={() => setFormData({ ...formData, categorie: 'boulangerie' })}
+                />
+                <div className="flex items-center">
+                  <span className="text-xl mr-2">🥖</span>
+                  <div>
+                    <span className="block text-sm font-medium text-gray-900">Boulangerie</span>
+                    <span className="block text-xs text-gray-500">Pains, Baguettes...</span>
+                  </div>
+                </div>
+              </label>
+
+              <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all ${formData.categorie === 'viennoiserie' ? 'bg-amber-50 border-amber-200 ring-1 ring-amber-500' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                <input
+                  type="radio"
+                  className="sr-only"
+                  name="categorie"
+                  value="viennoiserie"
+                  checked={formData.categorie === 'viennoiserie'}
+                  onChange={() => setFormData({ ...formData, categorie: 'viennoiserie' })}
+                />
+                <div className="flex items-center">
+                  <span className="text-xl mr-2">🥐</span>
+                  <div>
+                    <span className="block text-sm font-medium text-gray-900">Viennoiserie</span>
+                    <span className="block text-xs text-gray-500">Croissants, Pains choco...</span>
+                  </div>
+                </div>
+              </label>
+            </div>
           </div>
 
           <div className="flex items-center">

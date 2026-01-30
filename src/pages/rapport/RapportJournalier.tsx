@@ -342,36 +342,86 @@ export const RapportJournalier: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-800">Ventes Boutique</h3>
                       </div>
 
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {rapportJour.produits.filter(p => p.destineBoutique).map((produit) => (
-                          <div key={`boutique-${produit.produitId}`} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex flex-col">
-                                <h4 className="font-semibold text-gray-900">{produit.produit?.nom || produit.produitId}</h4>
-                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded w-fit mt-1">
-                                  {formatCurrency(produit.valeurVenteBoutique)}
-                                </span>
-                              </div>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteBoutique)}`}>
-                                {produit.tauxVenteBoutique.toFixed(1)}%
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3 text-center">
-                              <div className="bg-gray-50 p-2 rounded-lg">
-                                <div className="text-lg font-bold">{produit.quantiteVendueBoutique + produit.invendusBoutique}</div>
-                                <div className="text-[10px] text-gray-500 uppercase">Stock</div>
-                              </div>
-                              <div className="bg-emerald-50 p-2 rounded-lg">
-                                <div className="text-lg font-bold text-emerald-700">{produit.quantiteVendueBoutique}</div>
-                                <div className="text-[10px] text-emerald-600 uppercase">Vendu</div>
-                              </div>
-                            </div>
-                            <div className="mt-3 bg-red-50 p-2 rounded-lg text-center">
-                              <div className="text-lg font-bold text-red-600">{produit.invendusBoutique}</div>
-                              <div className="text-[10px] text-red-500 uppercase">Invendus</div>
+                      <div className="space-y-6">
+                        {/* BOULANGERIE */}
+                        {rapportJour.produits.filter(p => p.destineBoutique && (!p.produit?.categorie || p.produit.categorie === 'boulangerie')).length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-gray-100 pb-1">
+                              <span className="text-lg">🥖</span> Boulangerie
+                            </h4>
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                              {rapportJour.produits.filter(p => p.destineBoutique && (!p.produit?.categorie || p.produit.categorie === 'boulangerie')).map((produit) => (
+                                <div key={`boutique-${produit.produitId}`} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <div className="flex flex-col">
+                                      <h4 className="font-semibold text-gray-900">{produit.produit?.nom || produit.produitId}</h4>
+                                      <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded w-fit mt-1">
+                                        {formatCurrency(produit.valeurVenteBoutique)}
+                                      </span>
+                                    </div>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteBoutique)}`}>
+                                      {produit.tauxVenteBoutique.toFixed(1)}%
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3 text-center">
+                                    <div className="bg-gray-50 p-2 rounded-lg">
+                                      <div className="text-lg font-bold">{produit.quantiteVendueBoutique + produit.invendusBoutique}</div>
+                                      <div className="text-[10px] text-gray-500 uppercase">Stock</div>
+                                    </div>
+                                    <div className="bg-emerald-50 p-2 rounded-lg">
+                                      <div className="text-lg font-bold text-emerald-700">{produit.quantiteVendueBoutique}</div>
+                                      <div className="text-[10px] text-emerald-600 uppercase">Vendu</div>
+                                    </div>
+                                  </div>
+                                  <div className="mt-3 bg-red-50 p-2 rounded-lg text-center">
+                                    <div className="text-lg font-bold text-red-600">{produit.invendusBoutique}</div>
+                                    <div className="text-[10px] text-red-500 uppercase">Invendus</div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                        ))}
+                        )}
+
+                        {/* VIENNOISERIE */}
+                        {rapportJour.produits.filter(p => p.destineBoutique && p.produit?.categorie === 'viennoiserie').length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-gray-100 pb-1">
+                              <span className="text-lg">🥐</span> Viennoiserie
+                            </h4>
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                              {rapportJour.produits.filter(p => p.destineBoutique && p.produit?.categorie === 'viennoiserie').map((produit) => (
+                                <div key={`boutique-${produit.produitId}`} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <div className="flex flex-col">
+                                      <h4 className="font-semibold text-gray-900">{produit.produit?.nom || produit.produitId}</h4>
+                                      <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded w-fit mt-1">
+                                        {formatCurrency(produit.valeurVenteBoutique)}
+                                      </span>
+                                    </div>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteBoutique)}`}>
+                                      {produit.tauxVenteBoutique.toFixed(1)}%
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3 text-center">
+                                    <div className="bg-gray-50 p-2 rounded-lg">
+                                      <div className="text-lg font-bold">{produit.quantiteVendueBoutique + produit.invendusBoutique}</div>
+                                      <div className="text-[10px] text-gray-500 uppercase">Stock</div>
+                                    </div>
+                                    <div className="bg-emerald-50 p-2 rounded-lg">
+                                      <div className="text-lg font-bold text-emerald-700">{produit.quantiteVendueBoutique}</div>
+                                      <div className="text-[10px] text-emerald-600 uppercase">Vendu</div>
+                                    </div>
+                                  </div>
+                                  <div className="mt-3 bg-red-50 p-2 rounded-lg text-center">
+                                    <div className="text-lg font-bold text-red-600">{produit.invendusBoutique}</div>
+                                    <div className="text-[10px] text-red-500 uppercase">Invendus</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Footer Boutique */}
@@ -407,36 +457,86 @@ export const RapportJournalier: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-800">Livraisons Clients</h3>
                       </div>
 
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {rapportJour.produits.filter(p => p.destineClients).map((produit) => (
-                          <div key={`clients-${produit.produitId}`} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex flex-col">
-                                <h4 className="font-semibold text-gray-900">{produit.produit?.nom || produit.produitId}</h4>
-                                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded w-fit mt-1">
-                                  {formatCurrency(produit.valeurVenteClients)}
-                                </span>
-                              </div>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteClients)}`}>
-                                {produit.tauxVenteClients.toFixed(1)}%
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3 text-center">
-                              <div className="bg-gray-50 p-2 rounded-lg">
-                                <div className="text-lg font-bold">{produit.quantiteVendueClients + produit.invendusClients}</div>
-                                <div className="text-[10px] text-gray-500 uppercase">Livré</div>
-                              </div>
-                              <div className="bg-blue-50 p-2 rounded-lg">
-                                <div className="text-lg font-bold text-blue-700">{produit.quantiteVendueClients}</div>
-                                <div className="text-[10px] text-blue-600 uppercase">Vendu</div>
-                              </div>
-                            </div>
-                            <div className="mt-3 bg-orange-50 p-2 rounded-lg text-center">
-                              <div className="text-lg font-bold text-orange-600">{produit.invendusClients}</div>
-                              <div className="text-[10px] text-orange-500 uppercase">Retours</div>
+                      <div className="space-y-6">
+                        {/* BOULANGERIE */}
+                        {rapportJour.produits.filter(p => p.destineClients && (!p.produit?.categorie || p.produit.categorie === 'boulangerie')).length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-gray-100 pb-1">
+                              <span className="text-lg">🥖</span> Boulangerie
+                            </h4>
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                              {rapportJour.produits.filter(p => p.destineClients && (!p.produit?.categorie || p.produit.categorie === 'boulangerie')).map((produit) => (
+                                <div key={`clients-${produit.produitId}`} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <div className="flex flex-col">
+                                      <h4 className="font-semibold text-gray-900">{produit.produit?.nom || produit.produitId}</h4>
+                                      <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded w-fit mt-1">
+                                        {formatCurrency(produit.valeurVenteClients)}
+                                      </span>
+                                    </div>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteClients)}`}>
+                                      {produit.tauxVenteClients.toFixed(1)}%
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3 text-center">
+                                    <div className="bg-gray-50 p-2 rounded-lg">
+                                      <div className="text-lg font-bold">{produit.quantiteVendueClients + produit.invendusClients}</div>
+                                      <div className="text-[10px] text-gray-500 uppercase">Livré</div>
+                                    </div>
+                                    <div className="bg-blue-50 p-2 rounded-lg">
+                                      <div className="text-lg font-bold text-blue-700">{produit.quantiteVendueClients}</div>
+                                      <div className="text-[10px] text-blue-600 uppercase">Vendu</div>
+                                    </div>
+                                  </div>
+                                  <div className="mt-3 bg-orange-50 p-2 rounded-lg text-center">
+                                    <div className="text-lg font-bold text-orange-600">{produit.invendusClients}</div>
+                                    <div className="text-[10px] text-orange-500 uppercase">Retours</div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                        ))}
+                        )}
+
+                        {/* VIENNOISERIE */}
+                        {rapportJour.produits.filter(p => p.destineClients && p.produit?.categorie === 'viennoiserie').length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-gray-100 pb-1">
+                              <span className="text-lg">🥐</span> Viennoiserie
+                            </h4>
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                              {rapportJour.produits.filter(p => p.destineClients && p.produit?.categorie === 'viennoiserie').map((produit) => (
+                                <div key={`clients-${produit.produitId}`} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <div className="flex flex-col">
+                                      <h4 className="font-semibold text-gray-900">{produit.produit?.nom || produit.produitId}</h4>
+                                      <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded w-fit mt-1">
+                                        {formatCurrency(produit.valeurVenteClients)}
+                                      </span>
+                                    </div>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteClients)}`}>
+                                      {produit.tauxVenteClients.toFixed(1)}%
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3 text-center">
+                                    <div className="bg-gray-50 p-2 rounded-lg">
+                                      <div className="text-lg font-bold">{produit.quantiteVendueClients + produit.invendusClients}</div>
+                                      <div className="text-[10px] text-gray-500 uppercase">Livré</div>
+                                    </div>
+                                    <div className="bg-blue-50 p-2 rounded-lg">
+                                      <div className="text-lg font-bold text-blue-700">{produit.quantiteVendueClients}</div>
+                                      <div className="text-[10px] text-blue-600 uppercase">Vendu</div>
+                                    </div>
+                                  </div>
+                                  <div className="mt-3 bg-orange-50 p-2 rounded-lg text-center">
+                                    <div className="text-lg font-bold text-orange-600">{produit.invendusClients}</div>
+                                    <div className="text-[10px] text-orange-500 uppercase">Retours</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Footer Clients */}

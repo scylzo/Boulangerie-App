@@ -34,6 +34,7 @@ export const Comptabilite: React.FC = () => {
         autresCharges: 0,
         totalCouts: 0,
         depensesParCategorie: {} as Record<string, number>,
+        detailMatieres: {} as Record<string, number>,
         loading: false
     });
 
@@ -135,6 +136,7 @@ export const Comptabilite: React.FC = () => {
         // 2. COUTS : MATIÈRES CONSOMMÉES (Comptabilité Analytique)
         // On ne regarde plus les factures d'achat ('Intrants'), mais la consommation réelle.
         let coutMatieresConsommees = 0;
+        const detailMatieresTemp: Record<string, number> = {};
 
         mouvements.forEach(mvt => {
             const dateMvt = new Date(mvt.date);
@@ -148,7 +150,14 @@ export const Comptabilite: React.FC = () => {
                     // Vérif: addMouvement stock signedQuantity dans 'newStock' calcul, mais enregistre 'mouvementData.quantite' tel quel.
                     // Dans MouvementModal, onSubmit passe 'quantite' tjrs positive. 
                     // Donc on prend mvt.quantite * PMP
-                    coutMatieresConsommees += (Math.abs(mvt.quantite) * matiere.prixUnitaireMoyen);
+                    const cout = (Math.abs(mvt.quantite) * matiere.prixUnitaireMoyen);
+                    coutMatieresConsommees += cout;
+
+                    if (detailMatieresTemp[matiere.nom]) {
+                        detailMatieresTemp[matiere.nom] += cout;
+                    } else {
+                        detailMatieresTemp[matiere.nom] = cout;
+                    }
                 }
             }
         });
@@ -177,7 +186,8 @@ export const Comptabilite: React.FC = () => {
             totalCouts,
             achatsMatieres: coutMatieresConsommees, // On remplace sémantiquement "Achats" par "Consommation"
             autresCharges: totalChargesExternes,
-            depensesParCategorie: depensesFiltrees
+            depensesParCategorie: depensesFiltrees,
+            detailMatieres: detailMatieresTemp
         }));
     };
 
@@ -295,13 +305,17 @@ export const Comptabilite: React.FC = () => {
         doc.setTextColor(192, 57, 43); // Rouge
         doc.text("3. Détail des Dépenses", 14, finalY);
 
-        const depenseData = Object.entries(stats.depensesParCategorie)
-            .filter(([_, montant]) => montant > 0) // Filtrer les catégories vides
-            .sort((a, b) => b[1] - a[1]) // Trier par montant décroissant
-            .map(([categ, montant]) => [
-                categ,
-                formatPdfCurrency(montant)
-            ]);
+        // Fusionner dépenses classiques et matières premières détaillées
+        const allDepenses = [
+            ...Object.entries(stats.depensesParCategorie).map(([nom, montant]) => ({ nom, montant })),
+            ...Object.entries(stats.detailMatieres).map(([nom, montant]) => ({ nom: `${nom} (Intrant)`, montant }))
+        ];
+
+        // Trier par montant décroissant et mapper pour le tableau
+        const depenseData = allDepenses
+            .filter(d => d.montant > 0)
+            .sort((a, b) => b.montant - a.montant)
+            .map(d => [d.nom, formatPdfCurrency(d.montant)]);
 
         // Ajouter le total à la fin
         depenseData.push(['TOTAL DÉPENSES', formatPdfCurrency(stats.totalCouts)]);
@@ -481,16 +495,37 @@ export const Comptabilite: React.FC = () => {
                             <span className="truncate">Répartition des Charges</span>
                         </h3>
                         <div className="space-y-4 sm:space-y-6">
-                            <div>
-                                <div className="flex justify-between text-xs sm:text-sm mb-2">
-                                    <span className="text-gray-600 truncate">Matières Premières</span>
-                                    <span className="font-bold text-gray-900 shrink-0">{stats.totalCouts > 0 ? Math.round((stats.achatsMatieres / stats.totalCouts) * 100) : 0}%</span>
+                            {/* Détail des Matières Premières */}
+                            {Object.keys(stats.detailMatieres).length > 0 ? (
+                                Object.entries(stats.detailMatieres)
+                                    .sort((a, b) => b[1] - a[1])
+                                    .map(([nom, montant]) => (
+                                        <div key={nom}>
+                                            <div className="flex justify-between text-xs sm:text-sm mb-2">
+                                                <div className="flex items-center gap-2 truncate">
+                                                    <span className="text-gray-600 truncate">{nom}</span>
+                                                    <span className="text-[10px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded-full font-medium border border-orange-100 shrink-0">Intrant</span>
+                                                </div>
+                                                <span className="font-bold text-gray-900 shrink-0 ml-2">{stats.totalCouts > 0 ? Math.round((montant / stats.totalCouts) * 100) : 0}%</span>
+                                            </div>
+                                            <div className="w-full bg-gray-100 rounded-full h-2 sm:h-3">
+                                                <div className="bg-orange-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? (montant / stats.totalCouts) * 100 : 0}%` }}></div>
+                                            </div>
+                                            <p className="text-[10px] sm:text-xs text-gray-400 mt-1 text-right truncate">{formatCurrency(montant)}</p>
+                                        </div>
+                                    ))
+                            ) : (
+                                <div>
+                                    <div className="flex justify-between text-xs sm:text-sm mb-2">
+                                        <span className="text-gray-600 truncate">Matières Premières</span>
+                                        <span className="font-bold text-gray-900 shrink-0">{stats.totalCouts > 0 ? Math.round((stats.achatsMatieres / stats.totalCouts) * 100) : 0}%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-100 rounded-full h-2 sm:h-3">
+                                        <div className="bg-orange-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? (stats.achatsMatieres / stats.totalCouts) * 100 : 0}%` }}></div>
+                                    </div>
+                                    <p className="text-[10px] sm:text-xs text-gray-400 mt-1 text-right truncate">{formatCurrency(stats.achatsMatieres)}</p>
                                 </div>
-                                <div className="w-full bg-gray-100 rounded-full h-2 sm:h-3">
-                                    <div className="bg-orange-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? (stats.achatsMatieres / stats.totalCouts) * 100 : 0}%` }}></div>
-                                </div>
-                                <p className="text-[10px] sm:text-xs text-gray-400 mt-1 text-right truncate">{formatCurrency(stats.achatsMatieres)}</p>
-                            </div>
+                            )}
                             {Object.entries(stats.depensesParCategorie).map(([categ, montant]) => {
                                 if (categ === 'Intrants' || montant === 0) return null;
                                 return (
