@@ -214,13 +214,13 @@ export const PageLivraison: React.FC = () => {
               </div>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Date de livraison</label>
               <input
                 type="date"
                 value={dateSelectionnee}
                 onChange={(e) => setDateSelectionnee(e.target.value)}
-                className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium w-full text-xs sm:text-sm"
+                className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs sm:text-sm min-w-0"
               />
             </div>
 
