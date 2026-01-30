@@ -82,6 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <NavLink
                 key={item.name}
                 to={item.href}
+                onClick={onClose}
                 className={({ isActive }) =>
                   `group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${isActive
                     ? 'bg-orange-50 text-orange-700 border-l-4 border-orange-500'

@@ -39,6 +39,7 @@ export interface Client {
       car_soir: number | string;
     };
   }>;
+  estRegulier?: boolean; // Le client commande-t-il tous les jours ?
   active: boolean;
   createdAt: Date;
   updatedAt: Date;

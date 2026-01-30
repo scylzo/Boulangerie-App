@@ -76,6 +76,11 @@ export const ProgrammeProduction: React.FC = () => {
     return nomClient.includes(rechercheNormalisee);
   });
 
+  // Calculer les clients réguliers manquants
+  const clientsReguliers = clients.filter(c => c.estRegulier && c.active);
+  const clientsAyantCommande = new Set(commandesClients.map(cmd => cmd.clientId));
+  const clientsManquants = clientsReguliers.filter(c => !clientsAyantCommande.has(c.id));
+
   useEffect(() => {
     // Charger les données depuis Firebase
     const initialiser = async () => {
@@ -722,6 +727,39 @@ export const ProgrammeProduction: React.FC = () => {
 
           {/* Contenu de la section */}
           <div className="p-4 sm:p-6">
+
+            {/* Alerte Clients Réguliers Manquants */}
+            {clientsManquants.length > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon icon="mdi:alert" className="text-amber-600 text-lg" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+                      <h3 className="text-sm font-semibold text-amber-900">
+                        {clientsManquants.length} Client{clientsManquants.length > 1 ? 's' : ''} Régulier{clientsManquants.length > 1 ? 's' : ''} Manquant{clientsManquants.length > 1 ? 's' : ''}
+                      </h3>
+                    </div>
+                    <p className="text-xs sm:text-sm text-amber-700 mb-3">
+                      Ces clients commandent habituellement mais ne sont pas dans le programme du jour. Cliquez pour les ajouter rapidement.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {clientsManquants.map(client => (
+                        <button
+                          key={client.id}
+                          onClick={() => handleAjouterCommande(client.id)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-amber-300 rounded-lg text-xs font-medium text-amber-900 hover:bg-amber-50 hover:border-amber-400 transition-colors shadow-sm"
+                        >
+                          <Icon icon="mdi:plus" className="text-amber-600" />
+                          <span>{client.nom}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {commandesFiltrees.length === 0 ? (
               <div className="text-center py-12 sm:py-16">

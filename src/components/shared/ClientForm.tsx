@@ -31,6 +31,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     conditionsPaiement: '',
     eligibleRistourne: false,
     aKiosque: false,
+    estRegulier: false,
     active: true
   });
 
@@ -50,6 +51,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         conditionsPaiement: client.conditionsPaiement || '',
         eligibleRistourne: client.eligibleRistourne || false,
         aKiosque: client.aKiosque || false,
+        estRegulier: client.estRegulier || false,
         active: client.active
       });
     }
@@ -71,6 +73,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           conditionsPaiement: '',
           eligibleRistourne: false,
           aKiosque: false,
+          estRegulier: false,
           active: true
         });
       }
@@ -188,7 +191,20 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-6 bg-gray-50 p-3 rounded-lg border border-gray-100">
+        <div className="flex flex-wrap items-center gap-6 bg-gray-50 p-3 rounded-lg border border-gray-100">
+          <div className="flex items-center">
+            <input
+              id="estRegulier"
+              type="checkbox"
+              checked={formData.estRegulier}
+              onChange={(e) => setFormData({ ...formData, estRegulier: e.target.checked })}
+              className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
+            />
+            <label htmlFor="estRegulier" className="ml-2 block text-sm font-medium text-gray-900 cursor-pointer">
+              Client Régulier <span className="text-xs text-gray-500 font-normal">(Alerte si oublié)</span>
+            </label>
+          </div>
+
           <div className="flex items-center">
             <input
               id="aKiosque"

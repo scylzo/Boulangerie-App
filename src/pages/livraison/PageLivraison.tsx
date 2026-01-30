@@ -221,7 +221,7 @@ export const PageLivraison: React.FC = () => {
                   type="date"
                   value={dateSelectionnee}
                   onChange={(e) => setDateSelectionnee(e.target.value)}
-                  className="w-full px-1 sm:px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs min-w-0"
+                  className="w-full h-9 px-1 sm:px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs min-w-0"
                 />
               </div>
 
@@ -230,7 +230,7 @@ export const PageLivraison: React.FC = () => {
                 <select
                   value={carSelectionne}
                   onChange={(e) => setCarSelectionne(e.target.value as CarLivraison | 'tous')}
-                  className="w-full px-1 sm:px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs min-w-0 appearance-none bg-white truncate"
+                  className="w-full h-9 px-1 sm:px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs min-w-0 appearance-none bg-white truncate"
                 >
                   <option value="tous">Tous</option>
                   <option value="car1_matin">Car 1 Matin</option>
