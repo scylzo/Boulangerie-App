@@ -378,7 +378,7 @@ export const VueBoulanger: React.FC = () => {
                     </div>
                     <div className="min-w-0 flex-1">
                       <h2 className="text-base sm:text-lg font-bold print:text-lg truncate">TOTAL GÉNÉRAL</h2>
-                      <p className="text-gray-400 text-xs sm:text-sm print:text-black print:text-sm truncate">Production complète (Clients + Boutique)</p>
+                      <p className="text-gray-400 text-xs sm:text-sm print:text-black print:text-sm truncate">Production(Clients + Boutique)</p>
                     </div>
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">

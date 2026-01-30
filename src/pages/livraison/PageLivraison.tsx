@@ -199,7 +199,7 @@ export const PageLivraison: React.FC = () => {
             <h2 className="text-base sm:text-lg font-semibold text-gray-900">Filtres</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Rechercher</label>
               <div className="relative">
@@ -214,28 +214,30 @@ export const PageLivraison: React.FC = () => {
               </div>
             </div>
 
-            <div className="min-w-0">
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Date de livraison</label>
-              <input
-                type="date"
-                value={dateSelectionnee}
-                onChange={(e) => setDateSelectionnee(e.target.value)}
-                className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs sm:text-sm min-w-0"
-              />
-            </div>
+            <div className="flex gap-3">
+              <div className="flex-1 min-w-0">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Date</label>
+                <input
+                  type="date"
+                  value={dateSelectionnee}
+                  onChange={(e) => setDateSelectionnee(e.target.value)}
+                  className="w-full px-2 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs sm:text-sm min-w-0"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Car de livraison</label>
-              <select
-                value={carSelectionne}
-                onChange={(e) => setCarSelectionne(e.target.value as CarLivraison | 'tous')}
-                className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium w-full text-xs sm:text-sm"
-              >
-                <option value="tous">Tous les cars</option>
-                <option value="car1_matin">{CARS_LIVRAISON.car1_matin}</option>
-                <option value="car2_matin">{CARS_LIVRAISON.car2_matin}</option>
-                <option value="car_soir">{CARS_LIVRAISON.car_soir}</option>
-              </select>
+              <div className="flex-1 min-w-0">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Car</label>
+                <select
+                  value={carSelectionne}
+                  onChange={(e) => setCarSelectionne(e.target.value as CarLivraison | 'tous')}
+                  className="w-full px-2 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900 font-medium text-xs sm:text-sm min-w-0 appearance-none bg-white truncate"
+                >
+                  <option value="tous">Tous</option>
+                  <option value="car1_matin">Car 1 Matin</option>
+                  <option value="car2_matin">Car 2 Matin</option>
+                  <option value="car_soir">Car Soir</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
