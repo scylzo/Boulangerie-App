@@ -53,6 +53,7 @@ export const GestionUtilisateurs: React.FC = () => {
     userId: '',
     userNom: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -84,6 +85,7 @@ export const GestionUtilisateurs: React.FC = () => {
       setNewUser({ email: '', password: '', nom: '', prenom: '', role: 'livreur' });
     }
     setIsModalOpen(true);
+    setShowPassword(false);
   };
 
   const handleSaveUser = async () => {
@@ -240,7 +242,7 @@ export const GestionUtilisateurs: React.FC = () => {
                 <div key={user.id} className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:border-indigo-300 hover:shadow-md transition-all duration-200 group flex flex-col">
                   {/* Header Card */}
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 w-full overflow-hidden">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center shrink-0 border border-gray-200 text-gray-600 font-bold text-sm sm:text-base">
                         {getInitials(user.nom, user.prenom)}
                       </div>
@@ -343,12 +345,20 @@ export const GestionUtilisateurs: React.FC = () => {
                   <Icon icon="mdi:lock-outline" className="text-gray-400" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={newUser.password}
                   onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                  className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
+                  className="w-full pl-10 pr-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                  tabIndex={-1}
+                >
+                  <Icon icon={showPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="text-xl" />
+                </button>
               </div>
             </div>
           )}
