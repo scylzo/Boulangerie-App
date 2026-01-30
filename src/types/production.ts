@@ -42,6 +42,7 @@ export interface Client {
   }>;
   estRegulier?: boolean; // Le client commande-t-il tous les jours ?
   modePaiementPreference?: 'espece' | 'om' | 'wave' | 'cheque' | 'virement';
+  neTravaillePasDimanche?: boolean; // Le client ne travaille pas le dimanche
   active: boolean;
   createdAt: Date;
   updatedAt: Date;

@@ -4,9 +4,7 @@ import { Icon } from '@iconify/react';
 import { FileText, Plus, Ban, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { CommandeClientForm } from '../../components/shared/CommandeClientForm';
 import { ModifierProduitForm } from '../../components/shared/ModifierProduitForm';
 import { QuantiteBoutiqueForm } from '../../components/shared/QuantiteBoutiqueForm';
