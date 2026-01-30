@@ -33,6 +33,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     eligibleRistourne: false,
     aKiosque: false,
     estRegulier: false,
+    neTravaillePasDimanche: false,
     active: true
   });
 
@@ -54,6 +55,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         eligibleRistourne: client.eligibleRistourne || false,
         aKiosque: client.aKiosque || false,
         estRegulier: client.estRegulier || false,
+        neTravaillePasDimanche: client.neTravaillePasDimanche || false,
         active: client.active
       });
     }
@@ -80,6 +82,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           eligibleRistourne: false,
           aKiosque: false,
           estRegulier: false,
+          neTravaillePasDimanche: false,
           active: true
         });
       }
@@ -242,6 +245,19 @@ export const ClientForm: React.FC<ClientFormProps> = ({
             />
             <label htmlFor="aKiosque" className="ml-2 block text-sm font-medium text-gray-900 cursor-pointer">
               A un kiosque
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              id="neTravaillePasDimanche"
+              type="checkbox"
+              checked={formData.neTravaillePasDimanche}
+              onChange={(e) => setFormData({ ...formData, neTravaillePasDimanche: e.target.checked })}
+              className="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 rounded cursor-pointer"
+            />
+            <label htmlFor="neTravaillePasDimanche" className="ml-2 block text-sm font-medium text-gray-900 cursor-pointer">
+              Repos le Dimanche
             </label>
           </div>
 

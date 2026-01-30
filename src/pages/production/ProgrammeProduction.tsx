@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react';
 import { FileText, Plus, Ban, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Modal } from '../../components/ui/Modal';
 import { CommandeClientForm } from '../../components/shared/CommandeClientForm';
 import { ModifierProduitForm } from '../../components/shared/ModifierProduitForm';
@@ -807,6 +808,9 @@ export const ProgrammeProduction: React.FC = () => {
               <div className="space-y-3 sm:space-y-4">
                 {commandesFiltrees.map((commande) => {
                   const client = clients.find(c => c.id === commande.clientId);
+                  const isSunday = new Date(dateSelectionnee).getDay() === 0;
+                  const alertSunday = isSunday && client?.neTravaillePasDimanche;
+
                   const totalCommande = commande.produits.reduce((total, item) =>
                     total + (item.prixUnitaire || 0) * item.quantiteCommandee, 0
                   );
@@ -828,7 +832,7 @@ export const ProgrammeProduction: React.FC = () => {
                   return (
                     <div
                       key={commande.id}
-                      className="relative bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:border-gray-300 hover:shadow-md transition-all duration-200 overflow-hidden"
+                      className={`relative bg-white border ${alertSunday ? 'border-amber-400 ring-4 ring-amber-100' : 'border-gray-200'} rounded-xl p-4 sm:p-5 hover:border-gray-300 hover:shadow-md transition-all duration-200 overflow-hidden`}
                     >
                       {/* En-tête de la commande */}
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
@@ -845,6 +849,12 @@ export const ProgrammeProduction: React.FC = () => {
                                 <Icon icon="mdi:calendar-clock" className="text-gray-500" />
                                 <span className="truncate">{new Date(commande.dateLivraison).toLocaleDateString('fr-FR')}</span>
                               </div>
+                              {alertSunday && (
+                                <span className="flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-700 text-[10px] sm:text-xs font-bold rounded-full border border-amber-200 animate-pulse">
+                                  <Icon icon="mdi:alert" className="text-amber-600" />
+                                  Repos Dimanche !
+                                </span>
+                              )}
                               {commande.statut === 'annulee' && (
                                 <span className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 text-[10px] sm:text-xs font-medium rounded-full">
                                   <Icon icon="mdi:cancel" className="text-red-600" />

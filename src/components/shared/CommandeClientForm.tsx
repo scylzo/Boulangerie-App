@@ -416,6 +416,26 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
           />
         </div>
 
+        {/* Alerte Travail le Dimanche */}
+        {(() => {
+          const client = clients.find(c => c.id === selectedClientId);
+          const isSunday = new Date(dateLivraison).getDay() === 0;
+          if (client?.neTravaillePasDimanche && isSunday) {
+            return (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 animate-pulse">
+                <Icon icon="mdi:alert" className="text-red-600 text-xl mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-red-800">Attention : Repos le Dimanche</h4>
+                  <p className="text-sm text-red-700">
+                    Ce client ne travaille habituellement pas le dimanche. Vérifiez bien qu'il a passé commande pour cette date.
+                  </p>
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
         {/* Choix du type de prix */}
         <div className="flex items-center space-x-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
           <label className="flex items-center cursor-pointer">
