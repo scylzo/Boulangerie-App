@@ -195,10 +195,10 @@ export const GestionProduits: React.FC = () => {
                           <Icon icon={getProductIcon(produit.nom)} className="text-2xl text-white" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-sm sm:text-lg text-gray-900 mb-1 line-clamp-2">
+                          <h3 className="font-bold text-sm sm:text-lg text-gray-900 mb-1 line-clamp-2 min-h-[2.5rem] sm:min-h-[3.5rem] flex items-center">
                             {produit.nom}
                           </h3>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${produit.active
                               ? 'bg-green-100 text-green-700'
                               : 'bg-red-100 text-red-700'
@@ -206,6 +206,14 @@ export const GestionProduits: React.FC = () => {
                               <Icon icon={produit.active ? 'mdi:check-circle' : 'mdi:pause-circle'} className="text-xs" />
                               {produit.active ? 'Actif' : 'Inactif'}
                             </span>
+                            {produit.categorie && (
+                              <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold uppercase tracking-wider rounded-full border ${produit.categorie === 'boulangerie'
+                                ? 'bg-amber-100 text-amber-800 border-amber-200'
+                                : 'bg-rose-100 text-rose-800 border-rose-200'
+                                }`}>
+                                {produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>

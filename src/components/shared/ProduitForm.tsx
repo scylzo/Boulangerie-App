@@ -26,6 +26,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     prixClient: '' as number | '',
     prixBoutique: '' as number | '',
     categorie: 'boulangerie' as 'boulangerie' | 'viennoiserie',
+    reconduisible: false,
     active: true,
     recette: [] as Ingredient[]
   });
@@ -47,6 +48,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         prixClient: produit.prixClient || '',
         prixBoutique: produit.prixBoutique || '',
         categorie: produit.categorie || 'boulangerie',
+        reconduisible: produit.reconduisible || false,
         active: produit.active,
         recette: produit.recette || []
       });
@@ -89,6 +91,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         prixClient: Number(formData.prixClient) || 0,
         prixBoutique: Number(formData.prixBoutique) || 0,
         categorie: formData.categorie,
+        reconduisible: formData.reconduisible,
         active: formData.active,
         recette: formData.recette, // Include recipe
         description: '',
@@ -103,6 +106,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           prixClient: '',
           prixBoutique: '',
           categorie: 'boulangerie',
+          reconduisible: false,
           active: true,
           recette: []
         });
@@ -192,6 +196,27 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                   </div>
                 </div>
               </label>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <input
+                id="reconduisible"
+                type="checkbox"
+                checked={formData.reconduisible}
+                onChange={(e) => setFormData({ ...formData, reconduisible: e.target.checked })}
+                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <div className="flex-1">
+                <label htmlFor="reconduisible" className="block text-sm font-medium text-gray-900 cursor-pointer">
+                  Produit reconduisible
+                </label>
+                <p className="text-xs text-gray-600 mt-1">
+                  Les invendus de ce produit peuvent être vendus le lendemain (ex: biscuits, pains spéciaux).
+                  Si décoché, les invendus seront considérés comme des pertes (ex: baguettes fraîches, croissants).
+                </p>
+              </div>
             </div>
           </div>
 

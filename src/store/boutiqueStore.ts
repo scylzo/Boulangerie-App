@@ -32,6 +32,7 @@ interface BoutiqueStore {
   saisirVenteSoir: (produitId: string, vendu: number) => void;
   terminerEquipeMatin: () => void;
   terminerEquipeSoir: () => void;
+  terminerEquipeSoirAvecRepartition: (repartition: Array<{ produitId: string; restants: number; pertes: number }>) => Promise<void>;
   rouvrirEquipeMatin: () => void;
   rouvrirEquipeSoir: () => void;
 
@@ -593,6 +594,104 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     get().calculerVentesBoutique();
   },
 
+  terminerEquipeSoirAvecRepartition: async (repartition: Array<{ produitId: string; restants: number; pertes: number }>) => {
+    try {
+      // Terminer l'équipe soir
+      set((state) => ({
+        equipeSoir: state.equipeSoir ? { ...state.equipeSoir, statut: 'termine', updatedAt: new Date() } : null
+      }));
+
+      // Calculer les ventes
+      get().calculerVentesBoutique();
+
+      // Mettre à jour les ventes avec la répartition
+      const { ventesJour } = get();
+      if (ventesJour) {
+        const produitsAvecRepartition = ventesJour.produits.map(p => {
+          const rep = repartition.find(r => r.produitId === p.produitId);
+          if (rep) {
+            return {
+              ...p,
+              restants: rep.restants,
+              pertes: rep.pertes
+            };
+          }
+          return p;
+        });
+
+        set({
+          ventesJour: {
+            ...ventesJour,
+            produits: produitsAvecRepartition,
+            updatedAt: new Date()
+          }
+        });
+      }
+
+      // Sauvegarder
+      await get().sauvegarderEquipe('soir');
+      await get().sauvegarderVentes();
+
+      // Créer le stock du lendemain avec les restants
+      const { stockJour } = get();
+      if (stockJour && repartition.some(r => r.restants > 0)) {
+        const dateLendemain = new Date(stockJour.date);
+        dateLendemain.setDate(dateLendemain.getDate() + 1);
+
+        // Charger le stock du lendemain s'il existe
+        await get().chargerStockJour(dateLendemain);
+        const stockLendemain = get().stockJour;
+
+        if (stockLendemain) {
+          // Mettre à jour le stock existant avec les restants
+          const produitsUpdates = stockLendemain.produits.map(p => {
+            const rep = repartition.find(r => r.produitId === p.produitId);
+            if (rep && rep.restants > 0) {
+              return {
+                ...p,
+                stockReconduit: (p.stockReconduit || 0) + rep.restants
+              };
+            }
+            return p;
+          });
+
+          // Ajouter les produits reconduits qui n'existent pas encore
+          repartition.forEach(rep => {
+            if (rep.restants > 0 && !produitsUpdates.find(p => p.produitId === rep.produitId)) {
+              const produitInfo = stockJour.produits.find(p => p.produitId === rep.produitId);
+              if (produitInfo) {
+                produitsUpdates.push({
+                  produitId: rep.produitId,
+                  produit: produitInfo.produit,
+                  stockDebut: 0,
+                  stockReconduit: rep.restants
+                });
+              }
+            }
+          });
+
+          const stockUpdated = {
+            ...stockLendemain,
+            produits: produitsUpdates,
+            updatedAt: new Date()
+          };
+
+          await setDoc(doc(db, 'shopStock', stockLendemain.id), {
+            ...stockUpdated,
+            date: dateLendemain,
+            produits: stockUpdated.produits.map(p => ({
+              ...p,
+              produit: p.produit ? { ...p.produit } : null
+            }))
+          }, { merge: true });
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la clôture avec répartition:', error);
+      throw error;
+    }
+  },
+
   rouvrirEquipeMatin: () => {
     set((state) => ({
       equipeMatin: state.equipeMatin ? { ...state.equipeMatin, statut: 'en_cours', updatedAt: new Date() } : null
@@ -641,6 +740,8 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
           resteMidi: rMidi,
           venduSoir: vSoir,
           invenduBoutique: invendu,
+          restants: 0, // Sera mis à jour lors de la clôture avec répartition
+          pertes: invendu, // Par défaut, tout est considéré comme perte
           venduTotal: vMatin + vSoir
         };
       }),

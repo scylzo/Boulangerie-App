@@ -11,6 +11,7 @@ export interface Produit {
   prixClient?: number; // Prix avec réduction pour les clients
   prixBoutique?: number; // Prix normal pour la boutique
   categorie?: 'boulangerie' | 'viennoiserie';
+  reconduisible?: boolean; // Si true, les invendus peuvent être reconduits le lendemain
   prixUnitaire?: number; // Pour compatibilité avec l'ancien code (à supprimer progressivement)
   recette?: Ingredient[]; // Liste des ingrédients nécessaires
   active: boolean;

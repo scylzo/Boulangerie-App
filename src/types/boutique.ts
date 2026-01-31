@@ -7,6 +7,7 @@ export interface StockBoutique {
     produitId: string;
     produit?: Produit;
     stockDebut: number; // quantité reçue de la production
+    stockReconduit?: number; // quantité reconduire de la veille
     // Répartition par car de livraison pour la boutique
     repartitionCars?: {
       car1_matin: number;
@@ -48,7 +49,9 @@ export interface VentesBoutique {
     venduMatin: number;
     resteMidi: number;
     venduSoir: number;
-    invenduBoutique: number; // reste final
+    invenduBoutique: number; // reste final total (restants + pertes)
+    restants: number; // produits à reconduire le lendemain
+    pertes: number; // produits invendus (pertes réelles)
     venduTotal: number; // venduMatin + venduSoir
   }>;
   createdAt: Date;

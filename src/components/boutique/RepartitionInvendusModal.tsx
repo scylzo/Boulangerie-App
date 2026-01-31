@@ -1,0 +1,235 @@
+import React, { useState, useEffect } from 'react';
+import { Icon } from '@iconify/react';
+import type { Produit } from '../../types';
+
+interface RepartitionInvendusModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: (repartition: Array<{ produitId: string; restants: number; pertes: number }>) => void;
+    produits: Array<{
+        produitId: string;
+        produit?: Produit;
+        reste: number;
+    }>;
+}
+
+export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> = ({
+    isOpen,
+    onClose,
+    onConfirm,
+    produits
+}) => {
+    const [repartition, setRepartition] = useState<Array<{ produitId: string; restants: number; pertes: number }>>([]);
+
+    useEffect(() => {
+        if (isOpen && produits.length > 0) {
+            // Initialiser la répartition selon la configuration du produit
+            const initialRepartition = produits.map(p => ({
+                produitId: p.produitId,
+                restants: p.produit?.reconduisible ? p.reste : 0,
+                pertes: p.produit?.reconduisible ? 0 : p.reste
+            }));
+            setRepartition(initialRepartition);
+        }
+    }, [isOpen, produits]);
+
+    const handleRestantsChange = (produitId: string, value: number) => {
+        setRepartition(prev => prev.map(r => {
+            if (r.produitId === produitId) {
+                const produit = produits.find(p => p.produitId === produitId);
+                const reste = produit?.reste || 0;
+                const newRestants = Math.max(0, Math.min(value, reste));
+                return {
+                    ...r,
+                    restants: newRestants,
+                    pertes: reste - newRestants
+                };
+            }
+            return r;
+        }));
+    };
+
+    const handlePertesChange = (produitId: string, value: number) => {
+        setRepartition(prev => prev.map(r => {
+            if (r.produitId === produitId) {
+                const produit = produits.find(p => p.produitId === produitId);
+                const reste = produit?.reste || 0;
+                const newPertes = Math.max(0, Math.min(value, reste));
+                return {
+                    ...r,
+                    pertes: newPertes,
+                    restants: reste - newPertes
+                };
+            }
+            return r;
+        }));
+    };
+
+    const totalRestants = repartition.reduce((sum, r) => sum + r.restants, 0);
+    const totalPertes = repartition.reduce((sum, r) => sum + r.pertes, 0);
+    const totalInvendus = produits.reduce((sum, p) => sum + p.reste, 0);
+
+    const handleConfirm = () => {
+        onConfirm(repartition);
+        onClose();
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex min-h-screen items-center justify-center p-4">
+                {/* Backdrop */}
+                <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
+
+                {/* Modal */}
+                <div className="relative bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                                    <Icon icon="mdi:moon-waning-crescent" className="text-2xl text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-white">Clôture de Journée</h2>
+                                    <p className="text-sm text-indigo-100">Répartition des invendus</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={onClose}
+                                className="text-white/80 hover:text-white transition-colors"
+                            >
+                                <Icon icon="mdi:close" className="text-2xl" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="bg-white rounded-lg p-3 border border-gray-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Icon icon="mdi:package-variant" className="text-gray-500" />
+                                    <span className="text-xs text-gray-600 font-medium">Total invendus</span>
+                                </div>
+                                <p className="text-2xl font-bold text-gray-900">{totalInvendus}</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-3 border border-green-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Icon icon="mdi:recycle" className="text-green-600" />
+                                    <span className="text-xs text-green-700 font-medium">À reconduire</span>
+                                </div>
+                                <p className="text-2xl font-bold text-green-600">{totalRestants}</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-3 border border-red-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Icon icon="mdi:delete-outline" className="text-red-600" />
+                                    <span className="text-xs text-red-700 font-medium">Pertes</span>
+                                </div>
+                                <p className="text-2xl font-bold text-red-600">{totalPertes}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="px-6 py-4 overflow-y-auto max-h-[50vh]">
+                        <div className="space-y-4">
+                            {produits.map(produit => {
+                                const rep = repartition.find(r => r.produitId === produit.produitId);
+                                if (!rep) return null;
+
+                                return (
+                                    <div
+                                        key={produit.produitId}
+                                        className="bg-white border border-gray-200 rounded-xl p-4 hover:border-indigo-300 transition-all"
+                                    >
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-gray-900 mb-1">
+                                                    {produit.produit?.nom || produit.produitId}
+                                                </h3>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm text-gray-600">
+                                                        {produit.reste} restants
+                                                    </span>
+                                                    {produit.produit?.reconduisible && (
+                                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                                                            Reconduisible
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    À reconduire (J+1)
+                                                </label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max={produit.reste}
+                                                        value={rep.restants}
+                                                        onChange={(e) => handleRestantsChange(produit.produitId, parseInt(e.target.value) || 0)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                                    />
+                                                    <Icon icon="mdi:pencil" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    Pertes
+                                                </label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max={produit.reste}
+                                                        value={rep.pertes}
+                                                        onChange={(e) => handlePertesChange(produit.produitId, parseInt(e.target.value) || 0)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                                    />
+                                                    <Icon icon="mdi:pencil" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="px-6 py-3 bg-amber-50 border-t border-amber-200">
+                        <div className="flex items-start gap-2">
+                            <Icon icon="mdi:information" className="text-amber-600 text-lg mt-0.5 shrink-0" />
+                            <p className="text-sm text-amber-800">
+                                Les produits marqués comme "restants" seront automatiquement ajoutés au stock boutique de demain.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            onClick={handleConfirm}
+                            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                            <Icon icon="mdi:check-circle" className="text-lg" />
+                            Valider la clôture
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};

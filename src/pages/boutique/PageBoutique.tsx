@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useBoutiqueStore } from '../../store';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { RepartitionInvendusModal } from '../../components/boutique/RepartitionInvendusModal';
 
 export const PageBoutique: React.FC = () => {
   const {
@@ -17,10 +18,7 @@ export const PageBoutique: React.FC = () => {
     saisirVenteMatin,
     saisirVenteSoir,
     terminerEquipeMatin,
-    terminerEquipeSoir,
     sauvegarderEquipe,
-    calculerVentesBoutique,
-    sauvegarderVentes,
     chargerEquipe,
     chargerVentes,
     produits,
@@ -31,7 +29,8 @@ export const PageBoutique: React.FC = () => {
     rouvrirEquipeMatin,
     rouvrirEquipeSoir,
     toggleModeJourneeContinue,
-    validerVenteDirecte
+    validerVenteDirecte,
+    terminerEquipeSoirAvecRepartition
   } = useBoutiqueStore();
 
   const [vendeuseMatin, setVendeuseMatin] = useState('');
@@ -49,6 +48,9 @@ export const PageBoutique: React.FC = () => {
   // État pour la suppression
   const [productToDelete, setProductToDelete] = useState<{ id: string, nom: string } | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // État pour le modal de répartition
+  const [showRepartitionModal, setShowRepartitionModal] = useState(false);
 
   // État pour la modification
   const [productToEdit, setProductToEdit] = useState<{ id: string, nom: string, quantity: number } | null>(null);
@@ -855,9 +857,19 @@ export const PageBoutique: React.FC = () => {
                                 />
                               </div>
                               <div className="flex-1">
-                                <h4 className="font-semibold text-gray-900 mb-1">
-                                  {produit.produit?.nom || produit.produitId}
-                                </h4>
+                                <div className="flex flex-wrap items-start gap-1 mb-1 min-h-[2.5rem]">
+                                  <h4 className="font-semibold text-gray-900 break-words mr-1 line-clamp-2">
+                                    {produit.produit?.nom || produit.produitId}
+                                  </h4>
+                                  {produit.produit?.categorie && (
+                                    <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${produit.produit.categorie === 'boulangerie'
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                      : 'bg-rose-50 text-rose-700 border-rose-200'
+                                      }`}>
+                                      {produit.produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
+                                    </span>
+                                  )}
+                                </div>
                                 <div className="text-sm text-gray-600">Stock: {produit.stockDebut} pièces</div>
                               </div>
                             </div>
@@ -1004,19 +1016,7 @@ export const PageBoutique: React.FC = () => {
                         </div>
                         {equipeSoir.statut === 'en_cours' && (
                           <button
-                            onClick={async () => {
-                              try {
-                                terminerEquipeSoir();
-                                calculerVentesBoutique();
-                                await sauvegarderEquipe('soir');
-
-                                // Attendre un peu pour que les ventes soient calculées
-                                await new Promise(resolve => setTimeout(resolve, 100));
-                                await sauvegarderVentes();
-                              } catch (error) {
-                                console.error('Erreur lors de la finalisation:', error);
-                              }
-                            }}
+                            onClick={() => setShowRepartitionModal(true)}
                             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all shadow-sm"
                           >
                             <Icon icon="mdi:check-circle" className="text-lg" />
@@ -1075,9 +1075,19 @@ export const PageBoutique: React.FC = () => {
                                   />
                                 </div>
                                 <div className="flex-1">
-                                  <h4 className="font-semibold text-gray-900 mb-1">
-                                    {produit.produit?.nom || produit.produitId}
-                                  </h4>
+                                  <div className="flex flex-wrap items-start gap-1 mb-1 min-h-[2.5rem]">
+                                    <h4 className="font-semibold text-gray-900 break-words mr-1 line-clamp-2">
+                                      {produit.produit?.nom || produit.produitId}
+                                    </h4>
+                                    {produit.produit?.categorie && (
+                                      <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${produit.produit.categorie === 'boulangerie'
+                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                        : 'bg-rose-50 text-rose-700 border-rose-200'
+                                        }`}>
+                                        {produit.produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
+                                      </span>
+                                    )}
+                                  </div>
                                   <div className="text-sm text-gray-600">Stock début: {produit.stockDebut} pièces</div>
                                 </div>
                               </div>
@@ -1254,8 +1264,8 @@ export const PageBoutique: React.FC = () => {
                             key={produit.produitId}
                             className="bg-white rounded-xl p-4 border border-gray-200 hover:shadow-md transition-all"
                           >
-                            <div className="grid grid-cols-2 md:grid-cols-8 gap-4 items-center">
-                              <div className="md:col-span-1">
+                            <div className="grid grid-cols-2 md:grid-cols-9 gap-4 items-center">
+                              <div className="md:col-span-2">
                                 <div className="flex items-center gap-3">
                                   <div className="w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg flex items-center justify-center">
                                     <Icon
@@ -1263,9 +1273,19 @@ export const PageBoutique: React.FC = () => {
                                       className="text-white text-sm"
                                     />
                                   </div>
-                                  <span className="font-medium text-gray-900 text-sm">
-                                    {produit.produit?.nom || produit.produitId}
-                                  </span>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium text-gray-900 text-sm">
+                                      {produit.produit?.nom || produit.produitId}
+                                    </span>
+                                    {produit.produit?.categorie && (
+                                      <span className={`text-[9px] uppercase font-bold tracking-wider w-fit px-1.5 py-0.5 rounded-full mt-1 border ${produit.produit.categorie === 'boulangerie'
+                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                        : 'bg-rose-50 text-rose-700 border-rose-200'
+                                        }`}>
+                                        {produit.produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                               <div className="text-center">
@@ -1403,6 +1423,23 @@ export const PageBoutique: React.FC = () => {
           confirmText="Enregistrer"
           cancelText="Annuler"
           type="info"
+        />
+      )}
+
+      {/* Modal de répartition des invendus */}
+      {equipeSoir && showRepartitionModal && (
+        <RepartitionInvendusModal
+          isOpen={showRepartitionModal}
+          onClose={() => setShowRepartitionModal(false)}
+          onConfirm={async (repartition) => {
+            try {
+              await terminerEquipeSoirAvecRepartition(repartition);
+            } catch (error) {
+              console.error('Erreur lors de la clôture:', error);
+              alert('Erreur lors de la clôture. Veuillez réessayer.');
+            }
+          }}
+          produits={equipeSoir.produits}
         />
       )}
     </div>
