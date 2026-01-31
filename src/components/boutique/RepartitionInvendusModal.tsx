@@ -79,28 +79,32 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
-                {/* Backdrop */}
-                <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
+                {/* Backdrop transparent */}
+                <div className="fixed inset-0 bg-transparent" onClick={onClose} />
 
                 {/* Modal */}
-                <div className="relative bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
-                    {/* Header */}
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+                <div className="relative bg-gray-100 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-200 animate-in zoom-in-95 fade-in duration-300">
+                    {/* Header moderne */}
+                    <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-200">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                    <Icon icon="mdi:moon-waning-crescent" className="text-2xl text-white" />
+                                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                    <Icon icon="mdi:moon-waning-crescent" className="text-2xl text-indigo-600" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-white">Clôture de Journée</h2>
-                                    <p className="text-sm text-indigo-100">Répartition des invendus</p>
+                                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full"></div>
+                                        Clôture de Journée
+                                    </h2>
+                                    <p className="text-sm text-gray-500">Répartition des invendus</p>
                                 </div>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="text-white/80 hover:text-white transition-colors"
+                                className="rounded-lg p-2 hover:bg-gray-100 hover:scale-105 transition-all duration-200 group"
+                                title="Fermer"
                             >
-                                <Icon icon="mdi:close" className="text-2xl" />
+                                <Icon icon="mdi:close" className="text-gray-500 group-hover:text-gray-700 text-xl transition-colors" />
                             </button>
                         </div>
                     </div>
