@@ -5,6 +5,7 @@ import { useStockStore } from '../store/stockStore';
 import { useProductionStore } from '../store/productionStore';
 import { useReferentielStore } from '../store/referentielStore';
 import { formatCurrency } from '../utils/currency';
+import { ClientPerformanceWidget } from '../components/dashboard/ClientPerformanceWidget';
 
 export const Dashboard: React.FC = () => {
     const { factures, chargerFactures } = useFacturationStore();
@@ -276,6 +277,11 @@ export const Dashboard: React.FC = () => {
                         </DashboardBox>
                     </div>
                 </div>
+            </div>
+
+            {/* Widget Performances Clients - Pleine largeur */}
+            <div className="mt-4 sm:mt-6">
+                <ClientPerformanceWidget factures={factures} clients={clients} periodeDays={30} />
             </div>
         </div>
     );

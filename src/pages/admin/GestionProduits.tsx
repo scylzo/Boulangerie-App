@@ -214,6 +214,12 @@ export const GestionProduits: React.FC = () => {
                                 {produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
                               </span>
                             )}
+                            {produit.reconduisible && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                <Icon icon="mdi:recycle" className="text-xs" />
+                                Reconduisible
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>

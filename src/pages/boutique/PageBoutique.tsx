@@ -869,6 +869,12 @@ export const PageBoutique: React.FC = () => {
                                       {produit.produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
                                     </span>
                                   )}
+                                  {produit.produit?.reconduisible && (
+                                    <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                      <Icon icon="mdi:recycle" className="text-xs" />
+                                      Reconduisible
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="text-sm text-gray-600">Stock: {produit.stockDebut} pièces</div>
                               </div>
@@ -1087,6 +1093,12 @@ export const PageBoutique: React.FC = () => {
                                         {produit.produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
                                       </span>
                                     )}
+                                    {produit.produit?.reconduisible && (
+                                      <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <Icon icon="mdi:recycle" className="text-xs" />
+                                        Reconduisible
+                                      </span>
+                                    )}
                                   </div>
                                   <div className="text-sm text-gray-600">Stock début: {produit.stockDebut} pièces</div>
                                 </div>
@@ -1283,6 +1295,12 @@ export const PageBoutique: React.FC = () => {
                                         : 'bg-rose-50 text-rose-700 border-rose-200'
                                         }`}>
                                         {produit.produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
+                                      </span>
+                                    )}
+                                    {produit.produit?.reconduisible && (
+                                      <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded-full mt-1 bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <Icon icon="mdi:recycle" className="text-[10px]" />
+                                        Reconduisible
                                       </span>
                                     )}
                                   </div>
