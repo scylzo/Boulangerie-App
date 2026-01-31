@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { formatCurrency } from '../../utils/currency';
+import { downloadClientPerformancePDF } from '../../utils/pdfGenerator';
 import type { Facture, Client } from '../../types';
 
 interface ClientPerformance {
@@ -148,6 +149,31 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                             </button>
                         ))}
                     </div>
+
+                    {/* Bouton PDF */}
+                    <button
+                        onClick={async () => {
+                            try {
+                                const now = new Date();
+                                const startDate = new Date();
+                                startDate.setDate(now.getDate() - selectedPeriod);
+
+                                await downloadClientPerformancePDF(
+                                    clientsPerformance as any,
+                                    selectedPeriod,
+                                    startDate,
+                                    now
+                                );
+                            } catch (error) {
+                                console.error('Erreur PDF:', error);
+                                alert('Erreur lors de la génération du PDF');
+                            }
+                        }}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-all text-xs font-semibold shadow-sm"
+                    >
+                        <Icon icon="mdi:file-pdf-box" className="text-base" />
+                        <span className="hidden sm:inline">PDF</span>
+                    </button>
                 </div>
 
                 {/* Stats globales */}

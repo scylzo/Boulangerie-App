@@ -613,3 +613,230 @@ export const downloadProductionProgramPDF = async (programme: ProgrammeProductio
     throw new Error('Impossible de générer le PDF');
   }
 };
+
+// Types pour les performances clients
+interface ClientPerformanceData {
+  client: { id: string; nom: string; aKiosque?: boolean };
+  totalAchats: number;
+  nombreFactures: number;
+  moyenneParFacture: number;
+  tauxPaiement: number;
+  quantiteTotale: number;
+  quantiteRetournee: number;
+  tauxRetour: number;
+  scorePerformance: number;
+}
+
+export const generateClientPerformancePDF = async (
+  performances: ClientPerformanceData[],
+  periodeDays: number,
+  dateDebut: Date,
+  dateFin: Date
+) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+
+  // Configuration des couleurs
+  const colors = {
+    primary: [59, 130, 246],    // Blue 500
+    secondary: [107, 114, 128], // Gray 500
+    text: [31, 41, 55],        // Gray 800
+    highlight: [239, 246, 255], // Blue 50
+    gold: [251, 191, 36],      // Amber 400
+    silver: [156, 163, 175],   // Gray 400
+    bronze: [249, 115, 22]     // Orange 500
+  };
+
+  // En-tête
+  doc.setFillColor(colors.highlight[0], colors.highlight[1], colors.highlight[2]);
+  doc.rect(0, 0, pageWidth, 45, 'F');
+
+  try {
+    const logoImg = await loadImage(logoUrl);
+    doc.addImage(logoImg, 'PNG', 15, 10, 22, 22);
+  } catch (error) {
+    console.error('Erreur chargement logo', error);
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.text('PERFORMANCES CLIENTS', 45, 22);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  const periodeStr = `Période: ${dateDebut.toLocaleDateString('fr-FR')} - ${dateFin.toLocaleDateString('fr-FR')} (${periodeDays} jours)`;
+  doc.text(periodeStr, 45, 29);
+
+  doc.setFontSize(9);
+  doc.text('Score: CA (40%) + Paiement (30%) + Retours (30%)', 45, 36);
+
+  let yPos = 55;
+
+  // Statistiques globales
+  const totalCA = performances.reduce((sum, p) => sum + p.totalAchats, 0);
+  const moyenneScore = performances.length > 0
+    ? performances.reduce((sum, p) => sum + p.scorePerformance, 0) / performances.length
+    : 0;
+  const moyenneTauxRetour = performances.length > 0
+    ? performances.reduce((sum, p) => sum + p.tauxRetour, 0) / performances.length
+    : 0;
+
+  doc.setFontSize(11);
+  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+  doc.text('Statistiques Globales', 15, yPos);
+
+  const statsData = [[
+    `CA Total: ${formatCurrencyCompact(totalCA)}`,
+    `Clients actifs: ${performances.length}`,
+    `Score moyen: ${moyenneScore.toFixed(1)}/100`,
+    `Taux retour moyen: ${moyenneTauxRetour.toFixed(1)}%`
+  ]];
+
+  autoTable(doc, {
+    startY: yPos + 2,
+    body: statsData,
+    theme: 'plain',
+    styles: { fontSize: 9, fontStyle: 'bold', textColor: colors.primary as any },
+    margin: { left: 15 }
+  });
+
+  yPos = (doc as any).lastAutoTable.finalY + 10;
+
+  // Tableau des performances
+  doc.setFontSize(11);
+  doc.text('TOP 20 CLIENTS', 15, yPos);
+
+  const tableData = performances.slice(0, 20).map((perf, index) => {
+    const rank = index + 1;
+    let rankIcon = `${rank}`;
+
+    // Utiliser des caractères ASCII au lieu d'émojis
+    if (rank === 1) rankIcon = '1er';
+    else if (rank === 2) rankIcon = '2e';
+    else if (rank === 3) rankIcon = '3e';
+
+    // Ajouter un indicateur pour les kiosques sans émoji
+    const clientName = perf.client.nom + (perf.client.aKiosque ? ' [K]' : '');
+
+    return [
+      rankIcon,
+      clientName,
+      formatCurrencyCompact(perf.totalAchats),
+      perf.nombreFactures.toString(),
+      formatCurrencyCompact(perf.moyenneParFacture),
+      `${perf.tauxPaiement.toFixed(0)}%`,
+      `${perf.tauxRetour.toFixed(1)}%`,
+      `${perf.scorePerformance.toFixed(0)}/100`
+    ];
+  });
+
+  autoTable(doc, {
+    startY: yPos + 2,
+    head: [['#', 'Client', 'CA Total', 'Nb Fact.', 'Moy/Fact.', 'Paiement', 'Retours', 'Score']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: {
+      fillColor: colors.primary as any,
+      fontSize: 8,
+      fontStyle: 'bold'
+    },
+    styles: {
+      fontSize: 7,
+      cellPadding: 1.5,
+      overflow: 'linebreak'
+    },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 10 },
+      1: { cellWidth: 'auto', minCellWidth: 35 },
+      2: { halign: 'right', cellWidth: 22 },
+      3: { halign: 'center', cellWidth: 15 },
+      4: { halign: 'right', cellWidth: 22 },
+      5: { halign: 'center', cellWidth: 18 },
+      6: { halign: 'center', cellWidth: 18 },
+      7: { halign: 'center', cellWidth: 20 }
+    },
+    didParseCell: (data) => {
+      // Colorer les scores
+      if (data.section === 'body' && data.column.index === 7) {
+        const scoreText = data.cell.text[0];
+        const score = parseInt(scoreText);
+
+        if (score >= 80) {
+          data.cell.styles.textColor = [22, 163, 74]; // Vert
+          data.cell.styles.fontStyle = 'bold';
+        } else if (score >= 60) {
+          data.cell.styles.textColor = [59, 130, 246]; // Bleu
+        } else if (score >= 40) {
+          data.cell.styles.textColor = [249, 115, 22]; // Orange
+        } else {
+          data.cell.styles.textColor = [239, 68, 68]; // Rouge
+        }
+      }
+
+      // Colorer les taux de retours
+      if (data.section === 'body' && data.column.index === 6) {
+        const tauxText = data.cell.text[0];
+        const taux = parseFloat(tauxText);
+
+        if (taux <= 5) {
+          data.cell.styles.textColor = [22, 163, 74]; // Vert
+        } else if (taux <= 15) {
+          data.cell.styles.textColor = [249, 115, 22]; // Orange
+        } else {
+          data.cell.styles.textColor = [239, 68, 68]; // Rouge
+        }
+      }
+
+      // Mettre en évidence le podium
+      if (data.section === 'body' && data.row.index < 3) {
+        data.cell.styles.fillColor = [255, 251, 235]; // Amber 50
+      }
+    },
+    margin: { left: 15, right: 15 }
+  });
+
+  yPos = (doc as any).lastAutoTable.finalY + 10;
+
+  // Légende
+  if (yPos < 250) {
+    doc.setFontSize(8);
+    doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+    doc.text('Légende:', 15, yPos);
+    yPos += 5;
+    doc.text('• Score: Indicateur global de performance (CA + Paiement + Retours)', 20, yPos);
+    yPos += 4;
+    doc.text('• Taux de retours: % de produits retournés sur le total livré', 20, yPos);
+    yPos += 4;
+    doc.text('• [K] = Client avec kiosque', 20, yPos);
+  }
+
+  // Pied de page
+  const pageHeight = doc.internal.pageSize.height;
+  doc.setFontSize(7);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.text(`Document généré le ${new Date().toLocaleString('fr-FR')} - BOULANGERIE ERP`, 15, pageHeight - 10);
+  doc.text(`Page 1/1`, pageWidth - 25, pageHeight - 10);
+
+  return doc;
+};
+
+export const downloadClientPerformancePDF = async (
+  performances: ClientPerformanceData[],
+  periodeDays: number,
+  dateDebut: Date,
+  dateFin: Date
+) => {
+  try {
+    const doc = await generateClientPerformancePDF(performances, periodeDays, dateDebut, dateFin);
+    const dateStr = new Date().toISOString().split('T')[0];
+    const fileName = `Performances_Clients_${periodeDays}j_${dateStr}.pdf`;
+    doc.save(fileName);
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de la génération du PDF:', error);
+    throw new Error('Impossible de générer le PDF');
+  }
+};
+
