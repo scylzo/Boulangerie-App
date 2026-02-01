@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from '@iconify/react';
-import type { CommandeClient, Client } from '../../types';
+import type { CommandeClient, Client, RedistributionData } from '../../types';
 
 interface RedistributionModalProps {
     isOpen: boolean;
@@ -8,18 +8,7 @@ interface RedistributionModalProps {
     commande: CommandeClient | null;
     clients: Client[];
     onConfirm: (redistribution: RedistributionData) => void;
-}
-
-export interface RedistributionData {
-    type: 'boutique' | 'client' | 'mixte';
-    clientId?: string;
-    repartition: Array<{
-        produitId: string;
-        quantiteVersBoutique: number;
-        quantiteVersClient: number;
-        clientDestinataireId?: string;
-    }>;
-    motif: string;
+    isLoading?: boolean;
 }
 
 export const RedistributionModal: React.FC<RedistributionModalProps> = ({
@@ -27,8 +16,10 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
     onClose,
     commande,
     clients,
-    onConfirm
+    onConfirm,
+    isLoading
 }) => {
+
     const [typeRedistribution, setTypeRedistribution] = useState<'boutique' | 'client' | 'mixte'>('boutique');
     const [clientDestinataireId, setClientDestinataireId] = useState<string>('');
     const [motif, setMotif] = useState('');
@@ -296,11 +287,19 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
                     </button>
                     <button
                         onClick={handleConfirm}
-                        disabled={!isValid()}
-                        className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                        disabled={!isValid() || isLoading}
+                        className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
                     >
-                        Confirmer l'annulation
+                        {isLoading ? (
+                            <>
+                                <Icon icon="mdi:loading" className="animate-spin text-xl" />
+                                Traitement...
+                            </>
+                        ) : (
+                            "Confirmer l'annulation"
+                        )}
                     </button>
+
                 </div>
             </div>
         </div>

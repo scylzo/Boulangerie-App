@@ -16,8 +16,8 @@ import { downloadProductionProgramPDF } from '../../utils/pdfGenerator';
 import { useLivreurStore } from '../../store/livreurStore'; // Ajout Import
 import { ScrollToTopBottom } from '../../components/ui/ScrollToTopBottom';
 import { RedistributionModal } from '../../components/production/RedistributionModal';
-import type { RedistributionData } from '../../components/production/RedistributionModal';
-import type { CommandeClient } from '../../types';
+import type { CommandeClient, RedistributionData } from '../../types';
+
 
 
 export const ProgrammeProduction: React.FC = () => {
