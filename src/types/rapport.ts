@@ -56,12 +56,16 @@ export interface RapportJournalier {
     quantiteProduite: number;
     quantiteVendueTotal: number;
     invendusTotal: number;
+    retoursClients: number;
+    pertesBoutique: number;
+    restantsBoutique: number;
     tauxVenteGlobal: number;
     pertesTotales: number; // invendus total
     valeurVenteClients: number;
     valeurVenteBoutique: number;
     valeurVenteTotal: number;
   };
+
 
   statut: 'genere' | 'valide';
   createdAt: Date;

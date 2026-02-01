@@ -347,16 +347,33 @@ export const RapportJournalier: React.FC = () => {
                       <div className="text-base sm:text-xl font-bold text-green-600">{rapportJour.totaux.quantiteVendueTotal}</div>
                       <div className="text-[10px] sm:text-xs text-gray-500 uppercase font-bold">Vendu</div>
                     </div>
-                    <div className="bg-white p-2 sm:p-3 rounded-lg border border-gray-100 text-center">
-                      <div className="text-base sm:text-xl font-bold text-red-600">{rapportJour.totaux.invendusTotal}</div>
-                      <div className="text-[10px] sm:text-xs text-gray-500 uppercase font-bold">Invendus</div>
+                    <div className="bg-red-50 p-2 sm:p-3 rounded-lg border border-red-100 text-center">
+                      <div className="text-base sm:text-xl font-bold text-red-700">{rapportJour.totaux.invendusTotal}</div>
+                      <div className="text-[10px] sm:text-xs text-red-500 uppercase font-bold">Total Invendus</div>
                     </div>
                     <div className="bg-indigo-50 p-2 sm:p-3 rounded-lg border border-indigo-100 text-center col-span-2 sm:col-span-1">
                       <div className="text-sm sm:text-lg font-bold text-indigo-700">{formatCurrency(rapportJour.totaux.valeurVenteTotal)}</div>
                       <div className="text-[10px] sm:text-xs text-indigo-500 uppercase font-bold">Valeur</div>
                     </div>
                   </div>
+
+                  {/* Ventilation détaillée des invendus */}
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 pt-4 border-t border-gray-100">
+                    <div className="text-center group">
+                      <div className="text-sm sm:text-lg font-black text-orange-600">{rapportJour.totaux.retoursClients || 0}</div>
+                      <div className="text-[8px] sm:text-[9px] text-gray-400 uppercase font-bold tracking-tighter sm:tracking-normal group-hover:text-orange-400 transition-colors">Retours Clients</div>
+                    </div>
+                    <div className="text-center group">
+                      <div className="text-sm sm:text-lg font-black text-red-500">{rapportJour.totaux.pertesBoutique || 0}</div>
+                      <div className="text-[8px] sm:text-[9px] text-gray-400 uppercase font-bold tracking-tighter sm:tracking-normal group-hover:text-red-400 transition-colors">Invendus Boutique</div>
+                    </div>
+                    <div className="text-center group">
+                      <div className="text-sm sm:text-lg font-black text-emerald-600">{rapportJour.totaux.restantsBoutique || 0}</div>
+                      <div className="text-[8px] sm:text-[9px] text-gray-400 uppercase font-bold tracking-tighter sm:tracking-normal group-hover:text-emerald-400 transition-colors">Restants Boutique</div>
+                    </div>
+                  </div>
                 </div>
+
 
                 <div className="space-y-10">
                   {/* SECTION BOUTIQUE */}
@@ -717,6 +734,6 @@ export const RapportJournalier: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };

@@ -18,6 +18,7 @@ export const PageBoutique: React.FC = () => {
     saisirVenteMatin,
     saisirVenteSoir,
     terminerEquipeMatin,
+    terminerEquipeMatinAvecRepartition,
     sauvegarderEquipe,
     chargerEquipe,
     chargerVentes,
@@ -791,17 +792,23 @@ export const PageBoutique: React.FC = () => {
                       {equipeMatin.statut === 'en_cours' && (
                         <button
                           onClick={async () => {
-                            try {
-                              terminerEquipeMatin();
-                              await sauvegarderEquipe('matin');
-                            } catch (error) {
-                              console.error('Erreur lors de la sauvegarde matin:', error);
+                            if (stockJour.isJourneeContinue) {
+                              setShowRepartitionModal(true);
+                            } else {
+                              try {
+                                terminerEquipeMatin();
+                                await sauvegarderEquipe('matin');
+                              } catch (error) {
+                                console.error('Erreur lors de la sauvegarde matin:', error);
+                              }
                             }
                           }}
                           className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all shadow-sm"
                         >
                           <Icon icon="mdi:check-circle" className="text-lg" />
-                          <span className="font-medium">Terminer l'équipe matin</span>
+                          <span className="font-medium">
+                            {stockJour.isJourneeContinue ? 'Clôturer la journée' : "Terminer l'équipe matin"}
+                          </span>
                         </button>
                       )}
                       {equipeMatin.statut === 'termine' && (
@@ -1143,8 +1150,12 @@ export const PageBoutique: React.FC = () => {
                       <Icon icon="mdi:chart-timeline" className="text-lg text-green-600" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-900">Bilan Journalier - Performance des 2 Vendeuses</h2>
-                      <p className="text-sm text-gray-500">Récapitulatif complet des ventes matin et soir</p>
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        {stockJour?.isJourneeContinue ? 'Bilan Journalier - Service Continu' : 'Bilan Journalier - Performance des 2 Vendeuses'}
+                      </h2>
+                      <p className="text-sm text-gray-500">
+                        {stockJour?.isJourneeContinue ? 'Récapitulatif des ventes de la journée unique' : 'Récapitulatif complet des ventes matin et soir'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1214,14 +1225,14 @@ export const PageBoutique: React.FC = () => {
                     </div>
 
                     {/* Performance par vendeuse */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Vendeuse Matin */}
-                      <div className="bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200 rounded-xl p-6">
+                    <div className={`grid grid-cols-1 ${stockJour.isJourneeContinue ? '' : 'md:grid-cols-2'} gap-6`}>
+                      {/* Vendeuse Matin / Unique */}
+                      <div className={`bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200 rounded-xl p-6 ${stockJour.isJourneeContinue ? 'max-w-2xl mx-auto w-full' : ''}`}>
                         <h4 className="flex items-center gap-3 font-semibold text-orange-800 mb-4">
                           <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                            <Icon icon="wi:sunrise" className="text-white" />
+                            <Icon icon={stockJour.isJourneeContinue ? "mdi:account-star" : "wi:sunrise"} className="text-white" />
                           </div>
-                          {equipeMatin?.vendeuse} - Équipe Matin
+                          {equipeMatin?.vendeuse} - {stockJour.isJourneeContinue ? 'Service Journée' : 'Équipe Matin'}
                         </h4>
                         <div className="space-y-3">
                           <div className="flex justify-between">
@@ -1230,44 +1241,63 @@ export const PageBoutique: React.FC = () => {
                               {ventesJour.produits.reduce((total, p) => total + p.venduMatin, 0)} pcs
                             </span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Transmis au soir :</span>
-                            <span className="font-medium text-blue-600">
-                              {ventesJour.produits.reduce((total, p) => total + p.resteMidi, 0)} pcs
-                            </span>
-                          </div>
+                          {stockJour.isJourneeContinue ? (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-600">Restants (à reconduire) :</span>
+                                <span className="font-medium text-green-600">
+                                  {ventesJour.produits.reduce((total, p) => total + (p.restants || 0), 0)} pcs
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-600">Invendus (Pertes) :</span>
+                                <span className="font-medium text-red-600">
+                                  {ventesJour.produits.reduce((total, p) => total + (p.pertes || 0), 0)} pcs
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Transmis au soir :</span>
+                              <span className="font-medium text-blue-600">
+                                {ventesJour.produits.reduce((total, p) => total + p.resteMidi, 0)} pcs
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      {/* Vendeuse Soir */}
-                      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-6">
-                        <h4 className="flex items-center gap-3 font-semibold text-indigo-800 mb-4">
-                          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-                            <Icon icon="wi:sunset" className="text-white" />
-                          </div>
-                          {equipeSoir?.vendeuse} - Équipe Soir
-                        </h4>
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Ventes totales :</span>
-                            <span className="font-bold text-indigo-700">
-                              {ventesJour.produits.reduce((total, p) => total + p.venduSoir, 0)} pcs
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Restants (à reconduire) :</span>
-                            <span className="font-medium text-green-600">
-                              {ventesJour.produits.reduce((total, p) => total + (p.restants || 0), 0)} pcs
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Invendus :</span>
-                            <span className="font-medium text-red-600">
-                              {ventesJour.produits.reduce((total, p) => total + (p.pertes || 0), 0)} pcs
-                            </span>
+                      {/* Vendeuse Soir (Uniquement si mode normal) */}
+                      {!stockJour.isJourneeContinue && (
+                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-6">
+                          <h4 className="flex items-center gap-3 font-semibold text-indigo-800 mb-4">
+                            <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
+                              <Icon icon="wi:sunset" className="text-white" />
+                            </div>
+                            {equipeSoir?.vendeuse} - Équipe Soir
+                          </h4>
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Ventes totales :</span>
+                              <span className="font-bold text-indigo-700">
+                                {ventesJour.produits.reduce((total, p) => total + p.venduSoir, 0)} pcs
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Restants (à reconduire) :</span>
+                              <span className="font-medium text-green-600">
+                                {ventesJour.produits.reduce((total, p) => total + (p.restants || 0), 0)} pcs
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Invendus (Pertes) :</span>
+                              <span className="font-medium text-red-600">
+                                {ventesJour.produits.reduce((total, p) => total + (p.pertes || 0), 0)} pcs
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     {/* Tableau détaillé moderne */}
@@ -1319,19 +1349,23 @@ export const PageBoutique: React.FC = () => {
                               <div className="text-center">
                                 <div className="text-lg font-bold text-gray-900">{produit.venduMatin}</div>
                                 <div className="text-xs text-purple-600 font-medium">
-                                  Matin ({equipeMatin?.vendeuse || '—'})
+                                  {stockJour.isJourneeContinue ? 'Vendu' : `Matin (${equipeMatin?.vendeuse || '—'})`}
                                 </div>
                               </div>
-                              <div className="text-center">
-                                <div className="text-lg font-bold text-blue-600">{produit.resteMidi}</div>
-                                <div className="text-xs text-gray-500">Transmis soir</div>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-lg font-bold text-gray-900">{produit.venduSoir}</div>
-                                <div className="text-xs text-indigo-600 font-medium">
-                                  Soir ({equipeSoir?.vendeuse || '—'})
-                                </div>
-                              </div>
+                              {!stockJour.isJourneeContinue && (
+                                <>
+                                  <div className="text-center">
+                                    <div className="text-lg font-bold text-blue-600">{produit.resteMidi}</div>
+                                    <div className="text-xs text-gray-500">Transmis soir</div>
+                                  </div>
+                                  <div className="text-center">
+                                    <div className="text-lg font-bold text-gray-900">{produit.venduSoir}</div>
+                                    <div className="text-xs text-indigo-600 font-medium">
+                                      Soir ({equipeSoir?.vendeuse || '—'})
+                                    </div>
+                                  </div>
+                                </>
+                              )}
                               <div className="text-center">
                                 <div className="text-lg font-bold text-green-600">{produit.restants || 0}</div>
                                 <div className="text-xs text-gray-500">Restants</div>
@@ -1455,19 +1489,24 @@ export const PageBoutique: React.FC = () => {
       )}
 
       {/* Modal de répartition des invendus */}
-      {equipeSoir && showRepartitionModal && (
+      {(equipeSoir || (equipeMatin && stockJour?.isJourneeContinue)) && showRepartitionModal && (
         <RepartitionInvendusModal
           isOpen={showRepartitionModal}
           onClose={() => setShowRepartitionModal(false)}
           onConfirm={async (repartition) => {
             try {
-              await terminerEquipeSoirAvecRepartition(repartition);
+              if (stockJour?.isJourneeContinue) {
+                await terminerEquipeMatinAvecRepartition(repartition);
+              } else {
+                await terminerEquipeSoirAvecRepartition(repartition);
+              }
+              setShowRepartitionModal(false);
             } catch (error) {
               console.error('Erreur lors de la clôture:', error);
               alert('Erreur lors de la clôture. Veuillez réessayer.');
             }
           }}
-          produits={equipeSoir.produits}
+          produits={stockJour?.isJourneeContinue ? equipeMatin!.produits : equipeSoir!.produits}
         />
       )}
     </div>

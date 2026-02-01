@@ -278,6 +278,9 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         quantiteProduite: acc.quantiteProduite + produit.quantiteProduite,
         quantiteVendueTotal: acc.quantiteVendueTotal + produit.quantiteVendueTotal,
         invendusTotal: acc.invendusTotal + produit.invendusTotal,
+        retoursClients: acc.retoursClients + (produit.invendusClients || 0),
+        pertesBoutique: acc.pertesBoutique + (produit.pertesBoutique || 0),
+        restantsBoutique: acc.restantsBoutique + (produit.restantsBoutique || 0),
         tauxVenteGlobal: 0, // Calculé après
         pertesTotales: acc.pertesTotales + produit.invendusTotal,
         valeurVenteClients: acc.valeurVenteClients + produit.valeurVenteClients,
@@ -288,12 +291,16 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         quantiteProduite: 0,
         quantiteVendueTotal: 0,
         invendusTotal: 0,
+        retoursClients: 0,
+        pertesBoutique: 0,
+        restantsBoutique: 0,
         tauxVenteGlobal: 0,
         pertesTotales: 0,
         valeurVenteClients: 0,
         valeurVenteBoutique: 0,
         valeurVenteTotal: 0
       });
+
 
       // Calculer le taux de vente global
       totaux.tauxVenteGlobal = totaux.quantiteProduite > 0

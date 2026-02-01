@@ -294,8 +294,12 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
 
     const kpiRows = [
       ['Taux Global', `${indicateurs.tauxVenteGlobal.toFixed(1)}%`, 'Taux Clients', `${indicateurs.tauxVenteClients.toFixed(1)}%`],
-      ['Taux Boutique', `${indicateurs.tauxVenteBoutique.toFixed(1)}%`, 'Invendus Totaux', `${indicateurs.pertesTotales} u.`]
+      ['Taux Boutique', `${indicateurs.tauxVenteBoutique.toFixed(1)}%`, 'Invendus (Global)', `${indicateurs.pertesTotales} u.`],
+      ['Retours Clients', `${indicateurs.pertesClients} u.`, 'Restants Boutique', `${indicateurs.restantsBoutique} u.`],
+      ['Pertes Boutique', `${indicateurs.pertesBoutique} u.`, '', '']
     ];
+
+
 
     autoTable(doc, {
       startY: yPos + 2,
@@ -317,12 +321,22 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
   doc.setFontSize(12);
   doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
   doc.text('Bilan Quantitatif', 15, yPos);
-  const totalRow = [[
-    `Prévu: ${rapport.totaux.quantitePrevue}`,
-    `Produit: ${rapport.totaux.quantiteProduite}`,
-    `Vendu: ${rapport.totaux.quantiteVendueTotal}`,
-    `Invendus: ${rapport.totaux.invendusTotal}`
-  ]];
+  const totalRow = [
+    [
+      `Prévu: ${rapport.totaux.quantitePrevue}`,
+      `Produit: ${rapport.totaux.quantiteProduite}`,
+      `Vendu: ${rapport.totaux.quantiteVendueTotal}`,
+      `Invendus Totaux: ${rapport.totaux.invendusTotal}`
+    ],
+    [
+      `Détail:`,
+      `Retours Clients: ${rapport.totaux.retoursClients || 0}`,
+      `Invendus Boutique (Pertes): ${rapport.totaux.pertesBoutique || 0}`,
+      `Restants Boutique: ${rapport.totaux.restantsBoutique || 0}`
+    ]
+
+  ];
+
 
   autoTable(doc, {
     startY: yPos + 2,
