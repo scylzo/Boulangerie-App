@@ -219,13 +219,14 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between gap-3 ml-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 ml-4">
                                         {/* Info client */}
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h4 className="font-bold text-gray-900 text-sm truncate">
+                                            <div className="flex items-center gap-2 mb-1 flex-wrap sm:flex-nowrap">
+                                                <h4 className="font-bold text-gray-900 text-sm truncate flex-shrink-1 min-w-[100px]">
                                                     {perf.client.nom}
                                                 </h4>
+
                                                 {perf.client.aKiosque && (
                                                     <Icon icon="mdi:store" className="text-blue-600 text-sm shrink-0" />
                                                 )}
@@ -239,18 +240,16 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                                                <span className="inline-flex items-center gap-1">
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
+                                                <span className="inline-flex items-center gap-1 whitespace-nowrap">
                                                     <Icon icon="mdi:receipt-text" className="text-xs" />
                                                     {perf.nombreFactures} facture{perf.nombreFactures > 1 ? 's' : ''}
                                                 </span>
-                                                <span className="text-gray-300">•</span>
-                                                <span className="inline-flex items-center gap-1">
+                                                <span className="inline-flex items-center gap-1 whitespace-nowrap border-l border-gray-300 pl-3 sm:border-0 sm:pl-0">
                                                     <Icon icon="mdi:chart-line" className="text-xs" />
                                                     {formatCurrency(perf.moyenneParFacture)}/facture
                                                 </span>
-                                                <span className="text-gray-300">•</span>
-                                                <span className={`inline-flex items-center gap-1 font-semibold ${perf.tauxRetour <= 5 ? 'text-green-600' :
+                                                <span className={`inline-flex items-center gap-1 font-semibold whitespace-nowrap border-l border-gray-300 pl-3 sm:border-0 sm:pl-0 ${perf.tauxRetour <= 5 ? 'text-green-600' :
                                                     perf.tauxRetour <= 15 ? 'text-orange-600' :
                                                         'text-red-600'
                                                     }`}>
@@ -258,6 +257,7 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                                                     {perf.tauxRetour.toFixed(1)}% retours
                                                 </span>
                                             </div>
+
 
                                             {/* Barre de progression */}
                                             <div className="mt-2">

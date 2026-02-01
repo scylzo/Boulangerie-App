@@ -115,7 +115,8 @@ export const Dashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <div className="min-w-0 flex-1">
                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight truncate">Tableau de bord</h1>
-                    <p className="text-gray-500 mt-1 text-xs sm:text-sm truncate">Gestion centralisée de l'activité du jour</p>
+                    <p className="text-gray-500 mt-1 text-xs sm:text-sm">Gestion centralisée de l'activité du jour</p>
+
                 </div>
                 <div className="flex bg-white px-3 sm:px-4 md:px-5 py-2 md:py-3 rounded-xl shadow-sm border border-gray-200 items-center gap-2 sm:gap-3 self-start sm:self-center shrink-0">
                     <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 rounded-lg flex items-center justify-center">
