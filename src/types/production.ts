@@ -67,6 +67,18 @@ export const CARS_LIVRAISON = {
   car_soir: 'Car - Soir'
 } as const;
 
+export interface RedistributionData {
+  type: 'boutique' | 'client' | 'mixte';
+  clientId?: string;
+  repartition: Array<{
+    produitId: string;
+    quantiteVersBoutique: number;
+    quantiteVersClient: number;
+    clientDestinataireId?: string;
+  }>;
+  motif: string;
+}
+
 export interface CommandeClient {
   id: string;
   clientId: string;
@@ -87,9 +99,14 @@ export interface CommandeClient {
   dateLivraison: Date;
   carLivraison?: CarLivraison; // Obsolète - remplacé par repartitionCars au niveau produit
   statut: 'prevue' | 'confirmee' | 'livree' | 'annulee';
+  notes?: string;
+  motifAnnulation?: string;
+  redistribution?: RedistributionData;
   createdAt: Date;
   updatedAt: Date;
 }
+
+
 
 export interface QuantiteBoutique {
   produitId: string;

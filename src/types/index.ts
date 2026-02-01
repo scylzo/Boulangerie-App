@@ -7,8 +7,10 @@ export type {
   ProgrammeProduction,
   Livreur,
   CarLivraison,
-  Ingredient
+  Ingredient,
+  RedistributionData
 } from './production';
+
 
 // Livraison types
 export type {

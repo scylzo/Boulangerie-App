@@ -34,6 +34,22 @@ export interface RapportJournalier {
     ecartProduitVendu: number;     // produit - vendu total
   }>;
 
+  // Traçabilité des annulations
+  annulations?: Array<{
+    commandeId: string;
+    clientNom: string;
+    motif: string;
+    produits: Array<{
+      nom: string;
+      quantite: number;
+    }>;
+    redistribution: {
+      type: 'boutique' | 'client' | 'mixte';
+      destinationNom?: string; // Nom du client ou "Boutique"
+    };
+  }>;
+
+
   // Totaux globaux
   totaux: {
     quantitePrevue: number;

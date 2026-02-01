@@ -100,7 +100,11 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
       if (referentielStore.produits.length === 0) {
         await referentielStore.chargerProduits();
       }
+      if (referentielStore.clients.length === 0) {
+        await referentielStore.chargerClients();
+      }
       console.log('✅ Données de référence chargées');
+
 
       // Obtenir les données fraîches après chargement
       const productionState = useProductionStore.getState();
@@ -296,15 +300,52 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         ? Math.round((totaux.quantiteVendueTotal / totaux.quantiteProduite) * 10000) / 100
         : 0;
 
+      // Collecter les annulations
+      const annulations = commandesClients
+        .filter(cmd => cmd.statut === 'annulee')
+        .map(cmd => {
+          const client = referentielState.clients.find(c => c.id === cmd.clientId);
+
+          let destinationNom = '';
+          if (cmd.redistribution) {
+            if (cmd.redistribution.type === 'boutique') {
+              destinationNom = 'Boutique';
+            } else if (cmd.redistribution.type === 'client') {
+              const dest = referentielState.clients.find(c => c.id === cmd.redistribution?.clientId);
+              destinationNom = dest ? dest.nom : 'Client inconnu';
+
+            } else {
+              destinationNom = 'Mixte (Boutique & Clients)';
+            }
+          }
+
+          return {
+            commandeId: cmd.id,
+            clientNom: client ? client.nom : 'Client inconnu',
+            motif: cmd.motifAnnulation || 'Non spécifié',
+            produits: cmd.produits.map(p => ({
+              nom: p.produit?.nom || 'Produit inconnu',
+              quantite: p.quantiteCommandee
+            })),
+            redistribution: {
+              type: cmd.redistribution?.type || 'boutique',
+              destinationNom
+            }
+          };
+
+        });
+
       const rapportJournalier: RapportJournalier = {
         id: `rapport_${date.getTime()}`,
         date,
         produits: rapportProduits,
+        annulations,
         totaux,
         statut: 'genere',
         createdAt: new Date(),
         updatedAt: new Date(),
       };
+
 
       set({
         rapportJour: rapportJournalier,

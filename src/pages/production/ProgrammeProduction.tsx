@@ -15,6 +15,8 @@ import { htmlPrintService } from '../../services/htmlPrintService';
 import { downloadProductionProgramPDF } from '../../utils/pdfGenerator';
 import { useLivreurStore } from '../../store/livreurStore'; // Ajout Import
 import { ScrollToTopBottom } from '../../components/ui/ScrollToTopBottom';
+import { RedistributionModal } from '../../components/production/RedistributionModal';
+import type { RedistributionData } from '../../components/production/RedistributionModal';
 import type { CommandeClient } from '../../types';
 
 
@@ -38,6 +40,7 @@ export const ProgrammeProduction: React.FC = () => {
     modifierCommandeClient,
     supprimerCommandeClient,
     annulerCommandeClient,
+    annulerCommandeAvecRedistribution,
     supprimerProduitDeCommande,
     ajouterQuantiteBoutique,
     supprimerQuantiteBoutique,
@@ -65,6 +68,8 @@ export const ProgrammeProduction: React.FC = () => {
   const [indexProduitEnEdition, setIndexProduitEnEdition] = useState<number | null>(null);
   const [showModifierProduitForm, setShowModifierProduitForm] = useState(false);
   const [rechercheClient, setRechercheClient] = useState('');
+  const [showRedistributionModal, setShowRedistributionModal] = useState(false);
+  const [commandeARedistribuer, setCommandeARedistribuer] = useState<CommandeClient | null>(null);
 
   // Filtrer les commandes selon la recherche
   const commandesFiltrees = commandesClients.filter(commande => {
@@ -274,6 +279,17 @@ export const ProgrammeProduction: React.FC = () => {
     const commande = commandesClients.find(c => c.id === commandeId);
     const client = clients.find(c => c.id === commande?.clientId);
 
+    // Si le programme est déjà produit, envoyé ou modifié, on utilise la redistribution
+    const programmeDejaProduit = programmeActuel?.statut === 'produit' ||
+      programmeActuel?.statut === 'envoye' ||
+      programmeActuel?.statut === 'modifie';
+
+    if (programmeDejaProduit && commande && commande.statut !== 'annulee') {
+      setCommandeARedistribuer(commande);
+      setShowRedistributionModal(true);
+      return;
+    }
+
     const confirmation = await confirmModal.confirm({
       title: 'Annuler la commande',
       message: `Êtes-vous sûr de vouloir annuler la commande de "${client?.nom || 'Client inconnu'}" ?\n\nCette action supprimera la commande du programme.`,
@@ -287,6 +303,21 @@ export const ProgrammeProduction: React.FC = () => {
       toast.success(`Commande de ${client?.nom || 'le client'} annulée`);
     }
   };
+
+  const handleConfirmRedistribution = async (redistribution: RedistributionData) => {
+    if (!commandeARedistribuer) return;
+
+    try {
+      await annulerCommandeAvecRedistribution(commandeARedistribuer.id, redistribution);
+      setShowRedistributionModal(false);
+      setCommandeARedistribuer(null);
+      toast.success('✅ Commande annulée et produits redistribués avec succès !');
+    } catch (error) {
+      console.error('Erreur redistribution:', error);
+      toast.error('❌ Erreur lors de la redistribution');
+    }
+  };
+
 
   const handleSupprimerCommande = async (commandeId: string) => {
     const commande = commandesClients.find(c => c.id === commandeId);
@@ -665,6 +696,20 @@ export const ProgrammeProduction: React.FC = () => {
             />
           </Modal>
         )}
+
+        <RedistributionModal
+          isOpen={showRedistributionModal}
+          onClose={() => {
+            setShowRedistributionModal(false);
+            setCommandeARedistribuer(null);
+          }}
+          onConfirm={handleConfirmRedistribution}
+          commande={commandeARedistribuer}
+          clients={clients}
+          isLoading={isLoading}
+        />
+
+
 
         {/* Section Commandes Clients avec design moderne */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

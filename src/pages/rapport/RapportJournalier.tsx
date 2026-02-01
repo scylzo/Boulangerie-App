@@ -608,7 +608,47 @@ export const RapportJournalier: React.FC = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* SECTION ANNULATIONS */}
+                  {rapportJour.annulations && rapportJour.annulations.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-orange-200">
+                        <Icon icon="mdi:cancel" className="text-orange-600" />
+                        <h3 className="text-lg font-semibold text-gray-800">Commandes Annulées & Redistribution</h3>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {rapportJour.annulations.map((ann, idx) => (
+                          <div key={idx} className="bg-orange-50 border border-orange-200 rounded-xl p-4 shadow-sm">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h4 className="font-bold text-gray-900">{ann.clientNom}</h4>
+                                <p className="text-xs text-orange-700 font-medium">Motif: {ann.motif}</p>
+                              </div>
+                              <span className="bg-orange-200 text-orange-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                                {ann.redistribution.type}
+                              </span>
+                            </div>
+                            <div className="space-y-1 mt-3">
+                              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Produits redistribués :</p>
+                              {ann.produits.map((p, pidx) => (
+                                <div key={pidx} className="flex justify-between text-sm">
+                                  <span className="text-gray-700">{p.nom}</span>
+                                  <span className="font-bold text-gray-900">x{p.quantite}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="mt-3 pt-2 border-t border-orange-200">
+                              <p className="text-xs text-orange-800">
+                                <span className="font-bold">Destination :</span> {ann.redistribution.destinationNom}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
+
               </div>
             </div>
           </div>

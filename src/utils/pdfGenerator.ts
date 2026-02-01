@@ -462,6 +462,47 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
 
   // 4. Pied de page discret
   const pageHeight = doc.internal.pageSize.height;
+
+  // Section Annulations & Redistribution
+
+  if (rapport.annulations && rapport.annulations.length > 0) {
+    yPos = (doc as any).lastAutoTable.finalY + 12;
+
+    // Vérifier si on a besoin d'une nouvelle page
+    if (yPos > pageHeight - 60) {
+      doc.addPage();
+      yPos = 20;
+    }
+
+    doc.setFontSize(11);
+    doc.setTextColor(234, 88, 12); // Orange 600
+    doc.text('ANNULATIONS ET REDISTRIBUTIONS', 15, yPos);
+
+    const annulationData = rapport.annulations.map(ann => [
+      ann.clientNom,
+      ann.produits.map(p => `${p.nom} (x${p.quantite})`).join('\n'),
+      ann.motif,
+      `${ann.redistribution.type.toUpperCase()}\n-> ${ann.redistribution.destinationNom}`
+    ]);
+
+    autoTable(doc, {
+      startY: yPos + 2,
+      head: [['Client', 'Produits', 'Motif', 'Redistribution']],
+      body: annulationData,
+      theme: 'grid',
+      headStyles: { fillColor: [234, 88, 12] as any, fontSize: 8 },
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 50 },
+        3: { cellWidth: 50 }
+      },
+      margin: { left: 15, right: 15 }
+    });
+  }
+
+  // 4. Pied de page discret
   doc.setFontSize(7);
   doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
   doc.text(`Document généré le ${new Date().toLocaleString('fr-FR')} - BOULANGERIE ERP`, 15, pageHeight - 10);
@@ -469,6 +510,7 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
 
   return doc;
 };
+
 
 export const downloadRapportJournalierPDF = async (rapport: RapportJournalier, indicateurs: IndicateursPerformance | null) => {
   try {
