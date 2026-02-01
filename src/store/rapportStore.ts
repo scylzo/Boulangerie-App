@@ -198,7 +198,14 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         const venteBoutiqueProduit = ventesJour?.produits.find(v => v.produitId === produitId);
         const venduBoutique = venteBoutiqueProduit?.venduTotal || 0;
         const invenduBoutique = venteBoutiqueProduit?.invenduBoutique || 0;
-        const stockDebutBoutique = venteBoutiqueProduit?.stockDebut || quantiteBoutique;
+        const restantsBoutique = venteBoutiqueProduit?.restants || 0;
+        const pertesBoutique = venteBoutiqueProduit?.pertes || 0;
+
+        // Stock boutique = stock du jour + stock reconduit de la veille
+        const stockBoutiqueJour = stockJour?.produits.find(s => s.produitId === produitId);
+        const stockDebut = venteBoutiqueProduit?.stockDebut || 0;
+        const stockReconduit = stockBoutiqueJour?.stockReconduit || 0;
+        const stockDebutBoutique = stockDebut + stockReconduit || quantiteBoutique;
 
         // Invendus clients (retours)
         const invendusClientsProduit = invendusClients
@@ -247,6 +254,8 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
           quantiteVendueTotal,
           invendusClients: invendusClientsProduit,
           invendusBoutique: invenduBoutique,
+          restantsBoutique: restantsBoutique,
+          pertesBoutique: pertesBoutique,
           invendusTotal,
           valeurVenteClients,
           valeurVenteBoutique,
@@ -455,8 +464,10 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
 
     const totauxBoutique = rapportJour.produits.reduce((acc, produit) => ({
       vendu: acc.vendu + produit.quantiteVendueBoutique,
-      invendus: acc.invendus + produit.invendusBoutique
-    }), { vendu: 0, invendus: 0 });
+      invendus: acc.invendus + produit.invendusBoutique,
+      restants: acc.restants + (produit.restantsBoutique || 0),
+      pertes: acc.pertes + (produit.pertesBoutique || 0)
+    }), { vendu: 0, invendus: 0, restants: 0, pertes: 0 });
 
     const indicateurs: IndicateursPerformance = {
       date,
@@ -470,7 +481,9 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
       ),
       tauxVenteGlobal: rapportJour.totaux.tauxVenteGlobal,
       pertesClients: totauxClients.invendus,
-      pertesBoutique: totauxBoutique.invendus,
+      pertesBoutique: totauxBoutique.pertes,
+      restantsBoutique: totauxBoutique.restants,
+      restantsTotaux: totauxBoutique.restants,
       pertesTotales: rapportJour.totaux.pertesTotales,
       valeurVenteClients: rapportJour.totaux.valeurVenteClients,
       valeurVenteBoutique: rapportJour.totaux.valeurVenteBoutique,

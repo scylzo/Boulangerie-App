@@ -129,7 +129,7 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                             <div className="bg-white rounded-lg p-3 border border-red-200">
                                 <div className="flex items-center gap-2 mb-1">
                                     <Icon icon="mdi:delete-outline" className="text-red-600" />
-                                    <span className="text-xs text-red-700 font-medium">Pertes</span>
+                                    <span className="text-xs text-red-700 font-medium">Invendus</span>
                                 </div>
                                 <p className="text-2xl font-bold text-red-600">{totalPertes}</p>
                             </div>
@@ -176,8 +176,9 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                                                         type="number"
                                                         min="0"
                                                         max={produit.reste}
-                                                        value={rep.restants}
+                                                        value={rep.restants === 0 ? '' : rep.restants}
                                                         onChange={(e) => handleRestantsChange(produit.produitId, parseInt(e.target.value) || 0)}
+                                                        placeholder="0"
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                                     />
                                                     <Icon icon="mdi:pencil" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -185,15 +186,16 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                                             </div>
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                    Pertes
+                                                    Invendus
                                                 </label>
                                                 <div className="relative">
                                                     <input
                                                         type="number"
                                                         min="0"
                                                         max={produit.reste}
-                                                        value={rep.pertes}
+                                                        value={rep.pertes === 0 ? '' : rep.pertes}
                                                         onChange={(e) => handlePertesChange(produit.produitId, parseInt(e.target.value) || 0)}
+                                                        placeholder="0"
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                                     />
                                                     <Icon icon="mdi:pencil" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />

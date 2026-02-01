@@ -1255,9 +1255,15 @@ export const PageBoutique: React.FC = () => {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Invendus finaux :</span>
+                            <span className="text-sm text-gray-600">Restants (à reconduire) :</span>
+                            <span className="font-medium text-green-600">
+                              {ventesJour.produits.reduce((total, p) => total + (p.restants || 0), 0)} pcs
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Invendus :</span>
                             <span className="font-medium text-red-600">
-                              {ventesJour.produits.reduce((total, p) => total + p.invenduBoutique, 0)} pcs
+                              {ventesJour.produits.reduce((total, p) => total + (p.pertes || 0), 0)} pcs
                             </span>
                           </div>
                         </div>
@@ -1276,7 +1282,7 @@ export const PageBoutique: React.FC = () => {
                             key={produit.produitId}
                             className="bg-white rounded-xl p-4 border border-gray-200 hover:shadow-md transition-all"
                           >
-                            <div className="grid grid-cols-2 md:grid-cols-9 gap-4 items-center">
+                            <div className="grid grid-cols-2 md:grid-cols-10 gap-4 items-center">
                               <div className="md:col-span-2">
                                 <div className="flex items-center gap-3">
                                   <div className="w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg flex items-center justify-center">
@@ -1308,11 +1314,11 @@ export const PageBoutique: React.FC = () => {
                               </div>
                               <div className="text-center">
                                 <div className="text-lg font-bold text-gray-800">{produit.stockDebut}</div>
-                                <div className="text-xs text-gray-500">Stock initial</div>
+                                <div className="text-xs text-gray-500">Stock</div>
                               </div>
                               <div className="text-center">
                                 <div className="text-lg font-bold text-gray-900">{produit.venduMatin}</div>
-                                <div className="text-xs text-orange-600 font-medium">
+                                <div className="text-xs text-purple-600 font-medium">
                                   Matin ({equipeMatin?.vendeuse || '—'})
                                 </div>
                               </div>
@@ -1327,8 +1333,12 @@ export const PageBoutique: React.FC = () => {
                                 </div>
                               </div>
                               <div className="text-center">
-                                <div className="text-lg font-bold text-red-600">{produit.invenduBoutique}</div>
-                                <div className="text-xs text-gray-500">Invendu final</div>
+                                <div className="text-lg font-bold text-green-600">{produit.restants || 0}</div>
+                                <div className="text-xs text-gray-500">Restants</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-lg font-bold text-red-600">{produit.pertes || 0}</div>
+                                <div className="text-xs text-gray-500">Invendus</div>
                               </div>
                               <div className="text-center">
                                 <div className="text-lg font-bold text-green-600">{produit.venduTotal}</div>

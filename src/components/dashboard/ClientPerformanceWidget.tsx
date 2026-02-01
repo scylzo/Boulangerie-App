@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import { formatCurrency } from '../../utils/currency';
 import { downloadClientPerformancePDF } from '../../utils/pdfGenerator';
@@ -20,26 +20,28 @@ interface ClientPerformance {
 interface ClientPerformanceWidgetProps {
     factures: Facture[];
     clients: Client[];
-    periodeDays?: number; // Nombre de jours à analyser (par défaut 30)
+    dateDebut: string; // Date de début au format YYYY-MM-DD
+    dateFin: string; // Date de fin au format YYYY-MM-DD
 }
 
 export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = ({
     factures,
     clients,
-    periodeDays = 30
+    dateDebut,
+    dateFin
 }) => {
-    const [selectedPeriod, setSelectedPeriod] = useState(periodeDays);
-
     const clientsPerformance = useMemo(() => {
-        const now = new Date();
-        const startDate = new Date();
-        startDate.setDate(now.getDate() - selectedPeriod);
+        // Convertir les dates string en objets Date
+        const startDate = new Date(dateDebut);
         startDate.setHours(0, 0, 0, 0);
+
+        const endDate = new Date(dateFin);
+        endDate.setHours(23, 59, 59, 999);
 
         // Filtrer les factures de la période
         const facturesPeriode = factures.filter(f => {
             const factureDate = new Date(f.dateLivraison);
-            return factureDate >= startDate && f.statut !== 'annulee';
+            return factureDate >= startDate && factureDate <= endDate && f.statut !== 'annulee';
         });
 
         // Calculer les performances par client
@@ -114,7 +116,7 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
             const scoreDiff = b.scorePerformance - a.scorePerformance;
             return scoreDiff !== 0 ? scoreDiff : b.totalAchats - a.totalAchats;
         });
-    }, [factures, clients, selectedPeriod]);
+    }, [factures, clients, dateDebut, dateFin]);
 
     const topClients = clientsPerformance.slice(0, 10);
     const totalRevenue = clientsPerformance.reduce((sum, c) => sum + c.totalAchats, 0);
@@ -134,35 +136,22 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                         </div>
                     </div>
 
-                    {/* Sélecteur de période */}
-                    <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-                        {[7, 30, 90].map(days => (
-                            <button
-                                key={days}
-                                onClick={() => setSelectedPeriod(days)}
-                                className={`px-2 sm:px-3 py-1 text-xs font-semibold rounded transition-all ${selectedPeriod === days
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'text-gray-600 hover:bg-gray-100'
-                                    }`}
-                            >
-                                {days}J
-                            </button>
-                        ))}
-                    </div>
+
 
                     {/* Bouton PDF */}
                     <button
                         onClick={async () => {
                             try {
-                                const now = new Date();
-                                const startDate = new Date();
-                                startDate.setDate(now.getDate() - selectedPeriod);
+                                const startDate = new Date(dateDebut);
+                                const endDate = new Date(dateFin);
+                                const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                                 await downloadClientPerformancePDF(
                                     clientsPerformance as any,
-                                    selectedPeriod,
+                                    diffDays,
                                     startDate,
-                                    now
+                                    endDate
                                 );
                             } catch (error) {
                                 console.error('Erreur PDF:', error);

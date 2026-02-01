@@ -228,7 +228,7 @@ export const RapportJournalier: React.FC = () => {
                   </div>
                 </div>
 
-                {/* KPI Pertes */}
+                {/* KPI Invendus */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="bg-gray-800 rounded-2xl p-6 text-white shadow-lg">
                     <div className="flex items-center justify-between mb-4">
@@ -238,7 +238,7 @@ export const RapportJournalier: React.FC = () => {
                         <div className="text-gray-400 text-xs">pièces perdues</div>
                       </div>
                     </div>
-                    <div className="text-lg font-semibold">Pertes Totales</div>
+                    <div className="text-lg font-semibold">Invendus Totaux</div>
                   </div>
 
                   <div className="bg-gray-800 rounded-2xl p-6 text-white shadow-lg">
@@ -261,6 +261,31 @@ export const RapportJournalier: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-lg font-semibold">Invendus Boutique</div>
+                  </div>
+                </div>
+
+                {/* KPI Restants */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-green-700 rounded-2xl p-6 text-white shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <Icon icon="mdi:package-variant-closed" className="text-2xl text-green-200" />
+                      <div className="text-right">
+                        <div className="text-3xl font-bold">{indicateurs.restantsTotaux}</div>
+                        <div className="text-white/90 text-xs">à reconduire</div>
+                      </div>
+                    </div>
+                    <div className="text-lg font-semibold">Restants Totaux</div>
+                  </div>
+
+                  <div className="bg-green-600 rounded-2xl p-6 text-white shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <Icon icon="mdi:storefront-check" className="text-2xl text-green-200" />
+                      <div className="text-right">
+                        <div className="text-3xl font-bold">{indicateurs.restantsBoutique}</div>
+                        <div className="text-white/90 text-xs">restants boutique</div>
+                      </div>
+                    </div>
+                    <div className="text-lg font-semibold">Restants Boutique</div>
                   </div>
                 </div>
 
@@ -373,9 +398,15 @@ export const RapportJournalier: React.FC = () => {
                                       <div className="text-[10px] text-emerald-600 uppercase">Vendu</div>
                                     </div>
                                   </div>
-                                  <div className="mt-3 bg-red-50 p-2 rounded-lg text-center">
-                                    <div className="text-lg font-bold text-red-600">{produit.invendusBoutique}</div>
-                                    <div className="text-[10px] text-red-500 uppercase">Invendus</div>
+                                  <div className="grid grid-cols-2 gap-2 mt-3">
+                                    <div className="bg-green-50 p-2 rounded-lg text-center">
+                                      <div className="text-lg font-bold text-green-600">{produit.restantsBoutique || 0}</div>
+                                      <div className="text-[10px] text-green-500 uppercase">Restants</div>
+                                    </div>
+                                    <div className="bg-red-50 p-2 rounded-lg text-center">
+                                      <div className="text-lg font-bold text-red-600">{produit.pertesBoutique || 0}</div>
+                                      <div className="text-[10px] text-red-500 uppercase">Invendus</div>
+                                    </div>
                                   </div>
                                 </div>
                               ))}
@@ -413,9 +444,15 @@ export const RapportJournalier: React.FC = () => {
                                       <div className="text-[10px] text-emerald-600 uppercase">Vendu</div>
                                     </div>
                                   </div>
-                                  <div className="mt-3 bg-red-50 p-2 rounded-lg text-center">
-                                    <div className="text-lg font-bold text-red-600">{produit.invendusBoutique}</div>
-                                    <div className="text-[10px] text-red-500 uppercase">Invendus</div>
+                                  <div className="grid grid-cols-2 gap-2 mt-3">
+                                    <div className="bg-green-50 p-2 rounded-lg text-center">
+                                      <div className="text-lg font-bold text-green-600">{produit.restantsBoutique || 0}</div>
+                                      <div className="text-[10px] text-green-500 uppercase">Restants</div>
+                                    </div>
+                                    <div className="bg-red-50 p-2 rounded-lg text-center">
+                                      <div className="text-lg font-bold text-red-600">{produit.pertesBoutique || 0}</div>
+                                      <div className="text-[10px] text-red-500 uppercase">Invendus</div>
+                                    </div>
                                   </div>
                                 </div>
                               ))}
@@ -440,8 +477,12 @@ export const RapportJournalier: React.FC = () => {
                               <div className="text-base sm:text-xl font-black">{formatCurrency(rapportJour.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + p.valeurVenteBoutique, 0))}</div>
                             </div>
                             <div className="text-left sm:text-right flex-1 sm:flex-none sm:border-l sm:border-emerald-500 sm:pl-6">
+                              <div className="text-[10px] text-white/90 uppercase font-bold">Restants</div>
+                              <div className="text-base sm:text-xl font-black">{rapportJour.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + (p.restantsBoutique || 0), 0)}</div>
+                            </div>
+                            <div className="text-left sm:text-right flex-1 sm:flex-none sm:border-l sm:border-emerald-500 sm:pl-6">
                               <div className="text-[10px] text-white/90 uppercase font-bold">Invendus</div>
-                              <div className="text-base sm:text-xl font-black">{rapportJour.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + p.invendusBoutique, 0)}</div>
+                              <div className="text-base sm:text-xl font-black">{rapportJour.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + (p.pertesBoutique || 0), 0)}</div>
                             </div>
                           </div>
                         </div>

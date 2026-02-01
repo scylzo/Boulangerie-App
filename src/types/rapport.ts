@@ -14,7 +14,9 @@ export interface RapportJournalier {
     quantiteVendueBoutique: number; // calculé boutique
     quantiteVendueTotal: number;   // clients + boutique
     invendusClients: number;       // calculé des livraisons
-    invendusBoutique: number;      // calculé boutique
+    invendusBoutique: number;      // calculé boutique (restants + pertes)
+    restantsBoutique: number;      // produits à reconduire le lendemain
+    pertesBoutique: number;        // pertes réelles
     invendusTotal: number;         // clients + boutique
 
     // Indicateurs financiers
@@ -57,6 +59,8 @@ export interface IndicateursPerformance {
   tauxVenteGlobal: number;
   pertesClients: number;
   pertesBoutique: number;
+  restantsBoutique: number;
+  restantsTotaux: number;
   pertesTotales: number;
   valeurVenteClients: number;
   valeurVenteBoutique: number;

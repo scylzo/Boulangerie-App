@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useFacturationStore } from '../store/facturationStore';
 import { useStockStore } from '../store/stockStore';
@@ -6,12 +6,23 @@ import { useProductionStore } from '../store/productionStore';
 import { useReferentielStore } from '../store/referentielStore';
 import { formatCurrency } from '../utils/currency';
 import { ClientPerformanceWidget } from '../components/dashboard/ClientPerformanceWidget';
+import { PeriodeSelector } from '../components/dashboard/PeriodeSelector';
 
 export const Dashboard: React.FC = () => {
     const { factures, chargerFactures } = useFacturationStore();
     const { matieres, chargerDonnees: chargerStock } = useStockStore();
     const { programmeActuel, chargerProgramme } = useProductionStore();
     const { clients, chargerClients } = useReferentielStore();
+
+    // État pour la période de performance
+    const [dateDebut, setDateDebut] = useState(() => {
+        const date = new Date();
+        date.setDate(date.getDate() - 30);
+        return date.toISOString().split('T')[0];
+    });
+    const [dateFin, setDateFin] = useState(() => {
+        return new Date().toISOString().split('T')[0];
+    });
 
     useEffect(() => {
         const init = async () => {
@@ -280,8 +291,19 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Widget Performances Clients - Pleine largeur */}
-            <div className="mt-4 sm:mt-6">
-                <ClientPerformanceWidget factures={factures} clients={clients} periodeDays={30} />
+            <div className="mt-4 sm:mt-6 space-y-4">
+                <PeriodeSelector
+                    dateDebut={dateDebut}
+                    dateFin={dateFin}
+                    onDateDebutChange={setDateDebut}
+                    onDateFinChange={setDateFin}
+                />
+                <ClientPerformanceWidget
+                    factures={factures}
+                    clients={clients}
+                    dateDebut={dateDebut}
+                    dateFin={dateFin}
+                />
             </div>
         </div>
     );

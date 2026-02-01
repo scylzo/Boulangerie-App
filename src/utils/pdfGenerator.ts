@@ -294,7 +294,7 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
 
     const kpiRows = [
       ['Taux Global', `${indicateurs.tauxVenteGlobal.toFixed(1)}%`, 'Taux Clients', `${indicateurs.tauxVenteClients.toFixed(1)}%`],
-      ['Taux Boutique', `${indicateurs.tauxVenteBoutique.toFixed(1)}%`, 'Pertes Totales', `${indicateurs.pertesTotales} u.`]
+      ['Taux Boutique', `${indicateurs.tauxVenteBoutique.toFixed(1)}%`, 'Invendus Totaux', `${indicateurs.pertesTotales} u.`]
     ];
 
     autoTable(doc, {
@@ -415,35 +415,46 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
       (p.quantiteVendueBoutique + p.invendusBoutique).toString(),
       p.quantiteVendueBoutique.toString(),
       formatCurrencyCompact(p.valeurVenteBoutique),
-      p.invendusBoutique.toString(),
+      (p.restantsBoutique || 0).toString(),
+      (p.pertesBoutique || 0).toString(),
       `${p.tauxVenteBoutique.toFixed(1)}%`
     ]);
 
   const totalBoutiqueStock = rapport.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + (p.quantiteVendueBoutique + p.invendusBoutique), 0);
   const totalBoutiqueVendu = rapport.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + p.quantiteVendueBoutique, 0);
   const totalBoutiqueValeur = rapport.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + p.valeurVenteBoutique, 0);
-  const totalBoutiqueInvendus = rapport.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + p.invendusBoutique, 0);
+  const totalBoutiqueRestants = rapport.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + (p.restantsBoutique || 0), 0);
+  const totalBoutiquePertes = rapport.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + (p.pertesBoutique || 0), 0);
 
   autoTable(doc, {
     startY: yPos + 2,
-    head: [['Produit', 'En rayon', 'Vendu', 'Valeur', 'Invendus', 'Taux']],
+    head: [['Produit', 'En rayon', 'Vendu', 'Valeur', 'Restants', 'Invendus', 'Taux']],
     body: boutiqueData,
-    foot: [['TOTAL', totalBoutiqueStock.toString(), totalBoutiqueVendu.toString(), formatCurrencyCompact(totalBoutiqueValeur), totalBoutiqueInvendus.toString(), '']],
+    foot: [['TOTAL', totalBoutiqueStock.toString(), totalBoutiqueVendu.toString(), formatCurrencyCompact(totalBoutiqueValeur), totalBoutiqueRestants.toString(), totalBoutiquePertes.toString(), '']],
     theme: 'grid',
     headStyles: { fillColor: colors.boutique as any, fontSize: 8 },
     footStyles: { fillColor: [243, 244, 246], textColor: colors.text as any, fontStyle: 'bold', fontSize: 8, halign: 'center' },
     styles: { fontSize: 8, cellPadding: 1.5 },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'center', cellWidth: 15 },
-      2: { halign: 'center', cellWidth: 15 },
-      3: { halign: 'right', cellWidth: 25 },
-      4: { halign: 'center', cellWidth: 15 },
-      5: { halign: 'center', cellWidth: 15 }
+      1: { halign: 'center', cellWidth: 14 },
+      2: { halign: 'center', cellWidth: 14 },
+      3: { halign: 'right', cellWidth: 20 },
+      4: { halign: 'center', cellWidth: 17 },
+      5: { halign: 'center', cellWidth: 17 },
+      6: { halign: 'center', cellWidth: 13 }
     },
     didParseCell: (data) => {
       if (data.section === 'foot' && data.column.index === 0) {
         data.cell.styles.halign = 'left';
+      }
+      // Colorer les restants en vert
+      if (data.section === 'body' && data.column.index === 4) {
+        data.cell.styles.textColor = [22, 163, 74]; // Vert
+      }
+      // Colorer les pertes en rouge
+      if (data.section === 'body' && data.column.index === 5) {
+        data.cell.styles.textColor = [239, 68, 68]; // Rouge
       }
     },
     margin: { left: 15, right: 15 }
