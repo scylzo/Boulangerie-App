@@ -104,14 +104,25 @@ export const GestionClients: React.FC = () => {
             </div>
           </div>
 
-          <button
-            onClick={() => setShowForm(true)}
-            disabled={showForm}
-            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto"
-          >
-            <Icon icon="mdi:plus" className="text-base sm:text-lg" />
-            <span>Nouveau client</span>
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <a
+              href="/admin/carte"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all shadow-sm text-xs sm:text-sm font-bold flex-1 sm:flex-none"
+            >
+              <Icon icon="mdi:map-marker-radius" className="text-base sm:text-lg" />
+              <span>Carte des Kiosques</span>
+            </a>
+
+            <button
+              onClick={() => setShowForm(true)}
+              disabled={showForm}
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+            >
+              <Icon icon="mdi:plus" className="text-base sm:text-lg" />
+              <span>Nouveau client</span>
+            </button>
+          </div>
+
         </div>
       </div>
 
@@ -243,6 +254,16 @@ export const GestionClients: React.FC = () => {
                             <span className="text-sm text-gray-700">{client.email}</span>
                           </div>
                         )}
+
+                        {(client.latitude && client.longitude) && (
+                          <div className="flex items-center gap-2">
+                            <Icon icon="mdi:crosshairs-gps" className="text-blue-500" />
+                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                              {client.latitude.toFixed(4)}, {client.longitude.toFixed(4)}
+                            </span>
+                          </div>
+                        )}
+
                       </div>
 
                       {/* Type et Paiement */}

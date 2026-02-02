@@ -3,7 +3,9 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Card } from '../ui/Card';
+import { Icon } from '@iconify/react';
 import { useLivreurStore } from '../../store/livreurStore';
+
 import type { Client } from '../../types';
 
 interface ClientFormProps {
@@ -34,8 +36,11 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     aKiosque: false,
     estRegulier: false,
     neTravaillePasDimanche: false,
+    latitude: '' as string | number,
+    longitude: '' as string | number,
     active: true
   });
+
 
   useEffect(() => {
     chargerLivreurs().catch(console.error);
@@ -56,8 +61,11 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         aKiosque: client.aKiosque || false,
         estRegulier: client.estRegulier || false,
         neTravaillePasDimanche: client.neTravaillePasDimanche || false,
+        latitude: client.latitude ?? '',
+        longitude: client.longitude ?? '',
         active: client.active
       });
+
     }
   }, [client]);
 
@@ -66,8 +74,11 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     try {
       await onSave({
         ...formData,
-        modePaiementPreference: (formData.modePaiementPreference || undefined) as any
+        modePaiementPreference: (formData.modePaiementPreference || undefined) as any,
+        latitude: formData.latitude !== '' ? Number(formData.latitude) : undefined,
+        longitude: formData.longitude !== '' ? Number(formData.longitude) : undefined,
       });
+
       // Reset form si c'est un ajout
       if (!client) {
         setFormData({
@@ -83,13 +94,37 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           aKiosque: false,
           estRegulier: false,
           neTravaillePasDimanche: false,
+          latitude: '',
+          longitude: '',
           active: true
         });
+
       }
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
     }
   };
+
+  const getGeolocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData({
+            ...formData,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error("Erreur de géolocalisation:", error);
+          alert("Impossible de récupérer votre position. Veuillez vérifier les autorisations de votre navigateur.");
+        }
+      );
+    } else {
+      alert("La géolocalisation n'est pas supportée par votre navigateur.");
+    }
+  };
+
 
   return (
     <Card
@@ -220,6 +255,51 @@ export const ClientForm: React.FC<ClientFormProps> = ({
             </p>
           </div>
         </div>
+
+        {/* Section Géolocalisation */}
+        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-blue-800">
+              <Icon icon="mdi:map-marker-radius" className="text-xl" />
+              <span className="text-sm font-bold uppercase tracking-wider">Géolocalisation du Kiosque</span>
+            </div>
+            <button
+              type="button"
+              onClick={getGeolocation}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              <Icon icon="mdi:crosshairs-gps" />
+              Ma position actuelle
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-blue-600 uppercase ml-1">Latitude</label>
+              <Input
+                type="number"
+                step="any"
+                value={formData.latitude}
+                onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                placeholder="ex: 14.7167"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-blue-600 uppercase ml-1">Longitude</label>
+              <Input
+                type="number"
+                step="any"
+                value={formData.longitude}
+                onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                placeholder="ex: -17.4677"
+              />
+            </div>
+          </div>
+          <p className="text-[10px] text-blue-500 italic">
+            Note: La position actuelle est plus précise si vous êtes devant le kiosque avec votre téléphone.
+          </p>
+        </div>
+
 
         <div className="flex flex-wrap items-center gap-6 bg-gray-50 p-3 rounded-lg border border-gray-100">
           <div className="flex items-center">

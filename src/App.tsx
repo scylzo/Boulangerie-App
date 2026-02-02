@@ -21,7 +21,9 @@ import { GestionStock } from './pages/stock/GestionStock';
 import { GestionDepenses } from './pages/finance/GestionDepenses';
 import { Comptabilite } from './pages/finance/Comptabilite';
 import { SaisieConsommations } from './pages/stock/SaisieConsommations';
+import { CarteKiosques } from './pages/admin/CarteKiosques';
 import { useAuthStore } from './store';
+
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -151,6 +153,13 @@ function App() {
             <GestionClients />
           </ProtectedRoute>
         } />
+
+        <Route path="/admin/carte" element={
+          <ProtectedRoute>
+            <CarteKiosques />
+          </ProtectedRoute>
+        } />
+
 
         <Route path="/admin/livreurs" element={
           <ProtectedRoute>
