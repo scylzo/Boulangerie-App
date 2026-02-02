@@ -23,6 +23,8 @@ import { Comptabilite } from './pages/finance/Comptabilite';
 import { SaisieConsommations } from './pages/stock/SaisieConsommations';
 import { CarteKiosques } from './pages/admin/CarteKiosques';
 import { useAuthStore } from './store';
+import 'leaflet/dist/leaflet.css';
+
 
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {

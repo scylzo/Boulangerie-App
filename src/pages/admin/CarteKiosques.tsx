@@ -7,7 +7,14 @@ import { useReferentielStore } from '../../store/referentielStore';
 import { useLivraisonStore } from '../../store/livraisonStore';
 import { useLivreurStore } from '../../store/livreurStore';
 import { TableLoader } from '../../components/ui/Loader';
+import { Modal } from '../../components/ui/Modal';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { ClientForm } from '../../components/shared/ClientForm';
 import { formatCurrency } from '../../utils/currency';
+import { toast } from 'react-hot-toast';
+
+
+// Plus besoin de corriger les icônes par défaut ici car nous utilisons des DivIcons personnalisés pour la performance.
 
 // Création d'icônes personnalisées pour les différents niveaux de performance
 const createCustomIcon = (color: string) => {
@@ -59,13 +66,28 @@ const ZONE_COLORS = [
 ];
 
 export const CarteKiosques: React.FC = () => {
-    const { clients, chargerClients, isLoadingClients } = useReferentielStore();
+    const {
+        clients,
+        chargerClients,
+        isLoadingClients,
+        modifierClient,
+        supprimerClient,
+        clientEnEdition,
+        setClientEnEdition
+    } = useReferentielStore();
     const { invendusClients, chargerInvendusDuJour } = useLivraisonStore();
     const { livreurs, chargerLivreurs } = useLivreurStore();
 
     const [counts, setCounts] = useState({ total: 0, mapped: 0 });
     const [dateSelectionnee] = useState(new Date());
     const [afficherZones, setAfficherZones] = useState(true);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; clientId: string; clientNom: string }>({
+        isOpen: false,
+        clientId: '',
+        clientNom: ''
+    });
+
 
     useEffect(() => {
         chargerClients();
@@ -126,13 +148,19 @@ export const CarteKiosques: React.FC = () => {
         return zones;
     }, [clients, livreurs]);
 
-    const center: [number, number] = [14.7167, -17.4677];
+    const kiosquesMapped = clients.filter(c => c.aKiosque && c.latitude && c.longitude);
 
-    if (isLoadingClients || isLoadingClients) {
+    // Centre dynamique : sur le premier kiosque trouvé, sinon centre Dakar
+    const mapCenter = useMemo(() => {
+        if (kiosquesMapped.length > 0 && kiosquesMapped[0].latitude && kiosquesMapped[0].longitude) {
+            return [kiosquesMapped[0].latitude, kiosquesMapped[0].longitude] as [number, number];
+        }
+        return [14.7167, -17.4677] as [number, number];
+    }, [kiosquesMapped]);
+
+    if (isLoadingClients) {
         return <TableLoader message="Initialisation des systèmes cartographiques..." />;
     }
-
-    const kiosquesMapped = clients.filter(c => c.aKiosque && c.latitude && c.longitude);
 
     const getPerformanceInfo = (clientId: string) => {
         const perf = performanceData[clientId];
@@ -140,6 +168,37 @@ export const CarteKiosques: React.FC = () => {
         if (perf.taux >= 90) return { color: '#10b981', label: 'Excellent (>90%)', icon: icons.excellent, taux: perf.taux, montant: perf.montantVendu };
         if (perf.taux >= 70) return { color: '#f59e0b', label: 'Moyen (70-90%)', icon: icons.moyen, taux: perf.taux, montant: perf.montantVendu };
         return { color: '#ef4444', label: 'Critique (<70%)', icon: icons.faible, taux: perf.taux, montant: perf.montantVendu };
+    };
+
+    const handleEditClient = (client: any) => {
+        setClientEnEdition(client);
+        setShowEditModal(true);
+    };
+
+    const handleSaveClient = async (clientData: any) => {
+        if (clientEnEdition) {
+            try {
+                await modifierClient(clientEnEdition.id, clientData);
+                toast.success('Kiosque mis à jour avec succès');
+                setShowEditModal(false);
+                setClientEnEdition(null);
+                // Rafraîchir les données
+                chargerClients();
+            } catch (error) {
+                toast.error('Erreur lors de la mise à jour');
+            }
+        }
+    };
+
+    const confirmSupprimer = async () => {
+        try {
+            await supprimerClient(deleteConfirm.clientId);
+            toast.success('Kiosque supprimé avec succès');
+            setDeleteConfirm({ isOpen: false, clientId: '', clientNom: '' });
+            chargerClients();
+        } catch (error) {
+            toast.error('Erreur lors de la suppression');
+        }
     };
 
     return (
@@ -165,8 +224,8 @@ export const CarteKiosques: React.FC = () => {
                         <button
                             onClick={() => setAfficherZones(!afficherZones)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${afficherZones
-                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                                    : 'bg-gray-100 text-gray-400 border border-gray-200'
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                : 'bg-gray-100 text-gray-400 border border-gray-200'
                                 }`}
                         >
                             <Icon icon={afficherZones ? "mdi:layers" : "mdi:layers-off"} className="text-lg" />
@@ -200,29 +259,17 @@ export const CarteKiosques: React.FC = () => {
             </div>
 
             {/* Map Area */}
-            <div className="flex-1 relative">
-                {kiosquesMapped.length === 0 && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-xl z-30">
-                        <div className="w-32 h-32 bg-gray-100 rounded-[3rem] flex items-center justify-center mb-10 shadow-inner">
-                            <Icon icon="mdi:google-maps" className="text-7xl text-gray-300" />
-                        </div>
-                        <h2 className="text-4xl font-black text-gray-900 mb-4">Cartographie Vide</h2>
-                        <p className="text-gray-500 max-w-sm text-center mb-12 font-medium">
-                            Vos kiosques ne sont pas encore géolocalisés. Utilisez le bouton "Ma position" sur le terrain pour les référencer.
-                        </p>
-                        <a href="/admin/clients" className="px-10 py-5 bg-gray-900 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] hover:bg-black transition-all shadow-2xl">
-                            Paramétrer les Kiosques
-                        </a>
-                    </div>
-                )}
-
-                <div className="h-full w-full" style={{ minHeight: 'calc(100vh - 120px)' }}>
+            <div className="flex-1 w-full bg-slate-100 p-4">
+                <div className="w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white" style={{ height: 'calc(100vh - 160px)', position: 'relative' }}>
                     <MapContainer
-                        center={center}
-                        zoom={12}
+                        center={mapCenter}
+                        zoom={15}
                         style={{ height: '100%', width: '100%', zIndex: 10 }}
                     >
-                        <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                        <TileLayer
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
 
                         {/* Dessin des Zones de Livraison */}
                         {afficherZones && Object.entries(zonesLivraison).map(([id, zone]) => (
@@ -260,19 +307,33 @@ export const CarteKiosques: React.FC = () => {
                                 >
                                     <Popup className="custom-popup">
                                         <div className="p-3 min-w-[260px] font-jakarta">
-                                            <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gray-50">
-                                                <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center shadow-xl">
-                                                    <Icon icon="mdi:store-check" className="text-white text-2xl" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="font-black text-gray-900 leading-tight mb-0.5 truncate uppercase text-sm">{kiosque.nom}</div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: perf.color }}></span>
-                                                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: perf.color }}>
-                                                            {perf.label}
-                                                        </span>
+                                            {/* Header Rapport */}
+                                            <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-gray-50">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center shadow-xl">
+                                                        <Icon icon="mdi:store-check" className="text-white text-2xl" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-black text-gray-900 leading-tight mb-0.5 truncate uppercase text-sm">{kiosque.nom}</div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: perf.color }}></span>
+                                                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: perf.color }}>
+                                                                {perf.label}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <button
+                                                    onClick={() => setDeleteConfirm({
+                                                        isOpen: true,
+                                                        clientId: kiosque.id,
+                                                        clientNom: kiosque.nom
+                                                    })}
+                                                    className="w-8 h-8 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100 transition-colors"
+                                                    title="Supprimer ce kiosque"
+                                                >
+                                                    <Icon icon="mdi:trash-can-outline" className="text-lg" />
+                                                </button>
                                             </div>
 
                                             {perf.taux !== null ? (
@@ -310,20 +371,29 @@ export const CarteKiosques: React.FC = () => {
                                                     <span className="font-medium leading-tight">{kiosque.adresse}</span>
                                                 </div>
                                                 {kiosque.telephone && (
-                                                    <div className="flex items-center gap-3 text-xs text-gray-600">
+                                                    <div className="flex items-center gap-3 text-[11px] text-gray-600">
                                                         <Icon icon="mdi:phone" className="text-gray-400 text-lg shrink-0" />
                                                         <span className="font-bold">{kiosque.telephone}</span>
                                                     </div>
                                                 )}
                                             </div>
 
-                                            <button
-                                                onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${kiosque.latitude},${kiosque.longitude}`, '_blank')}
-                                                className="w-full flex items-center justify-center gap-3 py-4 bg-gray-900 text-white text-[10px] font-black rounded-2xl hover:bg-black transition-all shadow-2xl uppercase tracking-[0.2em]"
-                                            >
-                                                <Icon icon="mdi:navigation" className="text-lg text-emerald-400" />
-                                                Lancer le GPS
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleEditClient(kiosque)}
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-white text-gray-900 text-[10px] font-black rounded-xl border-2 border-gray-900 hover:bg-gray-50 transition-all uppercase tracking-widest"
+                                                >
+                                                    <Icon icon="mdi:pencil" className="text-base" />
+                                                    Corriger
+                                                </button>
+                                                <button
+                                                    onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${kiosque.latitude},${kiosque.longitude}`, '_blank')}
+                                                    className="flex-1 flex items-center justify-center gap-2 py-4 bg-gray-900 text-white text-[10px] font-black rounded-xl hover:bg-black transition-all shadow-2xl uppercase tracking-[0.2em]"
+                                                >
+                                                    <Icon icon="mdi:navigation" className="text-lg text-emerald-400" />
+                                                    GPS
+                                                </button>
+                                            </div>
                                         </div>
                                     </Popup>
                                 </Marker>
@@ -332,6 +402,41 @@ export const CarteKiosques: React.FC = () => {
                     </MapContainer>
                 </div>
             </div>
+
+            {/* Modal de correction */}
+            {showEditModal && (
+                <Modal
+                    isOpen={showEditModal}
+                    onClose={() => {
+                        setShowEditModal(false);
+                        setClientEnEdition(null);
+                    }}
+                    title="Correction du Kiosque"
+                    size="lg"
+                >
+                    <ClientForm
+                        client={clientEnEdition}
+                        onSave={handleSaveClient}
+                        onCancel={() => {
+                            setShowEditModal(false);
+                            setClientEnEdition(null);
+                        }}
+                        isLoading={isLoadingClients}
+                    />
+                </Modal>
+            )}
+
+            <ConfirmModal
+                isOpen={deleteConfirm.isOpen}
+                onClose={() => setDeleteConfirm({ isOpen: false, clientId: '', clientNom: '' })}
+                onConfirm={confirmSupprimer}
+                title="Confirmer la suppression"
+                message={`Êtes-vous sûr de vouloir supprimer définitivement le kiosque "${deleteConfirm.clientNom}" ?\n\nCette action est irréversible et supprimera l'historique associé.`}
+                confirmText="Supprimer"
+                cancelText="Annuler"
+                type="danger"
+                position="center"
+            />
         </div>
     );
 };
