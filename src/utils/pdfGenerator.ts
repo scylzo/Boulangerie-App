@@ -287,87 +287,92 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
   let yPos = 55;
 
   // KPIs en format Cartes (2 colonnes)
-  if (indicateurs) {
-    doc.setFontSize(12);
-    doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
-    doc.text('Indicateurs Clés', 15, yPos);
+  // --- SECTION BILAN BOUTIQUE ---
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(colors.boutique[0], colors.boutique[1], colors.boutique[2]);
+  doc.text('I. PERFORMANCE BOUTIQUE', 15, yPos);
+  doc.setDrawColor(colors.boutique[0], colors.boutique[1], colors.boutique[2]);
+  doc.setLineWidth(0.5);
+  doc.line(15, yPos + 1, 195, yPos + 1);
+  yPos += 8;
 
-    const kpiRows = [
-      ['Taux Global', `${indicateurs.tauxVenteGlobal.toFixed(1)}%`, 'Taux Clients', `${indicateurs.tauxVenteClients.toFixed(1)}%`],
-      ['Taux Boutique', `${indicateurs.tauxVenteBoutique.toFixed(1)}%`, 'Invendus (Global)', `${indicateurs.pertesTotales} u.`],
-      ['Retours Clients', `${indicateurs.pertesClients} u.`, 'Restants Boutique', `${indicateurs.restantsBoutique} u.`],
-      ['Pertes Boutique', `${indicateurs.pertesBoutique} u.`, '', '']
-    ];
-
-
-
-    autoTable(doc, {
-      startY: yPos + 2,
-      body: kpiRows,
-      theme: 'plain',
-      styles: { fontSize: 9, cellPadding: 1 },
-      columnStyles: {
-        0: { fontStyle: 'bold', cellWidth: 40 },
-        1: { cellWidth: 40 },
-        2: { fontStyle: 'bold', cellWidth: 40 },
-        3: { cellWidth: 40 }
-      },
-      margin: { left: 15 }
-    });
-    yPos = (doc as any).lastAutoTable.finalY + 8;
-  }
-
-  // Bilan Quantitatif
-  doc.setFontSize(12);
-  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
-  doc.text('Bilan Quantitatif', 15, yPos);
-  const totalRow = [
-    [
-      `Prévu: ${rapport.totaux.quantitePrevue}`,
-      `Produit: ${rapport.totaux.quantiteProduite}`,
-      `Vendu: ${rapport.totaux.quantiteVendueTotal}`,
-      `Invendus Totaux: ${rapport.totaux.invendusTotal}`
-    ],
-    [
-      `Détail:`,
-      `Retours Clients: ${rapport.totaux.retoursClients || 0}`,
-      `Invendus Boutique (Pertes): ${rapport.totaux.pertesBoutique || 0}`,
-      `Restants Boutique: ${rapport.totaux.restantsBoutique || 0}`
-    ]
-
+  const boutiqueSummary = [
+    ['Taux de Vente', `${indicateurs?.tauxVenteBoutique.toFixed(1)}%`, 'Chiffre d\'Affaires', `${formatCurrencyCompact(indicateurs?.valeurVenteBoutique || 0)}`],
+    ['Invendus (Pertes)', `${rapport.totaux.pertesBoutique || 0} u.`, 'Restants (à reconduire)', `${rapport.totaux.restantsBoutique || 0} u.`]
   ];
 
-
   autoTable(doc, {
-    startY: yPos + 2,
-    body: totalRow,
+    startY: yPos,
+    body: boutiqueSummary,
     theme: 'plain',
-    styles: { fontSize: 10, fontStyle: 'bold', textColor: colors.primary as any },
-    columnStyles: { 0: { halign: 'left' } },
+    styles: { fontSize: 9, cellPadding: 1, textColor: colors.text as any },
+    columnStyles: {
+      0: { fontStyle: 'bold', cellWidth: 40, textColor: [100, 100, 100] },
+      1: { cellWidth: 50 },
+      2: { fontStyle: 'bold', cellWidth: 40, textColor: [100, 100, 100] },
+      3: { cellWidth: 50, fontStyle: 'bold', textColor: colors.boutique as any }
+    },
     margin: { left: 15 }
   });
-  yPos = (doc as any).lastAutoTable.finalY + 8;
+  yPos = (doc as any).lastAutoTable.finalY + 12;
 
-  // Bilan Financier Global
-  doc.setFontSize(12);
-  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
-  doc.text('Bilan Financier Global', 15, yPos);
+  //   CLIENTS ---
+  doc.setFontSize(10);
+  doc.setTextColor(colors.client[0], colors.client[1], colors.client[2]);
+  doc.text('II. PERFORMANCE CLIENTS (LIVRAISONS)', 15, yPos);
+  doc.setDrawColor(colors.client[0], colors.client[1], colors.client[2]);
+  doc.line(15, yPos + 1, 195, yPos + 1);
+  yPos += 8;
 
-  const financialRow = [[
-    `CA Total: ${formatCurrencyCompact(rapport.totaux.valeurVenteTotal)}`,
-    `CA Clients: ${formatCurrencyCompact(rapport.totaux.valeurVenteClients)}`,
-    `CA Boutique: ${formatCurrencyCompact(rapport.totaux.valeurVenteBoutique)}`
-  ]];
+  const clientsSummary = [
+    ['Taux de Vente', `${indicateurs?.tauxVenteClients.toFixed(1)}%`, 'Chiffre d\'Affaires', `${formatCurrencyCompact(indicateurs?.valeurVenteClients || 0)}`],
+    ['Retours Clients', `${indicateurs?.pertesClients || 0} u.`, '', '']
+  ];
 
   autoTable(doc, {
-    startY: yPos + 2,
-    body: financialRow,
+    startY: yPos,
+    body: clientsSummary,
     theme: 'plain',
-    styles: { fontSize: 10, fontStyle: 'bold', textColor: [22, 101, 52] as any }, // Vert sombre
-    columnStyles: { 0: { halign: 'left' } },
+    styles: { fontSize: 9, cellPadding: 1, textColor: colors.text as any },
+    columnStyles: {
+      0: { fontStyle: 'bold', cellWidth: 40, textColor: [100, 100, 100] },
+      1: { cellWidth: 50 },
+      2: { fontStyle: 'bold', cellWidth: 40, textColor: [100, 100, 100] },
+      3: { cellWidth: 50, fontStyle: 'bold', textColor: colors.client as any }
+    },
     margin: { left: 15 }
   });
-  yPos = (doc as any).lastAutoTable.finalY + 8;
+  yPos = (doc as any).lastAutoTable.finalY + 12;
+
+  // --- SECTION SYNTHÈSE GLOBALE ---
+  doc.setFontSize(10);
+  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.text('III. SYNTHÈSE GLOBALE DU JOUR', 15, yPos);
+  doc.setDrawColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.line(15, yPos + 1, 195, yPos + 1);
+  yPos += 8;
+
+  const globalSummary = [
+    ['Chiffre d\'Affaires Total', `${formatCurrencyCompact(indicateurs?.valeurVenteTotal || 0)}`, 'Taux de Vente Global', `${indicateurs?.tauxVenteGlobal.toFixed(1)}%`],
+    ['Total Prévu', `${rapport.totaux.quantitePrevue} u.`, 'Total Vendu', `${rapport.totaux.quantiteVendueTotal} u.`],
+    ['Total Produit', `${rapport.totaux.quantiteProduite} u.`, 'Stock Reporté', `${indicateurs?.restantsTotaux || 0} u.`]
+  ];
+
+  autoTable(doc, {
+    startY: yPos,
+    body: globalSummary,
+    theme: 'plain',
+    styles: { fontSize: 9, cellPadding: 1, textColor: colors.text as any },
+    columnStyles: {
+      0: { fontStyle: 'bold', cellWidth: 45, textColor: [100, 100, 100] },
+      1: { cellWidth: 45, fontStyle: 'bold', textColor: colors.primary as any },
+      2: { fontStyle: 'bold', cellWidth: 45, textColor: [100, 100, 100] },
+      3: { cellWidth: 45 }
+    },
+    margin: { left: 15 }
+  });
+  yPos = (doc as any).lastAutoTable.finalY + 15;
 
   // 3. Tableaux de Données (Optimisés)
 

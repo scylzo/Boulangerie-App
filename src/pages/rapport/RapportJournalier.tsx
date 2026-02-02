@@ -187,141 +187,138 @@ export const RapportJournalier: React.FC = () => {
             {/* KPI Cards */}
             {indicateurs && (
               <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-indigo-600 rounded-2xl p-4 sm:p-6 text-white shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                        <Icon icon="mdi:chart-arc" className="text-2xl text-white" />
+                <div className="space-y-12">
+                  {/* SECTION BOUTIQUE */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 px-1">
+                      <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
+                        <Icon icon="mdi:storefront" className="text-2xl" />
                       </div>
-                      <div className="text-right">
-                        <div className="text-3xl font-bold">{indicateurs.tauxVenteGlobal.toFixed(1)}%</div>
-                        <div className="text-white/90 text-xs text-uppercase font-bold">Vente Global</div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">Performance Boutique</h2>
+                        <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Ventes directes & Rayon</p>
                       </div>
                     </div>
-                    <div className="text-lg font-semibold">Performance Globale</div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+                            <Icon icon="mdi:chart-arc" className="text-2xl" />
+                          </div>
+                          <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold font-mono">
+                            {indicateurs.tauxVenteBoutique.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="text-2xl font-black text-gray-900 mb-1">{indicateurs.tauxVenteBoutique.toFixed(1)}%</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Taux de Vente</div>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+                            <Icon icon="mdi:cash-register" className="text-2xl" />
+                          </div>
+                        </div>
+                        <div className="text-2xl font-black text-gray-900 mb-1">{formatCurrency(indicateurs.valeurVenteBoutique)}</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Chiffre d'Affaires</div>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+                            <Icon icon="mdi:package-variant" className="text-2xl" />
+                          </div>
+                          <div className="flex gap-1">
+                            <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-md text-[10px] font-bold">-{indicateurs.pertesBoutique} u.</span>
+                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-md text-[10px] font-bold">+{indicateurs.restantsBoutique} u.</span>
+                          </div>
+                        </div>
+                        <div className="flex items-baseline gap-2 mb-1">
+                          <span className="text-2xl font-black text-gray-900">{indicateurs.pertesBoutique + indicateurs.restantsBoutique}</span>
+                          <span className="text-gray-400 text-sm font-medium">unités</span>
+                        </div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Invendus & Restants</div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="bg-blue-600 rounded-2xl p-4 sm:p-6 text-white shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                        <Icon icon="mdi:account-group" className="text-2xl text-white" />
+                  {/* SECTION CLIENTS */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 px-1 border-t border-gray-100 pt-8 text-blue-600">
+                      <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shadow-sm">
+                        <Icon icon="mdi:account-group" className="text-2xl" />
                       </div>
-                      <div className="text-right">
-                        <div className="text-3xl font-bold">{indicateurs.tauxVenteClients.toFixed(1)}%</div>
-                        <div className="text-white/90 text-xs">clients</div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">Performance Clients</h2>
+                        <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Livraisons & Grossistes</p>
                       </div>
                     </div>
-                    <div className="text-lg font-semibold">Taux Vente Clients</div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group font-jakarta">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                            <Icon icon="mdi:truck-delivery" className="text-2xl" />
+                          </div>
+                          <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold font-mono">
+                            {indicateurs.tauxVenteClients.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="text-2xl font-black text-gray-900 mb-1">{indicateurs.tauxVenteClients.toFixed(1)}%</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Taux de Vente</div>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group font-jakarta">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                            <Icon icon="mdi:invoice-list" className="text-2xl" />
+                          </div>
+                        </div>
+                        <div className="text-2xl font-black text-gray-900 mb-1">{formatCurrency(indicateurs.valeurVenteClients)}</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Chiffre d'Affaires</div>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group font-jakarta">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                            <Icon icon="mdi:account-arrow-left" className="text-2xl" />
+                          </div>
+                          <span className="px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-xs font-bold font-mono">
+                            {indicateurs.pertesClients} u.
+                          </span>
+                        </div>
+                        <div className="text-2xl font-black text-gray-900 mb-1">{indicateurs.pertesClients} unités</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Retours Clients</div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="bg-emerald-600 rounded-2xl p-4 sm:p-6 text-white shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                        <Icon icon="mdi:storefront" className="text-2xl text-white" />
+                  {/* SECTION SYNTHÈSE GLOBALE */}
+                  <div className="bg-gray-900 rounded-[2.5rem] p-8 sm:p-10 text-white shadow-xl relative overflow-hidden">
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-6 h-1 bg-indigo-400 rounded-full"></span>
+                          <span className="text-indigo-300 text-xs font-black uppercase tracking-[0.2em]">Bilan Consolidé</span>
+                        </div>
+                        <h2 className="text-4xl sm:text-5xl font-black tracking-tight mb-2">
+                          {formatCurrency(indicateurs.valeurVenteTotal)}
+                        </h2>
+                        <p className="text-indigo-200 text-sm font-medium">Chiffre d'affaires total généré ce jour</p>
                       </div>
-                      <div className="text-right">
-                        <div className="text-3xl font-bold">{indicateurs.tauxVenteBoutique.toFixed(1)}%</div>
-                        <div className="text-white/90 text-xs">boutique</div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold">Taux Vente Boutique</div>
-                  </div>
-                </div>
 
-                {/* KPI Invendus */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-gray-800 rounded-2xl p-6 text-white shadow-lg">
-                    <div className="flex items-center justify-between mb-4">
-                      <Icon icon="mdi:package-down" className="text-2xl text-red-400" />
-                      <div className="text-right">
-                        <div className="text-3xl font-bold">{indicateurs.pertesTotales}</div>
-                        <div className="text-gray-400 text-xs">pièces perdues</div>
+                      <div className="grid grid-cols-2 gap-8 md:border-l md:border-white/10 md:pl-12">
+                        <div>
+                          <div className="text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-1">Performance</div>
+                          <div className="text-2xl font-bold">{indicateurs.tauxVenteGlobal.toFixed(1)}%</div>
+                        </div>
+                        <div>
+                          <div className="text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-1">Report total</div>
+                          <div className="text-2xl font-bold">{indicateurs.restantsTotaux} u.</div>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-lg font-semibold">Invendus Totaux</div>
-                  </div>
-
-                  <div className="bg-gray-800 rounded-2xl p-6 text-white shadow-lg">
-                    <div className="flex items-center justify-between mb-4">
-                      <Icon icon="mdi:account-cancel" className="text-2xl text-orange-400" />
-                      <div className="text-right">
-                        <div className="text-3xl font-bold">{indicateurs.pertesClients}</div>
-                        <div className="text-gray-400 text-xs">retours clients</div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold">Invendus Clients</div>
-                  </div>
-
-                  <div className="bg-gray-800 rounded-2xl p-6 text-white shadow-lg">
-                    <div className="flex items-center justify-between mb-4">
-                      <Icon icon="mdi:storefront-outline" className="text-2xl text-yellow-400" />
-                      <div className="text-right">
-                        <div className="text-3xl font-bold">{indicateurs.pertesBoutique}</div>
-                        <div className="text-gray-400 text-xs">invendus boutique</div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold">Invendus Boutique</div>
-                  </div>
-                </div>
-
-                {/* KPI Restants */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-green-700 rounded-2xl p-6 text-white shadow-lg">
-                    <div className="flex items-center justify-between mb-4">
-                      <Icon icon="mdi:package-variant-closed" className="text-2xl text-green-200" />
-                      <div className="text-right">
-                        <div className="text-3xl font-bold">{indicateurs.restantsTotaux}</div>
-                        <div className="text-white/90 text-xs">à reconduire</div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold">Restants Totaux</div>
-                  </div>
-
-                  <div className="bg-green-600 rounded-2xl p-6 text-white shadow-lg">
-                    <div className="flex items-center justify-between mb-4">
-                      <Icon icon="mdi:storefront-check" className="text-2xl text-green-200" />
-                      <div className="text-right">
-                        <div className="text-3xl font-bold">{indicateurs.restantsBoutique}</div>
-                        <div className="text-white/90 text-xs">restants boutique</div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold">Restants Boutique</div>
-                  </div>
-                </div>
-
-                {/* Bilan Financier */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-indigo-700 rounded-2xl p-4 sm:p-6 text-white shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <Icon icon="mdi:cash-multiple" className="text-2xl" />
-                      <div className="text-right">
-                        <div className="text-2xl font-bold">{formatCurrency(indicateurs.valeurVenteTotal)}</div>
-                        <div className="text-white/90 text-xs">Chiffre d'affaires</div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold">Bilan Financier Total</div>
-                  </div>
-
-                  <div className="bg-blue-700 rounded-2xl p-4 sm:p-6 text-white shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <Icon icon="mdi:account-cash" className="text-2xl" />
-                      <div className="text-right">
-                        <div className="text-2xl font-bold">{formatCurrency(indicateurs.valeurVenteClients)}</div>
-                        <div className="text-white/90 text-xs">Revenu clients</div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold">Revenu Clients</div>
-                  </div>
-
-                  <div className="bg-emerald-700 rounded-2xl p-4 sm:p-6 text-white shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <Icon icon="mdi:store-cash" className="text-2xl" />
-                      <div className="text-right">
-                        <div className="text-2xl font-bold">{formatCurrency(indicateurs.valeurVenteBoutique)}</div>
-                        <div className="text-white/90 text-xs">Revenu boutique</div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold">Revenu Boutique</div>
                   </div>
                 </div>
               </div>
@@ -334,7 +331,8 @@ export const RapportJournalier: React.FC = () => {
                   <h3 className="text-sm sm:text-base font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
                     <Icon icon="mdi:chart-box" className="text-base sm:text-lg" /> Totaux Quantités
                   </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+
                     <div className="bg-white p-2 sm:p-3 rounded-lg border border-gray-100 text-center">
                       <div className="text-base sm:text-xl font-bold">{rapportJour.totaux.quantitePrevue}</div>
                       <div className="text-[10px] sm:text-xs text-gray-500 uppercase font-bold">Prévu</div>
@@ -347,15 +345,12 @@ export const RapportJournalier: React.FC = () => {
                       <div className="text-base sm:text-xl font-bold text-green-600">{rapportJour.totaux.quantiteVendueTotal}</div>
                       <div className="text-[10px] sm:text-xs text-gray-500 uppercase font-bold">Vendu</div>
                     </div>
-                    <div className="bg-red-50 p-2 sm:p-3 rounded-lg border border-red-100 text-center">
-                      <div className="text-base sm:text-xl font-bold text-red-700">{rapportJour.totaux.invendusTotal}</div>
-                      <div className="text-[10px] sm:text-xs text-red-500 uppercase font-bold">Total Invendus</div>
-                    </div>
                     <div className="bg-indigo-50 p-2 sm:p-3 rounded-lg border border-indigo-100 text-center col-span-2 sm:col-span-1">
                       <div className="text-sm sm:text-lg font-bold text-indigo-700">{formatCurrency(rapportJour.totaux.valeurVenteTotal)}</div>
                       <div className="text-[10px] sm:text-xs text-indigo-500 uppercase font-bold">Valeur</div>
                     </div>
                   </div>
+
 
                   {/* Ventilation détaillée des invendus */}
                   <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 pt-4 border-t border-gray-100">
