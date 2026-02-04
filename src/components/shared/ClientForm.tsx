@@ -269,17 +269,17 @@ export const ClientForm: React.FC<ClientFormProps> = ({
 
         {/* Section Géolocalisation */}
         <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-blue-800">
-              <Icon icon="mdi:map-marker-radius" className="text-xl" />
-              <span className="text-sm font-bold uppercase tracking-wider">Géolocalisation du Kiosque</span>
+              <Icon icon="mdi:map-marker-radius" className="text-xl shrink-0" />
+              <span className="text-sm font-bold uppercase tracking-wider leading-tight">Géolocalisation du Kiosque</span>
             </div>
             <button
               type="button"
               onClick={getGeolocation}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-md active:scale-95 w-full sm:w-auto"
             >
-              <Icon icon="mdi:crosshairs-gps" />
+              <Icon icon="mdi:crosshairs-gps" className="text-lg" />
               Ma position actuelle
             </button>
           </div>
