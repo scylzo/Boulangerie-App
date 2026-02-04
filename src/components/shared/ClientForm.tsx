@@ -72,12 +72,23 @@ export const ClientForm: React.FC<ClientFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await onSave({
-        ...formData,
-        modePaiementPreference: (formData.modePaiementPreference || undefined) as any,
-        latitude: formData.latitude !== '' ? Number(formData.latitude) : undefined,
-        longitude: formData.longitude !== '' ? Number(formData.longitude) : undefined,
+      const { latitude, longitude, ...rest } = formData;
+
+      const clientData: any = {
+        ...rest,
+        modePaiementPreference: (formData.modePaiementPreference || (null as any)),
+        latitude: (formData.latitude !== '' && !isNaN(Number(formData.latitude))) ? Number(formData.latitude) : (null as any),
+        longitude: (formData.longitude !== '' && !isNaN(Number(formData.longitude))) ? Number(formData.longitude) : (null as any),
+      };
+
+      // Supprimer les champs nuls pour Firestore
+      Object.keys(clientData).forEach(key => {
+        if (clientData[key] === null) {
+          delete clientData[key];
+        }
       });
+
+      await onSave(clientData);
 
       // Reset form si c'est un ajout
       if (!client) {
@@ -98,10 +109,10 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           longitude: '',
           active: true
         });
-
       }
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
+      alert('Une erreur est survenue lors de la sauvegarde du client.');
     }
   };
 

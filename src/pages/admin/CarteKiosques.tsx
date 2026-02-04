@@ -12,6 +12,8 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { ClientForm } from '../../components/shared/ClientForm';
 import { formatCurrency } from '../../utils/currency';
 import { toast } from 'react-hot-toast';
+import { doc, updateDoc, deleteField } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 
 
 // Plus besoin de corriger les icônes par défaut ici car nous utilisons des DivIcons personnalisés pour la performance.
@@ -71,7 +73,6 @@ export const CarteKiosques: React.FC = () => {
         chargerClients,
         isLoadingClients,
         modifierClient,
-        supprimerClient,
         clientEnEdition,
         setClientEnEdition
     } = useReferentielStore();
@@ -192,12 +193,18 @@ export const CarteKiosques: React.FC = () => {
 
     const confirmSupprimer = async () => {
         try {
-            await supprimerClient(deleteConfirm.clientId);
-            toast.success('Kiosque supprimé avec succès');
+            const clientRef = doc(db, 'clients', deleteConfirm.clientId);
+            await updateDoc(clientRef, {
+                latitude: deleteField(),
+                longitude: deleteField()
+            });
+
+            toast.success('Point retiré de la carte avec succès');
             setDeleteConfirm({ isOpen: false, clientId: '', clientNom: '' });
             chargerClients();
         } catch (error) {
-            toast.error('Erreur lors de la suppression');
+            console.error('Erreur lors du retrait du point:', error);
+            toast.error('Erreur lors du retrait du point');
         }
     };
 
@@ -329,10 +336,10 @@ export const CarteKiosques: React.FC = () => {
                                                         clientId: kiosque.id,
                                                         clientNom: kiosque.nom
                                                     })}
-                                                    className="w-8 h-8 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100 transition-colors"
-                                                    title="Supprimer ce kiosque"
+                                                    className="w-8 h-8 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center hover:bg-orange-100 transition-colors"
+                                                    title="Retirer ce point de la carte"
                                                 >
-                                                    <Icon icon="mdi:trash-can-outline" className="text-lg" />
+                                                    <Icon icon="mdi:map-marker-remove-outline" className="text-lg" />
                                                 </button>
                                             </div>
 
@@ -430,11 +437,11 @@ export const CarteKiosques: React.FC = () => {
                 isOpen={deleteConfirm.isOpen}
                 onClose={() => setDeleteConfirm({ isOpen: false, clientId: '', clientNom: '' })}
                 onConfirm={confirmSupprimer}
-                title="Confirmer la suppression"
-                message={`Êtes-vous sûr de vouloir supprimer définitivement le kiosque "${deleteConfirm.clientNom}" ?\n\nCette action est irréversible et supprimera l'historique associé.`}
-                confirmText="Supprimer"
+                title="Retirer de la carte"
+                message={`Êtes-vous sûr de vouloir retirer le point GPS du client "${deleteConfirm.clientNom}" ?\n\nLe client ne sera pas supprimé, il ne figurera plus simplement sur cette carte.`}
+                confirmText="Retirer"
                 cancelText="Annuler"
-                type="danger"
+                type="warning"
                 position="center"
             />
         </div>
