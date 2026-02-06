@@ -569,6 +569,32 @@ export const useFacturationStore = create<FacturationStore>()(
 
             if (lignes.length === 0) continue;
 
+            // Préparer les données pour Firestore (nettoyage des undefined)
+            const lignesClean = lignes.map(l => ({
+              produitId: l.produitId,
+              quantiteLivree: l.quantiteLivree,
+              quantiteRetournee: l.quantiteRetournee,
+              quantiteFacturee: l.quantiteFacturee,
+              prixUnitaire: l.prixUnitaire,
+              montantLigne: l.montantLigne,
+              produit: l.produit ? {
+                id: (l.produit as any).id,
+                nom: (l.produit as any).nom,
+                prixUnitaire: (l.produit as any).prixUnitaire || 0,
+                prixClient: (l.produit as any).prixClient || 0,
+                prixBoutique: (l.produit as any).prixBoutique || 0
+              } : null
+            }));
+
+            const clientClean = clientInfo ? {
+              id: clientInfo.id,
+              nom: clientInfo.nom,
+              adresse: clientInfo.adresse || '',
+              telephone: clientInfo.telephone || '',
+              email: clientInfo.email || '',
+              typeClient: clientInfo.typeClient,
+            } : null;
+
             const totaux = get().calculerTotauxFacture(lignes, params.tauxTVADefaut);
 
             let soldeUtilise = 0;
@@ -576,9 +602,9 @@ export const useFacturationStore = create<FacturationStore>()(
 
             const netAPayer = Math.max(0, totaux.totalTTC - soldeUtilise);
 
-            // Sauvegarde
-            const factureData = {
-              lignes,
+            // Données de mise à jour pour Firestore
+            const updatesFirestore = {
+              lignes: lignesClean,
               ...totaux,
               soldeUtilise,
               netAPayer,
@@ -588,37 +614,52 @@ export const useFacturationStore = create<FacturationStore>()(
             } as any;
 
             if (factureExistante) {
-              if (retoursCompletes && factureExistante.statut !== 'validee') factureData.validatedAt = new Date();
-              await updateDoc(doc(db, 'factures', factureExistante.id), factureData);
-              misesAJour.push({ ...factureExistante, ...factureData });
+              if (retoursCompletes && factureExistante.statut !== 'validee') updatesFirestore.validatedAt = new Date();
+              await updateDoc(doc(db, 'factures', factureExistante.id), updatesFirestore);
+
+              // Mettre à jour dans le state local avec les objets complets
+              misesAJour.push({
+                ...factureExistante,
+                ...updatesFirestore,
+                lignes,
+                client: clientInfo
+              });
             } else {
-              // Utiliser ID déterministe pour éviter les doublons: facture_CLIENTID_YYYY-MM-DD
               const dateKey = dateObj.toISOString().split('T')[0];
               const newId = `facture_${clientId}_${dateKey}`;
 
-              // Double check si cet ID existe déjà dans la liste (cas où la dateLivraison aurait un offset mais l'ID serait le même)
-              // Normalement 'factureExistante' au début de la boucle couvre cela, mais par sécurité.
-
-              const newFacture = {
+              const newFactureForUI = {
                 id: newId,
                 numeroFacture: get().genererNumeroFacture(dateObj),
                 clientId,
                 client: clientInfo,
                 dateLivraison: dateObj,
                 dateFacture: new Date(),
-                ...factureData,
+                lignes,
+                ...totaux,
+                soldeUtilise,
+                netAPayer,
+                statut: retoursCompletes ? 'validee' : 'en_attente_retours',
+                retoursCompletes,
                 createdAt: new Date(),
+                updatedAt: new Date(),
                 conditionsPaiement: clientInfo?.conditionsPaiement || params.conditionsPaiementDefaut,
                 tauxTVA: params.tauxTVADefaut
               };
 
-              // Utiliser setDoc avec merge: true pour écraser si existe déjà (idempotence)
-              await setDoc(doc(db, 'factures', newId), newFacture, { merge: true });
-              nouvelles.push(newFacture as Facture);
+              const newFactureForFirestore = {
+                ...newFactureForUI,
+                lignes: lignesClean,
+                client: clientClean
+              };
+
+              await setDoc(doc(db, 'factures', newId), newFactureForFirestore, { merge: true });
+              nouvelles.push(newFactureForUI as Facture);
             }
           }
 
           set(state => {
+
             const facturesMisesAJour = state.factures.map(f => {
               const updated = misesAJour.find(u => u.id === f.id);
               return updated || f;
