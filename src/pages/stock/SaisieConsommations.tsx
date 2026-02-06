@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useStockStore } from '../../store/stockStore';
 import { ChevronLeft, Save, Calendar, Package, Fuel } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { formatCurrency } from '../../utils/currency';
 
 interface LigneConsommation {
     matiereId: string;
@@ -15,6 +16,7 @@ interface LigneConsommation {
     // Champs pour la conversion d'unités
     inputUnit: string; // 'kg', 'g', 'l', 'sac', 'carton', 'sachet'
     weightFactor: number; // Poids en kg pour les unités complexes (sac -> 50, carton -> 10)
+    prixUnitaireMoyen: number;
 }
 
 export const SaisieConsommations: React.FC = () => {
@@ -67,7 +69,8 @@ export const SaisieConsommations: React.FC = () => {
                             stockActuel: m.stockActuel,
                             qteSaisie: savedState?.qte || '',
                             inputUnit: savedState?.unit || defaultUnit,
-                            weightFactor: savedState?.factor || defaultFactor
+                            weightFactor: savedState?.factor || defaultFactor,
+                            prixUnitaireMoyen: m.prixUnitaireMoyen || 0
                         };
                     })
                     .sort((a, b) => a.nom.localeCompare(b.nom));
@@ -171,6 +174,15 @@ export const SaisieConsommations: React.FC = () => {
 
     const totalArticlesSaisis = lignes.filter(l => l.qteSaisie && parseFloat(l.qteSaisie) > 0).length;
 
+    const valorisationTotale = useMemo(() => {
+        return lignes.reduce((acc, l) => {
+            const qte = parseFloat(l.qteSaisie || '0');
+            if (qte <= 0) return acc;
+            const qteBase = qte * l.weightFactor;
+            return acc + (qteBase * l.prixUnitaireMoyen);
+        }, 0);
+    }, [lignes]);
+
     if (isLoading && lignes.length === 0) {
         return (
             <div className="flex items-center justify-center h-screen">
@@ -226,11 +238,19 @@ export const SaisieConsommations: React.FC = () => {
                         />
                     </div>
 
-                    <div className="flex items-center gap-4 text-sm text-gray-600 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
-                        <span className={`font-semibold ${totalArticlesSaisis > 0 ? 'text-indigo-600' : 'text-gray-400'}`}>
-                            {totalArticlesSaisis}
-                        </span>
-                        <span>saisie(s)</span>
+                    <div className="flex items-center gap-4">
+                        <div className="flex flex-col items-end text-sm">
+                            <span className="text-gray-500 uppercase text-[10px] font-bold tracking-wider">Valorisation Totale</span>
+                            <span className="text-lg font-black text-emerald-600 leading-none">
+                                {formatCurrency(valorisationTotale)}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm ml-4">
+                            <span className={`font-semibold ${totalArticlesSaisis > 0 ? 'text-indigo-600' : 'text-gray-400'}`}>
+                                {totalArticlesSaisis}
+                            </span>
+                            <span>saisie(s)</span>
+                        </div>
                     </div>
                 </div>
 
@@ -250,6 +270,9 @@ export const SaisieConsommations: React.FC = () => {
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                                     Unité
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-emerald-600 uppercase tracking-wider w-40">
+                                    Valorisation
                                 </th>
                             </tr>
                         </thead>
@@ -330,6 +353,13 @@ export const SaisieConsommations: React.FC = () => {
                                                     </div>
                                                 )}
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-xs font-black text-gray-900">
+                                            {ligne.qteSaisie && parseFloat(ligne.qteSaisie) > 0 ? (
+                                                formatCurrency(parseFloat(ligne.qteSaisie) * ligne.weightFactor * ligne.prixUnitaireMoyen)
+                                            ) : (
+                                                <span className="text-gray-300">-</span>
+                                            )}
                                         </td>
                                     </tr>
                                 );
