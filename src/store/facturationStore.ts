@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { collection, updateDoc, doc, setDoc, deleteDoc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { realTimeListeners } from '../firebase/collections';
 import { db } from '../firebase/config';
-import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient } from '../types';
+import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient, Client } from '../types';
 
 
 interface FacturationStore {
@@ -521,6 +521,24 @@ export const useFacturationStore = create<FacturationStore>()(
             // Fetch info client (first command)
             let clientInfo = commandesJour[0].client;
 
+            // S'assurer d'avoir les infos client complètes (typeClient surtout pour le prix)
+            if (!clientInfo || !clientInfo.typeClient) {
+              try {
+                const clientDoc = await getDocs(query(collection(db, 'clients'), where('id', '==', clientId)));
+                if (!clientDoc.empty) {
+                  clientInfo = { id: clientDoc.docs[0].id, ...clientDoc.docs[0].data() } as Client;
+                } else {
+                  // Fallback direct doc access
+                  const d = await getDoc(doc(db, 'clients', clientId));
+                  if (d.exists()) {
+                    clientInfo = { id: d.id, ...d.data() } as Client;
+                  }
+                }
+              } catch (e) {
+                console.warn('Erreur fetch client info:', e);
+              }
+            }
+
             // Calcul lignes
             const lignesMap = new Map<string, LigneFacture>();
 
@@ -529,11 +547,32 @@ export const useFacturationStore = create<FacturationStore>()(
                 const qte = Object.values(pCmd.repartitionCars || {}).reduce((s, q) => s + (Number(q) || 0), 0);
                 if (qte <= 0) continue;
 
-                const produitFull: any = pCmd.produit || { id: pCmd.produitId, nom: 'Produit Inconnu', prixUnitaire: 0 };
+                let produitFull = pCmd.produit;
+
+                // Récupérer le produit si absent pour avoir les prix
+                if (!produitFull && pCmd.produitId) {
+                  try {
+                    const pDoc = await getDoc(doc(db, 'produits', pCmd.produitId));
+                    if (pDoc.exists()) {
+                      const d = pDoc.data();
+                      produitFull = {
+                        id: pDoc.id,
+                        ...d,
+                        prixClient: d.prixClient || 0,
+                        prixBoutique: d.prixBoutique || 0,
+                        prixUnitaire: d.prixUnitaire || 0
+                      } as any;
+                    }
+                  } catch (e) {
+                    console.warn('Erreur fetch produit info:', e);
+                  }
+                }
+
+                const produitRef: any = produitFull || { id: pCmd.produitId, nom: 'Produit Inconnu', prixUnitaire: 0 };
                 // Prix selon type client
                 const prixUnitaire = (clientInfo?.typeClient === 'client')
-                  ? (produitFull.prixClient || produitFull.prixUnitaire || 0)
-                  : (produitFull.prixBoutique || produitFull.prixUnitaire || 0);
+                  ? (produitRef.prixClient || produitRef.prixUnitaire || 0)
+                  : (produitRef.prixBoutique || produitRef.prixUnitaire || 0);
 
                 if (lignesMap.has(pCmd.produitId)) {
                   const l = lignesMap.get(pCmd.produitId)!;
@@ -546,7 +585,7 @@ export const useFacturationStore = create<FacturationStore>()(
 
                   lignesMap.set(pCmd.produitId, {
                     produitId: pCmd.produitId,
-                    produit: pCmd.produit,
+                    produit: produitRef,
                     quantiteLivree: qte,
                     quantiteRetournee: qteRetour,
                     quantiteFacturee: 0,
