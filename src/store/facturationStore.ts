@@ -1213,7 +1213,6 @@ export const useFacturationStore = create<FacturationStore>()(
         removeItem: (name) => localStorage.removeItem(name),
       })),
       partialize: (state) => ({
-        factures: state.factures,
         parametres: state.parametres,
       }) as unknown as FacturationStore,
     }

@@ -311,8 +311,8 @@ export const useDepenseStore = create<DepenseStore>()(
                 },
                 removeItem: (name) => localStorage.removeItem(name),
             },
-            partialize: (state) => ({
-                depenses: state.depenses,
+            partialize: () => ({
+                // Ne plus persister les dépenses pour éviter de dépasser le quota localStorage
             }) as unknown as DepenseStore,
         }
     )
