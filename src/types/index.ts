@@ -42,7 +42,9 @@ export type {
 export type {
   Facture,
   LigneFacture,
-  ParametresFacturation
+  ParametresFacturation,
+  Reglement,
+  ModePaiement
 } from './facturation';
 
 // Stock types

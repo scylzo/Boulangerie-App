@@ -189,6 +189,36 @@ export const generateFacturePDF = async (facture: Facture) => {
     doc.text(formatCurrencyCompact(facture.netAPayer ?? 0), 185, finalY + 50, { align: 'right' });
   }
 
+  // Section Règlements (Détails)
+  if (facture.reglements && facture.reglements.length > 0) {
+    let regY = finalY + boxHeight + 10;
+
+    // Titre section règlements
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text('RÈGLEMENTS:', 20, regY);
+
+    doc.setLineWidth(0.1);
+    doc.line(20, regY + 2, 80, regY + 2);
+
+    regY += 8;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+
+    facture.reglements.forEach(reg => {
+      const modeStr = reg.mode === 'espece' ? 'Espèces' : reg.mode.toUpperCase();
+      doc.text(`${modeStr}:`, 20, regY);
+      doc.text(formatCurrencyCompact(reg.montant), 75, regY, { align: 'right' });
+      regY += 6;
+    });
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL RÉGLÉ:', 20, regY + 2);
+    doc.text(formatCurrencyCompact(facture.montantRegle || 0), 75, regY + 2, { align: 'right' });
+  }
+
   // Pied de page
   const pageHeight = doc.internal.pageSize.height;
   doc.setFontSize(8);

@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { collection, updateDoc, doc, setDoc, deleteDoc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { realTimeListeners } from '../firebase/collections';
 import { db } from '../firebase/config';
-import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient, Client } from '../types';
+import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient, Client, Reglement, ModePaiement } from '../types';
 
 
 interface FacturationStore {
@@ -24,7 +24,7 @@ interface FacturationStore {
   chargerFacture: (factureId: string) => Promise<void>;
   validerFacture: (factureId: string) => Promise<void>;
   envoyerFacture: (factureId: string) => Promise<void>;
-  marquerPayee: (factureId: string, montantRecu?: number, modePaiement?: string, datePaiement?: Date) => Promise<void>;
+  marquerPayee: (factureId: string, reglements: Reglement[] | { montant: number, mode: ModePaiement, date?: Date }) => Promise<void>;
   annulerFacture: (factureId: string, motif?: string) => Promise<void>;
   actualiserStatutsFactures: (background?: boolean) => Promise<void>;
   modifierTauxTVA: (factureId: string, nouveauTaux: number) => Promise<void>;
@@ -889,45 +889,44 @@ export const useFacturationStore = create<FacturationStore>()(
         }
       },
 
-      marquerPayee: async (factureId: string, montantRecu?: number, modePaiement?: string, datePaiement = new Date()) => {
+      marquerPayee: async (factureId: string, input: Reglement[] | { montant: number, mode: ModePaiement, date?: Date }) => {
         try {
           const facture = get().factures.find(f => f.id === factureId);
           if (!facture) throw new Error("Facture introuvable");
 
+          const reglements: Reglement[] = Array.isArray(input) ? input : [{
+            id: `reg_${Date.now()}`,
+            montant: input.montant,
+            mode: input.mode,
+            date: input.date || new Date()
+          }];
+
+          const totalVerse = reglements.reduce((sum, r) => sum + r.montant, 0);
           const montantAttendu = facture.netAPayer ?? facture.totalTTC;
-          const recu = montantRecu ?? montantAttendu; // Si pas précisé, on suppose le montant exact
+
+          const isTotalPaye = totalVerse >= montantAttendu;
 
           const updateData: any = {
-            statut: 'payee' as const,
-            paidAt: datePaiement,
-            montantRegle: recu,
-            modePaiement: modePaiement || 'espece',
+            statut: isTotalPaye ? 'payee' : 'partiellement_payee',
+            paidAt: isTotalPaye ? reglements[reglements.length - 1].date : null,
+            montantRegle: totalVerse,
+            reglements: reglements,
+            modePaiement: reglements[0]?.mode || 'espece', // Principal mode (le premier saisi)
             updatedAt: new Date()
           };
 
           // Gestion du surplus (Avoir/Solde)
-          if (recu > montantAttendu) {
-            const surplus = recu - montantAttendu;
-            // Mettre à jour le solde du client
-            const clientId = facture.clientId;
-            const clientRef = doc(db, 'clients', clientId);
-
-            // Transaction ou lecture/écriture atomique serait mieux, mais on fait simple
+          if (totalVerse > montantAttendu) {
+            const surplus = totalVerse - montantAttendu;
+            const clientRef = doc(db, 'clients', facture.clientId);
             const clientDoc = await getDoc(clientRef);
             if (clientDoc.exists()) {
               const soldeActuel = clientDoc.data().solde || 0;
               const nouveauSolde = soldeActuel + surplus;
               await updateDoc(clientRef, { solde: nouveauSolde });
-              console.log(`💰 Avoir généré pour le client ${clientId}: +${surplus} FCFA (Nouveau solde: ${nouveauSolde})`);
+              console.log(`💰 Avoir généré: +${surplus} FCFA (Nouveau solde: ${nouveauSolde})`);
             }
           }
-
-          // Si on avait utilisé du solde, il faut le DÉDUIRE du compte client maintenant que la facture est payée/finalisée?
-          // NON, le solde est déduit au moment où on VALIDE l'utilisation.
-          // DANS CE CODE: genererFactures calcule le soldeUtilise.
-          // Mais on ne le déduit PAS de la DB client à ce moment là (sinon si on régénère 10 fois, on déduit 10 fois).
-          // IL FAUT DÉDUIRE LE SOLDE UTILISÉ QUAND ?
-          // Idéalement à la validation ("validerFacture").
 
           await updateDoc(doc(db, 'factures', factureId), updateData);
 

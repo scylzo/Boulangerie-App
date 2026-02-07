@@ -352,6 +352,19 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
                   </div>
                 ) : null}
 
+                {/* Détail des règlements multi-modes */}
+                {facture.reglements && facture.reglements.length > 0 && (
+                  <div className="mt-2 space-y-1 bg-gray-100 p-2 rounded-lg text-[10px] sm:text-xs">
+                    <p className="font-bold text-gray-400 uppercase tracking-wider mb-1">Détail des paiements</p>
+                    {facture.reglements.map((r, i) => (
+                      <div key={i} className="flex justify-between text-gray-600">
+                        <span className="capitalize">{r.mode === 'espece' ? 'Espèces' : r.mode.toUpperCase()} :</span>
+                        <span>{formatCurrency(r.montant)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {(facture.montantRegle && (facture.netAPayer ?? facture.totalTTC) && facture.montantRegle > (facture.netAPayer ?? facture.totalTTC)) ? (
                   <div className="flex justify-between text-blue-600 pt-1">
                     <span className="font-medium">Crédit généré :</span>

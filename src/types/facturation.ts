@@ -10,6 +10,14 @@ export interface LigneFacture {
 
 export type ModePaiement = 'espece' | 'om' | 'wave';
 
+export interface Reglement {
+  id: string;
+  mode: ModePaiement;
+  montant: number;
+  date: Date;
+  reference?: string;
+}
+
 export interface Facture {
   id: string;
   numeroFacture: string; // Format: FACT-YYYYMMDD-001
@@ -26,13 +34,14 @@ export interface Facture {
   tauxTVA: number;
   montantTVA: number;
   totalTTC: number;
-  montantRegle?: number; // Montant effectivement réglé
+  montantRegle?: number; // Montant effectivement réglé (total des reglements)
   soldeUtilise?: number; // Montant du solde/avoir utilisé pour cette facture
   netAPayer?: number; // Montant restant à payer (TotalTTC - soldeUtilise)
-  modePaiement?: ModePaiement;
+  modePaiement?: ModePaiement; // Gardé pour compatibilité (principal mode)
+  reglements?: Reglement[]; // Liste des règlements effectués
 
   // État de la facture
-  statut: 'brouillon' | 'en_attente_retours' | 'validee' | 'envoyee' | 'payee' | 'annulee';
+  statut: 'brouillon' | 'en_attente_retours' | 'validee' | 'envoyee' | 'payee' | 'annulee' | 'partiellement_payee';
   retoursCompletes: boolean; // true si tous les retours ont été saisis
 
   // Métadonnées
