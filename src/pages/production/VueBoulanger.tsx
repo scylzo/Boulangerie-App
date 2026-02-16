@@ -185,7 +185,7 @@ export const VueBoulanger: React.FC = () => {
       year: 'numeric'
     });
 
-    let message = `*🥖 PROGRAMME DE PRODUCTION - ${dateStr.toUpperCase()}*\n\n`;
+    let message = `*PROGRAMME DE PRODUCTION - ${dateStr.toUpperCase()}*\n\n`;
 
     // Total Général
     const totalGeneral = totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0);
@@ -221,14 +221,14 @@ export const VueBoulanger: React.FC = () => {
         message += `\n*${carLabel.toUpperCase()} :*\n`;
         Array.from(totauxCar.entries()).forEach(([produitId, total]) => {
           const produit = produits?.find(p => p.id === produitId);
-          message += `• ${produit?.nom || 'Inconnu'} : *${total}*\n`;
+          message += `- ${produit?.nom || 'Inconnu'} : *${total}*\n`;
         });
         message += `_Total ${carLabel} : ${Array.from(totauxCar.values()).reduce((a, b) => a + b, 0)}_\n`;
       }
     });
 
     message += `\n--------------------------------\n`;
-    message += `_Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}_`;
+    message += `_Boulangerie Chez Mina_`;
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');

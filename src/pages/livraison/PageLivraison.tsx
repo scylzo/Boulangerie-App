@@ -125,6 +125,93 @@ export const PageLivraison: React.FC = () => {
     }
   };
 
+  const handleShareWhatsAppLivreur = (data: any) => {
+    if (!data.livreur && data.commandesParCar.size === 0) return;
+
+    const dateStr = new Date(dateSelectionnee).toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    const livreurNom = data.livreur ? data.livreur.nom : 'Clients non assignés';
+    let message = `*LIVRAISON - ${livreurNom.toUpperCase()}*\n`;
+    message += `*Date : ${dateStr.toUpperCase()}*\n`;
+    message += `--------------------------------\n`;
+
+    // Parcourir les cars dans l'ordre
+    const codesCars: CarLivraison[] = ['car1_matin', 'car2_matin', 'car_soir'];
+
+    codesCars.forEach(carKey => {
+      const livraisons = data.commandesParCar.get(carKey);
+      if (livraisons && livraisons.length > 0) {
+        message += `\n*TOURNEE : ${CARS_LIVRAISON[carKey].toUpperCase()}*\n`;
+
+        // Calculer les totaux par produit pour ce car
+        const totauxProduits = new Map<string, number>();
+        livraisons.forEach((liv: any) => {
+          const nom = liv.produit?.nom || 'Inconnu';
+          totauxProduits.set(nom, (totauxProduits.get(nom) || 0) + liv.quantite);
+        });
+
+        Array.from(totauxProduits.entries()).forEach(([nom, total]) => {
+          message += `• ${nom} : *${total}*\n`;
+        });
+
+        const totalCar = Array.from(totauxProduits.values()).reduce((a, b) => a + b, 0);
+        message += `_Total car : ${totalCar} pc_\n`;
+      }
+    });
+
+    message += `\n--------------------------------\n`;
+    message += `_Généré le ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}_`;
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+  };
+
+  const handleShareWhatsAppGlobal = () => {
+    const dateStr = new Date(dateSelectionnee).toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    let message = `*RECAPITULATIF GLOBAL LIVRAISONS*\n`;
+    message += `*Date : ${dateStr.toUpperCase()}*\n`;
+    message += `--------------------------------\n\n`;
+
+    commandesOrganisees.forEach(([livreurId, data]: [string, any]) => {
+      const livreurNom = data.livreur ? data.livreur.nom : 'NON ASSIGNÉS';
+      message += `*LIVREUR : ${livreurNom.toUpperCase()}*\n`;
+
+      // Totaux par produit pour ce livreur (tous cars confondus)
+      const totauxLivreur = new Map<string, number>();
+      data.commandesParCar.forEach((livraisons: any[]) => {
+        livraisons.forEach((liv: any) => {
+          const nom = liv.produit?.nom || 'Inconnu';
+          totauxLivreur.set(nom, (totauxLivreur.get(nom) || 0) + liv.quantite);
+        });
+      });
+
+      if (totauxLivreur.size > 0) {
+        Array.from(totauxLivreur.entries()).forEach(([nom, total]) => {
+          message += `• ${nom} : *${total}*\n`;
+        });
+        const totalLivreur = Array.from(totauxLivreur.values()).reduce((a, b) => a + b, 0);
+        message += `_Total : ${totalLivreur} pc_\n`;
+      }
+      message += `--------------------------------\n`;
+    });
+
+    message += `\n_Boulangerie Chez Mina_`;
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+  };
+
   // Fonction pour obtenir l'icône du produit
   const getProductIcon = (productName: string): string => {
     const name = productName?.toLowerCase() || '';
@@ -183,6 +270,14 @@ export const PageLivraison: React.FC = () => {
             >
               <Icon icon="mdi:printer" className="text-base sm:text-lg" />
               <span>Rapport Global</span>
+            </button>
+            <button
+              onClick={handleShareWhatsAppGlobal}
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium w-full sm:w-auto"
+              disabled={commandesOrganisees.length === 0}
+            >
+              <Icon icon="mdi:whatsapp" className="text-base sm:text-lg" />
+              <span>Partager Tout</span>
             </button>
           </div>
         </div>
@@ -367,33 +462,44 @@ export const PageLivraison: React.FC = () => {
 
                       {/* Boutons d'actions pour ce livreur */}
                       <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <button
-                          onClick={() => genererRapportLivreur(data)}
-                          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium flex-1 sm:flex-none"
-                          title="Générer le rapport imprimable pour ce livreur"
-                        >
-                          <Icon icon="mdi:printer" className="text-base" />
-                          <span>Imprimer</span>
-                        </button>
-
-                        {/* Bouton de suppression - uniquement pour les livreurs assignés */}
-                        {data.livreur && (
-                          <ConfirmButton
-                            onConfirm={() => {
-                              supprimerCommandesLivreur(livreurId);
-                              toast.success(`✅ Toutes les commandes de "${data.livreur?.nom}" ont été supprimées définitivement.`);
-                            }}
-                            title="Supprimer le programme de livraison"
-                            message={`Supprimer définitivement toutes les commandes de "${data.livreur?.nom}" pour le ${dateSelectionnee} ?`}
-                            confirmText="Supprimer définitivement"
-                            cancelText="Annuler"
-                            type="danger"
-                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                          <button
+                            onClick={() => genererRapportLivreur(data)}
+                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                            title="Générer le rapport imprimable pour ce livreur"
                           >
-                            <Icon icon="mdi:delete-forever" className="text-base" />
-                            <span>Supprimer</span>
-                          </ConfirmButton>
-                        )}
+                            <Icon icon="mdi:printer" className="text-base" />
+                            <span>Imprimer</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleShareWhatsAppLivreur(data)}
+                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                            title="Partager le récapitulatif via WhatsApp"
+                          >
+                            <Icon icon="mdi:whatsapp" className="text-base" />
+                            <span>Partager</span>
+                          </button>
+
+                          {/* Bouton de suppression - uniquement pour les livreurs assignés */}
+                          {data.livreur && (
+                            <ConfirmButton
+                              onConfirm={() => {
+                                supprimerCommandesLivreur(livreurId);
+                                toast.success(`✅ Toutes les commandes de "${data.livreur?.nom}" ont été supprimées définitivement.`);
+                              }}
+                              title="Supprimer le programme de livraison"
+                              message={`Supprimer définitivement toutes les commandes de "${data.livreur?.nom}" pour le ${dateSelectionnee} ?`}
+                              confirmText="Supprimer définitivement"
+                              cancelText="Annuler"
+                              type="danger"
+                              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                            >
+                              <Icon icon="mdi:delete-forever" className="text-base" />
+                              <span>Supprimer</span>
+                            </ConfirmButton>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
