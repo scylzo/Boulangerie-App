@@ -156,7 +156,7 @@ export const PageLivraison: React.FC = () => {
         });
 
         Array.from(totauxProduits.entries()).forEach(([nom, total]) => {
-          message += `• ${nom} : *${total}*\n`;
+          message += `- ${nom} : *${total}*\n`;
         });
 
         const totalCar = Array.from(totauxProduits.values()).reduce((a, b) => a + b, 0);
@@ -165,7 +165,7 @@ export const PageLivraison: React.FC = () => {
     });
 
     message += `\n--------------------------------\n`;
-    message += `_Généré le ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}_`;
+    message += `_Boulangerie Chez Mina_`;
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
