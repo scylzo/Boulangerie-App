@@ -183,7 +183,7 @@ export const PageLivraison: React.FC = () => {
     message += `*Date : ${dateStr.toUpperCase()}*\n`;
     message += `--------------------------------\n\n`;
 
-    commandesOrganisees.forEach(([livreurId, data]: [string, any]) => {
+    commandesOrganisees.forEach(([_, data]: [string, any]) => {
       const livreurNom = data.livreur ? data.livreur.nom : 'NON ASSIGNÉS';
       message += `*LIVREUR : ${livreurNom.toUpperCase()}*\n`;
 
