@@ -15,6 +15,19 @@ import { toast } from 'react-hot-toast';
 import { doc, updateDoc, deleteField } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
+// Fonction Haversine pour le calcul de distance
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance en km
+};
+
 
 // Plus besoin de corriger les icônes par défaut ici car nous utilisons des DivIcons personnalisés pour la performance.
 
@@ -54,7 +67,28 @@ const icons = {
     excellent: createCustomIcon('#10b981'), // Emerald 500
     moyen: createCustomIcon('#f59e0b'),    // Amber 500
     faible: createCustomIcon('#ef4444'),    // Red 500
-    inconnu: createCustomIcon('#6b11cb')    // Indigo 600 (par défaut)
+    inconnu: createCustomIcon('#6b11cb'),   // Indigo 600 (par défaut)
+    boulangerie: new L.DivIcon({
+        className: 'bakery-marker',
+        html: `
+            <div style="
+                background-color: #1e293b;
+                width: 40px;
+                height: 40px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 3px solid white;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            ">
+                <div style="font-size: 20px;">🥖</div>
+            </div>
+        `,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+        popupAnchor: [0, -20]
+    })
 };
 
 // Couleurs pour les zones de livraison
@@ -83,11 +117,31 @@ export const CarteKiosques: React.FC = () => {
     const [dateSelectionnee] = useState(new Date());
     const [afficherZones, setAfficherZones] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
     const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; clientId: string; clientNom: string }>({
         isOpen: false,
         clientId: '',
         clientNom: ''
     });
+
+    const localiserUtilisateur = () => {
+        if (!navigator.geolocation) {
+            toast.error("La géolocalisation n'est pas supportée par votre navigateur");
+            return;
+        }
+
+        toast.loading("Localisation en cours...", { id: 'geoloc' });
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setUserPosition([position.coords.latitude, position.coords.longitude]);
+                toast.success("Position récupérée", { id: 'geoloc' });
+            },
+            (error) => {
+                console.error(error);
+                toast.error("Impossible de récupérer votre position", { id: 'geoloc' });
+            }
+        );
+    };
 
 
     useEffect(() => {
@@ -236,7 +290,18 @@ export const CarteKiosques: React.FC = () => {
                                 }`}
                         >
                             <Icon icon={afficherZones ? "mdi:layers" : "mdi:layers-off"} className="text-lg" />
-                            {afficherZones ? "Zones Activées" : "Zones Masquées"}
+                            {afficherZones ? "Zones Activées" : "Zones Masqué"}
+                        </button>
+
+                        <button
+                            onClick={localiserUtilisateur}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${userPosition
+                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                                : 'bg-gray-900 text-white shadow-lg'
+                                }`}
+                        >
+                            <Icon icon="mdi:crosshairs-gps" className="text-lg" />
+                            {userPosition ? "Ma Position Active" : "Me Localiser"}
                         </button>
 
                         {/* Légende */}
@@ -322,11 +387,19 @@ export const CarteKiosques: React.FC = () => {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="font-black text-gray-900 leading-tight mb-0.5 truncate uppercase text-sm">{kiosque.nom}</div>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: perf.color }}></span>
-                                                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: perf.color }}>
-                                                                {perf.label}
-                                                            </span>
+                                                        <div className="flex flex-col gap-1">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: perf.color }}></span>
+                                                                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: perf.color }}>
+                                                                    {perf.label}
+                                                                </span>
+                                                            </div>
+                                                            {userPosition && (
+                                                                <div className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 uppercase italic">
+                                                                    <Icon icon="mdi:map-marker-distance" />
+                                                                    À {calculateDistance(userPosition[0], userPosition[1], kiosque.latitude!, kiosque.longitude!).toFixed(2)} km
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -406,6 +479,23 @@ export const CarteKiosques: React.FC = () => {
                                 </Marker>
                             );
                         })}
+                        {/* Marqueur Ma Position (Boulangerie) */}
+                        {userPosition && (
+                            <Marker position={userPosition} icon={icons.boulangerie}>
+                                <Popup>
+                                    <div className="p-3 text-center min-w-[150px]">
+                                        <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg">
+                                            <span className="text-2xl">🥖</span>
+                                        </div>
+                                        <div className="font-black text-gray-900 uppercase text-xs tracking-widest">Ma Boulangerie</div>
+                                        <div className="text-[9px] font-bold text-gray-400 mt-1 uppercase">Point de référence distance</div>
+                                        <div className="mt-3 text-[10px] text-gray-500 font-medium italic">
+                                            {userPosition[0].toFixed(6)}, {userPosition[1].toFixed(6)}
+                                        </div>
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        )}
                     </MapContainer>
                 </div>
             </div>

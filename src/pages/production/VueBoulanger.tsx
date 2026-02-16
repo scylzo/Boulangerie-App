@@ -175,6 +175,65 @@ export const VueBoulanger: React.FC = () => {
     }
   };
 
+  const handleShareWhatsApp = () => {
+    if (!programmeActuel) return;
+
+    const dateStr = programmeActuel.dateProduction.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    let message = `*🥖 PROGRAMME DE PRODUCTION - ${dateStr.toUpperCase()}*\n\n`;
+
+    // Total Général
+    const totalGeneral = totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0);
+    message += `*TOTAL GÉNÉRAL : ${totalGeneral} pièces*\n`;
+    message += `--------------------------------\n`;
+
+    // 1. Récapitulatif par Car
+    ['car1_matin', 'car2_matin', 'car_soir'].forEach(carKey => {
+      const carLabel = carKey === 'car1_matin' ? 'Car 1 Matin' :
+        carKey === 'car2_matin' ? 'Car 2 Matin' : 'Car Soir';
+
+      const totauxCar = new Map<string, number>();
+
+      // Clients
+      Array.from(repartitionsClients.entries()).forEach(([produitId, repartition]) => {
+        const qty = carKey === 'car1_matin' ? repartition.car1Matin :
+          carKey === 'car2_matin' ? repartition.car2Matin :
+            repartition.carSoir;
+        if (qty > 0) totauxCar.set(produitId, (totauxCar.get(produitId) || 0) + qty);
+      });
+
+      // Boutique
+      if (programmeActuel.quantitesBoutique) {
+        programmeActuel.quantitesBoutique.forEach(q => {
+          const qty = carKey === 'car1_matin' ? (q.repartitionCars?.car1_matin || 0) :
+            carKey === 'car2_matin' ? (q.repartitionCars?.car2_matin || 0) :
+              (q.repartitionCars?.car_soir || 0);
+          if (qty > 0) totauxCar.set(q.produitId, (totauxCar.get(q.produitId) || 0) + qty);
+        });
+      }
+
+      if (totauxCar.size > 0) {
+        message += `\n*${carLabel.toUpperCase()} :*\n`;
+        Array.from(totauxCar.entries()).forEach(([produitId, total]) => {
+          const produit = produits?.find(p => p.id === produitId);
+          message += `• ${produit?.nom || 'Inconnu'} : *${total}*\n`;
+        });
+        message += `_Total ${carLabel} : ${Array.from(totauxCar.values()).reduce((a, b) => a + b, 0)}_\n`;
+      }
+    });
+
+    message += `\n--------------------------------\n`;
+    message += `_Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}_`;
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+  };
+
   useEffect(() => {
     // Charger le programme pour la date sélectionnée
     const dateObj = new Date(dateSelectionnee);
@@ -267,13 +326,22 @@ export const VueBoulanger: React.FC = () => {
 
             {/* Bouton d'impression HTML */}
             {programmeActuel && (
-              <button
-                onClick={handleGenerateHTML}
-                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-xs sm:text-sm font-medium"
-              >
-                <Icon icon="mdi:printer" className="text-base sm:text-lg" />
-                <span>Imprimer</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleGenerateHTML}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-xs sm:text-sm font-medium"
+                >
+                  <Icon icon="mdi:printer" className="text-base sm:text-lg" />
+                  <span>Imprimer</span>
+                </button>
+                <button
+                  onClick={handleShareWhatsApp}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-xs sm:text-sm font-medium shadow-sm"
+                >
+                  <Icon icon="mdi:whatsapp" className="text-base sm:text-lg" />
+                  <span>Partager</span>
+                </button>
+              </div>
             )}
 
             {/* Statut simple */}

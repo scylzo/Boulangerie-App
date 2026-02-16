@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { ChevronLeft, Save, Calendar, Package, Fuel } from 'lucide-react';
+import { ChevronLeft, Save, Calendar, Package, Fuel, AlertCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { formatCurrency } from '../../utils/currency';
+import { memeJour } from '../../utils/dateUtils';
 
 interface LigneConsommation {
     matiereId: string;
@@ -25,6 +26,7 @@ export const SaisieConsommations: React.FC = () => {
 
     const {
         matieres,
+        mouvements,
         chargerDonnees: chargerStock,
         declarerConsommationJournee,
         isLoading
@@ -42,6 +44,15 @@ export const SaisieConsommations: React.FC = () => {
     useEffect(() => {
         chargerStock();
     }, [chargerStock]);
+
+    const dejaSaisisPourDate = useMemo(() => {
+        if (!date) return [];
+        // On crée une date à midi pour éviter les problèmes de timezone lors de la comparaison
+        const targetDate = new Date(date + 'T12:00:00');
+        return mouvements.filter(m =>
+            m.type === 'consommation' && memeJour(new Date(m.date), targetDate)
+        );
+    }, [mouvements, date]);
 
     useEffect(() => {
         if (matieres.length > 0) {
@@ -109,6 +120,20 @@ export const SaisieConsommations: React.FC = () => {
 
     const handleValider = async () => {
         const lignesASauvegarder = lignes.filter(l => l.qteSaisie && parseFloat(l.qteSaisie) > 0);
+
+        // Vérification des doublons (produits déjà saisis pour cette date)
+        const doublons = lignesASauvegarder.filter(l =>
+            dejaSaisisPourDate.some(m => m.matiereId === l.matiereId)
+        );
+
+        if (doublons.length > 0) {
+            const nomsDoublons = doublons.map(d => d.nom).join(', ');
+            toast.error(`La consommation pour [${nomsDoublons}] a déjà été enregistrée pour cette date.`, {
+                duration: 5000,
+                icon: '⚠️'
+            });
+            return;
+        }
 
         if (lignesASauvegarder.length === 0) {
             toast.error("Veuillez saisir au moins une quantité consommée");
@@ -281,6 +306,7 @@ export const SaisieConsommations: React.FC = () => {
                                 const isPackaged = ligne.inputUnit !== ligne.unite;
                                 const showPackageOptions = ['kg', 'g'].includes(ligne.unite);
                                 const isFuel = ligne.nom.toLowerCase().includes('carburant') || ligne.nom.toLowerCase().includes('gasoil');
+                                const isAlreadyEntered = dejaSaisisPourDate.some(m => m.matiereId === ligne.matiereId);
 
                                 return (
                                     <tr key={ligne.matiereId} className={`hover:bg-gray-50 transition-colors ${ligne.qteSaisie ? 'bg-indigo-50/30' : ''}`}>
@@ -288,7 +314,15 @@ export const SaisieConsommations: React.FC = () => {
                                             <div className="flex items-center">
                                                 {isFuel ? <Fuel className="w-5 h-5 text-orange-500 mr-2" /> : <Package className="w-5 h-5 text-gray-400 mr-2" />}
                                                 <div>
-                                                    <div className="text-sm font-medium text-gray-900">{ligne.nom}</div>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="text-sm font-medium text-gray-900">{ligne.nom}</div>
+                                                        {isAlreadyEntered && (
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-tighter">
+                                                                <AlertCircle className="w-3 h-3 mr-1" />
+                                                                Déjà saisi
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     {isPackaged && (
                                                         <div className="text-xs text-indigo-600 mt-1 font-medium">
                                                             ~ {(parseFloat(ligne.qteSaisie || '0') * ligne.weightFactor).toLocaleString()} {ligne.unite}
@@ -311,9 +345,11 @@ export const SaisieConsommations: React.FC = () => {
                                                 value={ligne.qteSaisie}
                                                 onChange={(e) => handleQteChange(ligne.matiereId, e.target.value)}
                                                 onFocus={(e) => e.target.select()}
+                                                disabled={isAlreadyEntered}
                                                 className={`
                                                 block w-32 ml-auto rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-center font-bold h-10
                                                 ${ligne.qteSaisie ? 'border-indigo-300 bg-white text-indigo-700' : 'bg-gray-50'}
+                                                ${isAlreadyEntered ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}
                                             `}
                                             />
                                         </td>

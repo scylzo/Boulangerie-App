@@ -696,7 +696,10 @@ export const GestionFactures: React.FC = () => {
                             </button>
                           )}
                           <button
-                            onClick={() => {
+                            onClick={async () => {
+                              const { chargerInvendusDuJour } = useLivraisonStore.getState();
+                              // Charger les retours de la date spécifiée avant d'ouvrir
+                              await chargerInvendusDuJour(new Date(invoice.dateLivraison));
                               setFacturePourRetour(invoice);
                               setShowRetourModal(true);
                             }}
@@ -742,27 +745,38 @@ export const GestionFactures: React.FC = () => {
 
 
   const SaisieRetourModal = () => {
-    const { sauvegarderRetoursClient, marquerAucunRetourClient } = useLivraisonStore();
+    const { sauvegarderRetoursClient, marquerAucunRetourClient, invendusClients } = useLivraisonStore();
     const [valeursRetours, setValeursRetours] = useState<Record<string, number>>({});
-    const [isSaving, setIsSaving] = useState(false);
+    const [savingStatus, setSavingStatus] = useState<'idle' | 'saving_retours' | 'saving_aucun'>('idle');
 
     useEffect(() => {
       if (facturePourRetour) {
+        // Chercher si on a des retours enregistrés dans le module Livraison pour ce client et cette date
+        const dateLivraisonStr = new Date(facturePourRetour.dateLivraison).toDateString();
+        const retourExistant = invendusClients.find(inv =>
+          inv.clientId === facturePourRetour.clientId &&
+          new Date(inv.dateLivraison).toDateString() === dateLivraisonStr
+        );
+
         const initial: Record<string, number> = {};
         facturePourRetour.lignes.forEach(l => {
-          initial[l.produitId] = l.quantiteRetournee || 0;
+          // Priorité : 1. Valeur dans invendusClients, 2. Valeur dans la facture, 3. Zéro
+          const invendusStockes = retourExistant?.produits.find(p => p.produitId === l.produitId)?.invendus;
+          initial[l.produitId] = invendusStockes !== undefined ? invendusStockes : (l.quantiteRetournee || 0);
         });
         setValeursRetours(initial);
       }
-    }, [facturePourRetour]);
+    }, [facturePourRetour, invendusClients]);
 
     if (!showRetourModal || !facturePourRetour) return null;
 
     const handleSave = async () => {
-      setIsSaving(true);
+      if (savingStatus !== 'idle') return;
+
+      setSavingStatus('saving_retours');
       try {
         const produitsPourRetour = facturePourRetour.lignes.map(l => {
-          const invendus = valeursRetours[l.produitId] || 0;
+          const invendus = valeursRetours[l.produitId] ?? l.quantiteRetournee ?? 0;
           const vendu = l.quantiteLivree - invendus;
           return {
             produitId: l.produitId,
@@ -779,31 +793,29 @@ export const GestionFactures: React.FC = () => {
           produitsPourRetour
         );
 
-        // Actualiser la facture
         await actualiserStatutsFactures();
         await chargerFactures(undefined, undefined, true);
 
         toast.success('Retours enregistrés');
         setShowRetourModal(false);
       } catch (e) {
-        console.error(e);
-        toast.error('Erreur sauvegarde retours');
+        console.error('Erreur sauvegarde:', e);
+        toast.error('Erreur lors de l\'enregistrement');
       } finally {
-        setIsSaving(false);
+        setSavingStatus('idle');
       }
     };
 
     const handleAucunRetour = async () => {
-      console.log("Validation sans retour cliquée...");
-      setIsSaving(true);
-      const loadingToast = toast.loading('Validation en cours...');
+      if (savingStatus !== 'idle') return;
+
+      setSavingStatus('saving_aucun');
+      const loadingToast = toast.loading('Validation...');
       try {
-        console.log("Appel de marquerAucunRetourClient...");
         await marquerAucunRetourClient(
           facturePourRetour.clientId,
           new Date(facturePourRetour.dateLivraison)
         );
-        console.log("Retour marqué. Actualisation factures...");
 
         await actualiserStatutsFactures();
         await chargerFactures(undefined, undefined, true);
@@ -811,10 +823,10 @@ export const GestionFactures: React.FC = () => {
         toast.success('Validé : Aucun retour', { id: loadingToast });
         setShowRetourModal(false);
       } catch (e) {
-        console.error("Erreur handleAucunRetour:", e);
+        console.error('Erreur validation:', e);
         toast.error('Erreur lors de la validation', { id: loadingToast });
       } finally {
-        setIsSaving(false);
+        setSavingStatus('idle');
       }
     };
 
@@ -841,9 +853,14 @@ export const GestionFactures: React.FC = () => {
                     type="number"
                     min="0"
                     max={ligne.quantiteLivree}
-                    value={valeursRetours[ligne.produitId] ?? 0}
+                    value={(() => {
+                      const val = valeursRetours[ligne.produitId] ?? ligne.quantiteRetournee ?? 0;
+                      return val === 0 ? '' : val;
+                    })()}
                     onChange={e => setValeursRetours({ ...valeursRetours, [ligne.produitId]: parseInt(e.target.value) || 0 })}
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                     className="w-20 p-2 border rounded text-center font-bold text-orange-600 focus:ring-2 focus:ring-orange-500 outline-none"
+                    placeholder="0"
                   />
                 </div>
               </div>
@@ -851,16 +868,18 @@ export const GestionFactures: React.FC = () => {
           </div>
           <div className="p-4 border-t border-gray-100 flex justify-between gap-2 bg-gray-50">
             <Button
+              type="button"
               variant="secondary"
               onClick={handleAucunRetour}
               className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
-              isLoading={isSaving}
+              isLoading={savingStatus === 'saving_aucun'}
+              disabled={savingStatus !== 'idle'}
             >
               Valider sans retours
             </Button>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowRetourModal(false)}>Annuler</Button>
-              <Button onClick={handleSave} isLoading={isSaving}>Enregistrer</Button>
+              <Button type="button" variant="outline" onClick={() => setShowRetourModal(false)} disabled={savingStatus !== 'idle'}>Annuler</Button>
+              <Button type="button" onClick={handleSave} isLoading={savingStatus === 'saving_retours'} disabled={savingStatus !== 'idle'}>Enregistrer</Button>
             </div>
           </div>
         </div>
