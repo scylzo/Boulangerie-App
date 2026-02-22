@@ -1,0 +1,209 @@
+import React, { useEffect, useState } from 'react';
+import { Icon } from '@iconify/react';
+import { useReferentielStore } from '../../store/referentielStore';
+import { formatCurrencyCompact } from '../../utils/currency';
+import { downloadFicheProduitPDF } from '../../utils/pdfGenerator';
+import type { LigneFicheProduit } from '../../utils/pdfGenerator';
+import { toast } from 'react-hot-toast';
+
+export const FicheProduit: React.FC = () => {
+    const { produits, chargerProduits, isLoadingProduits } = useReferentielStore();
+    const [clientNom, setClientNom] = useState('');
+    const [selectedItems, setSelectedItems] = useState<Record<string, { quantite: number; prixPropose: number; active: boolean }>>({});
+
+    useEffect(() => {
+        chargerProduits();
+    }, [chargerProduits]);
+
+    // Initialiser les items quand les produits sont chargés
+    useEffect(() => {
+        if (produits.length > 0 && Object.keys(selectedItems).length === 0) {
+            const initial: Record<string, { quantite: number; prixPropose: number; active: boolean }> = {};
+            produits.forEach(p => {
+                initial[p.id] = {
+                    quantite: 0,
+                    prixPropose: p.prixClient || p.prixBoutique || 0,
+                    active: false
+                };
+            });
+            setSelectedItems(initial);
+        }
+    }, [produits, selectedItems]);
+
+    const handleToggleProduct = (id: string) => {
+        setSelectedItems(prev => ({
+            ...prev,
+            [id]: { ...prev[id], active: !prev[id].active }
+        }));
+    };
+
+    const handleToggleAll = () => {
+        const allSelected = Object.values(selectedItems).every(item => item.active);
+        const newState = { ...selectedItems };
+        produits.forEach(p => {
+            newState[p.id] = { ...newState[p.id], active: !allSelected };
+        });
+        setSelectedItems(newState);
+    };
+
+    const handleGeneratePDF = async () => {
+        const activeLines = Object.entries(selectedItems)
+            .filter(([_, data]) => data.active) // Changement : on ne filtre plus par quantité > 0
+            .map(([id, data]) => {
+                const produit = produits.find(p => p.id === id);
+                return {
+                    produitNom: produit?.nom || 'Produit inconnu',
+                    prixBase: produit?.prixClient || produit?.prixBoutique || 0,
+                    quantiteVoulue: data.quantite,
+                    prixPropose: data.prixPropose
+                } as LigneFicheProduit;
+            });
+
+        if (activeLines.length === 0) {
+            toast.error('Veuillez sélectionner au moins un produit (cocher la case)');
+            return;
+        }
+
+        try {
+            await downloadFicheProduitPDF(clientNom, activeLines);
+            toast.success('Fiche produit générée avec succès');
+        } catch (error) {
+            toast.error('Erreur lors de la génération du PDF');
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-200 px-6 py-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-200">
+                            <Icon icon="mdi:file-certificate" className="text-2xl text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">Générateur de Fiche Produit</h1>
+                            <p className="text-sm text-gray-500 font-medium">Préparez une fiche avec des champs vides pour vos propositions commerciales</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <button
+                            onClick={handleToggleAll}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-all"
+                        >
+                            <Icon icon={Object.values(selectedItems).every(item => item.active) ? "mdi:checkbox-multiple-marked" : "mdi:checkbox-multiple-blank-outline"} className="text-xl" />
+                            {Object.values(selectedItems).every(item => item.active) ? "Tout désélectionner" : "Tout sélectionner"}
+                        </button>
+                        <button
+                            onClick={handleGeneratePDF}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-200 hover:scale-105 active:scale-95"
+                        >
+                            <Icon icon="mdi:pdf-box" className="text-xl" />
+                            Générer la Fiche (PDF)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-7xl mx-auto p-6 space-y-6">
+                {/* Informations Client */}
+                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <Icon icon="mdi:account" className="text-blue-600" />
+                        </div>
+                        <h2 className="text-lg font-bold text-gray-900">Informations Client</h2>
+                    </div>
+                    <div className="max-w-md">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Nom du Client / Prospect</label>
+                        <input
+                            type="text"
+                            value={clientNom}
+                            onChange={(e) => setClientNom(e.target.value)}
+                            placeholder="Ex: Client de passage ou M. Diop"
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none font-medium"
+                        />
+                    </div>
+                </div>
+
+                {/* Sélection des Produits */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <Icon icon="mdi:bread-slice" className="text-orange-600" />
+                            </div>
+                            <h2 className="text-lg font-bold text-gray-900">Sélection des Produits</h2>
+                        </div>
+                        <div className="text-sm font-medium text-gray-500">
+                            {Object.values(selectedItems).filter(item => item.active).length} produit(s) sélectionné(s)
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-gray-50/50">
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Sélection</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Produit & Prix Base</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Quantité Voulue</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Prix Proposé</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {isLoadingProduits ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500 font-medium">
+                                            Chargement des produits...
+                                        </td>
+                                    </tr>
+                                ) : produits.map(produit => {
+                                    const item = selectedItems[produit.id] || { quantite: 0, active: false };
+                                    return (
+                                        <tr key={produit.id} className={`hover:bg-gray-50 transition-colors ${item.active ? 'bg-orange-50/30' : ''}`}>
+                                            <td className="px-6 py-4">
+                                                <button
+                                                    onClick={() => handleToggleProduct(produit.id)}
+                                                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${item.active ? 'bg-orange-600 text-white shadow-md shadow-orange-200' : 'bg-gray-200'}`}
+                                                >
+                                                    {item.active && <Icon icon="mdi:check" />}
+                                                </button>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                <div className="font-bold text-gray-900">{produit.nom}</div>
+                                                <div className="text-xs text-gray-500 font-medium">Base: {formatCurrencyCompact(produit.prixClient || produit.prixBoutique || 0)}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="h-10 w-24 border border-dashed border-gray-300 rounded-lg bg-gray-50/50"></div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="h-10 w-full border border-dashed border-gray-300 rounded-lg bg-gray-50/50"></div>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="h-10 w-24 ml-auto border border-dashed border-gray-300 rounded-lg bg-gray-50/50"></div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Note informative */}
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex items-start gap-4">
+                    <Icon icon="mdi:information-outline" className="text-2xl text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                        <h3 className="text-lg font-bold text-blue-900 mb-1">Information sur le PDF</h3>
+                        <p className="text-blue-800 font-medium leading-relaxed">
+                            Le fichier PDF généré contiendra les colonnes <strong>Quantité</strong>, <strong>Prix proposé</strong> et <strong>Total</strong> vides.
+                            Cela vous permet de les remplir entièrement à la main lors de vos discussions commerciales avec le client.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};

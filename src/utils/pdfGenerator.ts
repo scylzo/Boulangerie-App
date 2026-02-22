@@ -942,3 +942,95 @@ export const downloadClientPerformancePDF = async (
   }
 };
 
+export interface LigneFicheProduit {
+  produitNom: string;
+  prixBase: number;
+  quantiteVoulue: number;
+  prixPropose: number;
+}
+
+export const generateFicheProduitPDF = async (clientNom: string, lignes: LigneFicheProduit[]) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const primaryColor: [number, number, number] = [234, 88, 12]; // Orange 600
+  const secondaryColor: [number, number, number] = [107, 114, 128]; // Gray 500
+
+  // En-tête
+  try {
+    const logoImg = await loadImage(logoUrl);
+    doc.addImage(logoImg, 'PNG', 15, 15, 25, 25);
+  } catch (error) {
+    console.error('Erreur chargement logo', error);
+  }
+
+  doc.setFontSize(22);
+  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+  doc.setFont('helvetica', 'bold');
+  doc.text('FICHE PRODUIT / OFFRE COMMERCIALE', 50, 25);
+
+  doc.setFontSize(10);
+  doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 50, 32);
+  doc.text(`Client: ${clientNom || 'Non spécifié'}`, 50, 38);
+
+  // Ligne de séparation
+  doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+  doc.setLineWidth(0.5);
+  doc.line(15, 45, pageWidth - 15, 45);
+
+  // Tableau
+  const tableData = lignes.map(l => [
+    l.produitNom,
+    formatCurrencyCompact(l.prixBase),
+    '', // Quantité voulue vide
+    '', // Prix proposé vide
+    ''  // Total proposé vide
+  ]);
+
+  autoTable(doc, {
+    startY: 55,
+    head: [['Produit', 'Prix de Base', 'Quantité voulue', 'Prix proposé', 'Total proposé']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: {
+      fillColor: primaryColor as any,
+      textColor: [255, 255, 255] as any,
+      fontSize: 10,
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    columnStyles: {
+      0: { cellWidth: 'auto', halign: 'left' },
+      1: { cellWidth: 30, halign: 'right' },
+      2: { cellWidth: 35, halign: 'center' },
+      3: { cellWidth: 30, halign: 'right' },
+      4: { cellWidth: 35, halign: 'right' }
+    },
+    styles: { fontSize: 10, minCellHeight: 10 }, // Augmenter un peu la hauteur pour pouvoir écrire
+    margin: { left: 15, right: 15 }
+  });
+
+  // Pied de page
+  const pageHeight = doc.internal.pageSize.height;
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+  doc.text('Cette fiche produit constitue une proposition commerciale et non une facture.', 15, pageHeight - 15);
+  doc.text('Merci de votre confiance.', 15, pageHeight - 10);
+
+  return doc;
+};
+
+export const downloadFicheProduitPDF = async (clientNom: string, lignes: LigneFicheProduit[]) => {
+  try {
+    const doc = await generateFicheProduitPDF(clientNom, lignes);
+    const fileName = `Fiche_Produit_${clientNom.replace(/\s/g, '_') || 'Prospect'}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+    return true;
+  } catch (error) {
+    console.error('Erreur PDF Fiche Produit:', error);
+    throw new Error('Impossible de générer le PDF');
+  }
+};
+

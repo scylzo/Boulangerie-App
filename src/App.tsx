@@ -16,6 +16,7 @@ import { GestionProduits } from './pages/admin/GestionProduits';
 import { GestionClients } from './pages/admin/GestionClients';
 import { GestionLivreurs } from './pages/admin/GestionLivreurs';
 import { GestionUtilisateurs } from './pages/admin/GestionUtilisateurs';
+import { FicheProduit } from './pages/admin/FicheProduit';
 import { GestionFactures } from './pages/facturation/GestionFactures';
 import { GestionStock } from './pages/stock/GestionStock';
 import { GestionDepenses } from './pages/finance/GestionDepenses';
@@ -172,6 +173,12 @@ function App() {
         <Route path="/admin/users" element={
           <ProtectedRoute>
             <GestionUtilisateurs />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/fiche-produit" element={
+          <ProtectedRoute>
+            <FicheProduit />
           </ProtectedRoute>
         } />
 
