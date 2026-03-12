@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { ChevronLeft, Save, Calendar, Package, Fuel, AlertCircle } from 'lucide-react';
+import { ChevronLeft, Save, Calendar, Package, Fuel, AlertCircle, Calculator, ChevronDown } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
@@ -41,6 +41,25 @@ export const SaisieConsommations: React.FC = () => {
         onConfirm: () => { }
     });
 
+    // --- DEBUT: Variables pour l'outil de calcul ---
+    const [showCalculator, setShowCalculator] = useState(false);
+    const [calcBaguettes, setCalcBaguettes] = useState('');
+    const [calcPistolets, setCalcPistolets] = useState('');
+    const [calcPetitsPains, setCalcPetitsPains] = useState('');
+
+    const calculateFarineKgs = () => {
+        const bag = parseInt(calcBaguettes || '0', 10);
+        const pist = parseInt(calcPistolets || '0', 10);
+        const pp = parseInt(calcPetitsPains || '0', 10);
+        const totalGr = (bag * 275) + (pist * 170) + (pp * 100);
+        return totalGr / 1633;
+    };
+
+    const calculateFarineSacs = () => {
+        return calculateFarineKgs() / 50;
+    };
+    // --- FIN: Variables pour l'outil de calcul ---
+
     useEffect(() => {
         chargerStock();
     }, [chargerStock]);
@@ -70,8 +89,23 @@ export const SaisieConsommations: React.FC = () => {
 
                         // Logique par défaut intelligente
                         const isFuel = m.nom.toLowerCase().includes('carburant') || m.nom.toLowerCase().includes('gasoil');
-                        const defaultUnit = isFuel ? 'l' : (['kg', 'g'].includes(m.unite) ? 'sac' : m.unite);
+                        // On ne met 'sac' par défaut QUE si l'unité de base est kg ou g.
+                        // Si l'unité de base est déjà un sac (ex: sac_50kg), on reste sur l'unité de base.
+                        const isBaseWeightUnit = ['kg', 'g'].includes(m.unite);
+                        const defaultUnit = isFuel ? 'l' : (isBaseWeightUnit ? 'sac' : m.unite);
                         const defaultFactor = defaultUnit === 'sac' ? 50 : 1;
+
+                        // Vérifier si l'état sauvegardé est toujours cohérent avec l'unité de base actuelle
+                        // (cas où l'utilisateur a changé l'unité de base dans les réglages)
+                        let unitToUse = savedState?.unit || defaultUnit;
+                        let factorToUse = savedState?.factor || defaultFactor;
+
+                        // Sécurité: Si l'unité sauvegardée est 'sac' mais que la matière n'est plus en kg/g, 
+                        // ou si l'unité de base contient déjà 'sac', on force le facteur à 1.
+                        if (unitToUse === 'sac' && (!isBaseWeightUnit || m.unite.includes('sac'))) {
+                            unitToUse = m.unite;
+                            factorToUse = 1;
+                        }
 
                         return {
                             matiereId: m.id,
@@ -79,8 +113,8 @@ export const SaisieConsommations: React.FC = () => {
                             unite: m.unite,
                             stockActuel: m.stockActuel,
                             qteSaisie: savedState?.qte || '',
-                            inputUnit: savedState?.unit || defaultUnit,
-                            weightFactor: savedState?.factor || defaultFactor,
+                            inputUnit: unitToUse,
+                            weightFactor: factorToUse,
                             prixUnitaireMoyen: m.prixUnitaireMoyen || 0
                         };
                     })
@@ -140,10 +174,17 @@ export const SaisieConsommations: React.FC = () => {
             return;
         }
 
+        const resolveFactor = (l: typeof lignes[0]) => {
+            if (l.inputUnit === l.unite) return 1;
+            if (l.inputUnit === 'sac' && l.unite.includes('sac')) return 1;
+            return l.weightFactor;
+        };
+
         const message = lignesASauvegarder.map(l => {
             const qte = parseFloat(l.qteSaisie);
-            if (l.inputUnit !== l.unite) {
-                return `- ${l.nom}: ${qte} ${l.inputUnit}(s) (x${l.weightFactor}) = ${(qte * l.weightFactor).toLocaleString()} ${l.unite}`;
+            const factor = resolveFactor(l);
+            if (l.inputUnit !== l.unite && factor !== 1) {
+                return `- ${l.nom}: ${qte} ${l.inputUnit}(s) (x${factor}) = ${(qte * factor).toLocaleString()} ${l.unite}`;
             }
             return `- ${l.nom}: ${qte.toLocaleString()} ${l.unite}`;
         }).join('\n');
@@ -158,8 +199,10 @@ export const SaisieConsommations: React.FC = () => {
                         new Date(date),
                         lignesASauvegarder.map(l => {
                             let quantiteFinale = parseFloat(l.qteSaisie);
+                            // Conversion si unité spéciale (sac, carton, etc)
+                            const factor = resolveFactor(l);
                             if (l.inputUnit !== l.unite) {
-                                quantiteFinale *= l.weightFactor;
+                                quantiteFinale *= factor;
                             }
 
                             let motif = "Consommation journalière";
@@ -203,7 +246,10 @@ export const SaisieConsommations: React.FC = () => {
         return lignes.reduce((acc, l) => {
             const qte = parseFloat(l.qteSaisie || '0');
             if (qte <= 0) return acc;
-            const qteBase = qte * l.weightFactor;
+            // Sécurité : si l'unité d'entrée est identique à l'unité de base, le facteur DOIT être 1
+            // Si l'unité d'entrée est 'sac' mais que l'unité de base contient 'sac', le facteur est aussi 1
+            const factor = (l.inputUnit === l.unite || (l.inputUnit === 'sac' && l.unite.includes('sac'))) ? 1 : l.weightFactor;
+            const qteBase = qte * factor;
             return acc + (qteBase * l.prixUnitaireMoyen);
         }, 0);
     }, [lignes]);
@@ -279,6 +325,76 @@ export const SaisieConsommations: React.FC = () => {
                     </div>
                 </div>
 
+                {/* --- DEBUT: Calculatrice de rendement --- */}
+                <div className="border-b border-gray-200 bg-orange-50/30">
+                    <button 
+                        onClick={() => setShowCalculator(!showCalculator)}
+                        className="w-full px-4 py-2 flex justify-between items-center text-orange-800 hover:bg-orange-50 transition-colors"
+                    >
+                        <div className="flex items-center font-semibold text-sm">
+                            <Calculator className="w-4 h-4 mr-2" />
+                            Outil d'estimation de consommation (Farine)
+                        </div>
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showCalculator ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {showCalculator && (
+                        <div className="px-4 py-4 border-t border-orange-100 flex flex-col md:flex-row gap-6 items-start md:items-center bg-white/50">
+                            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Baguettes (275g)</label>
+                                    <input type="number" value={calcBaguettes} onChange={e => setCalcBaguettes(e.target.value)} className="block w-full rounded-md border-orange-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm h-9 bg-white" placeholder="Ex: 1811" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Pistolets (170g)</label>
+                                    <input type="number" value={calcPistolets} onChange={e => setCalcPistolets(e.target.value)} className="block w-full rounded-md border-orange-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm h-9 bg-white" placeholder="Ex: 500" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Petits Pains (100g)</label>
+                                    <input type="number" value={calcPetitsPains} onChange={e => setCalcPetitsPains(e.target.value)} className="block w-full rounded-md border-orange-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm h-9 bg-white" placeholder="Ex: 200" />
+                                </div>
+                            </div>
+                            
+                            <div className="w-full md:w-56 bg-white p-3 rounded-lg border border-orange-200 shadow-sm text-center">
+                                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Farine nécessaire estimée</div>
+                                <div className="text-2xl font-black text-orange-600">
+                                    {calculateFarineSacs() > 0 ? calculateFarineSacs().toFixed(2) : '0.00'} <span className="text-xs font-bold text-gray-500">sacs</span>
+                                </div>
+                                <div className="text-xs text-gray-400 mt-0.5">
+                                    ~ {calculateFarineKgs() > 0 ? calculateFarineKgs().toFixed(1) : '0'} kg au total
+                                </div>
+                                {calculateFarineSacs() > 0 && (
+                                    <button 
+                                        onClick={() => {
+                                            const sacs = calculateFarineSacs().toFixed(2);
+                                            setLignes(prev => prev.map(l => {
+                                                if (l.nom.toLowerCase().includes('farine')) {
+                                                    // Si l'unité de base est déjà un sac, on ne met pas de facteur 50
+                                                    const isAlreadyBag = l.unite.includes('sac');
+                                                    return { 
+                                                        ...l, 
+                                                        qteSaisie: sacs, 
+                                                        inputUnit: isAlreadyBag ? l.unite : 'sac', 
+                                                        weightFactor: isAlreadyBag ? 1 : 50 
+                                                    };
+                                                }
+                                                return l;
+                                            }));
+                                            toast.success("Quantité suggérée appliquée à la farine !");
+                                            setShowCalculator(false);
+                                        }}
+                                        className="mt-3 w-full bg-orange-100 hover:bg-orange-200 text-orange-800 font-bold py-1.5 px-2 rounded text-[11px] transition-colors uppercase tracking-wide flex items-center justify-center"
+                                    >
+                                        <Save className="w-3 h-3 mr-1" />
+                                        Appliquer au tableau
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+                {/* --- FIN: Calculatrice de rendement --- */}
+
                 {/* Table Scrollable */}
                 <div className="flex-1 overflow-auto">
                     <table className="min-w-full divide-y divide-gray-200 relative">
@@ -303,6 +419,14 @@ export const SaisieConsommations: React.FC = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {lignesFiltrees.map((ligne) => {
+                                // Calcul robuste du facteur réel
+                                const resolveFactor = (l: typeof ligne) => {
+                                    if (l.inputUnit === l.unite) return 1;
+                                    // Si on a sélectionné 'sac' mais que l'unité de base est déjà un sac
+                                    if (l.inputUnit === 'sac' && l.unite.includes('sac')) return 1;
+                                    return l.weightFactor;
+                                };
+                                const effectiveFactor = resolveFactor(ligne);
                                 const isPackaged = ligne.inputUnit !== ligne.unite;
                                 const showPackageOptions = ['kg', 'g'].includes(ligne.unite);
                                 const isFuel = ligne.nom.toLowerCase().includes('carburant') || ligne.nom.toLowerCase().includes('gasoil');
@@ -325,7 +449,7 @@ export const SaisieConsommations: React.FC = () => {
                                                     </div>
                                                     {isPackaged && (
                                                         <div className="text-xs text-indigo-600 mt-1 font-medium">
-                                                            ~ {(parseFloat(ligne.qteSaisie || '0') * ligne.weightFactor).toLocaleString()} {ligne.unite}
+                                                            ~ {(parseFloat(ligne.qteSaisie || '0') * effectiveFactor).toLocaleString()} {ligne.unite}
                                                         </div>
                                                     )}
                                                 </div>
@@ -392,7 +516,7 @@ export const SaisieConsommations: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-xs font-black text-gray-900">
                                             {ligne.qteSaisie && parseFloat(ligne.qteSaisie) > 0 ? (
-                                                formatCurrency(parseFloat(ligne.qteSaisie) * ligne.weightFactor * ligne.prixUnitaireMoyen)
+                                                formatCurrency(parseFloat(ligne.qteSaisie) * effectiveFactor * ligne.prixUnitaireMoyen)
                                             ) : (
                                                 <span className="text-gray-300">-</span>
                                             )}

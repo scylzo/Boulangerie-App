@@ -192,17 +192,7 @@ export const FicheProduit: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Note informative */}
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex items-start gap-4">
-                    <Icon icon="mdi:information-outline" className="text-2xl text-blue-600 shrink-0 mt-0.5" />
-                    <div>
-                        <h3 className="text-lg font-bold text-blue-900 mb-1">Information sur le PDF</h3>
-                        <p className="text-blue-800 font-medium leading-relaxed">
-                            Le fichier PDF généré contiendra les colonnes <strong>Quantité</strong>, <strong>Prix proposé</strong> et <strong>Total</strong> vides.
-                            Cela vous permet de les remplir entièrement à la main lors de vos discussions commerciales avec le client.
-                        </p>
-                    </div>
-                </div>
+
             </div>
         </div>
     );

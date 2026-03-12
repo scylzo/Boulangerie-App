@@ -59,8 +59,18 @@ export const StockDeclaration: React.FC = () => {
                         // Default logic: Si pas d'état, on check si on peut mettre par défaut en 'sac'
                         // L'utilisateur veut 'sacs' par défaut.
                         // On applique ça seulement si l'unité est compatible (kg ou g).
-                        const defaultUnit = ['kg', 'g'].includes(m.unite) ? 'sac' : m.unite;
+                        const isBaseWeightUnit = ['kg', 'g'].includes(m.unite);
+                        const defaultUnit = isBaseWeightUnit ? 'sac' : m.unite;
                         const defaultFactor = defaultUnit === 'sac' ? 50 : 1;
+
+                        // Vérifier la cohérence de l'état sauvegardé
+                        let unitToUse = savedState?.unit || defaultUnit;
+                        let factorToUse = savedState?.factor || defaultFactor;
+
+                        if (unitToUse === 'sac' && !isBaseWeightUnit) {
+                            unitToUse = m.unite;
+                            factorToUse = 1;
+                        }
 
                         return {
                             matiereId: m.id,
@@ -69,8 +79,8 @@ export const StockDeclaration: React.FC = () => {
                             stockActuel: m.stockActuel,
                             // Restauration ou valeurs par défaut
                             qteSaisie: savedState?.qte || '',
-                            inputUnit: savedState?.unit || defaultUnit,
-                            weightFactor: savedState?.factor || defaultFactor
+                            inputUnit: unitToUse,
+                            weightFactor: factorToUse
                         };
                     })
                     .sort((a, b) => a.nom.localeCompare(b.nom));
@@ -119,10 +129,17 @@ export const StockDeclaration: React.FC = () => {
             return;
         }
 
+        const resolveFactor = (l: typeof lignes[0]) => {
+            if (l.inputUnit === l.unite) return 1;
+            if (l.inputUnit === 'sac' && l.unite.includes('sac')) return 1;
+            return l.weightFactor;
+        };
+
         const message = lignesASauvegarder.map(l => {
             const qte = parseFloat(l.qteSaisie);
-            if (l.inputUnit !== l.unite) {
-                return `- ${l.nom}: ${qte} ${l.inputUnit}(s) (x${l.weightFactor}) = ${(qte * l.weightFactor).toLocaleString()} ${l.unite}`;
+            const factor = resolveFactor(l);
+            if (l.inputUnit !== l.unite && factor !== 1) {
+                return `- ${l.nom}: ${qte} ${l.inputUnit}(s) (x${factor}) = ${(qte * factor).toLocaleString()} ${l.unite}`;
             }
             return `- ${l.nom}: ${qte.toLocaleString()} ${l.unite}`;
         }).join('\n');
@@ -138,8 +155,9 @@ export const StockDeclaration: React.FC = () => {
                         lignesASauvegarder.map(l => {
                             let quantiteFinale = parseFloat(l.qteSaisie);
                             // Conversion si unité spéciale (sac, carton, etc)
+                            const factor = resolveFactor(l);
                             if (l.inputUnit !== l.unite) {
-                                quantiteFinale *= l.weightFactor;
+                                quantiteFinale *= factor;
                             }
 
                             // Génération du motif détaillé pour l'historique
@@ -267,6 +285,15 @@ export const StockDeclaration: React.FC = () => {
                             {lignesFiltrees.map((ligne) => {
                                 const isPackaged = ligne.inputUnit !== ligne.unite;
                                 const showPackageOptions = ['kg', 'g'].includes(ligne.unite);
+                                
+                                // Calcul robuste du facteur réel
+                                const resolveFactor = (l: typeof ligne) => {
+                                    if (l.inputUnit === l.unite) return 1;
+                                    // Si on a sélectionné 'sac' mais que l'unité de base est déjà un sac
+                                    if (l.inputUnit === 'sac' && l.unite.includes('sac')) return 1;
+                                    return l.weightFactor;
+                                };
+                                const effectiveFactor = resolveFactor(ligne);
 
                                 return (
                                     <tr key={ligne.matiereId} className={`hover:bg-gray-50 transition-colors ${ligne.qteSaisie ? 'bg-indigo-50/30' : ''}`}>
@@ -274,7 +301,7 @@ export const StockDeclaration: React.FC = () => {
                                             <div className="text-sm font-medium text-gray-900">{ligne.nom}</div>
                                             {isPackaged && (
                                                 <div className="text-xs text-indigo-600 mt-1 font-medium">
-                                                    ~ {(parseFloat(ligne.qteSaisie || '0') * ligne.weightFactor).toLocaleString()} {ligne.unite}
+                                                    ~ {(parseFloat(ligne.qteSaisie || '0') * effectiveFactor).toLocaleString()} {ligne.unite}
                                                 </div>
                                             )}
                                         </td>
