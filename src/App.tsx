@@ -7,6 +7,7 @@ import { Layout } from './components/layout/Layout';
 import { Login } from './pages/auth/Login';
 import { Dashboard } from './pages/Dashboard';
 import { ProgrammeProduction } from './pages/production/ProgrammeProduction';
+import { RotationBoulangers } from './pages/production/RotationBoulangers';
 import { VueBoulanger } from './pages/production/VueBoulanger';
 import { PageLivraison } from './pages/livraison/PageLivraison';
 import { SaisieRetours } from './pages/livraison/SaisieRetours';
@@ -112,6 +113,12 @@ function App() {
         <Route path="/production" element={
           <ProtectedRoute>
             <ProgrammeProduction />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/rotation-boulangers" element={
+          <ProtectedRoute>
+            <RotationBoulangers />
           </ProtectedRoute>
         } />
 

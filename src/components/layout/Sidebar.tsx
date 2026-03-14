@@ -15,6 +15,7 @@ const navigation = [
   { name: 'Tableau de bord', href: '/dashboard', roles: ['admin', 'gestionnaire'] },
   { name: 'Programme Production', href: '/production', roles: ['admin', 'gestionnaire'] },
   { name: 'Vue Boulanger', href: '/boulanger', roles: ['admin', 'boulanger'] },
+  { name: 'Rotation Boulangers', href: '/rotation-boulangers', roles: ['admin', 'gestionnaire'] },
   { name: 'Livraisons', href: '/livraison', roles: ['admin', 'livreur'] },
   { name: 'Retours Clients', href: '/retours', roles: ['admin', 'livreur'] },
   { name: 'Boutique', href: '/boutique', roles: ['admin', 'vendeuse'] },
@@ -34,6 +35,7 @@ const navigationIcons = {
   'Tableau de bord': 'mdi:view-dashboard',
   'Programme Production': 'mdi:clipboard-text',
   'Vue Boulanger': 'ph:chef-hat-bold',
+  'Rotation Boulangers': 'mdi:calendar-sync',
   'Livraisons': 'lucide:truck',
   'Retours Clients': 'mdi:keyboard-return',
   'Boutique': 'mdi:store',
@@ -59,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   return (
     <>
       <div
-        className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-30 transition-transform duration-300 transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-30 transition-transform duration-300 transform lg:translate-x-0 flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
       >
         {/* Logo et Bouton Fermer Mobile */}
@@ -78,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Navigation */}
-        <nav className="mt-4 px-2">
+        <nav className="mt-4 px-2 flex-1 scrollbar-hide overflow-y-auto">
           <div className="space-y-1">
             {filteredNavigation.map((item) => (
               <NavLink
@@ -103,7 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
+        <div className="mt-auto p-4 border-t border-gray-100 bg-white">
           <div className="text-xs text-gray-500 text-center">
             <p>Version 1.0.0</p>
           </div>
