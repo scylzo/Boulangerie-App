@@ -983,14 +983,13 @@ export const generateFicheProduitPDF = async (clientNom: string, lignes: LigneFi
   const tableData = lignes.map(l => [
     l.produitNom,
     formatCurrencyCompact(l.prixBase),
-    '', // Quantité voulue vide
-    '', // Prix proposé vide
-    ''  // Total proposé vide
+    '', // Marge vide
+    ''  // Prix boutique vide
   ]);
 
   autoTable(doc, {
     startY: 55,
-    head: [['Produit', 'Prix de Base', 'Quantité voulue', 'Prix proposé', 'Total proposé']],
+    head: [['Produit', 'Prix Revendeur', 'Marge', 'Prix Boutique']],
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -1002,10 +1001,9 @@ export const generateFicheProduitPDF = async (clientNom: string, lignes: LigneFi
     },
     columnStyles: {
       0: { cellWidth: 'auto', halign: 'left' },
-      1: { cellWidth: 30, halign: 'right' },
-      2: { cellWidth: 35, halign: 'center' },
-      3: { cellWidth: 30, halign: 'right' },
-      4: { cellWidth: 35, halign: 'right' }
+      1: { cellWidth: 40, halign: 'right' },
+      2: { cellWidth: 45, halign: 'center' },
+      3: { cellWidth: 45, halign: 'right' }
     },
     styles: { fontSize: 10, minCellHeight: 10 }, // Augmenter un peu la hauteur pour pouvoir écrire
     margin: { left: 15, right: 15 }

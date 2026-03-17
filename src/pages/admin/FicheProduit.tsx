@@ -146,16 +146,15 @@ export const FicheProduit: React.FC = () => {
                             <thead>
                                 <tr className="bg-gray-50/50">
                                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Sélection</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Produit & Prix Base</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Quantité Voulue</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Prix Proposé</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Total</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Produit & Prix Revendeur</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Prix Boutique</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Marge</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {isLoadingProduits ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500 font-medium">
+                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500 font-medium">
                                             Chargement des produits...
                                         </td>
                                     </tr>
@@ -173,16 +172,13 @@ export const FicheProduit: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-4 text-sm">
                                                 <div className="font-bold text-gray-900">{produit.nom}</div>
-                                                <div className="text-xs text-gray-500 font-medium">Base: {formatCurrencyCompact(produit.prixClient || produit.prixBoutique || 0)}</div>
+                                                <div className="text-xs text-gray-500 font-medium">Revendeur: {formatCurrencyCompact(produit.prixClient || produit.prixBoutique || 0)}</div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="h-10 w-24 border border-dashed border-gray-300 rounded-lg bg-gray-50/50"></div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="h-10 w-full border border-dashed border-gray-300 rounded-lg bg-gray-50/50"></div>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="h-10 w-24 ml-auto border border-dashed border-gray-300 rounded-lg bg-gray-50/50"></div>
                                             </td>
                                         </tr>
                                     );
