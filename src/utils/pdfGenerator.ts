@@ -260,12 +260,34 @@ const getStatutLibelle = (statut: string): string => {
 };
 
 export const downloadFacturePDF = async (facture: Facture) => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  let newWindow: Window | null = null;
+  if (isMobile) {
+    newWindow = window.open('', '_blank');
+    if (newWindow) newWindow.document.write('Génération du PDF en cours...');
+  }
+
   try {
     const doc = await generateFacturePDF(facture);
     const fileName = `Facture_${facture.numeroFacture}_${facture.client?.nom?.replace(/\s/g, '_') || 'Client'}.pdf`;
-    doc.save(fileName);
+    
+    if (isMobile) {
+      const pdfBlob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      if (newWindow) {
+        newWindow.location.href = blobUrl;
+      } else {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.click();
+      }
+    } else {
+      doc.save(fileName);
+    }
     return true;
   } catch (error) {
+    if (newWindow) newWindow.close();
     console.error('Erreur lors de la génération du PDF:', error);
     throw new Error('Impossible de générer le PDF');
   }
@@ -562,13 +584,35 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
 
 
 export const downloadRapportJournalierPDF = async (rapport: RapportJournalier, indicateurs: IndicateursPerformance | null) => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  let newWindow: Window | null = null;
+  if (isMobile) {
+    newWindow = window.open('', '_blank');
+    if (newWindow) newWindow.document.write('Génération du PDF en cours...');
+  }
+
   try {
     const doc = await generateRapportJournalierPDF(rapport, indicateurs);
     const dateStr = new Date(rapport.date).toISOString().split('T')[0];
     const fileName = `Rapport_Journalier_${dateStr}.pdf`;
-    doc.save(fileName);
+    
+    if (isMobile) {
+      const pdfBlob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      if (newWindow) {
+        newWindow.location.href = blobUrl;
+      } else {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.click();
+      }
+    } else {
+      doc.save(fileName);
+    }
     return true;
   } catch (error) {
+    if (newWindow) newWindow.close();
     console.error('Erreur lors de la génération du PDF:', error);
     throw new Error('Impossible de générer le PDF');
   }
@@ -704,13 +748,35 @@ export const generateProductionProgramPDF = async (programme: ProgrammeProductio
 };
 
 export const downloadProductionProgramPDF = async (programme: ProgrammeProduction) => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  let newWindow: Window | null = null;
+  if (isMobile) {
+    newWindow = window.open('', '_blank');
+    if (newWindow) newWindow.document.write('Génération du PDF en cours...');
+  }
+
   try {
     const doc = await generateProductionProgramPDF(programme);
     const dateStr = new Date(programme.dateProduction).toISOString().split('T')[0];
     const fileName = `Programme_Production_${dateStr}.pdf`;
-    doc.save(fileName);
+    
+    if (isMobile) {
+      const pdfBlob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      if (newWindow) {
+        newWindow.location.href = blobUrl;
+      } else {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.click();
+      }
+    } else {
+      doc.save(fileName);
+    }
     return true;
   } catch (error) {
+    if (newWindow) newWindow.close();
     console.error('Erreur PDF Production:', error);
     throw new Error('Impossible de générer le PDF');
   }
@@ -930,13 +996,35 @@ export const downloadClientPerformancePDF = async (
   dateDebut: Date,
   dateFin: Date
 ) => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  let newWindow: Window | null = null;
+  if (isMobile) {
+    newWindow = window.open('', '_blank');
+    if (newWindow) newWindow.document.write('Génération du PDF en cours...');
+  }
+
   try {
     const doc = await generateClientPerformancePDF(performances, periodeDays, dateDebut, dateFin);
     const dateStr = new Date().toISOString().split('T')[0];
     const fileName = `Performances_Clients_${periodeDays}j_${dateStr}.pdf`;
-    doc.save(fileName);
+    
+    if (isMobile) {
+      const pdfBlob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      if (newWindow) {
+        newWindow.location.href = blobUrl;
+      } else {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.click();
+      }
+    } else {
+      doc.save(fileName);
+    }
     return true;
   } catch (error) {
+    if (newWindow) newWindow.close();
     console.error('Erreur lors de la génération du PDF:', error);
     throw new Error('Impossible de générer le PDF');
   }
@@ -945,8 +1033,8 @@ export const downloadClientPerformancePDF = async (
 export interface LigneFicheProduit {
   produitNom: string;
   prixBase: number;
-  quantiteVoulue: number;
-  prixPropose: number;
+  prixBoutique?: number | string;
+  marge?: number | string;
 }
 
 export const generateFicheProduitPDF = async (clientNom: string, lignes: LigneFicheProduit[]) => {
@@ -983,13 +1071,13 @@ export const generateFicheProduitPDF = async (clientNom: string, lignes: LigneFi
   const tableData = lignes.map(l => [
     l.produitNom,
     formatCurrencyCompact(l.prixBase),
-    '', // Marge vide
-    ''  // Prix boutique vide
+    l.prixBoutique !== undefined && l.prixBoutique !== '' ? formatCurrencyCompact(Number(l.prixBoutique)) : '', // Prix Boutique
+    l.marge !== undefined && l.marge !== '' ? formatCurrencyCompact(Number(l.marge)) : '' // Marge
   ]);
 
   autoTable(doc, {
     startY: 55,
-    head: [['Produit', 'Prix Revendeur', 'Marge', 'Prix Boutique']],
+    head: [['Produit', 'Prix Revendeur', 'Prix Boutique', 'Marge']],
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -1002,8 +1090,8 @@ export const generateFicheProduitPDF = async (clientNom: string, lignes: LigneFi
     columnStyles: {
       0: { cellWidth: 'auto', halign: 'left' },
       1: { cellWidth: 40, halign: 'right' },
-      2: { cellWidth: 45, halign: 'center' },
-      3: { cellWidth: 45, halign: 'right' }
+      2: { cellWidth: 45, halign: 'right' },
+      3: { cellWidth: 45, halign: 'center' }
     },
     styles: { fontSize: 10, minCellHeight: 10 }, // Augmenter un peu la hauteur pour pouvoir écrire
     margin: { left: 15, right: 15 }
@@ -1021,12 +1109,34 @@ export const generateFicheProduitPDF = async (clientNom: string, lignes: LigneFi
 };
 
 export const downloadFicheProduitPDF = async (clientNom: string, lignes: LigneFicheProduit[]) => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  let newWindow: Window | null = null;
+  if (isMobile) {
+    newWindow = window.open('', '_blank');
+    if (newWindow) newWindow.document.write('Génération du PDF en cours...');
+  }
+
   try {
     const doc = await generateFicheProduitPDF(clientNom, lignes);
     const fileName = `Fiche_Produit_${clientNom.replace(/\s/g, '_') || 'Prospect'}_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(fileName);
+    
+    if (isMobile) {
+      const pdfBlob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      if (newWindow) {
+        newWindow.location.href = blobUrl;
+      } else {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.click();
+      }
+    } else {
+      doc.save(fileName);
+    }
     return true;
   } catch (error) {
+    if (newWindow) newWindow.close();
     console.error('Erreur PDF Fiche Produit:', error);
     throw new Error('Impossible de générer le PDF');
   }

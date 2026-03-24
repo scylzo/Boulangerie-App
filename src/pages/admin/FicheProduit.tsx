@@ -9,7 +9,7 @@ import { toast } from 'react-hot-toast';
 export const FicheProduit: React.FC = () => {
     const { produits, chargerProduits, isLoadingProduits } = useReferentielStore();
     const [clientNom, setClientNom] = useState('');
-    const [selectedItems, setSelectedItems] = useState<Record<string, { quantite: number; prixPropose: number; active: boolean }>>({});
+    const [selectedItems, setSelectedItems] = useState<Record<string, { marge: number | string; prixBoutique: number | string; active: boolean }>>({});
 
     useEffect(() => {
         chargerProduits();
@@ -18,11 +18,11 @@ export const FicheProduit: React.FC = () => {
     // Initialiser les items quand les produits sont chargés
     useEffect(() => {
         if (produits.length > 0 && Object.keys(selectedItems).length === 0) {
-            const initial: Record<string, { quantite: number; prixPropose: number; active: boolean }> = {};
+            const initial: Record<string, { marge: number | string; prixBoutique: number | string; active: boolean }> = {};
             produits.forEach(p => {
                 initial[p.id] = {
-                    quantite: 0,
-                    prixPropose: p.prixClient || p.prixBoutique || 0,
+                    marge: '',
+                    prixBoutique: '',
                     active: false
                 };
             });
@@ -35,6 +35,32 @@ export const FicheProduit: React.FC = () => {
             ...prev,
             [id]: { ...prev[id], active: !prev[id].active }
         }));
+    };
+
+    const handleFieldChange = (id: string, field: 'prixBoutique' | 'marge', value: string) => {
+        if (value !== '' && Number(value) < 0) return;
+
+        const produit = produits.find(p => p.id === id);
+        const prixRevendeur = produit?.prixClient || produit?.prixBoutique || 0;
+        
+        setSelectedItems(prev => {
+            const current = prev[id] || { marge: '', prixBoutique: '', active: false };
+            let newMarge: number | string = current.marge;
+            let newPrixBoutique: number | string = current.prixBoutique;
+
+            if (field === 'prixBoutique') {
+                newPrixBoutique = value;
+                newMarge = value === '' ? '' : Number(value) - prixRevendeur;
+            } else if (field === 'marge') {
+                newMarge = value;
+                newPrixBoutique = value === '' ? '' : prixRevendeur + Number(value);
+            }
+
+            return {
+                ...prev,
+                [id]: { ...current, marge: newMarge, prixBoutique: newPrixBoutique }
+            };
+        });
     };
 
     const handleToggleAll = () => {
@@ -54,8 +80,8 @@ export const FicheProduit: React.FC = () => {
                 return {
                     produitNom: produit?.nom || 'Produit inconnu',
                     prixBase: produit?.prixClient || produit?.prixBoutique || 0,
-                    quantiteVoulue: data.quantite,
-                    prixPropose: data.prixPropose
+                    prixBoutique: data.prixBoutique,
+                    marge: data.marge
                 } as LigneFicheProduit;
             });
 
@@ -145,7 +171,20 @@ export const FicheProduit: React.FC = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-gray-50/50">
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Sélection</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                        <div className="flex items-center gap-2 cursor-pointer" onClick={handleToggleAll}>
+                                            <button
+                                                className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
+                                                    Object.keys(selectedItems).length > 0 && Object.values(selectedItems).every(item => item.active)
+                                                        ? 'bg-orange-600 border-orange-600 text-white'
+                                                        : 'bg-white border-gray-300'
+                                                }`}
+                                            >
+                                                {Object.keys(selectedItems).length > 0 && Object.values(selectedItems).every(item => item.active) && <Icon icon="mdi:check" className="text-sm" />}
+                                            </button>
+                                            <span className="hover:text-orange-600 transition-colors">Tout</span>
+                                        </div>
+                                    </th>
                                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Produit & Prix Revendeur</th>
                                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Prix Boutique</th>
                                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Marge</th>
@@ -158,8 +197,12 @@ export const FicheProduit: React.FC = () => {
                                             Chargement des produits...
                                         </td>
                                     </tr>
-                                ) : produits.map(produit => {
-                                    const item = selectedItems[produit.id] || { quantite: 0, active: false };
+                                ) : [...produits].sort((a, b) => {
+                                    const aActive = selectedItems[a.id]?.active ? 1 : 0;
+                                    const bActive = selectedItems[b.id]?.active ? 1 : 0;
+                                    return bActive - aActive; // Sort active (1) before inactive (0)
+                                }).map(produit => {
+                                    const item = selectedItems[produit.id] || { marge: '', prixBoutique: '', active: false };
                                     return (
                                         <tr key={produit.id} className={`hover:bg-gray-50 transition-colors ${item.active ? 'bg-orange-50/30' : ''}`}>
                                             <td className="px-6 py-4">
@@ -175,10 +218,22 @@ export const FicheProduit: React.FC = () => {
                                                 <div className="text-xs text-gray-500 font-medium">Revendeur: {formatCurrencyCompact(produit.prixClient || produit.prixBoutique || 0)}</div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="h-10 w-24 border border-dashed border-gray-300 rounded-lg bg-gray-50/50"></div>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={item.prixBoutique}
+                                                    onChange={(e) => handleFieldChange(produit.id, 'prixBoutique', e.target.value)}
+                                                    className="h-10 w-full px-3 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm font-medium"
+                                                />
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="h-10 w-full border border-dashed border-gray-300 rounded-lg bg-gray-50/50"></div>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={item.marge}
+                                                    onChange={(e) => handleFieldChange(produit.id, 'marge', e.target.value)}
+                                                    className="h-10 w-full px-3 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm font-medium"
+                                                />
                                             </td>
                                         </tr>
                                     );
