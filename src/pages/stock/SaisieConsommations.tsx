@@ -46,12 +46,14 @@ export const SaisieConsommations: React.FC = () => {
     const [calcBaguettes, setCalcBaguettes] = useState('');
     const [calcPistolets, setCalcPistolets] = useState('');
     const [calcPetitsPains, setCalcPetitsPains] = useState('');
+    const [calcDefaut, setCalcDefaut] = useState('');
 
     const calculateFarineKgs = () => {
         const bag = parseInt(calcBaguettes || '0', 10);
         const pist = parseInt(calcPistolets || '0', 10);
         const pp = parseInt(calcPetitsPains || '0', 10);
-        const totalGr = (bag * 275) + (pist * 170) + (pp * 100);
+        const defautKg = parseFloat(calcDefaut || '0');
+        const totalGr = (bag * 275) + (pist * 170) + (pp * 100) + (defautKg * 1000);
         return totalGr / 1633;
     };
 
@@ -340,7 +342,7 @@ export const SaisieConsommations: React.FC = () => {
                     
                     {showCalculator && (
                         <div className="px-4 py-4 border-t border-orange-100 flex flex-col md:flex-row gap-6 items-start md:items-center bg-white/50">
-                            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Baguettes (275g)</label>
                                     <input type="number" value={calcBaguettes} onChange={e => setCalcBaguettes(e.target.value)} className="block w-full rounded-md border-orange-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm h-9 bg-white" placeholder="Ex: 1811" />
@@ -352,6 +354,10 @@ export const SaisieConsommations: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Petits Pains (100g)</label>
                                     <input type="number" value={calcPetitsPains} onChange={e => setCalcPetitsPains(e.target.value)} className="block w-full rounded-md border-orange-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm h-9 bg-white" placeholder="Ex: 200" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Autres (kg pâte)</label>
+                                    <input type="number" step="0.1" value={calcDefaut} onChange={e => setCalcDefaut(e.target.value)} className="block w-full rounded-md border-orange-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm h-9 bg-white" placeholder="Ex: 15.5" />
                                 </div>
                             </div>
                             
