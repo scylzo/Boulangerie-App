@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { ChevronLeft, Save, Calendar, Package, Fuel, AlertCircle, Calculator, ChevronDown } from 'lucide-react';
+import { ChevronLeft, Save, Calendar, Package, Fuel, AlertCircle, Calculator, ChevronDown, History } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
@@ -124,6 +124,79 @@ export const SaisieConsommations: React.FC = () => {
             });
         }
     }, [matieres]);
+
+    const handlePreRemplir = () => {
+        // Pré-calculer la dernière conso de chaque matière
+        const lastConsoByMatiere = new Map<string, typeof mouvements[0]>();
+        
+        // mouvements est déjà trié par date DESC au chargement
+        for (const m of mouvements) {
+            if (m.type === 'consommation' && !lastConsoByMatiere.has(m.matiereId)) {
+                lastConsoByMatiere.set(m.matiereId, m);
+            }
+        }
+
+        let nbRemplis = 0;
+
+        setLignes(prev => prev.map(ligne => {
+            const lastMouvement = lastConsoByMatiere.get(ligne.matiereId);
+
+            if (lastMouvement) {
+                nbRemplis++;
+                let unitToUse = ligne.inputUnit;
+                let factorToUse = ligne.weightFactor;
+                let qteToUse = lastMouvement.quantite;
+
+                const motif = lastMouvement.motif || '';
+                
+                // Extraire le motif du genre "Consommation journalière (2 sacs)"
+                const matchParenthese = motif.match(/\(([\d.]+)\s*([a-zA-Z]+)s?\)/);
+                if (matchParenthese) {
+                    const qteStr = matchParenthese[1];
+                    const unitStr = matchParenthese[2].toLowerCase();
+                    
+                    if (unitStr.includes('sac')) {
+                        unitToUse = 'sac';
+                        factorToUse = 50; 
+                        qteToUse = parseFloat(qteStr);
+                    } else if (unitStr.includes('carton')) {
+                        unitToUse = 'carton';
+                        factorToUse = 10;
+                        qteToUse = parseFloat(qteStr);
+                    } else if (unitStr.includes('sachet')) {
+                        unitToUse = 'sachet';
+                        factorToUse = 0.5;
+                        qteToUse = parseFloat(qteStr);
+                    }
+                } else if (motif.includes('~') && motif.includes('sacs') && ligne.unite === 'kg') {
+                    unitToUse = 'sac';
+                    factorToUse = 50;
+                    qteToUse = lastMouvement.quantite / 50;
+                } else {
+                     if (ligne.inputUnit !== ligne.unite && ligne.weightFactor > 0) {
+                         qteToUse = lastMouvement.quantite / ligne.weightFactor;
+                     }
+                }
+
+                // Arrondir pour éviter les 51.000000000001
+                qteToUse = Math.round(qteToUse * 100) / 100;
+
+                return {
+                    ...ligne,
+                    qteSaisie: qteToUse ? qteToUse.toString() : '',
+                    inputUnit: unitToUse,
+                    weightFactor: factorToUse
+                };
+            }
+            return ligne;
+        }));
+        
+        if (nbRemplis > 0) {
+            toast.success(`Pré-rempli avec les dernières consommations connues (${nbRemplis} articles) !`, { duration: 4000 });
+        } else {
+            toast.error("Aucun historique de consommation trouvé.");
+        }
+    };
 
     const handleQteChange = (matiereId: string, valeur: string) => {
         if (valeur && parseFloat(valeur) < 0) return;
@@ -311,14 +384,24 @@ export const SaisieConsommations: React.FC = () => {
                         />
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-end text-sm">
+                    <div className="flex flex-wrap items-center justify-end gap-3 w-full sm:w-auto">
+                        <button
+                            onClick={handlePreRemplir}
+                            className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors font-semibold border border-indigo-200 shadow-sm text-xs sm:text-sm"
+                            title="Remplir automatiquement avec les quantités de la veille"
+                        >
+                            <History className="w-4 h-4" />
+                            <span className="hidden md:inline">Remplir avec la dernière conso.</span>
+                            <span className="inline md:hidden">Auto-remplir</span>
+                        </button>
+
+                        <div className="flex flex-col items-end text-sm border-l border-gray-200 pl-3">
                             <span className="text-gray-500 uppercase text-[10px] font-bold tracking-wider">Valorisation Totale</span>
                             <span className="text-lg font-black text-emerald-600 leading-none">
                                 {formatCurrency(valorisationTotale)}
                             </span>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm ml-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
                             <span className={`font-semibold ${totalArticlesSaisis > 0 ? 'text-indigo-600' : 'text-gray-400'}`}>
                                 {totalArticlesSaisis}
                             </span>
