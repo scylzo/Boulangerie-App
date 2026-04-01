@@ -123,17 +123,27 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h2 className="text-base sm:text-lg font-bold text-gray-800">Matières Premières</h2>
-        <button
-          onClick={() => {
-            setIsEditing(null);
-            setFormData({ nom: '', unite: 'kg', stockMinimum: '', stockActuel: '', dateCreation: new Date().toISOString().split('T')[0] });
-            setShowForm(!showForm);
-          }}
-          className="flex items-center justify-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto text-sm sm:text-base"
-        >
-          <Plus size={18} className="sm:w-5 sm:h-5" />
-          <span>Nouvelle Matière</span>
-        </button>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => useStockStore.getState().reparerHistoriqueStock()}
+            className="flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg transition-colors text-xs sm:text-sm font-semibold border border-slate-300"
+            title="Recalcule le stock actuel et le Prix Moyen Pondéré de toutes les matières en rejouant l'historique des mouvements"
+          >
+            <AlertTriangle size={14} className="sm:w-4 sm:h-4 text-orange-500" />
+            <span>Réparer PMP</span>
+          </button>
+          <button
+            onClick={() => {
+              setIsEditing(null);
+              setFormData({ nom: '', unite: 'kg', stockMinimum: '', stockActuel: '', dateCreation: new Date().toISOString().split('T')[0] });
+              setShowForm(!showForm);
+            }}
+            className="flex items-center justify-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex-1 sm:flex-none text-sm sm:text-base"
+          >
+            <Plus size={18} className="sm:w-5 sm:h-5" />
+            <span>Nouvelle Matière</span>
+          </button>
+        </div>
       </div>
 
       <Modal

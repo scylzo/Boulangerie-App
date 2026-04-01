@@ -214,6 +214,21 @@ export const SaisieConsommations: React.FC = () => {
             else if (newUnit === 'carton') newFactor = 10;
             else if (newUnit === 'sachet') newFactor = 0.5;
             else if (newUnit === l.unite) newFactor = 1;
+            
+            // Logique de conversion inversée si l'unité de base est un sac (ex: sac_25kg) et on choisit de déclarer au kg ou g
+            const isSacUnit = typeof l.unite === 'string' && l.unite.startsWith('sac_');
+            if (isSacUnit && (newUnit === 'kg' || newUnit === 'g')) {
+                const match = l.unite.match(/sac_(\d+)kg/);
+                const weightInKg = match ? parseInt(match[1], 10) : 50;
+                
+                if (newUnit === 'kg') {
+                    // 1 kg = 1 / poids_du_sac (en unité de base qui est le sac entier)
+                    newFactor = 1 / weightInKg;
+                } else if (newUnit === 'g') {
+                    // 1 g = 1 / (poids_du_sac * 1000)
+                    newFactor = 1 / (weightInKg * 1000);
+                }
+            }
 
             return { ...l, inputUnit: newUnit, weightFactor: newFactor };
         }));
@@ -517,7 +532,8 @@ export const SaisieConsommations: React.FC = () => {
                                 };
                                 const effectiveFactor = resolveFactor(ligne);
                                 const isPackaged = ligne.inputUnit !== ligne.unite;
-                                const showPackageOptions = ['kg', 'g'].includes(ligne.unite);
+                                const isBaseWeightUnit = ['kg', 'g'].includes(ligne.unite);
+                                const isSacBaseUnit = typeof ligne.unite === 'string' && ligne.unite.startsWith('sac_');
                                 const isFuel = ligne.nom.toLowerCase().includes('carburant') || ligne.nom.toLowerCase().includes('gasoil');
                                 const isAlreadyEntered = dejaSaisisPourDate.some(m => m.matiereId === ligne.matiereId);
 
@@ -575,11 +591,17 @@ export const SaisieConsommations: React.FC = () => {
                                                         className="block w-full text-xs rounded-md border-gray-300 py-1.5 focus:border-indigo-500 focus:ring-indigo-500"
                                                     >
                                                         <option value={ligne.unite}>{ligne.unite} (Base)</option>
-                                                        {showPackageOptions && (
+                                                        {isBaseWeightUnit && (
                                                             <>
                                                                 <option value="sac">Sac</option>
                                                                 <option value="carton">Carton</option>
                                                                 <option value="sachet">Sachet</option>
+                                                            </>
+                                                        )}
+                                                        {isSacBaseUnit && (
+                                                            <>
+                                                                <option value="kg">kg</option>
+                                                                <option value="g">g</option>
                                                             </>
                                                         )}
                                                     </select>

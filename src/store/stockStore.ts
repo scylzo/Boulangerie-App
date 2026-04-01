@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import toast from 'react-hot-toast';
 import {
     collection,
     runTransaction,
@@ -46,6 +47,9 @@ interface StockState {
     // Getters / Selectors
     getMatiere: (id: string) => MatierePremiere | undefined;
     getMouvementsByMatiere: (matiereId: string) => MouvementStock[];
+
+    // Utilitaire de réparation
+    reparerHistoriqueStock: () => Promise<void>;
 }
 
 export const useStockStore = create<StockState>((set, get) => ({
@@ -519,4 +523,63 @@ export const useStockStore = create<StockState>((set, get) => ({
             .filter((m) => m.matiereId === matiereId);
         // Le tri est déjà fait au chargement
     },
+
+    reparerHistoriqueStock: async () => {
+        set({ isLoading: true });
+        try {
+            const { matieres, mouvements } = get();
+            
+            for (const matiere of matieres) {
+                // On récupère tous les mouvements de cette matière, triés par date croissante (du plus vieux au plus récent)
+                const mvtsMatiere = mouvements
+                    .filter(m => m.matiereId === matiere.id)
+                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime() || new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                
+                let stockSimule = 0;
+                let pmpSimule = 0;
+                
+                for (const mvt of mvtsMatiere) {
+                    if (mvt.type === 'achat') {
+                        const qte = mvt.quantite;
+                        if (mvt.prixUnitaire && mvt.prixUnitaire > 0) {
+                            const ancienStockVal = Math.max(0, stockSimule) * pmpSimule;
+                            const nouvelAchatVal = qte * mvt.prixUnitaire;
+                            const stockTotalTheorique = Math.max(0, stockSimule) + qte;
+                            
+                            if (stockTotalTheorique > 0) {
+                                pmpSimule = (ancienStockVal + nouvelAchatVal) / stockTotalTheorique;
+                            } else {
+                                pmpSimule = mvt.prixUnitaire;
+                            }
+                        } else if (pmpSimule === 0 && mvt.prixUnitaire) {
+                            pmpSimule = mvt.prixUnitaire;
+                        }
+                        stockSimule += qte;
+                    } else if (['consommation', 'perte', 'retour_fournisseur'].includes(mvt.type)) {
+                        stockSimule -= mvt.quantite;
+                    } else if (mvt.type === 'correction') {
+                        stockSimule += mvt.quantite; 
+                    }
+                }
+                
+                // Si divergence, on corrige dans Firebase
+                const fixedStock = Math.round(stockSimule * 1000) / 1000;
+                if (Math.abs(pmpSimule - (matiere.prixUnitaireMoyen || 0)) > 0.01 || Math.abs(fixedStock - matiere.stockActuel) > 0.01) {
+                    console.log(`Réparation ${matiere.nom}: PMP -> ${pmpSimule} (était ${matiere.prixUnitaireMoyen}), Stock -> ${fixedStock} (était ${matiere.stockActuel})`);
+                    await firestoreService.update('matieres', matiere.id, { 
+                        prixUnitaireMoyen: pmpSimule,
+                        stockActuel: fixedStock
+                    });
+                }
+            }
+            
+            await get().chargerDonnees();
+            toast.success("Historique des stocks et PMP réparé avec succès !");
+            set({ isLoading: false });
+        } catch (error: any) {
+            console.error("Erreur lors de la réparation de l'historique", error);
+            set({ isLoading: false, error: error.message });
+            toast.error("Erreur lors de la réparation.");
+        }
+    }
 }));
