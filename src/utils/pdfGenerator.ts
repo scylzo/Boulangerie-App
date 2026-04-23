@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Facture, RapportJournalier, IndicateursPerformance, ProgrammeProduction, Client } from '../types';
-import { formatCurrency, formatCurrencyCompact } from './currency';
+import { formatCurrencyCompact } from './currency';
 import logoUrl from '../assets/logo.png';
 
 const loadImage = (url: string): Promise<HTMLImageElement> => {
