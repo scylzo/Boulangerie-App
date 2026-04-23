@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { formatCurrency } from '../../utils/currency';
+import { formaterQuantite } from '../../utils/calculations';
 import { memeJour } from '../../utils/dateUtils';
 
 interface LigneConsommation {
@@ -562,7 +563,7 @@ export const SaisieConsommations: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">
                                             <span className={`inline-flex px-2 py-1 text-xs rounded-full ${ligne.stockActuel <= 0 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
-                                                {ligne.stockActuel.toLocaleString()} {ligne.unite}
+                                                {formaterQuantite(ligne.stockActuel)} {ligne.unite}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right">

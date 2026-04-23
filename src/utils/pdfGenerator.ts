@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Facture, RapportJournalier, IndicateursPerformance, ProgrammeProduction } from '../types';
-import { formatCurrencyCompact } from './currency';
+import type { Facture, RapportJournalier, IndicateursPerformance, ProgrammeProduction, Client } from '../types';
+import { formatCurrency, formatCurrencyCompact } from './currency';
 import logoUrl from '../assets/logo.png';
 
 const loadImage = (url: string): Promise<HTMLImageElement> => {
@@ -1142,3 +1142,182 @@ export const downloadFicheProduitPDF = async (clientNom: string, lignes: LigneFi
   }
 };
 
+
+export const generateReleveFacturesPDF = async (
+  client: Client,
+  factures: Facture[],
+  dateDebut: Date,
+  dateFin: Date
+) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+
+  // Fonction locale pour formater l'argent sans toLocaleString (qui cause des espaces bizarres en PDF)
+  const formatMoney = (amount: number) => {
+    return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " FCFA";
+  };
+
+  // Configuration des couleurs - Palette Moderne (Rouge pour les impayés)
+  const colors = {
+    primary: [220, 38, 38],    // Red 600
+    secondary: [107, 114, 128], // Gray 500
+    text: [31, 41, 55],        // Gray 800
+    bgHeader: [254, 242, 242], // Red 50
+    accent: [239, 68, 68]      // Red 500
+  };
+
+  // 1. En-tête Moderne style Banner
+  doc.setFillColor(colors.bgHeader[0], colors.bgHeader[1], colors.bgHeader[2]);
+  doc.rect(0, 0, pageWidth, 45, 'F');
+  doc.setDrawColor(254, 202, 202); // Red 200
+  doc.line(0, 45, pageWidth, 45);
+
+  try {
+    const logoImg = await loadImage(logoUrl);
+    doc.addImage(logoImg, 'PNG', 15, 10, 22, 22);
+  } catch (error) {
+    console.error('Erreur chargement logo', error);
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.text('RELEVÉ DES IMPAYÉS', 45, 22);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.text(`Période du ${dateDebut.toLocaleDateString('fr-FR')} au ${dateFin.toLocaleDateString('fr-FR')}`, 45, 29);
+
+  let yPos = 55;
+
+  // 2. Section Client et Résumé
+  const totalDu = factures.reduce((sum, f) => sum + (f.totalTTC - (f.montantRegle || 0)), 0);
+
+  doc.setFontSize(11);
+  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CLIENT', 15, yPos);
+  
+  doc.setFontSize(14);
+  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.text(client.nom, 15, yPos + 7);
+  
+  doc.setFontSize(10);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.setFont('helvetica', 'normal');
+  if (client.telephone) doc.text(`Tél: ${client.telephone}`, 15, yPos + 13);
+  if (client.adresse) doc.text(client.adresse, 15, yPos + 18);
+
+  // Boîte Résumé (à droite)
+  doc.setFillColor(254, 242, 242); // Red 50
+  doc.setDrawColor(252, 165, 165); // Red 300
+  doc.roundedRect(120, yPos - 5, 75, 25, 3, 3, 'FD');
+  
+  doc.setFontSize(9);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.text('Total Reste à Payer:', 125, yPos + 2);
+  
+  doc.setFontSize(16);
+  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.setFont('helvetica', 'bold');
+  doc.text(formatMoney(totalDu), 190, yPos + 12, { align: 'right' });
+
+  yPos += 30;
+
+  // 3. Tableau des factures
+  doc.setFontSize(11);
+  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+  doc.text(`DÉTAIL DES FACTURES EN ATTENTE (${factures.length})`, 15, yPos);
+
+  const tableData = factures.map(f => [
+    new Date(f.dateLivraison).toLocaleDateString('fr-FR'),
+    f.numeroFacture,
+    formatMoney(f.totalTTC),
+    formatMoney(f.montantRegle || 0),
+    formatMoney(f.totalTTC - (f.montantRegle || 0))
+  ]);
+
+  autoTable(doc, {
+    startY: yPos + 4,
+    head: [['Date', 'N° Facture', 'Total TTC', 'Déjà Réglé', 'Reste à Payer']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: {
+      fillColor: colors.primary as any,
+      textColor: [255, 255, 255] as any,
+      fontSize: 9,
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    columnStyles: {
+      0: { cellWidth: 25, halign: 'center' },
+      1: { cellWidth: 'auto', halign: 'center' },
+      2: { cellWidth: 32, halign: 'right' },
+      3: { cellWidth: 32, halign: 'right' },
+      4: { cellWidth: 35, halign: 'right', fontStyle: 'bold', textColor: colors.primary as any }
+    },
+    styles: { fontSize: 9, cellPadding: 2 },
+    alternateRowStyles: { fillColor: [249, 250, 251] }, // Gray 50
+    margin: { left: 15, right: 15 }
+  });
+
+  const finalY = (doc as any).lastAutoTable.finalY + 15;
+
+  // Message de remerciement / relance
+  if (finalY < pageHeight - 30) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+    doc.text('Nous vous prions de bien vouloir régulariser cette situation dans les plus brefs délais.', 15, finalY);
+  }
+
+  // Pied de page
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.text(`Document généré le ${new Date().toLocaleString('fr-FR')} - BOULANGERIE ERP`, 15, pageHeight - 10);
+  doc.text('Page 1/1', pageWidth - 25, pageHeight - 10);
+
+  return doc;
+};
+
+export const downloadReleveFacturesPDF = async (
+  client: Client,
+  factures: Facture[],
+  dateDebut: Date,
+  dateFin: Date
+) => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  let newWindow: Window | null = null;
+  if (isMobile) {
+    newWindow = window.open('', '_blank');
+    if (newWindow) newWindow.document.write('Génération du PDF en cours...');
+  }
+
+  try {
+    const doc = await generateReleveFacturesPDF(client, factures, dateDebut, dateFin);
+    const fileName = `Releve_${client.nom.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    
+    if (isMobile) {
+      const pdfBlob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      if (newWindow) {
+        newWindow.location.href = blobUrl;
+      } else {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.click();
+      }
+    } else {
+      doc.save(fileName);
+    }
+    return true;
+  } catch (error) {
+    if (newWindow) newWindow.close();
+    console.error('Erreur PDF Relevé:', error);
+    throw new Error('Impossible de générer le PDF');
+  }
+};

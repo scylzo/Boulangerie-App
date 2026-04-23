@@ -73,5 +73,7 @@ export const formaterPourcentage = (valeur: number): string => {
 };
 
 export const formaterQuantite = (quantite: number, unite: string = ''): string => {
-  return `${quantite}${unite ? ' ' + unite : ''}`;
+  // Arrondir à 2 décimales pour éviter les problèmes de précision flottante (ex: 52.900000000000006)
+  const arrondie = Math.round((quantite + Number.EPSILON) * 100) / 100;
+  return `${arrondie.toLocaleString('fr-FR')}${unite ? ' ' + unite : ''}`;
 };

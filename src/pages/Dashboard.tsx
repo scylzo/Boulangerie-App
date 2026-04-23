@@ -5,6 +5,7 @@ import { useStockStore } from '../store/stockStore';
 import { useProductionStore } from '../store/productionStore';
 import { useReferentielStore } from '../store/referentielStore';
 import { formatCurrency } from '../utils/currency';
+import { formaterQuantite } from '../utils/calculations';
 import { ClientPerformanceWidget } from '../components/dashboard/ClientPerformanceWidget';
 import { PeriodeSelector } from '../components/dashboard/PeriodeSelector';
 
@@ -240,7 +241,9 @@ export const Dashboard: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="text-right shrink-0">
-                                                <span className="font-black text-slate-700 text-lg md:text-xl leading-none">{item.stockActuel}</span>
+                                                <span className="font-black text-slate-700 text-lg md:text-xl leading-none">
+                                                    {formaterQuantite(item.stockActuel)}
+                                                </span>
                                             </div>
                                         </div>
                                     ))}

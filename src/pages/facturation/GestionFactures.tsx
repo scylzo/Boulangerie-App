@@ -5,6 +5,7 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { FactureDetailsModal } from '../../components/factures/FactureDetailsModal';
 import { PaymentModal } from '../../components/factures/PaymentModal';
 import { CalculateurRistourneModal } from '../../components/factures/CalculateurRistourneModal';
+import { ReleveImpayesModal } from '../../components/factures/ReleveImpayesModal';
 import { useFacturationStore } from '../../store/facturationStore';
 
 import { useLivraisonStore } from '../../store/livraisonStore';
@@ -76,6 +77,7 @@ export const GestionFactures: React.FC = () => {
   const [showFactureDetails, setShowFactureDetails] = useState(false);
   const [showRistourneModal, setShowRistourneModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showReleveModal, setShowReleveModal] = useState(false);
   const [factureAPayer, setFactureAPayer] = useState<Facture | null>(null);
 
   // --- Global Daily Total Logic ---
@@ -136,27 +138,32 @@ export const GestionFactures: React.FC = () => {
     const initialiser = async () => {
       try {
         await chargerParametres();
-        await chargerFactures();
+        const start = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+        const end = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+        await chargerFactures(start, end);
         await chargerClients(); // Charger les clients
       } catch (error) {
         console.error('Erreur lors de l\'initialisation:', error);
       }
     };
     initialiser();
-  }, [chargerParametres, chargerFactures, chargerClients]);
+  }, [chargerParametres, chargerFactures, chargerClients, selectedMonth]);
 
-  // Synchronisation auto
+  // Synchronisation auto - Uniquement sur le mois sélectionné
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        await actualiserStatutsFactures(true);
-        await chargerFactures(undefined, undefined, true);
+        const start = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+        const end = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+        
+        await actualiserStatutsFactures(); // On check globalement (on peut restreindre aussi si besoin)
+        await chargerFactures(start, end, true);
       } catch (error) {
         console.error('Erreur synchro auto:', error);
       }
     }, 30000);
     return () => clearInterval(interval);
-  }, [actualiserStatutsFactures, chargerFactures]);
+  }, [actualiserStatutsFactures, chargerFactures, selectedMonth]);
 
   // --- Logique Vue Clients ---
 
@@ -564,6 +571,16 @@ export const GestionFactures: React.FC = () => {
                 <span className="truncate">Générer Factures</span>
               </Button>
 
+              <Button
+                onClick={() => setShowReleveModal(true)}
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 h-9 text-xs sm:text-sm w-full sm:w-auto"
+                size="sm"
+              >
+                <Icon icon="mdi:printer-eye" className="text-base sm:text-lg mr-2" />
+                <span className="truncate">Relevé Impayés</span>
+              </Button>
+
               <div className="flex bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
                 <button
                   onClick={() => setFiltreStatut('tous')}
@@ -793,8 +810,11 @@ export const GestionFactures: React.FC = () => {
           produitsPourRetour
         );
 
-        await actualiserStatutsFactures();
-        await chargerFactures(undefined, undefined, true);
+        await actualiserStatutsFactures(facturePourRetour.clientId, new Date(facturePourRetour.dateLivraison));
+        
+        const start = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+        const end = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+        await chargerFactures(start, end, true);
 
         toast.success('Retours enregistrés');
         setShowRetourModal(false);
@@ -817,8 +837,11 @@ export const GestionFactures: React.FC = () => {
           new Date(facturePourRetour.dateLivraison)
         );
 
-        await actualiserStatutsFactures();
-        await chargerFactures(undefined, undefined, true);
+        await actualiserStatutsFactures(facturePourRetour.clientId, new Date(facturePourRetour.dateLivraison));
+
+        const start = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+        const end = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+        await chargerFactures(start, end, true);
 
         toast.success('Validé : Aucun retour', { id: loadingToast });
         setShowRetourModal(false);
@@ -923,7 +946,9 @@ export const GestionFactures: React.FC = () => {
         await genererFacturesPourClient(facturePourAvoir.clientId);
 
         // 3. Recharger les factures pour l'affichage
-        await chargerFactures(undefined, undefined, true);
+        const start = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+        const end = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+        await chargerFactures(start, end, true);
 
         toast.success('Facture mise à jour');
         setShowAvoirModal(false);
@@ -1066,6 +1091,15 @@ export const GestionFactures: React.FC = () => {
 
       <SaisieRetourModal />
       <SaisieAvoirModal />
+
+      {selectedClient && (
+        <ReleveImpayesModal
+          isOpen={showReleveModal}
+          onClose={() => setShowReleveModal(false)}
+          client={selectedClient}
+          factures={factures.filter(f => f.clientId === selectedClient.id)}
+        />
+      )}
 
       {isLoading && (
         <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">

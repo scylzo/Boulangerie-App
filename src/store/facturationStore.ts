@@ -26,7 +26,7 @@ interface FacturationStore {
   envoyerFacture: (factureId: string) => Promise<void>;
   marquerPayee: (factureId: string, reglements: Reglement[] | { montant: number, mode: ModePaiement, date?: Date }) => Promise<void>;
   annulerFacture: (factureId: string, motif?: string) => Promise<void>;
-  actualiserStatutsFactures: (background?: boolean) => Promise<void>;
+  actualiserStatutsFactures: (clientId?: string, date?: Date) => Promise<void>;
   modifierTauxTVA: (factureId: string, nouveauTaux: number) => Promise<void>;
   supprimerFacture: (factureId: string) => Promise<void>;
   ajouterAvoirClient: (clientId: string, montant: number) => Promise<void>;
@@ -1130,60 +1130,95 @@ export const useFacturationStore = create<FacturationStore>()(
         set({ factureActive: facture });
       },
 
-      actualiserStatutsFactures: async () => {
+      actualiserStatutsFactures: async (clientId?: string, date?: Date) => {
         try {
-          const { factures } = get();
-          const facturesEnAttente = factures.filter(f => f.statut === 'en_attente_retours');
+          const { factures, verifierRetoursCompletes } = get();
+          
+          // Si on a un client et une date, on cible uniquement cette facture
+          if (clientId && date) {
+            const dateStr = date.toISOString().split('T')[0];
+            const facture = factures.find(f => 
+              f.clientId === clientId && 
+              f.dateLivraison.toISOString().split('T')[0] === dateStr &&
+              f.statut === 'en_attente_retours'
+            );
 
-          if (facturesEnAttente.length === 0) {
+            if (facture) {
+              const dateDebut = new Date(date); dateDebut.setHours(0, 0, 0, 0);
+              const dateFin = new Date(date); dateFin.setHours(23, 59, 59, 999);
+
+              const retoursSnap = await getDocs(query(
+                collection(db, 'clientReturns'),
+                where('clientId', '==', clientId),
+                where('dateLivraison', '>=', dateDebut),
+                where('dateLivraison', '<=', dateFin)
+              ));
+
+              const retoursData = retoursSnap.docs.map(doc => ({
+                ...doc.data(),
+                dateLivraison: doc.data().dateLivraison.toDate()
+              })) as InvendusClient[];
+
+              const isComplete = verifierRetoursCompletes(clientId, date, retoursData);
+
+              if (isComplete) {
+                const updateData = {
+                  statut: 'validee' as const,
+                  retoursCompletes: true,
+                  validatedAt: new Date(),
+                  updatedAt: new Date()
+                };
+
+                await updateDoc(doc(db, 'factures', facture.id), updateData);
+
+                set(state => ({
+                  factures: state.factures.map(f => f.id === facture.id ? { ...f, ...updateData } : f)
+                }));
+                console.log(`✅ Facture ${facture.numeroFacture} actualisée (Ciblée)`);
+              }
+            }
             return;
           }
 
-          for (const facture of facturesEnAttente) {
-            // Charger les retours pour ce client et cette date spécifique
-            const dateDebut = new Date(facture.dateLivraison);
-            dateDebut.setHours(0, 0, 0, 0);
-            const dateFin = new Date(facture.dateLivraison);
-            dateFin.setHours(23, 59, 59, 999);
+          // Sinon, traitement par lot pour toutes les factures en attente (Background)
+          const facturesEnAttente = factures.filter(f => f.statut === 'en_attente_retours');
+          if (facturesEnAttente.length === 0) return;
 
-            const retours = await getDocs(query(
+          console.log(`🔄 Actualisation de ${facturesEnAttente.length} factures en attente...`);
+
+          // Pour optimiser, on pourrait charger tous les retours récents en une fois, 
+          // mais ici on garde la logique par facture pour la sécurité, en limitant le parallélisme si besoin.
+          // Pour l'instant, on traite en série pour éviter de surcharger Firebase
+          for (const facture of facturesEnAttente) {
+            const d = facture.dateLivraison;
+            const dateDebut = new Date(d); dateDebut.setHours(0, 0, 0, 0);
+            const dateFin = new Date(d); dateFin.setHours(23, 59, 59, 999);
+
+            const retoursSnap = await getDocs(query(
               collection(db, 'clientReturns'),
               where('clientId', '==', facture.clientId),
               where('dateLivraison', '>=', dateDebut),
               where('dateLivraison', '<=', dateFin)
             ));
 
-            const retoursData = retours.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data() as any,
-              dateLivraison: doc.data().dateLivraison.toDate(),
-              createdAt: doc.data().createdAt.toDate(),
-              updatedAt: doc.data().updatedAt.toDate()
-            }));
+            const retoursData = retoursSnap.docs.map(doc => ({
+              ...doc.data(),
+              dateLivraison: doc.data().dateLivraison.toDate()
+            })) as InvendusClient[];
 
-            // Les retours sont déjà filtrés par Firebase pour la bonne date
-            const retoursCompletes = retoursData.some(r => r.retoursCompletes === true);
-
-            if (retoursCompletes) {
-              // Mettre à jour dans Firebase
-              await updateDoc(doc(db, 'factures', facture.id), {
-                statut: 'validee',
+            if (verifierRetoursCompletes(facture.clientId, d, retoursData)) {
+              const updateData = {
+                statut: 'validee' as const,
                 retoursCompletes: true,
                 validatedAt: new Date(),
                 updatedAt: new Date()
-              });
-
-              // Mettre à jour dans le state local
+              };
+              await updateDoc(doc(db, 'factures', facture.id), updateData);
               set(state => ({
-                factures: state.factures.map(f =>
-                  f.id === facture.id
-                    ? { ...f, statut: 'validee' as const, retoursCompletes: true, validatedAt: new Date(), updatedAt: new Date() }
-                    : f
-                )
+                factures: state.factures.map(f => f.id === facture.id ? { ...f, ...updateData } : f)
               }));
             }
           }
-
         } catch (error) {
           console.error('❌ Erreur lors de l\'actualisation des statuts:', error);
         }
