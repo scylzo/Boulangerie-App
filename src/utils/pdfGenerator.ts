@@ -1147,30 +1147,39 @@ export const generateReleveFacturesPDF = async (
   client: Client,
   factures: Facture[],
   dateDebut: Date,
-  dateFin: Date
+  dateFin: Date,
+  type: 'impayes' | 'payees' = 'impayes'
 ) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
 
-  // Fonction locale pour formater l'argent sans toLocaleString (qui cause des espaces bizarres en PDF)
+  const isImpayes = type === 'impayes';
+
+  // Fonction locale pour formater l'argent sans toLocaleString
   const formatMoney = (amount: number) => {
     return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " FCFA";
   };
 
-  // Configuration des couleurs - Palette Moderne (Rouge pour les impayés)
-  const colors = {
+  // Configuration des couleurs - Palette Moderne (Rouge pour les impayés, Vert pour les payés)
+  const colors = isImpayes ? {
     primary: [220, 38, 38],    // Red 600
     secondary: [107, 114, 128], // Gray 500
     text: [31, 41, 55],        // Gray 800
     bgHeader: [254, 242, 242], // Red 50
     accent: [239, 68, 68]      // Red 500
+  } : {
+    primary: [22, 163, 74],    // Green 600
+    secondary: [107, 114, 128], // Gray 500
+    text: [31, 41, 55],        // Gray 800
+    bgHeader: [240, 253, 244], // Green 50
+    accent: [34, 197, 94]      // Green 500
   };
 
   // 1. En-tête Moderne style Banner
   doc.setFillColor(colors.bgHeader[0], colors.bgHeader[1], colors.bgHeader[2]);
   doc.rect(0, 0, pageWidth, 45, 'F');
-  doc.setDrawColor(254, 202, 202); // Red 200
+  doc.setDrawColor(isImpayes ? 254 : 187, isImpayes ? 202 : 247, isImpayes ? 202 : 208); // Red 200 or Green 200
   doc.line(0, 45, pageWidth, 45);
 
   try {
@@ -1183,7 +1192,7 @@ export const generateReleveFacturesPDF = async (
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);
   doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-  doc.text('RELEVÉ DES IMPAYÉS', 45, 22);
+  doc.text(isImpayes ? 'RELEVÉ DES IMPAYÉS' : 'RELEVÉ DES FACTURES PAYÉES', 45, 22);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
@@ -1193,7 +1202,12 @@ export const generateReleveFacturesPDF = async (
   let yPos = 55;
 
   // 2. Section Client et Résumé
-  const totalDu = factures.reduce((sum, f) => sum + (f.totalTTC - (f.montantRegle || 0)), 0);
+  const totalAmount = factures.reduce((sum, f) => {
+    if (isImpayes) {
+      return sum + (f.totalTTC - (f.montantRegle || 0));
+    }
+    return sum + f.totalTTC;
+  }, 0);
 
   doc.setFontSize(11);
   doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
@@ -1211,37 +1225,37 @@ export const generateReleveFacturesPDF = async (
   if (client.adresse) doc.text(client.adresse, 15, yPos + 18);
 
   // Boîte Résumé (à droite)
-  doc.setFillColor(254, 242, 242); // Red 50
-  doc.setDrawColor(252, 165, 165); // Red 300
+  doc.setFillColor(colors.bgHeader[0], colors.bgHeader[1], colors.bgHeader[2]);
+  doc.setDrawColor(isImpayes ? 252 : 134, isImpayes ? 165 : 239, isImpayes ? 165 : 172); // Red 300 or Green 300
   doc.roundedRect(120, yPos - 5, 75, 25, 3, 3, 'FD');
   
   doc.setFontSize(9);
   doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-  doc.text('Total Reste à Payer:', 125, yPos + 2);
+  doc.text(isImpayes ? 'Total Reste à Payer:' : 'Total Payé sur la période:', 125, yPos + 2);
   
   doc.setFontSize(16);
   doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
   doc.setFont('helvetica', 'bold');
-  doc.text(formatMoney(totalDu), 190, yPos + 12, { align: 'right' });
+  doc.text(formatMoney(totalAmount), 190, yPos + 12, { align: 'right' });
 
   yPos += 30;
 
   // 3. Tableau des factures
   doc.setFontSize(11);
   doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
-  doc.text(`DÉTAIL DES FACTURES EN ATTENTE (${factures.length})`, 15, yPos);
+  doc.text(isImpayes ? `DÉTAIL DES FACTURES EN ATTENTE (${factures.length})` : `DÉTAIL DES FACTURES RÉGLÉES (${factures.length})`, 15, yPos);
 
   const tableData = factures.map(f => [
     new Date(f.dateLivraison).toLocaleDateString('fr-FR'),
     f.numeroFacture,
     formatMoney(f.totalTTC),
     formatMoney(f.montantRegle || 0),
-    formatMoney(f.totalTTC - (f.montantRegle || 0))
+    isImpayes ? formatMoney(f.totalTTC - (f.montantRegle || 0)) : formatMoney(f.totalTTC)
   ]);
 
   autoTable(doc, {
     startY: yPos + 4,
-    head: [['Date', 'N° Facture', 'Total TTC', 'Déjà Réglé', 'Reste à Payer']],
+    head: [['Date', 'N° Facture', 'Total TTC', 'Déjà Réglé', isImpayes ? 'Reste à Payer' : 'Montant Payé']],
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -1270,7 +1284,11 @@ export const generateReleveFacturesPDF = async (
     doc.setFontSize(10);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-    doc.text('Nous vous prions de bien vouloir régulariser cette situation dans les plus brefs délais.', 15, finalY);
+    if (isImpayes) {
+      doc.text('Nous vous prions de bien vouloir régulariser cette situation dans les plus brefs délais.', 15, finalY);
+    } else {
+      doc.text('Nous vous remercions pour votre confiance et pour la régularité de vos paiements.', 15, finalY);
+    }
   }
 
   // Pied de page
@@ -1287,7 +1305,8 @@ export const downloadReleveFacturesPDF = async (
   client: Client,
   factures: Facture[],
   dateDebut: Date,
-  dateFin: Date
+  dateFin: Date,
+  type: 'impayes' | 'payees' = 'impayes'
 ) => {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   let newWindow: Window | null = null;
@@ -1297,8 +1316,9 @@ export const downloadReleveFacturesPDF = async (
   }
 
   try {
-    const doc = await generateReleveFacturesPDF(client, factures, dateDebut, dateFin);
-    const fileName = `Releve_${client.nom.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    const doc = await generateReleveFacturesPDF(client, factures, dateDebut, dateFin, type);
+    const typeStr = type === 'impayes' ? 'Impayes' : 'Payees';
+    const fileName = `Releve_${typeStr}_${client.nom.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
     
     if (isMobile) {
       const pdfBlob = doc.output('blob');

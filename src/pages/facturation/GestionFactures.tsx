@@ -5,7 +5,7 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { FactureDetailsModal } from '../../components/factures/FactureDetailsModal';
 import { PaymentModal } from '../../components/factures/PaymentModal';
 import { CalculateurRistourneModal } from '../../components/factures/CalculateurRistourneModal';
-import { ReleveImpayesModal } from '../../components/factures/ReleveImpayesModal';
+import { ReleveFacturesModal } from '../../components/factures/ReleveFacturesModal';
 import { useFacturationStore } from '../../store/facturationStore';
 
 import { useLivraisonStore } from '../../store/livraisonStore';
@@ -78,6 +78,7 @@ export const GestionFactures: React.FC = () => {
   const [showRistourneModal, setShowRistourneModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showReleveModal, setShowReleveModal] = useState(false);
+  const [releveType, setReleveType] = useState<'impayes' | 'payees'>('impayes');
   const [factureAPayer, setFactureAPayer] = useState<Facture | null>(null);
 
   // --- Global Daily Total Logic ---
@@ -572,13 +573,29 @@ export const GestionFactures: React.FC = () => {
               </Button>
 
               <Button
-                onClick={() => setShowReleveModal(true)}
+                onClick={() => {
+                  setReleveType('impayes');
+                  setShowReleveModal(true);
+                }}
                 variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50 h-9 text-xs sm:text-sm w-full sm:w-auto"
+                className="border-gray-300 text-red-700 hover:bg-red-50 h-9 text-xs sm:text-sm w-full sm:w-auto"
                 size="sm"
               >
                 <Icon icon="mdi:printer-eye" className="text-base sm:text-lg mr-2" />
                 <span className="truncate">Relevé Impayés</span>
+              </Button>
+
+              <Button
+                onClick={() => {
+                  setReleveType('payees');
+                  setShowReleveModal(true);
+                }}
+                variant="outline"
+                className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 h-9 text-xs sm:text-sm w-full sm:w-auto"
+                size="sm"
+              >
+                <Icon icon="mdi:printer-check" className="text-base sm:text-lg mr-2" />
+                <span className="truncate">Relevé Payés</span>
               </Button>
 
               <div className="flex bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
@@ -1093,11 +1110,12 @@ export const GestionFactures: React.FC = () => {
       <SaisieAvoirModal />
 
       {selectedClient && (
-        <ReleveImpayesModal
+        <ReleveFacturesModal
           isOpen={showReleveModal}
           onClose={() => setShowReleveModal(false)}
           client={selectedClient}
           factures={factures.filter(f => f.clientId === selectedClient.id)}
+          type={releveType}
         />
       )}
 

@@ -6,18 +6,20 @@ import type { Client, Facture } from '../../types';
 import { downloadReleveFacturesPDF } from '../../utils/pdfGenerator';
 import toast from 'react-hot-toast';
 
-interface ReleveImpayesModalProps {
+interface ReleveFacturesModalProps {
   isOpen: boolean;
   onClose: () => void;
   client: Client;
   factures: Facture[];
+  type: 'impayes' | 'payees';
 }
 
-export const ReleveImpayesModal: React.FC<ReleveImpayesModalProps> = ({
+export const ReleveFacturesModal: React.FC<ReleveFacturesModalProps> = ({
   isOpen,
   onClose,
   client,
-  factures
+  factures,
+  type
 }) => {
   const [dateDebut, setDateDebut] = useState<string>(() => {
     const d = new Date();
@@ -31,6 +33,8 @@ export const ReleveImpayesModal: React.FC<ReleveImpayesModalProps> = ({
 
   if (!isOpen) return null;
 
+  const isImpayes = type === 'impayes';
+
   const handleGenerate = async () => {
     const start = new Date(dateDebut);
     start.setHours(0, 0, 0, 0);
@@ -42,21 +46,23 @@ export const ReleveImpayesModal: React.FC<ReleveImpayesModalProps> = ({
       return;
     }
 
-    // Filtrer les factures impayées dans l'intervalle
-    const facturesImpayees = factures.filter(f => {
+    // Filtrer les factures selon le type dans l'intervalle
+    const facturesFiltrées = factures.filter(f => {
       const d = new Date(f.dateLivraison);
-      const isUnpaid = f.statut !== 'payee' && f.statut !== 'annulee';
-      return isUnpaid && d >= start && d <= end;
+      const matchesType = isImpayes 
+        ? (f.statut !== 'payee' && f.statut !== 'annulee')
+        : (f.statut === 'payee');
+      return matchesType && d >= start && d <= end;
     }).sort((a, b) => new Date(a.dateLivraison).getTime() - new Date(b.dateLivraison).getTime());
 
-    if (facturesImpayees.length === 0) {
-      toast.error('Aucune facture impayée trouvée pour cette période');
+    if (facturesFiltrées.length === 0) {
+      toast.error(isImpayes ? 'Aucune facture impayée trouvée pour cette période' : 'Aucune facture payée trouvée pour cette période');
       return;
     }
 
     setIsGenerating(true);
     try {
-      await downloadReleveFacturesPDF(client, facturesImpayees, start, end);
+      await downloadReleveFacturesPDF(client, facturesFiltrées, start, end, type);
       toast.success('Relevé généré avec succès');
       onClose();
     } catch (error) {
@@ -72,8 +78,10 @@ export const ReleveImpayesModal: React.FC<ReleveImpayesModalProps> = ({
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <div className="flex items-center gap-2">
-            <Icon icon="mdi:file-document-outline" className="text-xl text-gray-700" />
-            <h3 className="font-bold text-gray-800">Relevé des Impayés</h3>
+            <Icon icon="mdi:file-document-outline" className={`text-xl ${isImpayes ? 'text-gray-700' : 'text-emerald-600'}`} />
+            <h3 className="font-bold text-gray-800">
+              {isImpayes ? 'Relevé des Impayés' : 'Relevé des Factures Payées'}
+            </h3>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <Icon icon="mdi:close" className="text-xl" />
@@ -81,9 +89,13 @@ export const ReleveImpayesModal: React.FC<ReleveImpayesModalProps> = ({
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-            <p className="text-sm text-blue-800 font-medium mb-1">Client : {client.nom}</p>
-            <p className="text-xs text-blue-600">Générez un récapitulatif de toutes les factures en retard de paiement sur une seule page.</p>
+          <div className={`${isImpayes ? 'bg-blue-50 border-blue-100' : 'bg-emerald-50 border-emerald-100'} p-4 rounded-lg border`}>
+            <p className={`text-sm ${isImpayes ? 'text-blue-800' : 'text-emerald-800'} font-medium mb-1`}>Client : {client.nom}</p>
+            <p className={`text-xs ${isImpayes ? 'text-blue-600' : 'text-emerald-600'}`}>
+              {isImpayes 
+                ? 'Générez un récapitulatif de toutes les factures en retard de paiement sur une seule page.'
+                : 'Générez un récapitulatif de toutes les factures déjà réglées sur une seule page.'}
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -108,7 +120,9 @@ export const ReleveImpayesModal: React.FC<ReleveImpayesModalProps> = ({
           </div>
 
           <div className="text-xs text-gray-400 italic">
-            * Seules les factures non payées seront incluses dans le relevé.
+            {isImpayes 
+              ? '* Seules les factures non payées seront incluses dans le relevé.'
+              : '* Seules les factures marquées comme payées seront incluses.'}
           </div>
         </div>
 
@@ -116,7 +130,11 @@ export const ReleveImpayesModal: React.FC<ReleveImpayesModalProps> = ({
           <Button variant="outline" onClick={onClose} disabled={isGenerating}>
             Annuler
           </Button>
-          <Button onClick={handleGenerate} isLoading={isGenerating}>
+          <Button 
+            onClick={handleGenerate} 
+            isLoading={isGenerating}
+            className={!isImpayes ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
+          >
             <Icon icon="mdi:printer" className="mr-2" />
             Imprimer le Relevé
           </Button>
