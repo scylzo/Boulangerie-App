@@ -111,9 +111,11 @@ export const useStockStore = create<StockState>((set, get) => ({
                 matieres: [matiereAvecId, ...state.matieres],
                 isLoading: false
             }));
+            toast.success("Matière ajoutée avec succès !");
         } catch (error: any) {
             console.error('Erreur ajout matière:', error);
             set({ isLoading: false, error: error.message });
+            toast.error("Erreur lors de l'ajout de la matière.");
         }
     },
 
@@ -123,8 +125,10 @@ export const useStockStore = create<StockState>((set, get) => ({
             set(state => ({
                 matieres: state.matieres.map(m => m.id === id ? { ...m, ...updates, updatedAt: new Date() } : m)
             }));
+            toast.success("Matière mise à jour avec succès !");
         } catch (error: any) {
             console.error('Erreur modif matière:', error);
+            toast.error("Erreur lors de la mise à jour.");
         }
     },
 
@@ -134,8 +138,10 @@ export const useStockStore = create<StockState>((set, get) => ({
             set(state => ({
                 matieres: state.matieres.filter(m => m.id !== id)
             }));
+            toast.success("Matière supprimée.");
         } catch (error) {
             console.error('Erreur suppression matière:', error);
+            toast.error("Erreur lors de la suppression.");
         }
     },
 

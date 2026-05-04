@@ -47,15 +47,24 @@ export const SaisieConsommations: React.FC = () => {
     const [calcBaguettes, setCalcBaguettes] = useState('');
     const [calcPistolets, setCalcPistolets] = useState('');
     const [calcPetitsPains, setCalcPetitsPains] = useState('');
+    const [calcPainsAuLait, setCalcPainsAuLait] = useState('');
     const [calcDefaut, setCalcDefaut] = useState('');
 
     const calculateFarineKgs = () => {
         const bag = parseInt(calcBaguettes || '0', 10);
         const pist = parseInt(calcPistolets || '0', 10);
         const pp = parseInt(calcPetitsPains || '0', 10);
+        const pal = parseInt(calcPainsAuLait || '0', 10);
         const defautKg = parseFloat(calcDefaut || '0');
-        const totalGr = (bag * 275) + (pist * 170) + (pp * 100) + (defautKg * 1000);
-        return totalGr / 1633;
+
+        // Calcul classique (Coefficient 1.633)
+        const totalGrClassique = (bag * 275) + (pist * 170) + (pp * 100) + (defautKg * 1000);
+        const farineClassique = totalGrClassique / 1633;
+
+        // Calcul Pains au Lait (Coefficient 1.793)
+        const farinePAL = (pal * 250) / 1793;
+
+        return farineClassique + farinePAL;
     };
 
     const calculateFarineSacs = () => {
@@ -441,7 +450,7 @@ export const SaisieConsommations: React.FC = () => {
                     
                     {showCalculator && (
                         <div className="px-4 py-4 border-t border-orange-100 flex flex-col md:flex-row gap-6 items-start md:items-center bg-white/50">
-                            <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Baguettes (275g)</label>
                                     <input type="number" value={calcBaguettes} onChange={e => setCalcBaguettes(e.target.value)} className="block w-full rounded-md border-orange-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm h-9 bg-white" placeholder="Ex: 1811" />
@@ -453,6 +462,10 @@ export const SaisieConsommations: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Petits Pains (100g)</label>
                                     <input type="number" value={calcPetitsPains} onChange={e => setCalcPetitsPains(e.target.value)} className="block w-full rounded-md border-orange-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm h-9 bg-white" placeholder="Ex: 200" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Pains au Lait (250g)</label>
+                                    <input type="number" value={calcPainsAuLait} onChange={e => setCalcPainsAuLait(e.target.value)} className="block w-full rounded-md border-orange-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm h-9 bg-white" placeholder="Ex: 100" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Autres (kg pâte)</label>

@@ -347,6 +347,10 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
         date,
         produits: rapportProduits,
         annulations,
+        detailsRetours: invendusClients.map(inv => ({
+          ...inv,
+          client: inv.client || referentielState.clients.find(c => c.id === inv.clientId)
+        })),
         totaux,
         statut: 'genere',
         createdAt: new Date(),

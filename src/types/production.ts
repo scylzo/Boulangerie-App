@@ -22,6 +22,7 @@ export interface Produit {
 export interface Client {
   id: string;
   nom: string;
+  prenom?: string; // Prénom du client
   adresse: string;
   telephone?: string;
   email?: string;

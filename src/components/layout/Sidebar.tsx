@@ -1,62 +1,42 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { useAuthStore } from '../../store';
 import logoImg from '../../assets/logo.png';
-import { X } from 'lucide-react'; // Import icon X
+import { X } from 'lucide-react';
+import { APP_MODULES } from '../../constants/modules';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const navigation = [
-  { name: 'Tableau de bord', href: '/dashboard', roles: ['admin', 'gestionnaire'] },
-  { name: 'Programme Production', href: '/production', roles: ['admin', 'gestionnaire'] },
-  { name: 'Vue Boulanger', href: '/boulanger', roles: ['admin', 'boulanger'] },
-  { name: 'Rotation Boulangers', href: '/rotation-boulangers', roles: ['admin', 'gestionnaire'] },
-  { name: 'Livraisons', href: '/livraison', roles: ['admin', 'livreur'] },
-  { name: 'Retours Clients', href: '/retours', roles: ['admin', 'livreur'] },
-  { name: 'Boutique', href: '/boutique', roles: ['admin', 'vendeuse'] },
-  { name: 'Facturation', href: '/facturation', roles: ['admin', 'gestionnaire'] },
-  { name: 'Stocks', href: '/stocks', roles: ['admin', 'gestionnaire'] }, // Use "Stocks" or "Économat"
-  { name: 'Dépenses', href: '/depenses', roles: ['admin', 'gestionnaire'] },
-  { name: 'Comptabilité', href: '/comptabilite', roles: ['admin', 'gestionnaire'] },
-  { name: 'Rapport Journalier', href: '/rapport', roles: ['admin', 'gestionnaire'] },
-  { name: 'Fiche Produit', href: '/admin/fiche-produit', roles: ['admin', 'gestionnaire'] },
-  { name: 'Gestion Produits', href: '/admin/produits', roles: ['admin'] },
-  { name: 'Gestion Clients', href: '/admin/clients', roles: ['admin'] },
-  { name: 'Gestion Livreurs', href: '/admin/livreurs', roles: ['admin'] },
-  { name: 'Gestion Utilisateurs', href: '/admin/users', roles: ['admin'] },
-];
-
-const navigationIcons = {
-  'Tableau de bord': 'mdi:view-dashboard',
-  'Programme Production': 'mdi:clipboard-text',
-  'Vue Boulanger': 'ph:chef-hat-bold',
-  'Rotation Boulangers': 'mdi:calendar-sync',
-  'Livraisons': 'lucide:truck',
-  'Retours Clients': 'mdi:keyboard-return',
-  'Boutique': 'mdi:store',
-  'Facturation': 'mdi:file-document',
-  'Stocks': 'mdi:warehouse',
-  'Dépenses': 'mdi:cash-multiple',
-  'Rapport Journalier': 'mdi:chart-bar',
-  'Fiche Produit': 'mdi:file-certificate',
-  'Gestion Produits': 'mdi:bread-slice',
-  'Gestion Clients': 'mdi:account-group',
-  'Gestion Livreurs': 'mdi:motorbike',
-  'Gestion Utilisateurs': 'mdi:account-key',
-  'Comptabilité': 'mdi:calculator',
-};
-
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuthStore();
 
-  const filteredNavigation = navigation.filter(item =>
-    !user || item.roles.includes(user.role)
-  );
+  // Filtrage des modules basé sur les permissions
+  const filteredNavigation = APP_MODULES.filter(module => {
+    if (!user) return false;
+    
+    // Si l'utilisateur est admin, il a accès à tout
+    if (user.role === 'admin') return true;
+
+    // Si les permissions sont définies, on vérifie si l'ID du module y est
+    if (user.permissions && user.permissions.length > 0) {
+      return user.permissions.includes(module.id);
+    }
+
+    // FALLBACK : Si pas de permissions définies (vieux comptes), 
+    // on utilise la logique de rôles par défaut
+    const rolePermissions: Record<string, string[]> = {
+      gestionnaire: ['dashboard', 'production', 'rotation', 'facturation', 'stocks', 'depenses', 'comptabilite', 'rapport', 'fiche_produit'],
+      boulanger: ['boulanger'],
+      livreur: ['livraison', 'retours'],
+      vendeuse: ['boutique']
+    };
+
+    return rolePermissions[user.role]?.includes(module.id) || false;
+  });
 
   return (
     <>
@@ -70,7 +50,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <img src={logoImg} alt="Logo Boulangerie" className="w-full h-full object-contain" />
           </div>
 
-          {/* Bouton fermer visible uniquement sur mobile/tablette */}
           <button
             onClick={onClose}
             className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600"
@@ -82,10 +61,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Navigation */}
         <nav className="mt-4 px-2 flex-1 scrollbar-hide overflow-y-auto">
           <div className="space-y-1">
-            {filteredNavigation.map((item) => (
+            {filteredNavigation.map((module) => (
               <NavLink
-                key={item.name}
-                to={item.href}
+                key={module.id}
+                to={module.href}
                 onClick={onClose}
                 className={({ isActive }) =>
                   `group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${isActive
@@ -95,10 +74,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 }
               >
                 <Icon
-                  icon={navigationIcons[item.name as keyof typeof navigationIcons]}
+                  icon={module.icon}
                   className="mr-3 text-lg"
                 />
-                {item.name}
+                {module.name}
               </NavLink>
             ))}
           </div>

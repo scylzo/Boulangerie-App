@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyAHvGMXSmFRwwssxhSZTbasHU5TeAJArfc",
   authDomain: "boulangerie-fork.firebaseapp.com",
   projectId: "boulangerie-fork",

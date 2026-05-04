@@ -72,23 +72,29 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Assainissement des données : on s'assure que le seuil est bien un nombre
+    const stockMinimum = formData.stockMinimum === '' ? 0 : Number(formData.stockMinimum);
+    const createdAt = formData.dateCreation ? new Date(formData.dateCreation) : new Date();
+
     if (isEditing) {
-      const { stockActuel, ...updates } = formData;
+      // On ne passe que les champs modifiables pour éviter de polluer Firestore avec 'id' ou 'dateCreation'
       updateMatiere(isEditing, {
-        ...updates,
-        stockMinimum: Number(formData.stockMinimum) || 0,
-        createdAt: formData.dateCreation ? new Date(formData.dateCreation) : new Date()
+        nom: formData.nom,
+        unite: formData.unite,
+        stockMinimum,
+        createdAt
       });
       setIsEditing(null);
     } else {
       addMatiere({
         nom: formData.nom || '',
         unite: formData.unite as UniteMesure || 'kg',
-        stockMinimum: Number(formData.stockMinimum) || 0,
+        stockMinimum,
         stockActuel: 0,
         prixUnitaireMoyen: 0,
         active: true,
-        createdAt: formData.dateCreation ? new Date(formData.dateCreation) : new Date()
+        createdAt
       });
     }
     setFormData({ nom: '', unite: 'kg', stockMinimum: '', stockActuel: '', dateCreation: new Date().toISOString().split('T')[0] });
@@ -316,7 +322,8 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {matieres.map((matiere) => {
-              const isLowStock = matiere.stockActuel <= matiere.stockMinimum;
+              // Si le seuil est à 0, on considère que l'alerte est désactivée (État vert/OK)
+              const isLowStock = matiere.stockMinimum > 0 && matiere.stockActuel <= matiere.stockMinimum;
               const isConvertible = matiere.unite.includes('sac');
 
               return (
@@ -327,8 +334,13 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-600">
                     {new Date(matiere.createdAt).toLocaleDateString('fr-FR')}
                   </td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-medium text-gray-900">
-                    {matiere.stockActuel.toLocaleString()} <span className="text-gray-500 text-xs">{matiere.unite}</span>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                    <div className="text-xs sm:text-sm font-medium text-gray-900">
+                      {matiere.stockActuel.toLocaleString()} <span className="text-gray-500 text-xs">{matiere.unite}</span>
+                    </div>
+                    <div className="text-[10px] text-gray-400 mt-0.5">
+                      Seuil: {matiere.stockMinimum.toLocaleString()} {matiere.unite}
+                    </div>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
                     {isLowStock ? (

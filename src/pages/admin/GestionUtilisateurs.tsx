@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { collection, getDocs, query, doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { db, firebaseConfig } from '../../firebase/config';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'; // Careful with this!
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import toast from 'react-hot-toast';
+import { APP_MODULES } from '../../constants/modules';
 
 // NOTE: Creating users via client-side SDK logs out the current user. 
 // A robust solution uses Firebase Admin SDK (Cloud Functions).
@@ -22,19 +23,9 @@ import toast from 'react-hot-toast';
 //    OR we just tell the admin "Adding a user will sign you out".
 //    Let's try to see if we can use a secondary app instance.
 
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
-// We need to re-import config to initialize a secondary app
-const firebaseConfig = {
-  apiKey: "AIzaSyBwaC_ySezVpfv9y9xHNromiTW77qJQlmA",
-  authDomain: "boulangerie-da431.firebaseapp.com",
-  projectId: "boulangerie-da431",
-  storageBucket: "boulangerie-da431.firebasestorage.app",
-  messagingSenderId: "324942492234",
-  appId: "1:324942492234:web:afbc851e38b557a87f2cb3",
-  measurementId: "G-3E7K2Y6N31"
-};
 
 export const GestionUtilisateurs: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -44,7 +35,8 @@ export const GestionUtilisateurs: React.FC = () => {
     password: '',
     nom: '',
     prenom: '',
-    role: 'livreur'
+    role: 'livreur',
+    permissions: [] as string[]
   });
   const [loading, setLoading] = useState(false);
   const [editingUser, setEditingUser] = useState<any | null>(null);
@@ -78,11 +70,12 @@ export const GestionUtilisateurs: React.FC = () => {
         password: '', // Password not editable here
         nom: user.nom,
         prenom: user.prenom,
-        role: user.role
+        role: user.role,
+        permissions: user.permissions || []
       });
     } else {
       setEditingUser(null);
-      setNewUser({ email: '', password: '', nom: '', prenom: '', role: 'livreur' });
+      setNewUser({ email: '', password: '', nom: '', prenom: '', role: 'livreur', permissions: [] });
     }
     setIsModalOpen(true);
     setShowPassword(false);
@@ -99,6 +92,7 @@ export const GestionUtilisateurs: React.FC = () => {
           nom: newUser.nom,
           prenom: newUser.prenom,
           role: newUser.role,
+          permissions: newUser.role === 'admin' ? APP_MODULES.map(m => m.id) : newUser.permissions,
           updatedAt: new Date()
         }, { merge: true });
 
@@ -106,7 +100,8 @@ export const GestionUtilisateurs: React.FC = () => {
       } else {
         // Mode Création
         // TRICK: Initialize a secondary app to create user without logging out admin
-        const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+        const secondaryApp = getApps().find(app => app.name === 'Secondary') 
+          || initializeApp(firebaseConfig, 'Secondary');
         const secondaryAuth = getAuth(secondaryApp);
 
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, newUser.email, newUser.password);
@@ -123,6 +118,7 @@ export const GestionUtilisateurs: React.FC = () => {
           nom: newUser.nom,
           prenom: newUser.prenom,
           role: newUser.role,
+          permissions: newUser.role === 'admin' ? APP_MODULES.map(m => m.id) : newUser.permissions,
           active: true,
           createdAt: new Date(),
           updatedAt: new Date()
@@ -134,7 +130,7 @@ export const GestionUtilisateurs: React.FC = () => {
 
       setIsModalOpen(false);
       setEditingUser(null);
-      setNewUser({ email: '', password: '', nom: '', prenom: '', role: 'livreur' });
+      setNewUser({ email: '', password: '', nom: '', prenom: '', role: 'livreur', permissions: [] });
       fetchUsers();
 
     } catch (error: any) {
@@ -380,9 +376,50 @@ export const GestionUtilisateurs: React.FC = () => {
                 <option value="gestionnaire">Gestionnaire</option>
                 <option value="admin">Administrateur</option>
               </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <Icon icon="mdi:chevron-down" className="text-gray-400" />
-              </div>
+            </div>
+          </div>
+
+          {/* SECTION PERMISSIONS MODULES */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center gap-2 pb-1 border-b border-gray-100">
+              <Icon icon="mdi:shield-lock-outline" className="text-indigo-600" />
+              <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Modules accessibles</label>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 bg-gray-50 p-4 rounded-xl border border-gray-100 max-h-60 overflow-y-auto">
+              {newUser.role === 'admin' ? (
+                <div className="col-span-full py-4 text-center">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold">
+                    <Icon icon="mdi:shield-check" className="text-lg" />
+                    L'administrateur a accès à TOUS les modules par défaut
+                  </div>
+                </div>
+              ) : (
+                APP_MODULES.map((module) => (
+                  <label key={module.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-colors cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={newUser.permissions.includes(module.id)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setNewUser(prev => ({
+                          ...prev,
+                          permissions: checked 
+                            ? [...prev.permissions, module.id]
+                            : prev.permissions.filter(id => id !== module.id)
+                        }));
+                      }}
+                      className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-all cursor-pointer"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Icon icon={module.icon} className={`text-lg ${newUser.permissions.includes(module.id) ? 'text-indigo-600' : 'text-gray-400'} group-hover:scale-110 transition-transform`} />
+                      <span className={`text-sm font-medium ${newUser.permissions.includes(module.id) ? 'text-gray-900' : 'text-gray-500'}`}>
+                        {module.name}
+                      </span>
+                    </div>
+                  </label>
+                ))
+              )}
             </div>
           </div>
 

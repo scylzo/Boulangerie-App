@@ -25,6 +25,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
 
   const [formData, setFormData] = useState({
     nom: '',
+    prenom: '',
     adresse: '',
     telephone: '',
     email: '',
@@ -50,6 +51,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     if (client) {
       setFormData({
         nom: client.nom,
+        prenom: client.prenom || '',
         adresse: client.adresse,
         telephone: client.telephone || '',
         email: client.email || '',
@@ -94,6 +96,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
       if (!client) {
         setFormData({
           nom: '',
+          prenom: '',
           adresse: '',
           telephone: '',
           email: '',
@@ -143,13 +146,21 @@ export const ClientForm: React.FC<ClientFormProps> = ({
       subtitle="Remplissez les informations du client"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Nom du client *"
-          value={formData.nom}
-          onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-          placeholder="ex: Boutique Chez Moussa"
-          required
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Prénom"
+            value={formData.prenom}
+            onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+            placeholder="ex: Moussa"
+          />
+          <Input
+            label="Nom du client / Boutique *"
+            value={formData.nom}
+            onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+            placeholder="ex: Diop / Boutique Chez Moussa"
+            required
+          />
+        </div>
 
         <Input
           label="Adresse *"

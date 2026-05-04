@@ -296,6 +296,7 @@ export const downloadFacturePDF = async (facture: Facture) => {
 export const generateRapportJournalierPDF = async (rapport: RapportJournalier, indicateurs: IndicateursPerformance | null) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
 
   // Configuration des couleurs - Palette Moderne
   const colors = {
@@ -531,8 +532,48 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
     margin: { left: 15, right: 15 }
   });
 
-  // 4. Pied de page discret
-  const pageHeight = doc.internal.pageSize.height;
+  // Section Détail des Retours par Client
+  if (rapport.detailsRetours && rapport.detailsRetours.filter(r => r.produits.some(p => p.invendus > 0)).length > 0) {
+    yPos = (doc as any).lastAutoTable.finalY + 12;
+
+    // Vérifier si on a besoin d'une nouvelle page
+    if (yPos > pageHeight - 60) {
+      doc.addPage();
+      yPos = 20;
+    }
+
+    doc.setFontSize(11);
+    doc.setTextColor(colors.client[0], colors.client[1], colors.client[2]);
+    doc.text('DÉTAIL DES RETOURS PAR CLIENT', 15, yPos);
+
+    const retoursData = rapport.detailsRetours
+      .filter(r => r.produits.some(p => p.invendus > 0))
+      .map(r => [
+        r.client?.prenom ? `${r.client.prenom} ${r.client.nom}` : (r.client?.nom || `Client #${r.clientId}`),
+        r.produits
+          .filter(p => p.invendus > 0)
+          .map(p => `${p.produit?.nom || p.produitId}: Livré ${p.quantiteLivree} / Ret. -${p.invendus}`)
+          .join('\n'),
+        r.produits.reduce((acc, p) => acc + p.quantiteLivree, 0).toString() + ' u.',
+        r.produits.reduce((acc, p) => acc + p.invendus, 0).toString() + ' u.'
+      ]);
+
+    autoTable(doc, {
+      startY: yPos + 2,
+      head: [['Client', 'Produits (Livré / Retour)', 'Total Livré', 'Total Retours']],
+      body: retoursData,
+      theme: 'grid',
+      headStyles: { fillColor: colors.client as any, fontSize: 8 },
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 90 },
+        2: { halign: 'center', cellWidth: 25 },
+        3: { halign: 'center', cellWidth: 25 }
+      },
+      margin: { left: 15, right: 15 }
+    });
+  }
 
   // Section Annulations & Redistribution
 

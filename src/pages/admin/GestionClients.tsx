@@ -213,7 +213,7 @@ export const GestionClients: React.FC = () => {
                           </div>
                           <div>
                             <h3 className="font-bold text-sm sm:text-lg text-gray-900 mb-1 line-clamp-2">
-                              {client.nom}
+                              {client.prenom ? `${client.prenom} ${client.nom}` : client.nom}
                             </h3>
                             <div className="flex items-center gap-2">
                               <span className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${client.active

@@ -1,4 +1,5 @@
 import type { Produit } from './production';
+import type { InvendusClient } from './livraison';
 
 export interface RapportJournalier {
   id: string;
@@ -48,6 +49,9 @@ export interface RapportJournalier {
       destinationNom?: string; // Nom du client ou "Boutique"
     };
   }>;
+  
+  // Détails des retours par client
+  detailsRetours?: InvendusClient[];
 
 
   // Totaux globaux

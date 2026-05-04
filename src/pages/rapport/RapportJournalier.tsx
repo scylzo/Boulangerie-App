@@ -621,6 +621,47 @@ export const RapportJournalier: React.FC = () => {
                     </div>
                   )}
 
+                  {/* SECTION DÉTAIL DES RETOURS PAR CLIENT */}
+                  {rapportJour.detailsRetours && rapportJour.detailsRetours.filter(r => r.produits.some(p => p.invendus > 0)).length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-orange-200">
+                        <Icon icon="mdi:account-arrow-left" className="text-orange-600" />
+                        <h3 className="text-lg font-semibold text-gray-800">Détail des Retours par Client</h3>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {rapportJour.detailsRetours
+                          .filter(retour => retour.produits.some(p => p.invendus > 0))
+                          .map((retour, idx) => (
+                            <div key={idx} className="bg-white border border-orange-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+                              <div className="bg-orange-50 px-4 py-3 border-b border-orange-100 flex justify-between items-center">
+                                <h4 className="font-bold text-gray-900 truncate pr-2">
+                                  {retour.client?.prenom 
+                                    ? `${retour.client.prenom} ${retour.client.nom}` 
+                                    : (retour.client?.nom || `Client #${retour.clientId}`)}
+                                </h4>
+                                <span className="bg-orange-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                                  {retour.produits.reduce((acc, p) => acc + p.invendus, 0)} u.
+                                </span>
+                              </div>
+                              <div className="p-4 space-y-2">
+                                {retour.produits
+                                  .filter(p => p.invendus > 0)
+                                  .map((p, pIdx) => (
+                                    <div key={pIdx} className="flex justify-between items-center text-sm border-b border-gray-50 pb-2 last:border-0 last:pb-0">
+                                      <span className="text-gray-600 font-medium">{p.produit?.nom || p.produitId}</span>
+                                      <div className="flex items-center gap-3">
+                                        <span className="text-[10px] text-gray-400">Livré: {p.quantiteLivree}</span>
+                                        <span className="font-bold text-orange-600">-{p.invendus}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* SECTION ANNULATIONS */}
                   {rapportJour.annulations && rapportJour.annulations.length > 0 && (
                     <div className="space-y-4">

@@ -72,7 +72,7 @@ export const StockDashboard: React.FC = () => {
             <div>
               <p className="text-sm font-medium text-gray-500">Stock Faible</p>
               <h3 className="text-2xl font-bold text-gray-900 mt-1">
-                {matieres.filter(m => m.stockActuel <= m.stockMinimum).length}
+                {matieres.filter(m => m.stockMinimum > 0 && m.stockActuel <= m.stockMinimum).length}
               </h3>
               <p className="text-xs text-red-500 mt-1">À réapprovisionner</p>
             </div>
