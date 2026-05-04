@@ -23,7 +23,7 @@ import { APP_MODULES } from '../../constants/modules';
 //    OR we just tell the admin "Adding a user will sign you out".
 //    Let's try to see if we can use a secondary app instance.
 
-import { initializeApp, getApp, getApps } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 
