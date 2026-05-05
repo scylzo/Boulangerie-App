@@ -328,29 +328,37 @@ export const useStockStore = create<StockState>((set, get) => ({
         }
     },
 
-    declarerConsommationJournee: async (date: Date, consommations: { matiereId: string, quantite: number, motif?: string }[]) => {
+    declarerConsommationJournee: async (date: Date, consommations: { id?: string, matiereId: string, quantite: number, motif?: string }[]) => {
         set({ isLoading: true });
         try {
-            console.log(`📝 Déclaration consommation pour ${date.toLocaleDateString()}:`, consommations.length, 'matières');
+            console.log(`📝 Déclaration/Mise à jour consommation pour ${date.toLocaleDateString()}:`, consommations.length, 'matières');
 
             for (const conso of consommations) {
-                if (conso.quantite > 0) {
+                if (conso.id) {
+                    // MISE À JOUR d'une consommation existante
+                    await get().updateMouvement(conso.id, {
+                        quantite: conso.quantite,
+                        motif: conso.motif || 'Mise à jour consommation journalière',
+                        date: date
+                    });
+                } else if (conso.quantite > 0) {
+                    // CRÉATION d'une nouvelle consommation
                     await get().addMouvement({
                         matiereId: conso.matiereId,
                         quantite: conso.quantite,
                         type: 'consommation',
                         motif: conso.motif || 'Déclaration journalière',
-                        auteur: 'Système', // Ou utilisateur connecté si dispo
+                        auteur: 'Système', 
                         responsable: 'Responsable Prod',
-                        referenceDocument: `DECL-${date.toLocaleDateString('fr-CA')}`, // YYYY-MM-DD
-                        date: date, // Date de la consommation (= date de prod)
+                        referenceDocument: `DECL-${date.toLocaleDateString('fr-CA')}`,
+                        date: date,
                         userId: 'system'
                     });
                 }
             }
 
             set({ isLoading: false });
-            console.log('✅ Déclaration consommations terminée');
+            console.log('✅ Opération consommations terminée');
 
         } catch (error: any) {
             console.error('Erreur déclaration consommation:', error);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { ChevronLeft, Save, Calendar, Package, Fuel, AlertCircle, Calculator, ChevronDown, History } from 'lucide-react';
+import { ChevronLeft, Save, Calendar, Package, Fuel, AlertCircle, Calculator, ChevronDown, History, Pencil } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
@@ -19,6 +19,7 @@ interface LigneConsommation {
     inputUnit: string; // 'kg', 'g', 'l', 'sac', 'carton', 'sachet'
     weightFactor: number; // Poids en kg pour les unités complexes (sac -> 50, carton -> 10)
     prixUnitaireMoyen: number;
+    mouvementId?: string; // Si déjà saisi pour cette date, on stocke l'ID pour l'édition
 }
 
 export const SaisieConsommations: React.FC = () => {
@@ -98,22 +99,52 @@ export const SaisieConsommations: React.FC = () => {
                     .filter(m => m.active)
                     .map(m => {
                         const savedState = stateMap.get(m.id);
+                        
+                        // Est-ce qu'on a déjà une saisie pour cette matière à cette date ?
+                        const mouvementExistant = dejaSaisisPourDate.find(mv => mv.matiereId === m.id);
 
                         // Logique par défaut intelligente
                         const isFuel = m.nom.toLowerCase().includes('carburant') || m.nom.toLowerCase().includes('gasoil');
-                        // On ne met 'sac' par défaut QUE si l'unité de base est kg ou g.
-                        // Si l'unité de base est déjà un sac (ex: sac_50kg), on reste sur l'unité de base.
                         const isBaseWeightUnit = ['kg', 'g'].includes(m.unite);
-                        const defaultUnit = isFuel ? 'l' : (isBaseWeightUnit ? 'sac' : m.unite);
-                        const defaultFactor = defaultUnit === 'sac' ? 50 : 1;
+                        let defaultUnit = isFuel ? 'l' : (isBaseWeightUnit ? 'sac' : m.unite);
+                        let defaultFactor = defaultUnit === 'sac' ? 50 : 1;
+                        let defaultQte = savedState?.qte || '';
 
-                        // Vérifier si l'état sauvegardé est toujours cohérent avec l'unité de base actuelle
-                        // (cas où l'utilisateur a changé l'unité de base dans les réglages)
-                        let unitToUse = savedState?.unit || defaultUnit;
-                        let factorToUse = savedState?.factor || defaultFactor;
+                        // Si mouvement existant, on pré-remplit les données réelles
+                        if (mouvementExistant) {
+                            defaultQte = mouvementExistant.quantite.toString();
+                            
+                            // Tentative d'extraction de l'unité depuis le motif
+                            const motif = mouvementExistant.motif || '';
+                            const matchParenthese = motif.match(/\(([\d.]+)\s*([a-zA-Z]+)s?\)/);
+                            if (matchParenthese) {
+                                const qteOriginale = matchParenthese[1];
+                                const unitStr = matchParenthese[2].toLowerCase();
+                                
+                                if (unitStr.includes('sac')) {
+                                    defaultUnit = 'sac';
+                                    defaultFactor = m.unite.toLowerCase().includes('sac') ? 1 : 50;
+                                    defaultQte = qteOriginale;
+                                } else if (unitStr.includes('carton')) {
+                                    defaultUnit = 'carton';
+                                    defaultFactor = m.unite.toLowerCase().includes('carton') ? 1 : 10;
+                                    defaultQte = qteOriginale;
+                                } else if (unitStr.includes('sachet')) {
+                                    defaultUnit = 'sachet';
+                                    defaultFactor = m.unite.toLowerCase().includes('sachet') ? 1 : 0.5;
+                                    defaultQte = qteOriginale;
+                                }
+                            } else {
+                                // Pas de motif complexe, on utilise l'unité de base
+                                defaultUnit = m.unite;
+                                defaultFactor = 1;
+                            }
+                        }
 
-                        // Sécurité: Si l'unité sauvegardée est 'sac' mais que la matière n'est plus en kg/g, 
-                        // ou si l'unité de base contient déjà 'sac', on force le facteur à 1.
+                        // Vérifier si l'état sauvegardé est toujours cohérent (si pas de mouvement existant)
+                        let unitToUse = !mouvementExistant && savedState?.unit ? savedState.unit : defaultUnit;
+                        let factorToUse = !mouvementExistant && savedState?.factor ? savedState.factor : defaultFactor;
+
                         if (unitToUse === 'sac' && (!isBaseWeightUnit || m.unite.includes('sac'))) {
                             unitToUse = m.unite;
                             factorToUse = 1;
@@ -124,10 +155,11 @@ export const SaisieConsommations: React.FC = () => {
                             nom: m.nom,
                             unite: m.unite,
                             stockActuel: m.stockActuel,
-                            qteSaisie: savedState?.qte || '',
+                            qteSaisie: defaultQte,
                             inputUnit: unitToUse,
                             weightFactor: factorToUse,
-                            prixUnitaireMoyen: m.prixUnitaireMoyen || 0
+                            prixUnitaireMoyen: m.prixUnitaireMoyen || 0,
+                            mouvementId: mouvementExistant?.id
                         };
                     })
                     .sort((a, b) => a.nom.localeCompare(b.nom));
@@ -271,20 +303,6 @@ export const SaisieConsommations: React.FC = () => {
     const handleValider = async () => {
         const lignesASauvegarder = lignes.filter(l => l.qteSaisie && parseFloat(l.qteSaisie) > 0);
 
-        // Vérification des doublons (produits déjà saisis pour cette date)
-        const doublons = lignesASauvegarder.filter(l =>
-            dejaSaisisPourDate.some(m => m.matiereId === l.matiereId)
-        );
-
-        if (doublons.length > 0) {
-            const nomsDoublons = doublons.map(d => d.nom).join(', ');
-            toast.error(`La consommation pour [${nomsDoublons}] a déjà été enregistrée pour cette date.`, {
-                duration: 5000,
-                icon: '⚠️'
-            });
-            return;
-        }
-
         if (lignesASauvegarder.length === 0) {
             toast.error("Veuillez saisir au moins une quantité consommée");
             return;
@@ -299,10 +317,11 @@ export const SaisieConsommations: React.FC = () => {
         const message = lignesASauvegarder.map(l => {
             const qte = parseFloat(l.qteSaisie);
             const factor = resolveFactor(l);
+            const action = l.mouvementId ? " [Mise à jour]" : "";
             if (l.inputUnit !== l.unite && factor !== 1) {
-                return `- ${l.nom}: ${qte} ${l.inputUnit}(s) (x${factor}) = ${(qte * factor).toLocaleString()} ${l.unite}`;
+                return `- ${l.nom}: ${qte} ${l.inputUnit}(s) (x${factor}) = ${(qte * factor).toLocaleString()} ${l.unite}${action}`;
             }
-            return `- ${l.nom}: ${qte.toLocaleString()} ${l.unite}`;
+            return `- ${l.nom}: ${qte.toLocaleString()} ${l.unite}${action}`;
         }).join('\n');
 
         setConfirmModal({
@@ -333,6 +352,7 @@ export const SaisieConsommations: React.FC = () => {
                             }
 
                             return {
+                                id: l.mouvementId,
                                 matiereId: l.matiereId,
                                 quantite: quantiteFinale,
                                 motif: motif
@@ -576,9 +596,9 @@ export const SaisieConsommations: React.FC = () => {
                                                     <div className="flex items-center gap-2">
                                                         <div className="text-sm font-medium text-gray-900">{ligne.nom}</div>
                                                         {isAlreadyEntered && (
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-tighter">
-                                                                <AlertCircle className="w-3 h-3 mr-1" />
-                                                                Déjà saisi
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200 uppercase tracking-tighter">
+                                                                <Pencil className="w-3 h-3 mr-1" />
+                                                                Saisie enregistrée (Modifiable)
                                                             </span>
                                                         )}
                                                     </div>
@@ -604,7 +624,6 @@ export const SaisieConsommations: React.FC = () => {
                                                 value={ligne.qteSaisie}
                                                 onChange={(e) => handleQteChange(ligne.matiereId, e.target.value)}
                                                 onFocus={(e) => e.target.select()}
-                                                disabled={isAlreadyEntered}
                                                 className={`
                                                 block w-32 ml-auto rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-center font-bold h-10
                                                 ${ligne.qteSaisie ? 'border-indigo-300 bg-white text-indigo-700' : 'bg-gray-50'}
