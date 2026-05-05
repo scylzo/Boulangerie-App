@@ -136,13 +136,28 @@ export const SaisieConsommations: React.FC = () => {
     }, [matieres]);
 
     const handlePreRemplir = () => {
-        // Pré-calculer la dernière conso de chaque matière
+        const selectedDate = new Date(date + 'T12:00:00');
+        
+        // Trier explicitement les mouvements par date décroissante pour être sûr
+        const sortedMouvements = [...mouvements].sort((a, b) => {
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            if (dateB !== dateA) return dateB - dateA;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+
+        // Pré-calculer la dernière conso de chaque matière (STRICTEMENT avant la date sélectionnée)
         const lastConsoByMatiere = new Map<string, typeof mouvements[0]>();
         
-        // mouvements est déjà trié par date DESC au chargement
-        for (const m of mouvements) {
-            if (m.type === 'consommation' && !lastConsoByMatiere.has(m.matiereId)) {
-                lastConsoByMatiere.set(m.matiereId, m);
+        for (const m of sortedMouvements) {
+            if (m.type === 'consommation') {
+                const mDate = new Date(m.date);
+                // On ignore les consos de la date sélectionnée et les consos futures
+                if (mDate.getTime() < selectedDate.getTime() && !memeJour(mDate, selectedDate)) {
+                    if (!lastConsoByMatiere.has(m.matiereId)) {
+                        lastConsoByMatiere.set(m.matiereId, m);
+                    }
+                }
             }
         }
 
@@ -167,15 +182,16 @@ export const SaisieConsommations: React.FC = () => {
                     
                     if (unitStr.includes('sac')) {
                         unitToUse = 'sac';
-                        factorToUse = 50; 
+                        // Si l'unité de base contient déjà "sac", le facteur est 1, sinon 50
+                        factorToUse = ligne.unite.toLowerCase().includes('sac') ? 1 : 50; 
                         qteToUse = parseFloat(qteStr);
                     } else if (unitStr.includes('carton')) {
                         unitToUse = 'carton';
-                        factorToUse = 10;
+                        factorToUse = ligne.unite.toLowerCase().includes('carton') ? 1 : 10;
                         qteToUse = parseFloat(qteStr);
                     } else if (unitStr.includes('sachet')) {
                         unitToUse = 'sachet';
-                        factorToUse = 0.5;
+                        factorToUse = ligne.unite.toLowerCase().includes('sachet') ? 1 : 0.5;
                         qteToUse = parseFloat(qteStr);
                     }
                 } else if (motif.includes('~') && motif.includes('sacs') && ligne.unite === 'kg') {
