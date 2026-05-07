@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { ChevronLeft, Save, Calendar, Package, Fuel, AlertCircle, Calculator, ChevronDown, History, Pencil } from 'lucide-react';
+import { ChevronLeft, Save, Calendar, Package, Fuel, Calculator, ChevronDown, History, Pencil } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';

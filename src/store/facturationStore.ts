@@ -119,17 +119,17 @@ export const useFacturationStore = create<FacturationStore>()(
             Promise.all(allClientIds.map(async (id) => {
               try {
                 const d = await getDoc(doc(db, 'clients', id));
-                return d.exists() ? { id: d.id, ...d.data() } : null;
+                return d.exists() ? { id: d.id, ...d.data() } as Client : null;
               } catch (e) { return null; }
-            })).then(res => new Map(res.filter(c => c !== null).map(c => [c!.id, c]))),
+            })).then(res => new Map<string, Client>(res.filter(c => c !== null).map(c => [c!.id, c as Client]))),
 
             // Charger tous les produits concernés
             Promise.all(Array.from(allProduitIds).map(async (id) => {
               try {
                 const d = await getDoc(doc(db, 'produits', id));
-                return d.exists() ? { id: d.id, ...d.data() } : null;
+                return d.exists() ? { id: d.id, ...d.data() } as any : null;
               } catch (e) { return null; }
-            })).then(res => new Map(res.filter(p => p !== null).map(p => [p!.id, {
+            })).then(res => new Map<string, any>(res.filter(p => p !== null).map(p => [p!.id, {
               ...p,
               prixClient: p!.prixClient || 0,
               prixBoutique: p!.prixBoutique || 0,
@@ -152,8 +152,7 @@ export const useFacturationStore = create<FacturationStore>()(
             }
 
             // Récupérer les informations du client depuis le cache
-            let clientInfo = clientsCache.get(clientId);
-            let clientSolde = clientInfo?.solde || 0;
+            let clientInfo = clientsCache.get(clientId) as Client | undefined;
 
             const retoursClient = retoursClients.find(r => r.clientId === clientId);
             const retoursCompletes = get().verifierRetoursCompletes(clientId, date, retoursClients);
@@ -488,7 +487,7 @@ export const useFacturationStore = create<FacturationStore>()(
 
           // 5. Pré-chargement des données nécessaires pour optimiser la vitesse
           // a. Infos Client (Une seule fois)
-          let clientInfo = commandes[0]?.client;
+          let clientInfo: Client | undefined = commandes[0]?.client;
           if (!clientInfo || !clientInfo.typeClient) {
             try {
               const d = await getDoc(doc(db, 'clients', clientId));
@@ -521,7 +520,7 @@ export const useFacturationStore = create<FacturationStore>()(
                     prixClient: d.prixClient || 0,
                     prixBoutique: d.prixBoutique || 0,
                     prixUnitaire: d.prixUnitaire || 0
-                  });
+                  } as any);
                 }
               } catch (e) { console.error(`Erreur cache produit ${id}:`, e); }
             }));
