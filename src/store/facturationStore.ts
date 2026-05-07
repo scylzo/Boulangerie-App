@@ -109,6 +109,34 @@ export const useFacturationStore = create<FacturationStore>()(
             commandesParClient.get(clientId)!.push(commande);
           });
 
+          // a. Pré-chargement des Clients et Produits pour éviter les appels Firestore en boucle
+          const allClientIds = Array.from(commandesParClient.keys());
+          const allProduitIds = new Set<string>();
+          commandesClients.forEach(c => c.produits.forEach(p => allProduitIds.add(p.produitId)));
+
+          const [clientsCache, produitsCache] = await Promise.all([
+            // Charger tous les clients concernés
+            Promise.all(allClientIds.map(async (id) => {
+              try {
+                const d = await getDoc(doc(db, 'clients', id));
+                return d.exists() ? { id: d.id, ...d.data() } : null;
+              } catch (e) { return null; }
+            })).then(res => new Map(res.filter(c => c !== null).map(c => [c!.id, c]))),
+
+            // Charger tous les produits concernés
+            Promise.all(Array.from(allProduitIds).map(async (id) => {
+              try {
+                const d = await getDoc(doc(db, 'produits', id));
+                return d.exists() ? { id: d.id, ...d.data() } : null;
+              } catch (e) { return null; }
+            })).then(res => new Map(res.filter(p => p !== null).map(p => [p!.id, {
+              ...p,
+              prixClient: p!.prixClient || 0,
+              prixBoutique: p!.prixBoutique || 0,
+              prixUnitaire: p!.prixUnitaire || 0
+            }])))
+          ]);
+
           const nouvelles: Facture[] = [];
           const misesAJour: Facture[] = [];
 
@@ -123,33 +151,9 @@ export const useFacturationStore = create<FacturationStore>()(
               continue;
             }
 
-            // Récupérer les informations du client
-            let clientInfo = commandesClient[0]?.client;
-            let clientSolde = 0; // Solde actuel
-
-            if (!clientInfo) {
-              try {
-                const clientDoc = await getDoc(doc(db, 'clients', clientId));
-                if (clientDoc.exists()) {
-                  clientInfo = { id: clientDoc.id, ...clientDoc.data() } as any;
-                  clientSolde = clientInfo?.solde || 0;
-                }
-              } catch (error) {
-                console.warn('⚠️ Impossible de récupérer les infos client:', error);
-              }
-            } else {
-              // Si clientInfo vient de la commande, il peut ne pas être à jour sur le solde
-              try {
-                const clientDoc = await getDoc(doc(db, 'clients', clientId));
-                if (clientDoc.exists()) {
-                  clientSolde = clientDoc.data().solde || 0;
-                  // On met à jour clientInfo avec le solde frais
-                  clientInfo = { ...clientInfo, solde: clientSolde };
-                }
-              } catch (error) {
-                console.warn('⚠️ Erreur refresh solde client:', error);
-              }
-            }
+            // Récupérer les informations du client depuis le cache
+            let clientInfo = clientsCache.get(clientId);
+            let clientSolde = clientInfo?.solde || 0;
 
             const retoursClient = retoursClients.find(r => r.clientId === clientId);
             const retoursCompletes = get().verifierRetoursCompletes(clientId, date, retoursClients);
@@ -159,30 +163,10 @@ export const useFacturationStore = create<FacturationStore>()(
 
             for (const commande of commandesClient) {
               for (const produitCmd of commande.produits) {
-                // Récupérer les informations complètes du produit
-                if (!produitCmd.produit && produitCmd.produitId) {
-                  try {
-                    // Récupérer depuis Firestore si manquant
-                    const produitDoc = await getDoc(doc(db, 'produits', produitCmd.produitId));
-                    if (produitDoc.exists()) {
-                      const data = produitDoc.data();
-                      produitCmd.produit = {
-                        id: produitDoc.id,
-                        ...data,
-                        prixClient: data.prixClient || 0,
-                        prixBoutique: data.prixBoutique || 0,
-                        prixUnitaire: data.prixUnitaire || 0,
-                        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
-                        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date()
-                      } as any;
-                    }
-                  } catch (e) {
-                    console.warn('Erreur récupération produit:', e);
-                  }
-                }
-
-                // Fallback produit
-                const produitFull: any = produitCmd.produit || { id: produitCmd.produitId, nom: 'Produit Inconnu', prixUnitaire: 0, prixClient: 0, prixBoutique: 0 };
+                // Récupérer les informations complètes du produit depuis le cache
+                const produitFull: any = produitsCache.get(produitCmd.produitId) || produitCmd.produit || { 
+                  id: produitCmd.produitId, nom: 'Produit Inconnu', prixUnitaire: 0, prixClient: 0, prixBoutique: 0 
+                };
 
 
                 // Quantité totale livrée pour cette commande spécifique
@@ -502,10 +486,51 @@ export const useFacturationStore = create<FacturationStore>()(
             commandesParDate.get(dateStr)!.push(c);
           });
 
+          // 5. Pré-chargement des données nécessaires pour optimiser la vitesse
+          // a. Infos Client (Une seule fois)
+          let clientInfo = commandes[0]?.client;
+          if (!clientInfo || !clientInfo.typeClient) {
+            try {
+              const d = await getDoc(doc(db, 'clients', clientId));
+              if (d.exists()) {
+                clientInfo = { id: d.id, ...d.data() } as Client;
+              }
+            } catch (e) {
+              console.warn('Erreur fetch client info:', e);
+            }
+          }
+
+          // b. Tous les produits impliqués (Pour éviter getDoc en boucle)
+          const allProduitIds = new Set<string>();
+          commandes.forEach(c => c.produits.forEach(p => allProduitIds.add(p.produitId)));
+          
+          const produitsCache = new Map<string, any>();
+          if (allProduitIds.size > 0) {
+            // Firestore ne permet pas de query IN avec plus de 10-30 éléments selon les cas,
+            // mais ici on peut charger les plus fréquents ou tout simplement paralléliser les getDocs
+            // car ils sont plus rapides en parallèle qu'en série dans une boucle.
+            const ids = Array.from(allProduitIds);
+            await Promise.all(ids.map(async (id) => {
+              try {
+                const pDoc = await getDoc(doc(db, 'produits', id));
+                if (pDoc.exists()) {
+                  const d = pDoc.data();
+                  produitsCache.set(id, {
+                    id: pDoc.id,
+                    ...d,
+                    prixClient: d.prixClient || 0,
+                    prixBoutique: d.prixBoutique || 0,
+                    prixUnitaire: d.prixUnitaire || 0
+                  });
+                }
+              } catch (e) { console.error(`Erreur cache produit ${id}:`, e); }
+            }));
+          }
+
           const misesAJour: Facture[] = [];
           const nouvelles: Facture[] = [];
 
-          // 5. Itérer sur chaque date
+          // 6. Itérer sur chaque date
           for (const [dateStr, commandesJour] of commandesParDate) {
             const dateObj = new Date(dateStr);
             const factureExistante = facturesExistantes.find(f => f.dateLivraison.toISOString().split('T')[0] === dateStr);
@@ -518,27 +543,6 @@ export const useFacturationStore = create<FacturationStore>()(
             const retoursJour = retours.filter(r => r.dateLivraison.toISOString().split('T')[0] === dateStr);
             const retoursCompletes = get().verifierRetoursCompletes(clientId, dateObj, retoursJour);
 
-            // Fetch info client (first command)
-            let clientInfo = commandesJour[0].client;
-
-            // S'assurer d'avoir les infos client complètes (typeClient surtout pour le prix)
-            if (!clientInfo || !clientInfo.typeClient) {
-              try {
-                const clientDoc = await getDocs(query(collection(db, 'clients'), where('id', '==', clientId)));
-                if (!clientDoc.empty) {
-                  clientInfo = { id: clientDoc.docs[0].id, ...clientDoc.docs[0].data() } as Client;
-                } else {
-                  // Fallback direct doc access
-                  const d = await getDoc(doc(db, 'clients', clientId));
-                  if (d.exists()) {
-                    clientInfo = { id: d.id, ...d.data() } as Client;
-                  }
-                }
-              } catch (e) {
-                console.warn('Erreur fetch client info:', e);
-              }
-            }
-
             // Calcul lignes
             const lignesMap = new Map<string, LigneFacture>();
 
@@ -547,28 +551,9 @@ export const useFacturationStore = create<FacturationStore>()(
                 const qte = Object.values(pCmd.repartitionCars || {}).reduce((s, q) => s + (Number(q) || 0), 0);
                 if (qte <= 0) continue;
 
-                let produitFull = pCmd.produit;
-
-                // Récupérer le produit si absent pour avoir les prix
-                if (!produitFull && pCmd.produitId) {
-                  try {
-                    const pDoc = await getDoc(doc(db, 'produits', pCmd.produitId));
-                    if (pDoc.exists()) {
-                      const d = pDoc.data();
-                      produitFull = {
-                        id: pDoc.id,
-                        ...d,
-                        prixClient: d.prixClient || 0,
-                        prixBoutique: d.prixBoutique || 0,
-                        prixUnitaire: d.prixUnitaire || 0
-                      } as any;
-                    }
-                  } catch (e) {
-                    console.warn('Erreur fetch produit info:', e);
-                  }
-                }
-
-                const produitRef: any = produitFull || { id: pCmd.produitId, nom: 'Produit Inconnu', prixUnitaire: 0 };
+                // Utiliser le cache
+                const produitRef: any = produitsCache.get(pCmd.produitId) || pCmd.produit || { id: pCmd.produitId, nom: 'Produit Inconnu', prixUnitaire: 0 };
+                
                 // Prix selon type client
                 const prixUnitaire = (clientInfo?.typeClient === 'client')
                   ? (produitRef.prixClient || produitRef.prixUnitaire || 0)

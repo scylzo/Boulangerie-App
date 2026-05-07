@@ -1281,14 +1281,15 @@ export const generateReleveFacturesPDF = async (
 
   yPos += 30;
 
-  // 3. Tableau des factures
-  doc.setFontSize(11);
+  // 3. Tableau des factures (Format Compact)
+  doc.setFontSize(10);
   doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
   doc.text(isImpayes ? `DÉTAIL DES FACTURES EN ATTENTE (${factures.length})` : `DÉTAIL DES FACTURES RÉGLÉES (${factures.length})`, 15, yPos);
 
   const tableData = factures.map(f => [
     new Date(f.dateLivraison).toLocaleDateString('fr-FR'),
     f.numeroFacture,
+    f.lignes.map(l => `${l.produit?.nom || 'Prod'} (${l.quantiteLivree})`).join(', '),
     formatMoney(f.totalTTC),
     formatMoney(f.montantRegle || 0),
     isImpayes ? formatMoney(f.totalTTC - (f.montantRegle || 0)) : formatMoney(f.totalTTC)
@@ -1296,44 +1297,87 @@ export const generateReleveFacturesPDF = async (
 
   autoTable(doc, {
     startY: yPos + 4,
-    head: [['Date', 'N° Facture', 'Total TTC', 'Déjà Réglé', isImpayes ? 'Reste à Payer' : 'Montant Payé']],
+    head: [['Date', 'N° Facture', 'Livraisons', 'Total TTC', 'Réglé', isImpayes ? 'Reste' : 'Payé']],
     body: tableData,
     theme: 'grid',
     headStyles: {
       fillColor: colors.primary as any,
       textColor: [255, 255, 255] as any,
-      fontSize: 9,
+      fontSize: 8,
       fontStyle: 'bold',
       halign: 'center'
     },
     columnStyles: {
-      0: { cellWidth: 25, halign: 'center' },
-      1: { cellWidth: 'auto', halign: 'center' },
-      2: { cellWidth: 32, halign: 'right' },
-      3: { cellWidth: 32, halign: 'right' },
-      4: { cellWidth: 35, halign: 'right', fontStyle: 'bold', textColor: colors.primary as any }
+      0: { cellWidth: 22, halign: 'center' },
+      1: { cellWidth: 25, halign: 'center' },
+      2: { cellWidth: 'auto', fontSize: 7 }, // Colonne Livraisons plus petite
+      3: { cellWidth: 28, halign: 'right' },
+      4: { cellWidth: 25, halign: 'right' },
+      5: { cellWidth: 28, halign: 'right', fontStyle: 'bold', textColor: colors.primary as any }
     },
-    styles: { fontSize: 9, cellPadding: 2 },
-    alternateRowStyles: { fillColor: [249, 250, 251] }, // Gray 50
+    styles: { fontSize: 8, cellPadding: 1.5 },
+    alternateRowStyles: { fillColor: [250, 250, 250] },
     margin: { left: 15, right: 15 }
   });
 
-  const finalY = (doc as any).lastAutoTable.finalY + 15;
+  let currentY = (doc as any).lastAutoTable.finalY + 10;
+
+  // 4. RÉCAPITULATIF DES PRODUITS LIVRÉS (Pour optimiser l'espace et la lecture)
+  const produitsCumules: Record<string, number> = {};
+  factures.forEach(f => {
+    f.lignes.forEach(l => {
+      const nom = l.produit?.nom || 'Produit inconnu';
+      produitsCumules[nom] = (produitsCumules[nom] || 0) + l.quantiteLivree;
+    });
+  });
+
+  const recapData = Object.entries(produitsCumules)
+    .sort((a, b) => b[1] - a[1])
+    .map(([nom, qte]) => [nom, qte.toString()]);
+
+  if (recapData.length > 0) {
+    // Si on arrive en bas de page, on ajoute une page
+    if (currentY > pageHeight - 50) {
+      doc.addPage();
+      currentY = 20;
+    }
+
+    doc.setFontSize(10);
+    doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.text('RÉCAPITULATIF GLOBAL DES LIVRAISONS', 15, currentY);
+
+    autoTable(doc, {
+      startY: currentY + 4,
+      head: [['Produit', 'Total Quantité Livrée']],
+      body: recapData,
+      theme: 'grid',
+      headStyles: { fillColor: [100, 100, 100], fontSize: 8, halign: 'center' },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 50, halign: 'center', fontStyle: 'bold' }
+      },
+      styles: { fontSize: 8, cellPadding: 1.5 },
+      margin: { left: 15, right: 15 }
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 10;
+  }
 
   // Message de remerciement / relance
-  if (finalY < pageHeight - 30) {
-    doc.setFontSize(10);
+  if (currentY < pageHeight - 30) {
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
     if (isImpayes) {
-      doc.text('Nous vous prions de bien vouloir régulariser cette situation dans les plus brefs délais.', 15, finalY);
+      doc.text('Nous vous prions de bien vouloir régulariser cette situation dans les plus brefs délais.', 15, currentY);
     } else {
-      doc.text('Nous vous remercions pour votre confiance et pour la régularité de vos paiements.', 15, finalY);
+      doc.text('Nous vous remercions pour votre confiance et pour la régularité de vos paiements.', 15, currentY);
     }
   }
 
   // Pied de page
-  doc.setFontSize(8);
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
   doc.text(`Document généré le ${new Date().toLocaleString('fr-FR')} - BOULANGERIE ERP`, 15, pageHeight - 10);
