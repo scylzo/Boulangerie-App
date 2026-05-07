@@ -241,6 +241,7 @@ export const GestionFactures: React.FC = () => {
       case 'validee': return 'text-blue-700 bg-blue-100';
       case 'envoyee': return 'text-indigo-700 bg-indigo-100';
       case 'payee': return 'text-green-700 bg-green-100';
+      case 'partiellement_payee': return 'text-orange-700 bg-orange-100 border-orange-200';
       case 'annulee': return 'text-red-700 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
     }
@@ -253,6 +254,7 @@ export const GestionFactures: React.FC = () => {
       case 'validee': return 'Validée';
       case 'envoyee': return 'Envoyée';
       case 'payee': return 'Payée';
+      case 'partiellement_payee': return 'Partiellement Payée';
       case 'annulee': return 'Annulée';
       default: return statut;
     }
@@ -638,7 +640,7 @@ export const GestionFactures: React.FC = () => {
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">N° Facture</th>
                 <th className="px-6 py-3 text-center">Livrés</th>
-                <th className="px-6 py-3 text-center">Invendus</th>
+                <th className="px-6 py-3 text-center">Retours</th>
                 <th className="px-6 py-3 text-right">Montant</th>
                 <th className="px-6 py-3 center">Statut</th>
                 <th className="px-6 py-3 text-right">Actions</th>

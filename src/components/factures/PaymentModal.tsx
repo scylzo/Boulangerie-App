@@ -28,18 +28,23 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
     useEffect(() => {
         if (facture && isOpen) {
-            // Default to net to pay, or total TTC if undefined
-            const toPay = facture.netAPayer ?? facture.totalTTC;
-            setReglements([{ id: Date.now().toString(), montant: toPay.toString(), mode: 'espece' }]);
+            // Calculer le montant réellement restant à payer
+            const dejaPaye = facture.montantRegle || 0;
+            const resteARegler = (facture.netAPayer ?? facture.totalTTC) - dejaPaye;
+            
+            setReglements([{ id: Date.now().toString(), montant: Math.max(0, resteARegler).toString(), mode: 'espece' }]);
         }
     }, [facture, isOpen]);
 
     if (!facture) return null;
 
-    const netAPayer = facture.netAPayer ?? facture.totalTTC;
+    const dejaPaye = facture.montantRegle || 0;
+    const netAPayerInitial = facture.netAPayer ?? facture.totalTTC;
+    const netARester = netAPayerInitial - dejaPaye;
+    
     const totalSaisi = reglements.reduce((sum, r) => sum + (parseFloat(r.montant) || 0), 0);
-    const resteAPayer = Math.max(0, netAPayer - totalSaisi);
-    const isOverpayment = totalSaisi > netAPayer;
+    const resteAPayer = Math.max(0, netARester - totalSaisi);
+    const isOverpayment = totalSaisi > netARester;
 
     const handleAddReglement = () => {
         setReglements([...reglements, { id: Date.now().toString(), montant: resteAPayer.toString() || '0', mode: 'espece' }]);
@@ -101,9 +106,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             <span className="font-bold">- {formatCurrency(facture.soldeUtilise)}</span>
                         </div>
                     ) : null}
+                    {dejaPaye > 0 ? (
+                        <div className="flex justify-between items-center text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-sm border border-blue-100">
+                            <span className="flex items-center gap-2">
+                                <Icon icon="mdi:history" />
+                                Déjà réglé :
+                            </span>
+                            <span className="font-bold">{formatCurrency(dejaPaye)}</span>
+                        </div>
+                    ) : null}
                     <div className="flex justify-between items-center border-t border-indigo-100 pt-3">
-                        <span className="font-bold text-gray-900">Net à encaisser :</span>
-                        <span className="text-2xl font-black text-indigo-700">{formatCurrency(netAPayer)}</span>
+                        <span className="font-bold text-gray-900">Reste à encaisser :</span>
+                        <span className="text-2xl font-black text-indigo-700">{formatCurrency(netARester)}</span>
                     </div>
                 </div>
 
@@ -233,7 +247,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             <p className="font-black text-amber-800 uppercase tracking-tight mb-1">Montant supérieur au net !</p>
                             <p className="text-amber-700 leading-relaxed">
                                 Le montant total saisi est de <span className="font-bold">{formatCurrency(totalSaisi)}</span>. 
-                                Un avoir de <span className="bg-white px-2 py-0.5 rounded-lg font-black text-orange-600 shadow-sm">{formatCurrency(totalSaisi - netAPayer)}</span> sera automatiquement ajouté au solde du client.
+                                Un avoir de <span className="bg-white px-2 py-0.5 rounded-lg font-black text-orange-600 shadow-sm">{formatCurrency(totalSaisi - netARester)}</span> sera automatiquement ajouté au solde du client.
                             </p>
                         </div>
                     </div>

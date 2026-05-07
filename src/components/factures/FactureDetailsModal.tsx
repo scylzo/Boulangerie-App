@@ -32,6 +32,7 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
       case 'validee': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'envoyee': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       case 'payee': return 'bg-green-100 text-green-800 border-green-200';
+      case 'partiellement_payee': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'annulee': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -43,6 +44,7 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
       case 'validee': return 'Validée';
       case 'envoyee': return 'Envoyée';
       case 'payee': return 'Payée';
+      case 'partiellement_payee': return 'Partiellement Payée';
       case 'annulee': return 'Annulée';
       default: return statut;
     }
@@ -346,10 +348,18 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
                 )}
 
                 {facture.montantRegle ? (
-                  <div className="flex justify-between border-t border-gray-200 pt-2">
-                    <span className="font-medium text-gray-700">Montant réglé :</span>
-                    <span className="font-medium text-gray-900">{formatCurrency(facture.montantRegle)}</span>
-                  </div>
+                  <>
+                    <div className="flex justify-between border-t border-gray-200 pt-2">
+                      <span className="font-medium text-gray-700">Montant réglé :</span>
+                      <span className="font-medium text-gray-900">{formatCurrency(facture.montantRegle)}</span>
+                    </div>
+                    {facture.montantRegle < (facture.netAPayer ?? facture.totalTTC) && (
+                      <div className="flex justify-between border-t border-indigo-200 pt-2 text-indigo-700 bg-indigo-50 px-2 rounded mt-1">
+                        <span className="font-bold text-sm">Solde dû :</span>
+                        <span className="font-bold text-base">{formatCurrency((facture.netAPayer ?? facture.totalTTC) - facture.montantRegle)}</span>
+                      </div>
+                    )}
+                  </>
                 ) : null}
 
                 {/* Détail des règlements multi-modes */}

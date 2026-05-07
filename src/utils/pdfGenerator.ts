@@ -148,46 +148,73 @@ export const generateFacturePDF = async (facture: Facture) => {
   // Totaux
   const finalY = (doc as any).lastAutoTable.finalY + 10;
 
-  // Cadre pour les totaux
-  const boxHeight = (facture.soldeUtilise && facture.soldeUtilise > 0) ? 56 : 36;
+  // Calcul du reste à payer
+  const dejaPaye = facture.montantRegle || 0;
+  const netAPayer = facture.netAPayer ?? facture.totalTTC;
+  const soldeARegler = Math.max(0, netAPayer - dejaPaye);
+
+  // Cadre pour les totaux (dynamique selon les lignes)
+  let boxLines = 3; // HT, TVA, TTC
+  if (facture.soldeUtilise && facture.soldeUtilise > 0) boxLines++;
+  if (dejaPaye > 0) boxLines++;
+  const boxHeight = boxLines * 10 + 6;
+
   doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
   doc.rect(125, finalY, 65, boxHeight, 'F');
 
   doc.setFontSize(9);
   doc.setTextColor(0, 0, 0);
+  let currentY = finalY + 10;
 
   // Total HT
-  doc.text('Total HT:', 130, finalY + 10);
-  doc.text(formatCurrencyCompact(facture.totalHT), 185, finalY + 10, { align: 'right' });
+  doc.text('Total HT:', 130, currentY);
+  doc.text(formatCurrencyCompact(facture.totalHT), 185, currentY, { align: 'right' });
+  currentY += 9;
 
   // TVA
-  doc.text(`TVA (${facture.tauxTVA}%):`, 130, finalY + 19);
-  doc.text(formatCurrencyCompact(facture.montantTVA), 185, finalY + 19, { align: 'right' });
+  doc.text(`TVA (${facture.tauxTVA}%):`, 130, currentY);
+  doc.text(formatCurrencyCompact(facture.montantTVA), 185, currentY, { align: 'right' });
+  currentY += 4;
 
   // Ligne de séparation
   doc.setLineWidth(0.3);
-  doc.line(130, finalY + 23, 185, finalY + 23);
+  doc.line(130, currentY, 185, currentY);
+  currentY += 9;
 
-  // Total TTC (en gras)
+  // Total TTC
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('TOTAL TTC:', 130, finalY + 32);
-  doc.text(formatCurrencyCompact(facture.totalTTC), 185, finalY + 32, { align: 'right' });
+  doc.text('TOTAL TTC:', 130, currentY);
+  doc.text(formatCurrencyCompact(facture.totalTTC), 185, currentY, { align: 'right' });
+  currentY += 9;
 
-  // Gestion du solde utilisé
+  // Gestion du solde utilisé (Avoir)
   if (facture.soldeUtilise && facture.soldeUtilise > 0) {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(22, 163, 74); // Vert
-    doc.text('Solde utilisé:', 130, finalY + 41);
-    doc.text(`- ${formatCurrencyCompact(facture.soldeUtilise)}`, 185, finalY + 41, { align: 'right' });
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text('NET À PAYER:', 130, finalY + 50);
-    doc.text(formatCurrencyCompact(facture.netAPayer ?? 0), 185, finalY + 50, { align: 'right' });
+    doc.text('Avoir utilisé:', 130, currentY);
+    doc.text(`- ${formatCurrencyCompact(facture.soldeUtilise)}`, 185, currentY, { align: 'right' });
+    currentY += 9;
   }
+
+  // Gestion du déjà réglé
+  if (dejaPaye > 0) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(59, 130, 246); // Bleu
+    doc.text('Déjà réglé:', 130, currentY);
+    doc.text(`- ${formatCurrencyCompact(dejaPaye)}`, 185, currentY, { align: 'right' });
+    currentY += 9;
+  }
+
+  // NET / SOLDE À PAYER
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const labelNet = dejaPaye > 0 ? 'SOLDE À PAYER:' : 'NET À PAYER:';
+  doc.text(labelNet, 130, currentY);
+  doc.text(formatCurrencyCompact(soldeARegler), 185, currentY, { align: 'right' });
 
   // Section Règlements (Détails)
   if (facture.reglements && facture.reglements.length > 0) {
@@ -1323,17 +1350,27 @@ export const generateReleveFacturesPDF = async (
   let currentY = (doc as any).lastAutoTable.finalY + 10;
 
   // 4. RÉCAPITULATIF DES PRODUITS LIVRÉS (Pour optimiser l'espace et la lecture)
-  const produitsCumules: Record<string, number> = {};
+  const produitsCumules: Record<string, { livree: number, retournee: number, vendue: number }> = {};
   factures.forEach(f => {
     f.lignes.forEach(l => {
       const nom = l.produit?.nom || 'Produit inconnu';
-      produitsCumules[nom] = (produitsCumules[nom] || 0) + l.quantiteLivree;
+      if (!produitsCumules[nom]) {
+        produitsCumules[nom] = { livree: 0, retournee: 0, vendue: 0 };
+      }
+      produitsCumules[nom].livree += l.quantiteLivree;
+      produitsCumules[nom].retournee += (l.quantiteRetournee || 0);
+      produitsCumules[nom].vendue += (l.quantiteFacturee || 0);
     });
   });
 
   const recapData = Object.entries(produitsCumules)
-    .sort((a, b) => b[1] - a[1])
-    .map(([nom, qte]) => [nom, qte.toString()]);
+    .sort((a, b) => b[1].livree - a[1].livree)
+    .map(([nom, stats]) => [
+      nom, 
+      stats.livree.toString(), 
+      stats.retournee.toString(), 
+      stats.vendue.toString()
+    ]);
 
   if (recapData.length > 0) {
     // Si on arrive en bas de page, on ajoute une page
@@ -1345,17 +1382,19 @@ export const generateReleveFacturesPDF = async (
     doc.setFontSize(10);
     doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
     doc.setFont('helvetica', 'bold');
-    doc.text('RÉCAPITULATIF GLOBAL DES LIVRAISONS', 15, currentY);
+    doc.text('RÉCAPITULATIF GLOBAL DES LIVRAISONS SUR LA PÉRIODE', 15, currentY);
 
     autoTable(doc, {
       startY: currentY + 4,
-      head: [['Produit', 'Total Quantité Livrée']],
+      head: [['Produit', 'Total Livré', 'Total Retours', 'Total Vendu']],
       body: recapData,
       theme: 'grid',
       headStyles: { fillColor: [100, 100, 100], fontSize: 8, halign: 'center' },
       columnStyles: {
         0: { cellWidth: 'auto' },
-        1: { cellWidth: 50, halign: 'center', fontStyle: 'bold' }
+        1: { cellWidth: 35, halign: 'center' },
+        2: { cellWidth: 35, halign: 'center' },
+        3: { cellWidth: 35, halign: 'center', fontStyle: 'bold' }
       },
       styles: { fontSize: 8, cellPadding: 1.5 },
       margin: { left: 15, right: 15 }
