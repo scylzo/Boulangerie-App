@@ -1317,6 +1317,8 @@ export const generateReleveFacturesPDF = async (
     new Date(f.dateLivraison).toLocaleDateString('fr-FR'),
     f.numeroFacture,
     f.lignes.map(l => `${l.produit?.nom || 'Prod'} (${l.quantiteLivree})`).join(', '),
+    f.lignes.filter(l => (l.quantiteRetournee || 0) > 0)
+      .map(l => `${l.produit?.nom || 'Prod'} (${l.quantiteRetournee})`).join(', ') || '-',
     formatMoney(f.totalTTC),
     formatMoney(f.montantRegle || 0),
     isImpayes ? formatMoney(f.totalTTC - (f.montantRegle || 0)) : formatMoney(f.totalTTC)
@@ -1324,7 +1326,7 @@ export const generateReleveFacturesPDF = async (
 
   autoTable(doc, {
     startY: yPos + 4,
-    head: [['Date', 'N° Facture', 'Livraisons', 'Total TTC', 'Réglé', isImpayes ? 'Reste' : 'Payé']],
+    head: [['Date', 'N° Facture', 'Livraisons', 'Retours', 'Total TTC', 'Réglé', isImpayes ? 'Reste' : 'Payé']],
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -1335,12 +1337,13 @@ export const generateReleveFacturesPDF = async (
       halign: 'center'
     },
     columnStyles: {
-      0: { cellWidth: 22, halign: 'center' },
-      1: { cellWidth: 25, halign: 'center' },
-      2: { cellWidth: 'auto', fontSize: 7 }, // Colonne Livraisons plus petite
-      3: { cellWidth: 28, halign: 'right' },
+      0: { cellWidth: 20, halign: 'center' },
+      1: { cellWidth: 22, halign: 'center' },
+      2: { cellWidth: 'auto', fontSize: 7 }, // Livraisons
+      3: { cellWidth: 'auto', fontSize: 7, textColor: [234, 88, 12] }, // Retours (Orange)
       4: { cellWidth: 25, halign: 'right' },
-      5: { cellWidth: 28, halign: 'right', fontStyle: 'bold', textColor: colors.primary as any }
+      5: { cellWidth: 22, halign: 'right' },
+      6: { cellWidth: 25, halign: 'right', fontStyle: 'bold', textColor: colors.primary as any }
     },
     styles: { fontSize: 8, cellPadding: 1.5 },
     alternateRowStyles: { fillColor: [250, 250, 250] },
