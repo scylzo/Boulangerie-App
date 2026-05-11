@@ -538,12 +538,14 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           // Importer le store de facturation dynamiquement pour éviter les cycles si possible, ou utiliser getState
           // Note: On utilise require ou import en haut mais ici on suppose que useFacturationStore est dispo
           // import { useFacturationStore } from './facturationStore';
-          const { useFacturationStore } = await import('./facturationStore');
+          const facturationModule = await import('./facturationStore') as any;
+          const useFacturationStore = facturationModule.useFacturationStore;
           if (useFacturationStore) {
             const dateLivraison = new Date(nouvelleCommande.dateLivraison);
             // On passe TOUTES les commandes de ce programme pour cette date, pour être sûr
             const allCommandes = get().commandesClients.filter(c =>
-              new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString()
+              new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString() &&
+              c.statut !== 'annulee'
             );
 
             // On appelle la génération. Note: les retours sont vides pour l'instant (draft)
@@ -578,11 +580,13 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       try {
         const commandeModifiee = get().commandesClients.find(c => c.id === id);
         if (commandeModifiee) {
-          const { useFacturationStore } = await import('./facturationStore');
+          const facturationModule = await import('./facturationStore') as any;
+          const useFacturationStore = facturationModule.useFacturationStore;
           if (useFacturationStore) {
             const dateLivraison = new Date(commandeModifiee.dateLivraison);
             const allCommandes = get().commandesClients.filter(c =>
-              new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString()
+              new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString() &&
+              c.statut !== 'annulee'
             );
             console.log('🔄 Auto-update de facture brouillon suite modif commande...');
             // On passe [] pour les retours, ce qui va garder les retours existants s'ils sont gérés intelligemment dans le store facturation
@@ -604,10 +608,31 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       commandesClients: state.commandesClients.filter(cmd => cmd.id !== id)
     }));
     // Recalculer et sauvegarder immédiatement après la suppression
-    setTimeout(() => {
+    setTimeout(async () => {
       get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
       get().calculerTotauxParProduit();
       get().sauvegarderEtRecharger().catch(console.warn);
+
+      // --- AUTO-UPDATE FACTURE ---
+      try {
+        const { programmeActuel } = get();
+        if (programmeActuel) {
+          const facturationModule = await import('./facturationStore') as any;
+          const useFacturationStore = facturationModule.useFacturationStore;
+          if (useFacturationStore) {
+            const dateLivraison = new Date(programmeActuel.dateProduction);
+            const allCommandes = get().commandesClients.filter(c =>
+              new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString() &&
+              c.statut !== 'annulee'
+            );
+            console.log('🔄 Auto-update de facture suite suppression commande...');
+            useFacturationStore.getState().genererFacturesDepuisLivraisons(dateLivraison, allCommandes, [])
+              .catch((err: any) => console.error('Erreur auto-update facture:', err));
+          }
+        }
+      } catch (e) {
+        console.warn('Non bloquant: Erreur trigger facturation suppression', e);
+      }
     }, 0);
   },
 
@@ -649,8 +674,32 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           : cmd
       )
     }));
-    // Recalculer immédiatement après l'annulation
-    setTimeout(() => get().calculerTotauxParProduit(), 0);
+    // Recalculer et sauvegarder après l'annulation
+    setTimeout(async () => {
+      get().calculerTotauxParProduit();
+      get().sauvegarderEtRecharger().catch(console.warn);
+
+      // --- AUTO-UPDATE FACTURE ---
+      try {
+        const commandeAnnulee = get().commandesClients.find(c => c.id === id);
+        if (commandeAnnulee) {
+          const facturationModule = await import('./facturationStore') as any;
+          const useFacturationStore = facturationModule.useFacturationStore;
+          if (useFacturationStore) {
+            const dateLivraison = new Date(commandeAnnulee.dateLivraison);
+            const allCommandes = get().commandesClients.filter(c =>
+              new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString() &&
+              c.statut !== 'annulee'
+            );
+            console.log('🔄 Auto-update de facture suite annulation commande...');
+            useFacturationStore.getState().genererFacturesDepuisLivraisons(dateLivraison, allCommandes, [])
+              .catch((err: any) => console.error('Erreur auto-update facture:', err));
+          }
+        }
+      } catch (e) {
+        console.warn('Non bloquant: Erreur trigger facturation annulation', e);
+      }
+    }, 0);
   },
 
   annulerCommandeAvecRedistribution: async (commandeId: string, redistribution: RedistributionData) => {

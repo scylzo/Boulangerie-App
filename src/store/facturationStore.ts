@@ -99,9 +99,9 @@ export const useFacturationStore = create<FacturationStore>()(
             } as Facture;
           });
 
-          // Grouper les commandes par client
+          // Grouper les commandes par client (en ignorant les annulées)
           const commandesParClient = new Map<string, CommandeClient[]>();
-          commandesClients.forEach(commande => {
+          commandesClients.filter(c => c.statut !== 'annulee').forEach(commande => {
             const clientId = commande.clientId;
             if (!commandesParClient.has(clientId)) {
               commandesParClient.set(clientId, []);
@@ -405,7 +405,6 @@ export const useFacturationStore = create<FacturationStore>()(
           }
 
           // 1. Récupérer les commandes
-          console.log(`[DEBUG] Recherche commandes pour Client ${clientId} | Debut: ${dateDebut.toISOString()} | Fin: ${dateFin?.toISOString() || 'Aucune'}`);
 
           let commandesQuery = query(
             collection(db, 'clientOrders'),
@@ -426,15 +425,14 @@ export const useFacturationStore = create<FacturationStore>()(
           }
 
           const commandesSnap = await getDocs(commandesQuery);
-          const commandes = commandesSnap.docs.map(d => ({ ...d.data(), id: d.id, dateLivraison: d.data().dateLivraison.toDate() })) as CommandeClient[];
+          const commandes = commandesSnap.docs
+            .map(d => ({ ...d.data(), id: d.id, dateLivraison: d.data().dateLivraison.toDate() })) as CommandeClient[];
+          
+          // Filtrer les commandes annulées
+          const commandesValides = commandes.filter(c => c.statut !== 'annulee');
 
-          console.log(`[DEBUG] Commandes trouvées: ${commandes.length}`);
-          if (commandes.length > 0) {
-            commandes.forEach(c => console.log(` - Commande ${c.id} du ${c.dateLivraison.toISOString()}`));
-          }
-
-          if (commandes.length === 0) {
-            console.log("Aucune commande trouvée pour cette période");
+          if (commandesValides.length === 0) {
+            console.log("Aucune commande valide trouvée pour cette période");
             set({ isLoading: false });
             return;
           }
@@ -479,7 +477,7 @@ export const useFacturationStore = create<FacturationStore>()(
 
           // 4. Grouper par date
           const commandesParDate = new Map<string, CommandeClient[]>();
-          commandes.forEach(c => {
+          commandesValides.forEach(c => {
             const dateStr = c.dateLivraison.toISOString().split('T')[0];
             if (!commandesParDate.has(dateStr)) commandesParDate.set(dateStr, []);
             commandesParDate.get(dateStr)!.push(c);
