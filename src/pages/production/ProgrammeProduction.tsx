@@ -938,11 +938,54 @@ export const ProgrammeProduction: React.FC = () => {
                           <div className="flex gap-1 shrink-0">
                             <button
                               onClick={() => {
-                                // Résoudre le nom du livreur
-                                const livreurAssigne = livreurs.find(l => l.id === client?.livreurId);
+                                // Résoudre les livreurs affectés par voiture
+                                let livreursStr = 'Non assigné';
+                                if (client) {
+                                  const activeCars = new Set<'car1_matin' | 'car2_matin' | 'car_soir'>();
+                                  commande.produits.forEach(item => {
+                                    if (item.repartitionCars) {
+                                      Object.entries(item.repartitionCars).forEach(([car, qty]) => {
+                                        if (qty && qty > 0) {
+                                          activeCars.add(car as any);
+                                        }
+                                      });
+                                    }
+                                  });
+
+                                  if (activeCars.size === 0) {
+                                    const l = client.livreurId ? livreurs.find(drv => drv.id === client.livreurId) : null;
+                                    livreursStr = l ? l.nom : client.livreurId ? `Livreur (ID: ${client.livreurId.substring(0, 6)}...)` : 'Non assigné';
+                                  } else {
+                                    const assignments: string[] = [];
+                                    const labels: Record<string, string> = {
+                                      car1_matin: 'Car 1',
+                                      car2_matin: 'Car 2',
+                                      car_soir: 'Soir'
+                                    };
+
+                                    activeCars.forEach(car => {
+                                      const lId = client.livreursParCar?.[car] || client.livreurId;
+                                      if (lId) {
+                                        const l = livreurs.find(drv => drv.id === lId);
+                                        const lNom = l ? l.nom : `Livreur (ID: ${lId.substring(0, 6)}...)`;
+                                        assignments.push(`${lNom} (${labels[car] || car})`);
+                                      }
+                                    });
+
+                                    if (assignments.length > 0) {
+                                      const uniqueDrivers = new Set(assignments.map(a => a.split(' (')[0]));
+                                      if (uniqueDrivers.size === 1) {
+                                        livreursStr = Array.from(uniqueDrivers)[0];
+                                      } else {
+                                        livreursStr = assignments.join(', ');
+                                      }
+                                    }
+                                  }
+                                }
+
                                 const clientAvecLivreur = {
                                   ...client,
-                                  livreur: livreurAssigne ? livreurAssigne.nom : client?.livreurId ? `Livreur (ID: ${client.livreurId.substring(0, 6)}...)` : 'Non assigné'
+                                  livreur: livreursStr
                                 };
                                 htmlPrintService.generateDeliveryReceiptHTML(commande, clientAvecLivreur, produits);
                               }}

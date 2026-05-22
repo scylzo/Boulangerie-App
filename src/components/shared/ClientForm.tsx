@@ -31,6 +31,11 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     email: '',
     typeClient: 'client' as 'client' | 'boutique',
     livreurId: '',
+    livreursParCar: {
+      car1_matin: '',
+      car2_matin: '',
+      car_soir: ''
+    },
     conditionsPaiement: '',
     modePaiementPreference: '' as 'espece' | 'om' | 'wave' | 'cheque' | 'virement' | '',
     eligibleRistourne: false,
@@ -57,6 +62,11 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         email: client.email || '',
         typeClient: client.typeClient,
         livreurId: client.livreurId || '',
+        livreursParCar: {
+          car1_matin: client.livreursParCar?.car1_matin || '',
+          car2_matin: client.livreursParCar?.car2_matin || '',
+          car_soir: client.livreursParCar?.car_soir || ''
+        },
         conditionsPaiement: client.conditionsPaiement || '',
         modePaiementPreference: client.modePaiementPreference || '',
         eligibleRistourne: client.eligibleRistourne || false,
@@ -83,6 +93,14 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         longitude: (formData.longitude !== '' && !isNaN(Number(formData.longitude))) ? Number(formData.longitude) : (null as any),
       };
 
+      if (clientData.livreursParCar) {
+        const cleaned: any = {};
+        if (clientData.livreursParCar.car1_matin) cleaned.car1_matin = clientData.livreursParCar.car1_matin;
+        if (clientData.livreursParCar.car2_matin) cleaned.car2_matin = clientData.livreursParCar.car2_matin;
+        if (clientData.livreursParCar.car_soir) cleaned.car_soir = clientData.livreursParCar.car_soir;
+        clientData.livreursParCar = cleaned;
+      }
+
       // Supprimer les champs nuls pour Firestore
       Object.keys(clientData).forEach(key => {
         if (clientData[key] === null) {
@@ -102,6 +120,11 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           email: '',
           typeClient: 'client',
           livreurId: '',
+          livreursParCar: {
+            car1_matin: '',
+            car2_matin: '',
+            car_soir: ''
+          },
           conditionsPaiement: '',
           modePaiementPreference: '',
           eligibleRistourne: false,
@@ -259,22 +282,94 @@ export const ClientForm: React.FC<ClientFormProps> = ({
             )}
           </div>
 
-          <div>
-            <Select
-              label="Livreur assigné"
-              value={formData.livreurId}
-              onChange={(e) => setFormData({ ...formData, livreurId: e.target.value })}
-              options={[
-                { value: '', label: 'Aucun livreur (à assigner plus tard)' },
-                ...getLivreursActifs().map(livreur => ({
-                  value: livreur.id,
-                  label: `${livreur.nom} ${livreur.vehicule ? `(${livreur.vehicule})` : ''}`
-                }))
-              ]}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Livreur responsable des livraisons de ce client
-            </p>
+          <div className="md:col-span-2 bg-gray-50/50 p-4 rounded-xl border border-gray-200/80 space-y-4">
+            <div className="flex items-center gap-2 text-gray-800 font-semibold text-sm">
+              <Icon icon="mdi:truck-delivery" className="text-lg text-blue-600" />
+              <span>Assignation des Livreurs</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <Select
+                  label="Livreur par défaut"
+                  value={formData.livreurId}
+                  onChange={(e) => setFormData({ ...formData, livreurId: e.target.value })}
+                  options={[
+                    { value: '', label: 'Aucun livreur par défaut' },
+                    ...getLivreursActifs().map(livreur => ({
+                      value: livreur.id,
+                      label: `${livreur.nom} ${livreur.vehicule ? `(${livreur.vehicule})` : ''}`
+                    }))
+                  ]}
+                />
+                <p className="text-[10px] text-gray-500 mt-1">
+                  Livreur utilisé si aucun n'est spécifié pour un car
+                </p>
+              </div>
+
+              <div>
+                <Select
+                  label="Car 1 - Matin"
+                  value={formData.livreursParCar?.car1_matin || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    livreursParCar: {
+                      ...formData.livreursParCar,
+                      car1_matin: e.target.value
+                    }
+                  })}
+                  options={[
+                    { value: '', label: 'Utiliser le livreur par défaut' },
+                    ...getLivreursActifs().map(livreur => ({
+                      value: livreur.id,
+                      label: `${livreur.nom} ${livreur.vehicule ? `(${livreur.vehicule})` : ''}`
+                    }))
+                  ]}
+                />
+              </div>
+
+              <div>
+                <Select
+                  label="Car 2 - Matin"
+                  value={formData.livreursParCar?.car2_matin || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    livreursParCar: {
+                      ...formData.livreursParCar,
+                      car2_matin: e.target.value
+                    }
+                  })}
+                  options={[
+                    { value: '', label: 'Utiliser le livreur par défaut' },
+                    ...getLivreursActifs().map(livreur => ({
+                      value: livreur.id,
+                      label: `${livreur.nom} ${livreur.vehicule ? `(${livreur.vehicule})` : ''}`
+                    }))
+                  ]}
+                />
+              </div>
+
+              <div>
+                <Select
+                  label="Car - Soir"
+                  value={formData.livreursParCar?.car_soir || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    livreursParCar: {
+                      ...formData.livreursParCar,
+                      car_soir: e.target.value
+                    }
+                  })}
+                  options={[
+                    { value: '', label: 'Utiliser le livreur par défaut' },
+                    ...getLivreursActifs().map(livreur => ({
+                      value: livreur.id,
+                      label: `${livreur.nom} ${livreur.vehicule ? `(${livreur.vehicule})` : ''}`
+                    }))
+                  ]}
+                />
+              </div>
+            </div>
           </div>
         </div>
 

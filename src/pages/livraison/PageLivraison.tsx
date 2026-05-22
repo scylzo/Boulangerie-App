@@ -51,36 +51,36 @@ export const PageLivraison: React.FC = () => {
           clientsDisponibles: clients.map(c => ({ id: c.id, nom: c.nom }))
         });
       }
-      const livreurId = client?.livreurId || 'non-assigne';
-
-      if (!commandesParLivreur.has(livreurId)) {
-        let livreurTrouve = livreurs.find(l => l.id === livreurId);
-
-        // Si on a un ID mais pas de livreur trouvé, créer un objet temporaire
-        if (!livreurTrouve && livreurId !== 'non-assigne') {
-          console.warn(`⚠️ Livreur ID ${livreurId} non trouvé dans la liste pour client ${client?.nom}`);
-          livreurTrouve = {
-            id: livreurId,
-            nom: `Livreur (ID: ${livreurId.substring(0, 6)}...)`,
-            active: true,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          } as any;
-        }
-
-        commandesParLivreur.set(livreurId, {
-          livreur: livreurTrouve,
-          commandesParCar: new Map()
-        });
-      }
-
-      const livreurData = commandesParLivreur.get(livreurId);
 
       commande.produits.forEach(produit => {
         if (produit.repartitionCars) {
           Object.entries(produit.repartitionCars).forEach(([car, quantite]) => {
             if (quantite && quantite > 0) {
               const carKey = car as CarLivraison;
+              const livreurId = client?.livreursParCar?.[carKey] || client?.livreurId || 'non-assigne';
+
+              if (!commandesParLivreur.has(livreurId)) {
+                let livreurTrouve = livreurs.find(l => l.id === livreurId);
+
+                // Si on a un ID mais pas de livreur trouvé, créer un objet temporaire
+                if (!livreurTrouve && livreurId !== 'non-assigne') {
+                  console.warn(`⚠️ Livreur ID ${livreurId} non trouvé dans la liste pour client ${client?.nom}`);
+                  livreurTrouve = {
+                    id: livreurId,
+                    nom: `Livreur (ID: ${livreurId.substring(0, 6)}...)`,
+                    active: true,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                  } as any;
+                }
+
+                commandesParLivreur.set(livreurId, {
+                  livreur: livreurTrouve,
+                  commandesParCar: new Map()
+                });
+              }
+
+              const livreurData = commandesParLivreur.get(livreurId);
 
               if (!livreurData.commandesParCar.has(carKey)) {
                 livreurData.commandesParCar.set(carKey, []);

@@ -186,17 +186,30 @@ export const CarteKiosques: React.FC = () => {
         const zones: Record<string, { points: [number, number][]; color: string; livreurNom: string }> = {};
 
         clients.forEach((client) => {
-            if (client.latitude && client.longitude && client.livreurId) {
-                if (!zones[client.livreurId]) {
-                    const livreur = livreurs.find(l => l.id === client.livreurId);
-                    const colorIndex = Object.keys(zones).length % ZONE_COLORS.length;
-                    zones[client.livreurId] = {
-                        points: [],
-                        color: ZONE_COLORS[colorIndex],
-                        livreurNom: livreur?.nom || 'Livreur Inconnu'
-                    };
+            if (client.latitude && client.longitude) {
+                // Collecter tous les livreurs uniques pour ce client
+                const livreurIds = new Set<string>();
+                if (client.livreurId) {
+                    livreurIds.add(client.livreurId);
                 }
-                zones[client.livreurId].points.push([client.latitude, client.longitude]);
+                if (client.livreursParCar) {
+                    Object.values(client.livreursParCar).forEach(id => {
+                        if (id) livreurIds.add(id);
+                    });
+                }
+
+                livreurIds.forEach(livreurId => {
+                    if (!zones[livreurId]) {
+                        const livreur = livreurs.find(l => l.id === livreurId);
+                        const colorIndex = Object.keys(zones).length % ZONE_COLORS.length;
+                        zones[livreurId] = {
+                            points: [],
+                            color: ZONE_COLORS[colorIndex],
+                            livreurNom: livreur?.nom || 'Livreur Inconnu'
+                        };
+                    }
+                    zones[livreurId].points.push([client.latitude!, client.longitude!]);
+                });
             }
         });
 

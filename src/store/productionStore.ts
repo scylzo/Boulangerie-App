@@ -640,7 +640,10 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     const { clients } = get();
 
     // Trouver tous les clients assignés à ce livreur
-    const clientsLivreur = clients.filter(client => client.livreurId === livreurId);
+    const clientsLivreur = clients.filter(client =>
+      client.livreurId === livreurId ||
+      (client.livreursParCar && Object.values(client.livreursParCar).includes(livreurId))
+    );
     const clientIds = clientsLivreur.map(client => client.id);
 
     console.log(`🗑️ Suppression des commandes pour le livreur ${livreurId}:`, clientsLivreur.map(c => c.nom));

@@ -198,7 +198,11 @@ export const GestionClients: React.FC = () => {
             ) : (
               <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
                 {clients.map((client) => {
-                  const livreur = client.livreurId ? getLivreurById(client.livreurId) : null;
+                  const defaultLivreur = client.livreurId ? getLivreurById(client.livreurId) : null;
+                  const car1Livreur = client.livreursParCar?.car1_matin ? getLivreurById(client.livreursParCar.car1_matin) : null;
+                  const car2Livreur = client.livreursParCar?.car2_matin ? getLivreurById(client.livreursParCar.car2_matin) : null;
+                  const soirLivreur = client.livreursParCar?.car_soir ? getLivreurById(client.livreursParCar.car_soir) : null;
+                  const hasAnyLivreur = defaultLivreur || car1Livreur || car2Livreur || soirLivreur;
 
                   return (
                     <div
@@ -313,30 +317,45 @@ export const GestionClients: React.FC = () => {
                         )}
                       </div>
 
-                      {/* Livreur assigné */}
-                      {livreur ? (
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2 sm:p-3 mb-4 sm:mb-6">
+                      {/* Livreurs assignés */}
+                      {hasAnyLivreur ? (
+                        <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-3 mb-6 space-y-2">
                           <div className="flex items-center gap-2 mb-1">
-                            <Icon icon="mdi:truck-delivery" className="text-green-600 text-sm" />
-                            <span className="text-xs font-medium text-green-700">Livreur assigné</span>
+                            <Icon icon="mdi:truck-delivery" className="text-emerald-700 text-sm" />
+                            <span className="text-xs font-semibold text-emerald-800">Livreurs assignés</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center">
-                              <Icon icon="mdi:account" className="text-white text-xs" />
-                            </div>
-                            <div>
-                              <div className="font-semibold text-green-800">{livreur.nom}</div>
-                              {livreur.vehicule && (
-                                <div className="text-xs text-green-600">{livreur.vehicule}</div>
-                              )}
-                            </div>
+                          <div className="grid grid-cols-1 gap-2 text-xs">
+                            {defaultLivreur && (
+                              <div className="flex items-center justify-between bg-white/80 p-2 rounded-lg border border-emerald-100/50">
+                                <span className="font-medium text-gray-500">Par défaut :</span>
+                                <span className="font-semibold text-emerald-950">{defaultLivreur.nom}</span>
+                              </div>
+                            )}
+                            {car1Livreur && (
+                              <div className="flex items-center justify-between bg-white/80 p-2 rounded-lg border border-emerald-100/50">
+                                <span className="font-medium text-gray-500">Car 1 Matin :</span>
+                                <span className="font-semibold text-emerald-950">{car1Livreur.nom}</span>
+                              </div>
+                            )}
+                            {car2Livreur && (
+                              <div className="flex items-center justify-between bg-white/80 p-2 rounded-lg border border-emerald-100/50">
+                                <span className="font-medium text-gray-500">Car 2 Matin :</span>
+                                <span className="font-semibold text-emerald-950">{car2Livreur.nom}</span>
+                              </div>
+                            )}
+                            {soirLivreur && (
+                              <div className="flex items-center justify-between bg-white/80 p-2 rounded-lg border border-emerald-100/50">
+                                <span className="font-medium text-gray-500">Car Soir :</span>
+                                <span className="font-semibold text-emerald-950">{soirLivreur.nom}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ) : (
                         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-6">
                           <div className="flex items-center gap-2">
                             <Icon icon="mdi:alert" className="text-amber-600" />
-                            <span className="text-sm text-amber-700 font-medium">Aucun livreur assigné</span>
+                            <span className="text-xs text-amber-700 font-medium">Aucun livreur assigné</span>
                           </div>
                         </div>
                       )}

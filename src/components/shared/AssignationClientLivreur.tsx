@@ -27,13 +27,103 @@ export const AssignationClientLivreur: React.FC = () => {
     }
   };
 
+  const handleAssignerLivreurParCar = async (
+    clientId: string,
+    carKey: 'default' | 'car1_matin' | 'car2_matin' | 'car_soir',
+    livreurId: string
+  ) => {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return;
+
+    try {
+      if (carKey === 'default') {
+        await modifierClient(clientId, { livreurId: livreurId || '' });
+      } else {
+        const newLivreursParCar = { ...(client.livreursParCar || {}) };
+        if (livreurId) {
+          newLivreursParCar[carKey] = livreurId;
+        } else {
+          delete newLivreursParCar[carKey];
+        }
+        
+        // Nettoyer les valeurs vides
+        const cleaned: any = {};
+        if (newLivreursParCar.car1_matin) cleaned.car1_matin = newLivreursParCar.car1_matin;
+        if (newLivreursParCar.car2_matin) cleaned.car2_matin = newLivreursParCar.car2_matin;
+        if (newLivreursParCar.car_soir) cleaned.car_soir = newLivreursParCar.car_soir;
+        
+        await modifierClient(clientId, {
+          livreursParCar: Object.keys(cleaned).length > 0 ? cleaned : null as any
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'assignation par car:', error);
+    }
+  };
+
+  const handleUnassignLivreur = async (clientId: string, livreurId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return;
+
+    const modifications: any = {};
+    if (client.livreurId === livreurId) {
+      modifications.livreurId = '';
+    }
+
+    if (client.livreursParCar) {
+      const newLivreursParCar = { ...client.livreursParCar };
+      let hasChanges = false;
+      if (newLivreursParCar.car1_matin === livreurId) {
+        delete newLivreursParCar.car1_matin;
+        hasChanges = true;
+      }
+      if (newLivreursParCar.car2_matin === livreurId) {
+        delete newLivreursParCar.car2_matin;
+        hasChanges = true;
+      }
+      if (newLivreursParCar.car_soir === livreurId) {
+        delete newLivreursParCar.car_soir;
+        hasChanges = true;
+      }
+
+      if (hasChanges) {
+        const cleaned: any = {};
+        if (newLivreursParCar.car1_matin) cleaned.car1_matin = newLivreursParCar.car1_matin;
+        if (newLivreursParCar.car2_matin) cleaned.car2_matin = newLivreursParCar.car2_matin;
+        if (newLivreursParCar.car_soir) cleaned.car_soir = newLivreursParCar.car_soir;
+        modifications.livreursParCar = Object.keys(cleaned).length > 0 ? cleaned : null;
+      }
+    }
+
+    try {
+      await modifierClient(clientId, modifications);
+    } catch (error) {
+      console.error('Erreur lors de la désassignation:', error);
+    }
+  };
+
   const getClientsParLivreur = (livreurId: string) => {
-    return clients.filter(client => client.livreurId === livreurId && client.active);
+    return clients.filter(client => {
+      if (!client.active) return false;
+      const estDefaut = client.livreurId === livreurId;
+      const estCar1 = client.livreursParCar?.car1_matin === livreurId;
+      const estCar2 = client.livreursParCar?.car2_matin === livreurId;
+      const estSoir = client.livreursParCar?.car_soir === livreurId;
+      return estDefaut || estCar1 || estCar2 || estSoir;
+    });
   };
 
   const getClientsSansLivreur = () => {
-    return clients.filter(client => !client.livreurId && client.active);
+    return clients.filter(client => {
+      if (!client.active) return false;
+      const aLivreurDefaut = !!client.livreurId;
+      const aLivreurCar1 = !!client.livreursParCar?.car1_matin;
+      const aLivreurCar2 = !!client.livreursParCar?.car2_matin;
+      const aLivreurCarSoir = !!client.livreursParCar?.car_soir;
+      return !aLivreurDefaut && !aLivreurCar1 && !aLivreurCar2 && !aLivreurCarSoir;
+    });
   };
+
 
   if (isLoadingClients || isLoadingLivreurs) {
     return (
@@ -122,9 +212,9 @@ export const AssignationClientLivreur: React.FC = () => {
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-medium text-gray-900">{client.nom}</h4>
                       <button
-                        onClick={() => handleAssignerLivreur(client.id, '')}
-                        className="text-red-500 hover:text-red-700 text-sm"
-                        title="Désassigner"
+                        onClick={() => handleUnassignLivreur(client.id, livreur.id)}
+                        className="text-red-500 hover:text-red-700 text-sm font-semibold p-1 hover:bg-red-50 rounded"
+                        title="Désassigner de ce livreur"
                       >
                         ✕
                       </button>
@@ -133,15 +223,97 @@ export const AssignationClientLivreur: React.FC = () => {
                     {client.telephone && (
                       <p className="text-xs text-gray-500 mt-1">📞 {client.telephone}</p>
                     )}
-                    <div className="mt-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         client.typeClient === 'client'
                           ? 'bg-blue-100 text-blue-800'
                           : 'bg-green-100 text-green-800'
                       }`}>
                         {client.typeClient === 'client' ? '🏠 Client' : '🏪 Boutique'}
                       </span>
+                      {client.livreurId === livreur.id && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          Général
+                        </span>
+                      )}
+                      {client.livreursParCar?.car1_matin === livreur.id && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                          Car 1 Matin
+                        </span>
+                      )}
+                      {client.livreursParCar?.car2_matin === livreur.id && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                          Car 2 Matin
+                        </span>
+                      )}
+                      {client.livreursParCar?.car_soir === livreur.id && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                          Car Soir
+                        </span>
+                      )}
                     </div>
+
+                    <details className="mt-3 text-xs border-t border-gray-100 pt-2 group">
+                      <summary className="cursor-pointer text-gray-500 hover:text-gray-700 font-medium flex items-center gap-1 select-none">
+                        <span>Configuration par car</span>
+                        <Icon icon="lucide:chevron-down" className="w-3 h-3 transition-transform group-open:rotate-180" />
+                      </summary>
+                      <div className="mt-2 space-y-2 bg-gray-50 p-2 rounded border border-gray-100">
+                        <div>
+                          <label className="block text-[10px] text-gray-500 font-medium mb-0.5">Par défaut (Général)</label>
+                          <select
+                            value={client.livreurId || ''}
+                            onChange={(e) => handleAssignerLivreurParCar(client.id, 'default', e.target.value)}
+                            className="w-full text-xs p-1 border border-gray-200 rounded bg-white"
+                          >
+                            <option value="">Aucun livreur par défaut</option>
+                            {livreursActifs.map(l => (
+                              <option key={l.id} value={l.id}>{l.nom}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-gray-500 font-medium mb-0.5">Car 1 - Matin</label>
+                          <select
+                            value={client.livreursParCar?.car1_matin || ''}
+                            onChange={(e) => handleAssignerLivreurParCar(client.id, 'car1_matin', e.target.value)}
+                            className="w-full text-xs p-1 border border-gray-200 rounded bg-white"
+                          >
+                            <option value="">Utiliser le livreur par défaut</option>
+                            {livreursActifs.map(l => (
+                              <option key={l.id} value={l.id}>{l.nom}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-gray-500 font-medium mb-0.5">Car 2 - Matin</label>
+                          <select
+                            value={client.livreursParCar?.car2_matin || ''}
+                            onChange={(e) => handleAssignerLivreurParCar(client.id, 'car2_matin', e.target.value)}
+                            className="w-full text-xs p-1 border border-gray-200 rounded bg-white"
+                          >
+                            <option value="">Utiliser le livreur par défaut</option>
+                            {livreursActifs.map(l => (
+                              <option key={l.id} value={l.id}>{l.nom}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-gray-500 font-medium mb-0.5">Car - Soir</label>
+                          <select
+                            value={client.livreursParCar?.car_soir || ''}
+                            onChange={(e) => handleAssignerLivreurParCar(client.id, 'car_soir', e.target.value)}
+                            className="w-full text-xs p-1 border border-gray-200 rounded bg-white"
+                          >
+                            <option value="">Utiliser le livreur par défaut</option>
+                            {livreursActifs.map(l => (
+                              <option key={l.id} value={l.id}>{l.nom}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </details>
                   </div>
                 ))}
               </div>

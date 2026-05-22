@@ -28,6 +28,11 @@ export interface Client {
   email?: string;
   typeClient: 'client' | 'boutique'; // Type pour déterminer le prix à appliquer
   livreurId?: string; // Livreur assigné à ce client
+  livreursParCar?: {
+    car1_matin?: string;
+    car2_matin?: string;
+    car_soir?: string;
+  };
   conditionsPaiement?: string; // Conditions spécifiques au client (ex: "Payable à 15 jours", "Comptant")
   eligibleRistourne?: boolean; // Si true, le client accumule une ristourne (Différence Prix Boutique - Prix Client)
   aKiosque?: boolean; // Si true, le client a un kiosque
