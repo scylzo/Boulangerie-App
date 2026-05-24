@@ -737,6 +737,10 @@ export const useFacturationStore = create<FacturationStore>()(
                 updatedAt: data.updatedAt.toDate(),
                 validatedAt: data.validatedAt ? data.validatedAt.toDate() : undefined,
                 paidAt: data.paidAt ? data.paidAt.toDate() : undefined,
+                reglements: data.reglements ? data.reglements.map((r: any) => ({
+                  ...r,
+                  date: r.date && typeof r.date.toDate === 'function' ? r.date.toDate() : (r.date ? new Date(r.date) : new Date())
+                })) : undefined,
               } as Facture;
             });
 
@@ -799,6 +803,10 @@ export const useFacturationStore = create<FacturationStore>()(
               updatedAt: data.updatedAt.toDate(),
               validatedAt: data.validatedAt ? data.validatedAt.toDate() : undefined,
               paidAt: data.paidAt ? data.paidAt.toDate() : undefined,
+              reglements: data.reglements ? data.reglements.map((r: any) => ({
+                ...r,
+                date: r.date && typeof r.date.toDate === 'function' ? r.date.toDate() : (r.date ? new Date(r.date) : new Date())
+              })) : undefined,
             } as Facture;
 
             set({ factureActive: facture });
@@ -876,12 +884,24 @@ export const useFacturationStore = create<FacturationStore>()(
           const facture = get().factures.find(f => f.id === factureId);
           if (!facture) throw new Error("Facture introuvable");
 
-          const reglements: Reglement[] = Array.isArray(input) ? input : [{
+          const nouveauxReglements: Reglement[] = (Array.isArray(input) ? input : [{
             id: `reg_${Date.now()}`,
             montant: input.montant,
             mode: input.mode,
             date: input.date || new Date()
-          }];
+          }]).map((r: any) => ({
+            ...r,
+            date: r.date && typeof r.date.toDate === 'function' ? r.date.toDate() : (r.date ? new Date(r.date) : new Date())
+          }));
+
+          // Récupérer et nettoyer les anciens règlements
+          const anciensReglements = (facture.reglements || []).map((r: any) => ({
+            ...r,
+            date: r.date && typeof r.date.toDate === 'function' ? r.date.toDate() : (r.date ? new Date(r.date) : new Date())
+          }));
+
+          // Fusionner les règlements
+          const reglements = [...anciensReglements, ...nouveauxReglements];
 
           const totalVerse = reglements.reduce((sum, r) => sum + r.montant, 0);
           const montantAttendu = facture.netAPayer ?? facture.totalTTC;
@@ -897,9 +917,12 @@ export const useFacturationStore = create<FacturationStore>()(
             updatedAt: new Date()
           };
 
-          // Gestion du surplus (Avoir/Solde)
-          if (totalVerse > montantAttendu) {
-            const surplus = totalVerse - montantAttendu;
+          // Gestion du surplus (Avoir/Solde) sur la transaction courante uniquement
+          const nouveauVersement = nouveauxReglements.reduce((sum, r) => sum + r.montant, 0);
+          const resteAEncasser = Math.max(0, montantAttendu - (facture.montantRegle || 0));
+          const surplus = Math.max(0, nouveauVersement - resteAEncasser);
+
+          if (surplus > 0) {
             const clientRef = doc(db, 'clients', facture.clientId);
             const clientDoc = await getDoc(clientRef);
             if (clientDoc.exists()) {

@@ -378,10 +378,48 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       // Cela permet à la facturation de les trouver indépendamment du programme
       console.log('🔄 Sync des commandes vers clientOrders...');
       try {
-        const { writeBatch, doc } = await import('firebase/firestore');
-        const batch = writeBatch(db);
+        const { writeBatch, doc, query, where, getDocs, collection } = await import('firebase/firestore');
+        
+        let dateProduction: Date;
+        if (programmeActuel.dateProduction instanceof Date) {
+          dateProduction = programmeActuel.dateProduction;
+        } else if (programmeActuel.dateProduction && typeof (programmeActuel.dateProduction as any).toDate === 'function') {
+          dateProduction = (programmeActuel.dateProduction as any).toDate();
+        } else {
+          dateProduction = new Date(programmeActuel.dateProduction);
+        }
+
+        // Bornes UTC pour correspondre au format de stockage (semblable à getProgrammeByDate)
+        const dateStart = new Date(Date.UTC(dateProduction.getFullYear(), dateProduction.getMonth(), dateProduction.getDate(), 0, 0, 0));
+        const dateEnd = new Date(Date.UTC(dateProduction.getFullYear(), dateProduction.getMonth(), dateProduction.getDate(), 23, 59, 59, 999));
+
+        // Récupérer les commandes existantes dans Firestore pour cette date
+        const qOrders = query(
+          collection(db, 'clientOrders'),
+          where('dateLivraison', '>=', dateToTimestamp(dateStart)),
+          where('dateLivraison', '<=', dateToTimestamp(dateEnd))
+        );
+        const snapOrders = await getDocs(qOrders);
+        const existingOrderIds = snapOrders.docs.map(doc => doc.id);
+
+        const currentOrderIds = new Set(commandesClients.map(c => c.id));
+        const orderIdsToDelete = existingOrderIds.filter(id => !currentOrderIds.has(id));
+
+        let batch = writeBatch(db);
         let count = 0;
 
+        // 1. Supprimer les commandes qui ne sont plus dans le programme
+        for (const orderId of orderIdsToDelete) {
+          batch.delete(doc(db, 'clientOrders', orderId));
+          count++;
+          if (count >= 450) {
+            await batch.commit();
+            batch = writeBatch(db);
+            count = 0;
+          }
+        }
+
+        // 2. Ajouter/mettre à jour les commandes actuelles
         for (const cmd of commandesClients) {
           const cmdRef = doc(db, 'clientOrders', cmd.id);
           // Conversion explicite des dates pour éviter les erreurs
@@ -398,12 +436,10 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           batch.set(cmdRef, cmdData, { merge: true });
           count++;
 
-          // Sécurité batch 500
           if (count >= 450) {
             await batch.commit();
+            batch = writeBatch(db);
             count = 0;
-            // Re-nouveau batch si on avait > 450
-            // (Simple implémentation, idéalement il faudrait recréer le batch mais ici on sort de la boucle ou on ferait un array chunk)
           }
         }
         if (count > 0) await batch.commit();

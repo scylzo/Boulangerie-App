@@ -223,6 +223,10 @@ export const realTimeListeners = {
           updatedAt: timestampToDate(data.updatedAt as Timestamp),
           validatedAt: data.validatedAt ? timestampToDate(data.validatedAt as Timestamp) : undefined,
           paidAt: data.paidAt ? timestampToDate(data.paidAt as Timestamp) : undefined,
+          reglements: data.reglements ? data.reglements.map((r: any) => ({
+            ...r,
+            date: r.date ? timestampToDate(r.date as Timestamp) : undefined
+          })) : undefined,
         };
       });
       callback(factures);
