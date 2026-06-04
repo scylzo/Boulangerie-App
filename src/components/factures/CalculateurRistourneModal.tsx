@@ -115,7 +115,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                     details.push({
                         dateLivraison: facture.dateLivraison,
                         numeroFacture: facture.numeroFacture,
-                        produitsDetails: productsList.join(', '),
+                        produitsList: productsList,
                         quantite: invoiceVolume,
                         totalRistourne: invoiceRistourne
                     });
@@ -211,7 +211,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
              const detailRows = row.details.map((d: any) => [
                  d.numeroFacture,
                  new Date(d.dateLivraison).toLocaleDateString('fr-FR'),
-                 d.produitsDetails,
+                 d.produitsList.join('\n'),
                  d.quantite.toString(),
                  formatCurrency(d.totalRistourne)
              ]);
@@ -294,7 +294,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
          const detailRows = row.details.map((d: any) => [
              d.numeroFacture,
              new Date(d.dateLivraison).toLocaleDateString('fr-FR'),
-             d.produitsDetails,
+             d.produitsList.join('\n'),
              d.quantite.toString(),
              formatCurrency(d.totalRistourne)
          ]);
@@ -321,7 +321,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Calculateur de Ristournes (Cashback)">
+    <Modal isOpen={isOpen} onClose={onClose} title="Calculateur de Ristournes (Cashback)" size="xl">
       <div className="space-y-6">
         
         {/* Filtres */}
@@ -437,7 +437,18 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                                                         <td className="px-3 py-2 text-gray-500">
                                                                             {new Date(detail.dateLivraison).toLocaleDateString('fr-FR')}
                                                                         </td>
-                                                                        <td className="px-3 py-2 font-medium text-gray-600">{detail.produitsDetails}</td>
+                                                                        <td className="px-3 py-2 font-medium text-gray-600">
+                                                                            <div className="flex flex-col gap-1 py-1">
+                                                                                {detail.produitsList.map((prod: string, pIdx: number) => (
+                                                                                    <div 
+                                                                                        key={pIdx} 
+                                                                                        className="bg-white border border-gray-200 px-2 py-1 rounded text-[11px] text-gray-700 shadow-sm font-mono whitespace-nowrap inline-block"
+                                                                                    >
+                                                                                        {prod}
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </td>
                                                                         <td className="px-3 py-2 text-right">{detail.quantite}</td>
                                                                         <td className="px-3 py-2 text-right font-semibold text-green-600 bg-green-50/20">
                                                                             {formatCurrency(detail.totalRistourne)}
