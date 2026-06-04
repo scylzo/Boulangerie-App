@@ -2,7 +2,7 @@
  * Formate un montant en FCFA
  */
 export const formatCurrency = (amount: number): string => {
-  return `${Math.round(amount).toLocaleString('fr-FR')} FCFA`;
+  return `${Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} FCFA`;
 };
 
 /**

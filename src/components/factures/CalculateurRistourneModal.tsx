@@ -85,37 +85,41 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
             let totalPaye = 0;   // Montant TTC payé (base boutique)
             const details: any[] = [];
 
-            // 3. Calculer la ristourne ligne par ligne
+            // 3. Calculer la ristourne par facture
             facturesClient.forEach(facture => {
+                let invoiceRistourne = 0;
+                let invoiceVolume = 0;
+                const productsList: string[] = [];
+
                 facture.lignes.forEach(ligne => {
-                   // La quantité facturée est celle qui compte (Livrée - Retournée)
                    const qte = ligne.quantiteFacturee;
                    if (qte <= 0) return;
 
-                   // Trouver le produit pour connaître son "Prix Client" (réduit)
                    const produit = ligne.produit; 
-                   
                    if (produit && produit.prixClient && produit.prixBoutique) {
                        const difference = (produit.prixBoutique || 0) - (produit.prixClient || 0);
                        if (difference > 0) {
                            const lineRistourne = difference * qte;
-                           totalRistourne += lineRistourne;
-                           details.push({
-                               dateLivraison: facture.dateLivraison,
-                               numeroFacture: facture.numeroFacture,
-                               produitNom: produit.nom,
-                               quantite: qte,
-                               prixBoutique: produit.prixBoutique,
-                               prixClient: produit.prixClient,
-                               difference,
-                               totalRistourne: lineRistourne
-                           });
+                           invoiceRistourne += lineRistourne;
+                           productsList.push(`${produit.nom} (${qte} × +${difference} F = ${formatCurrency(lineRistourne)})`);
                        }
                    }
                    
+                   invoiceVolume += qte;
                    totalVolume += qte;
                    totalPaye += ligne.montantLigne;
                 });
+
+                if (invoiceRistourne > 0) {
+                    totalRistourne += invoiceRistourne;
+                    details.push({
+                        dateLivraison: facture.dateLivraison,
+                        numeroFacture: facture.numeroFacture,
+                        produitsDetails: productsList.join(', '),
+                        quantite: invoiceVolume,
+                        totalRistourne: invoiceRistourne
+                    });
+                }
             });
 
             if (totalRistourne > 0) {
@@ -203,15 +207,12 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
          currentY += 4;
 
          if (row.details && row.details.length > 0) {
-             const detailColumns = ["Facture", "Date", "Produit", "Qté", "Prix Bout.", "Prix Client", "Diff.", "Ristourne"];
+             const detailColumns = ["Facture", "Date", "Détail Produits", "Quantité", "Ristourne"];
              const detailRows = row.details.map((d: any) => [
                  d.numeroFacture,
                  new Date(d.dateLivraison).toLocaleDateString('fr-FR'),
-                 d.produitNom,
+                 d.produitsDetails,
                  d.quantite.toString(),
-                 formatCurrency(d.prixBoutique),
-                 formatCurrency(d.prixClient),
-                 formatCurrency(d.difference),
                  formatCurrency(d.totalRistourne)
              ]);
 
@@ -223,11 +224,11 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                  styles: { fontSize: 8 },
                  headStyles: { fillColor: [100, 100, 100] },
                  columnStyles: {
-                     3: { halign: 'right' },
-                     4: { halign: 'right' },
-                     5: { halign: 'right' },
-                     6: { halign: 'right' },
-                     7: { halign: 'right' }
+                     0: { cellWidth: 35 },
+                     1: { cellWidth: 25 },
+                     2: { cellWidth: 'auto' },
+                     3: { halign: 'right', cellWidth: 25 },
+                     4: { halign: 'right', cellWidth: 35 }
                  }
              });
 
@@ -242,6 +243,81 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
 
      doc.save(`ristournes_${annee}_${mois+1}.pdf`);
      toast.success("PDF téléchargé !");
+  };
+
+  const exportPDFClient = (row: any) => {
+     const doc = new jsPDF();
+     
+     // En-tête
+     doc.setFontSize(18);
+     doc.setTextColor(66, 66, 66);
+     doc.setFont('helvetica', 'bold');
+     doc.text(`Fiche Ristourne - ${row.client}`, 14, 22);
+     
+     doc.setFontSize(11);
+     doc.setFont('helvetica', 'normal');
+     const dateStr = new Date(annee, mois).toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+     doc.text(`Période : ${dateStr}`, 14, 32);
+     doc.text(`Généré le : ${new Date().toLocaleDateString('fr-FR')}`, 14, 38);
+
+     // Résumé
+     doc.setFontSize(12);
+     doc.setFont('helvetica', 'bold');
+     doc.text(`Synthèse :`, 14, 48);
+
+     const summaryColumns = ["Nombre de Factures", "Quantité Produits", "Total Ristourne"];
+     const summaryRows = [[
+         row.nombreFactures.toString(),
+         row.volumeProduits.toString(),
+         formatCurrency(row.totalRistourne)
+     ]];
+
+     autoTable(doc, {
+         head: [summaryColumns],
+         body: summaryRows,
+         startY: 52,
+         theme: 'grid',
+         styles: { fontSize: 10 },
+         headStyles: { fillColor: [66, 66, 66] }
+     });
+
+     let currentY = (doc as any).lastAutoTable.finalY + 12;
+
+     // Tableau de détail
+     doc.setFontSize(12);
+     doc.setFont('helvetica', 'bold');
+     doc.text(`Détails des calculs :`, 14, currentY);
+     currentY += 6;
+
+     if (row.details && row.details.length > 0) {
+         const detailColumns = ["Facture", "Date", "Détail Produits", "Quantité", "Ristourne"];
+         const detailRows = row.details.map((d: any) => [
+             d.numeroFacture,
+             new Date(d.dateLivraison).toLocaleDateString('fr-FR'),
+             d.produitsDetails,
+             d.quantite.toString(),
+             formatCurrency(d.totalRistourne)
+         ]);
+
+         autoTable(doc, {
+             head: [detailColumns],
+             body: detailRows,
+             startY: currentY,
+             theme: 'striped',
+             styles: { fontSize: 8 },
+             headStyles: { fillColor: [100, 100, 100] },
+             columnStyles: {
+                 0: { cellWidth: 35 },
+                 1: { cellWidth: 25 },
+                 2: { cellWidth: 'auto' },
+                 3: { halign: 'right', cellWidth: 25 },
+                 4: { halign: 'right', cellWidth: 35 }
+             }
+         });
+     }
+
+     doc.save(`ristourne_${row.client.replace(/\s+/g, '_')}_${annee}_${mois+1}.pdf`);
+     toast.success(`PDF de ${row.client} téléchargé !`);
   };
 
   return (
@@ -290,6 +366,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
                                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Vol. Produits</th>
                                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Ristourne</th>
+                                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
@@ -310,12 +387,37 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                             <td className="px-4 py-3 text-sm text-right font-bold text-green-600">
                                                 {formatCurrency(row.totalRistourne)}
                                             </td>
+                                            <td className="px-4 py-3 text-center">
+                                                <button
+                                                    className="p-1 hover:bg-gray-200 rounded text-red-500 hover:text-red-700 transition-colors"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        exportPDFClient(row);
+                                                    }}
+                                                    title="Télécharger le PDF client"
+                                                >
+                                                    <Icon icon="mdi:file-pdf-box" className="text-xl" />
+                                                </button>
+                                            </td>
                                         </tr>
                                         {expandedClients[idx] && row.details && row.details.length > 0 && (
                                             <tr>
-                                                <td colSpan={3} className="px-4 py-3 bg-gray-50">
-                                                    <div className="text-xs font-semibold text-gray-600 mb-2">
-                                                        Détails des calculs de ristourne :
+                                                <td colSpan={4} className="px-4 py-3 bg-gray-50">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <div className="text-xs font-semibold text-gray-600">
+                                                            Détails des calculs de ristourne :
+                                                        </div>
+                                                        <Button 
+                                                            variant="secondary" 
+                                                            size="sm"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                exportPDFClient(row);
+                                                            }}
+                                                        >
+                                                            <Icon icon="mdi:file-pdf-box" className="mr-1 text-base" />
+                                                            Télécharger PDF Client
+                                                        </Button>
                                                     </div>
                                                     <div className="overflow-x-auto border border-gray-200 rounded-lg bg-white shadow-sm">
                                                         <table className="min-w-full divide-y divide-gray-100 text-xs">
@@ -323,11 +425,8 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                                                 <tr>
                                                                     <th className="px-3 py-2 text-left font-medium">Facture</th>
                                                                     <th className="px-3 py-2 text-left font-medium">Date</th>
-                                                                    <th className="px-3 py-2 text-left font-medium">Produit</th>
+                                                                    <th className="px-3 py-2 text-left font-medium">Détail Produits</th>
                                                                     <th className="px-3 py-2 text-right font-medium">Quantité</th>
-                                                                    <th className="px-3 py-2 text-right font-medium">Prix Bout.</th>
-                                                                    <th className="px-3 py-2 text-right font-medium">Prix Client</th>
-                                                                    <th className="px-3 py-2 text-right font-medium">Diff.</th>
                                                                     <th className="px-3 py-2 text-right font-medium">Ristourne</th>
                                                                 </tr>
                                                             </thead>
@@ -338,13 +437,8 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                                                         <td className="px-3 py-2 text-gray-500">
                                                                             {new Date(detail.dateLivraison).toLocaleDateString('fr-FR')}
                                                                         </td>
-                                                                        <td className="px-3 py-2 font-medium">{detail.produitNom}</td>
+                                                                        <td className="px-3 py-2 font-medium text-gray-600">{detail.produitsDetails}</td>
                                                                         <td className="px-3 py-2 text-right">{detail.quantite}</td>
-                                                                        <td className="px-3 py-2 text-right">{formatCurrency(detail.prixBoutique)}</td>
-                                                                        <td className="px-3 py-2 text-right">{formatCurrency(detail.prixClient)}</td>
-                                                                        <td className="px-3 py-2 text-right text-orange-600">
-                                                                            +{formatCurrency(detail.difference)}
-                                                                        </td>
                                                                         <td className="px-3 py-2 text-right font-semibold text-green-600 bg-green-50/20">
                                                                             {formatCurrency(detail.totalRistourne)}
                                                                         </td>
@@ -365,6 +459,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                     <td className="px-4 py-3 text-sm font-bold text-green-700 text-right">
                                         {formatCurrency(resultats.reduce((acc, curr) => acc + curr.totalRistourne, 0))}
                                     </td>
+                                    <td></td>
                                 </tr>
                             </tfoot>
                         </table>
