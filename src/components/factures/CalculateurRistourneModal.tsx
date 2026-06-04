@@ -17,16 +17,38 @@ interface Props {
 }
 
 export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { chargerFactures } = useFacturationStore();
+  const { chargerFactures, factures } = useFacturationStore();
   const { chargerClients } = useReferentielStore();
   
   const [mois, setMois] = useState(new Date().getMonth()); // 0-11
   const [annee, setAnnee] = useState(new Date().getFullYear());
   const [calculating, setCalculating] = useState(false);
   const [resultats, setResultats] = useState<any[]>([]);
+  const [expandedClients, setExpandedClients] = useState<Record<number, boolean>>({});
+
+  // Génération dynamique des années disponibles à partir des factures
+  const anneesDisponibles = React.useMemo(() => {
+    const years = factures.map(f => {
+      const d = new Date(f.dateLivraison);
+      return d.getFullYear();
+    });
+    // Toujours inclure au moins l'année précédente, en cours et suivante
+    const currentYear = new Date().getFullYear();
+    years.push(currentYear - 1, currentYear, currentYear + 1);
+    const uniqueYears = Array.from(new Set(years)).filter(y => !isNaN(y));
+    return uniqueYears.sort((a, b) => b - a);
+  }, [factures]);
+
+  const toggleExpand = (idx: number) => {
+    setExpandedClients(prev => ({
+      ...prev,
+      [idx]: !prev[idx]
+    }));
+  };
 
   const handleCalculer = async () => {
     setCalculating(true);
+    setExpandedClients({});
     try {
         // S'assurer qu'on a les dernières données
         await chargerFactures();
@@ -61,6 +83,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
             let totalRistourne = 0;
             let totalVolume = 0; // Quantité produits totale
             let totalPaye = 0;   // Montant TTC payé (base boutique)
+            const details: any[] = [];
 
             // 3. Calculer la ristourne ligne par ligne
             facturesClient.forEach(facture => {
@@ -70,35 +93,40 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                    if (qte <= 0) return;
 
                    // Trouver le produit pour connaître son "Prix Client" (réduit)
-                   // Attention: Si le produit a été supprimé ou modifié, on prend la version actuelle du store
-                   // Idéalement, il faudrait stocker le snapshot du produit dans la facture.
-                   // Pour l'instant, on utilise l'info produit incluse dans la ligne (snapshot) ou fallback
                    const produit = ligne.produit; 
                    
                    if (produit && produit.prixClient && produit.prixBoutique) {
-                       // Marge unitaire = Prix Boutique (payé) - Prix Client (réel)
-                       // On vérifie que le prix facturé correspond bien au prix boutique (approximativement)
-                       // Sinon ça veut dire qu'il a déjà eu un prix spécial.
-                       // Pour simplifier: On applique bêtement la différence catalogue.
-                       
                        const difference = (produit.prixBoutique || 0) - (produit.prixClient || 0);
                        if (difference > 0) {
-                           totalRistourne += difference * qte;
+                           const lineRistourne = difference * qte;
+                           totalRistourne += lineRistourne;
+                           details.push({
+                               dateLivraison: facture.dateLivraison,
+                               numeroFacture: facture.numeroFacture,
+                               produitNom: produit.nom,
+                               quantite: qte,
+                               prixBoutique: produit.prixBoutique,
+                               prixClient: produit.prixClient,
+                               difference,
+                               totalRistourne: lineRistourne
+                           });
                        }
                    }
                    
                    totalVolume += qte;
-                   totalPaye += ligne.montantLigne; // C'est du HT en général dans ligne, à vérifier.
+                   totalPaye += ligne.montantLigne;
                 });
             });
 
             if (totalRistourne > 0) {
+                details.sort((a, b) => new Date(a.dateLivraison).getTime() - new Date(b.dateLivraison).getTime());
                 statsClients.push({
                     client: client.nom,
                     nombreFactures: facturesClient.length,
                     volumeProduits: totalVolume,
                     totalPaye,
-                    totalRistourne
+                    totalRistourne,
+                    details
                 });
             }
         }
@@ -130,7 +158,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
      doc.text(`Période : ${dateStr}`, 14, 32);
      doc.text(`Généré le : ${new Date().toLocaleDateString('fr-FR')}`, 14, 38);
 
-     // Tableau
+     // Tableau récapitulatif
      const tableColumn = ["Client", "Nbr Factures", "Qté Produits", "Total Ristourne"];
      const tableRows = resultats.map(row => [
          row.client,
@@ -150,11 +178,67 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
      
      // Total général
      const totalGeneral = resultats.reduce((sum, r) => sum + r.totalRistourne, 0);
-     const finalY = (doc as any).lastAutoTable.finalY || 50;
+     let currentY = (doc as any).lastAutoTable.finalY || 50;
      
      doc.setFontSize(12);
      doc.setFont('helvetica', 'bold');
-     doc.text(`Total à reverser : ${formatCurrency(totalGeneral)}`, 14, finalY + 15);
+     doc.text(`Total à reverser : ${formatCurrency(totalGeneral)}`, 14, currentY + 12);
+     currentY += 25;
+
+     // Section détails
+     doc.setFontSize(14);
+     doc.text("Détails des Calculs par Client", 14, currentY);
+     currentY += 8;
+
+     resultats.forEach((row) => {
+         // Vérifier s'il y a assez d'espace sur la page actuelle, sinon ajouter une page
+         if (currentY > 250) {
+             doc.addPage();
+             currentY = 20;
+         }
+
+         doc.setFontSize(11);
+         doc.setFont('helvetica', 'bold');
+         doc.text(`Client : ${row.client} (Total Ristourne : ${formatCurrency(row.totalRistourne)})`, 14, currentY);
+         currentY += 4;
+
+         if (row.details && row.details.length > 0) {
+             const detailColumns = ["Facture", "Date", "Produit", "Qté", "Prix Bout.", "Prix Client", "Diff.", "Ristourne"];
+             const detailRows = row.details.map((d: any) => [
+                 d.numeroFacture,
+                 new Date(d.dateLivraison).toLocaleDateString('fr-FR'),
+                 d.produitNom,
+                 d.quantite.toString(),
+                 formatCurrency(d.prixBoutique),
+                 formatCurrency(d.prixClient),
+                 formatCurrency(d.difference),
+                 formatCurrency(d.totalRistourne)
+             ]);
+
+             autoTable(doc, {
+                 head: [detailColumns],
+                 body: detailRows,
+                 startY: currentY,
+                 theme: 'striped',
+                 styles: { fontSize: 8 },
+                 headStyles: { fillColor: [100, 100, 100] },
+                 columnStyles: {
+                     3: { halign: 'right' },
+                     4: { halign: 'right' },
+                     5: { halign: 'right' },
+                     6: { halign: 'right' },
+                     7: { halign: 'right' }
+                 }
+             });
+
+             currentY = (doc as any).lastAutoTable.finalY + 12;
+         } else {
+             doc.setFontSize(9);
+             doc.setFont('helvetica', 'normal');
+             doc.text("Aucun détail disponible.", 14, currentY);
+             currentY += 10;
+         }
+     });
 
      doc.save(`ristournes_${annee}_${mois+1}.pdf`);
      toast.success("PDF téléchargé !");
@@ -182,10 +266,10 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                     label="Année"
                     value={annee.toString()}
                     onChange={(e) => setAnnee(parseInt(e.target.value))}
-                    options={[
-                        { value: '2024', label: '2024' },
-                        { value: '2025', label: '2025' }
-                    ]}
+                    options={anneesDisponibles.map(y => ({
+                        value: y.toString(),
+                        label: y.toString()
+                    }))}
                 />
             </div>
             <Button onClick={handleCalculer} isLoading={calculating}>
@@ -210,13 +294,69 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {resultats.map((row, idx) => (
-                                    <tr key={idx}>
-                                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.client}</td>
-                                        <td className="px-4 py-3 text-sm text-right text-gray-500">{row.volumeProduits}</td>
-                                        <td className="px-4 py-3 text-sm text-right font-bold text-green-600">
-                                            {formatCurrency(row.totalRistourne)}
-                                        </td>
-                                    </tr>
+                                    <React.Fragment key={idx}>
+                                        <tr 
+                                            className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                            onClick={() => toggleExpand(idx)}
+                                        >
+                                            <td className="px-4 py-3 text-sm font-medium text-gray-900 flex items-center gap-2 select-none">
+                                                <Icon 
+                                                    icon={expandedClients[idx] ? "mdi:chevron-down" : "mdi:chevron-right"} 
+                                                    className="text-gray-500 text-lg transition-transform" 
+                                                />
+                                                {row.client}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-right text-gray-500">{row.volumeProduits}</td>
+                                            <td className="px-4 py-3 text-sm text-right font-bold text-green-600">
+                                                {formatCurrency(row.totalRistourne)}
+                                            </td>
+                                        </tr>
+                                        {expandedClients[idx] && row.details && row.details.length > 0 && (
+                                            <tr>
+                                                <td colSpan={3} className="px-4 py-3 bg-gray-50">
+                                                    <div className="text-xs font-semibold text-gray-600 mb-2">
+                                                        Détails des calculs de ristourne :
+                                                    </div>
+                                                    <div className="overflow-x-auto border border-gray-200 rounded-lg bg-white shadow-sm">
+                                                        <table className="min-w-full divide-y divide-gray-100 text-xs">
+                                                            <thead className="bg-gray-50 text-gray-500">
+                                                                <tr>
+                                                                    <th className="px-3 py-2 text-left font-medium">Facture</th>
+                                                                    <th className="px-3 py-2 text-left font-medium">Date</th>
+                                                                    <th className="px-3 py-2 text-left font-medium">Produit</th>
+                                                                    <th className="px-3 py-2 text-right font-medium">Quantité</th>
+                                                                    <th className="px-3 py-2 text-right font-medium">Prix Bout.</th>
+                                                                    <th className="px-3 py-2 text-right font-medium">Prix Client</th>
+                                                                    <th className="px-3 py-2 text-right font-medium">Diff.</th>
+                                                                    <th className="px-3 py-2 text-right font-medium">Ristourne</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-gray-100 text-gray-700">
+                                                                {row.details.map((detail: any, dIdx: number) => (
+                                                                    <tr key={dIdx} className="hover:bg-gray-50">
+                                                                        <td className="px-3 py-2 font-mono font-medium text-gray-900">{detail.numeroFacture}</td>
+                                                                        <td className="px-3 py-2 text-gray-500">
+                                                                            {new Date(detail.dateLivraison).toLocaleDateString('fr-FR')}
+                                                                        </td>
+                                                                        <td className="px-3 py-2 font-medium">{detail.produitNom}</td>
+                                                                        <td className="px-3 py-2 text-right">{detail.quantite}</td>
+                                                                        <td className="px-3 py-2 text-right">{formatCurrency(detail.prixBoutique)}</td>
+                                                                        <td className="px-3 py-2 text-right">{formatCurrency(detail.prixClient)}</td>
+                                                                        <td className="px-3 py-2 text-right text-orange-600">
+                                                                            +{formatCurrency(detail.difference)}
+                                                                        </td>
+                                                                        <td className="px-3 py-2 text-right font-semibold text-green-600 bg-green-50/20">
+                                                                            {formatCurrency(detail.totalRistourne)}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </React.Fragment>
                                 ))}
                             </tbody>
                             <tfoot className="bg-gray-50">
