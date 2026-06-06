@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
-import { FileText, Plus, Ban, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
@@ -989,31 +988,31 @@ export const ProgrammeProduction: React.FC = () => {
                                 };
                                 htmlPrintService.generateDeliveryReceiptHTML(commande, clientAvecLivreur, produits);
                               }}
-                              className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                              className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                               title="Bon de livraison"
                             >
-                              <FileText size={16} />
+                              <Icon icon="mdi:file-document-outline" className="text-lg" />
                             </button>
                             <button
                               onClick={() => handleAjouterCommande(commande.clientId)}
-                              className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors"
+                              className="p-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
                               title="Ajouter des produits"
                             >
-                              <Plus size={16} />
+                              <Icon icon="mdi:plus" className="text-lg" />
                             </button>
                             <button
                               onClick={() => handleAnnulerCommande(commande.id)}
-                              className="p-1.5 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-md transition-colors"
+                              className="p-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors"
                               title="Annuler la commande"
                             >
-                              <Ban size={16} />
+                              <Icon icon="mdi:ban" className="text-lg" />
                             </button>
                             <button
                               onClick={() => handleSupprimerCommande(commande.id)}
-                              className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                               title="Supprimer définitivement"
                             >
-                              <Trash2 size={16} />
+                              <Icon icon="mdi:delete-outline" className="text-lg" />
                             </button>
                           </div>
                         </div>
@@ -1239,7 +1238,7 @@ export const ProgrammeProduction: React.FC = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => {
                                 setQuantiteBoutiqueEnEdition(item);
