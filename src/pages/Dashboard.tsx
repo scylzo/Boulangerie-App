@@ -8,6 +8,7 @@ import { formatCurrency } from '../utils/currency';
 import { formaterQuantite } from '../utils/calculations';
 import { ClientPerformanceWidget } from '../components/dashboard/ClientPerformanceWidget';
 import { PeriodeSelector } from '../components/dashboard/PeriodeSelector';
+import { EmptyState } from '../components/ui';
 
 export const Dashboard: React.FC = () => {
     const { factures, chargerFactures } = useFacturationStore();
@@ -111,21 +112,20 @@ export const Dashboard: React.FC = () => {
     }, [clients]);
 
     return (
-        <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 pb-20 bg-gray-50 min-h-screen overflow-x-hidden">
+        <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 pb-20 bg-sand-100 min-h-screen overflow-x-hidden">
             {/* Welcome Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <div className="min-w-0 flex-1">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight truncate">Tableau de bord</h1>
-                    <p className="text-gray-500 mt-1 text-xs sm:text-sm">Gestion centralisée de l'activité du jour</p>
-
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-sand-900 tracking-tight truncate">Tableau de bord</h1>
+                    <p className="text-sand-500 mt-1 text-xs sm:text-sm">Gestion centralisée de l'activité du jour</p>
                 </div>
-                <div className="flex bg-white px-3 sm:px-4 md:px-5 py-2 md:py-3 rounded-xl shadow-sm border border-gray-200 items-center gap-2 sm:gap-3 self-start sm:self-center shrink-0">
-                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Icon icon="mdi:calendar-today" className="text-gray-600 text-lg md:text-xl" />
+                <div className="flex bg-white px-3 sm:px-4 md:px-5 py-2 md:py-3 rounded-xl shadow-card border border-sand-200 items-center gap-2 sm:gap-3 self-start sm:self-center shrink-0">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-terracotta-50 rounded-lg flex items-center justify-center">
+                        <Icon icon="mdi:calendar-today" className="text-terracotta-600 text-lg md:text-xl" />
                     </div>
                     <div className="flex flex-col min-w-0">
-                        <span className="text-[9px] md:text-[10px] text-gray-400 font-semibold uppercase tracking-wide leading-none mb-1">Date du jour</span>
-                        <span className="font-semibold text-gray-700 capitalize text-xs sm:text-sm md:text-base truncate">
+                        <span className="text-[9px] md:text-[10px] text-sand-500 font-semibold uppercase tracking-wide leading-none mb-1">Date du jour</span>
+                        <span className="font-semibold text-sand-700 capitalize text-xs sm:text-sm md:text-base truncate">
                             {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
                         </span>
                     </div>
@@ -139,28 +139,28 @@ export const Dashboard: React.FC = () => {
                     value={formatCurrency(statsFinances.totalVentesToday)}
                     subtitle={`${statsFinances.countToday} factures livrées`}
                     icon="mdi:truck-delivery"
-                    color="slate"
+                    color="brand"
                 />
                 <StatCard
                     title="Encaissé ce jour"
                     value={formatCurrency(statsFinances.totalReceivedToday)}
                     subtitle="Recettes réelles (Cash)"
                     icon="mdi:cash-check"
-                    color="slate"
+                    color="success"
                 />
                 <StatCard
                     title="Impayés du jour"
                     value={formatCurrency(statsFinances.todayUnpaid)}
                     subtitle={`Dette globale: ${formatCurrency(statsFinances.totalImpayeGlobal)}`}
                     icon="mdi:alert-circle-outline"
-                    color="red"
+                    color="danger"
                 />
                 <StatCard
                     title="Alertes Stock"
                     value={lowStockItems.length.toString()}
                     subtitle="Articles sous le seuil"
                     icon="mdi:warehouse"
-                    color={lowStockItems.length > 0 ? "orange" : "slate"}
+                    color={lowStockItems.length > 0 ? "warning" : "neutral"}
                 />
             </div>
 
@@ -173,19 +173,19 @@ export const Dashboard: React.FC = () => {
                     className="md:col-span-2"
                     headerAction={
                         <div className="flex items-center gap-2 sm:gap-3">
-                            <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${programmeActuel?.statut === 'produit' ? 'bg-slate-100 text-slate-600' : 'bg-orange-50 text-orange-600'
+                            <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest ${programmeActuel?.statut === 'produit' ? 'bg-success-50 text-success-700' : 'bg-terracotta-50 text-terracotta-700'
                                 }`}>
                                 {programmeActuel?.statut === 'produit' ? 'Terminée' : 'En cours'}
                             </span>
                             <div className="flex flex-col items-end">
-                                <span className="text-lg sm:text-xl font-black text-slate-900 leading-none">{productionProgress}%</span>
-                                <span className="text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Avancement</span>
+                                <span className="font-display text-lg sm:text-xl font-semibold text-sand-900 leading-none">{productionProgress}%</span>
+                                <span className="text-[8px] sm:text-[9px] text-sand-500 font-semibold uppercase tracking-tighter">Avancement</span>
                             </div>
                         </div>
                     }
                 >
                     {!programmeActuel || !programmeActuel.totauxParProduit || programmeActuel.totauxParProduit.length === 0 ? (
-                        <EmptyState message="Aucun programme de production pour aujourd'hui" />
+                        <EmptyState icon="mdi:bread" title="Aucun programme de production" description="Aucun programme de production n'est planifié pour aujourd'hui." />
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
                             {programmeActuel.totauxParProduit.map(item => {
@@ -198,15 +198,15 @@ export const Dashboard: React.FC = () => {
                                 return (
                                     <div key={item.produitId} className="group">
                                         <div className="flex justify-between text-sm mb-2 px-1">
-                                            <span className="font-bold text-slate-700 group-hover:text-slate-900 transition-colors uppercase tracking-tight text-[10px] sm:text-xs truncate max-w-[120px]" title={item.produit?.nom}>{item.produit?.nom}</span>
+                                            <span className="font-semibold text-sand-700 group-hover:text-sand-900 transition-colors uppercase tracking-tight text-[10px] sm:text-xs truncate max-w-[120px]" title={item.produit?.nom}>{item.produit?.nom}</span>
                                             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                                                <span className="font-black text-slate-900 text-xs sm:text-sm">{produced}</span>
-                                                <span className="text-slate-300">/</span>
-                                                <span className="text-slate-500 font-medium text-xs sm:text-sm">{item.totalGlobal}</span>
+                                                <span className="font-semibold text-sand-900 text-xs sm:text-sm">{produced}</span>
+                                                <span className="text-sand-300">/</span>
+                                                <span className="text-sand-500 font-medium text-xs sm:text-sm">{item.totalGlobal}</span>
                                             </div>
                                         </div>
-                                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                            <div className={`h-full bg-slate-600 rounded-full transition-all duration-1000 ease-out`} style={{ width: `${percent}%` }} />
+                                        <div className="h-2 w-full bg-sand-200 rounded-full overflow-hidden">
+                                            <div className={`h-full bg-terracotta-500 rounded-full transition-all duration-1000 ease-out`} style={{ width: `${percent}%` }} />
                                         </div>
                                     </div>
                                 );
@@ -221,27 +221,27 @@ export const Dashboard: React.FC = () => {
                         <DashboardBox title="Alertes Stock" icon="mdi:alert-box" className="h-full">
                             {lowStockItems.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
-                                        <Icon icon="mdi:check-circle" className="text-3xl text-slate-400" />
+                                    <div className="w-16 h-16 bg-success-50 rounded-full flex items-center justify-center mb-4 border border-success-100">
+                                        <Icon icon="mdi:check-circle" className="text-3xl text-success-500" />
                                     </div>
-                                    <p className="font-bold text-slate-900">Stock optimal</p>
-                                    <p className="text-sm text-slate-400 mt-1">Aucun article n'est sous le seuil d'alerte pour le moment.</p>
+                                    <p className="font-semibold text-sand-900">Stock optimal</p>
+                                    <p className="text-sm text-sand-500 mt-1">Aucun article n'est sous le seuil d'alerte pour le moment.</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
                                     {lowStockItems.slice(0, 4).map(item => (
-                                        <div key={item.id} className="flex items-center justify-between p-3 md:p-4 bg-white rounded-2xl border border-slate-100 group hover:border-slate-300 transition-all cursor-default shadow-sm shadow-slate-200/50">
+                                        <div key={item.id} className="flex items-center justify-between p-3 md:p-4 bg-white rounded-xl border border-sand-200 group hover:border-terracotta-300 transition-all cursor-default shadow-soft">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 md:w-10 md:h-10 bg-slate-50 rounded-lg md:rounded-xl flex items-center justify-center text-slate-600 font-black text-xs md:text-sm">
+                                                <div className="w-8 h-8 md:w-10 md:h-10 bg-terracotta-50 rounded-lg md:rounded-xl flex items-center justify-center text-terracotta-600 font-semibold text-xs md:text-sm">
                                                     {item.nom.charAt(0)}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <h4 className="font-bold text-slate-900 text-xs md:text-sm leading-tight uppercase tracking-tight truncate">{item.nom}</h4>
-                                                    <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Seuil: {item.stockMinimum}</p>
+                                                    <h4 className="font-semibold text-sand-900 text-xs md:text-sm leading-tight uppercase tracking-tight truncate">{item.nom}</h4>
+                                                    <p className="text-[9px] md:text-[10px] text-sand-500 font-semibold uppercase tracking-widest mt-0.5">Seuil: {item.stockMinimum}</p>
                                                 </div>
                                             </div>
                                             <div className="text-right shrink-0">
-                                                <span className="font-black text-slate-700 text-lg md:text-xl leading-none">
+                                                <span className="font-display font-semibold text-warning-600 text-lg md:text-xl leading-none">
                                                     {formaterQuantite(item.stockActuel)}
                                                 </span>
                                             </div>
@@ -254,34 +254,34 @@ export const Dashboard: React.FC = () => {
                         {/* Client Box Small */}
                         <DashboardBox title="Base Clients" icon="mdi:account-group">
                             <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
-                                <div className="bg-slate-50 p-3 md:p-4 rounded-2xl border border-slate-200">
-                                    <p className="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Actifs</p>
-                                    <div className="text-xl md:text-2xl font-black text-slate-800">{statsClients.total}</div>
+                                <div className="bg-sand-100 p-3 md:p-4 rounded-xl border border-sand-200">
+                                    <p className="text-[9px] md:text-[10px] text-sand-500 font-semibold uppercase tracking-widest mb-1">Actifs</p>
+                                    <div className="font-display text-xl md:text-2xl font-semibold text-sand-900">{statsClients.total}</div>
                                 </div>
-                                <div className="bg-slate-900 p-3 md:p-4 rounded-2xl">
-                                    <p className="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Kiosques</p>
-                                    <div className="text-xl md:text-2xl font-black text-white">{statsClients.withKiosk}</div>
+                                <div className="bg-sand-900 p-3 md:p-4 rounded-xl">
+                                    <p className="text-[9px] md:text-[10px] text-sand-400 font-semibold uppercase tracking-widest mb-1">Kiosques</p>
+                                    <div className="font-display text-xl md:text-2xl font-semibold text-white">{statsClients.withKiosk}</div>
                                 </div>
-                                <div className="col-span-2 bg-white p-3 md:p-4 rounded-2xl border border-dashed border-slate-200">
-                                    <p className="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1 font-inter">Hors-kiosque</p>
-                                    <div className="text-lg md:text-xl font-bold text-slate-600">{statsClients.noKiosk}</div>
+                                <div className="col-span-2 bg-white p-3 md:p-4 rounded-xl border border-dashed border-sand-300">
+                                    <p className="text-[9px] md:text-[10px] text-sand-500 font-semibold uppercase tracking-widest mb-1">Hors-kiosque</p>
+                                    <div className="font-display text-lg md:text-xl font-semibold text-sand-700">{statsClients.noKiosk}</div>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Nouveaux arrivés</h4>
+                                <h4 className="text-[10px] font-semibold text-sand-500 uppercase tracking-[0.2em] mb-4">Nouveaux arrivés</h4>
                                 {clients.slice(0, 3).map(client => (
                                     <div key={client.id} className="flex items-center gap-3 group p-1">
-                                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-slate-100 flex items-center justify-center font-black text-[10px] md:text-sm text-slate-400 border border-slate-200 group-hover:bg-slate-900 group-hover:text-white transition-all">
+                                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-sand-100 flex items-center justify-center font-semibold text-[10px] md:text-sm text-sand-500 border border-sand-200 group-hover:bg-terracotta-500 group-hover:text-white group-hover:border-terracotta-500 transition-all">
                                             {client.nom.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-xs md:text-sm font-bold text-slate-800 truncate uppercase tracking-tight">{client.nom}</p>
-                                            <p className="text-[10px] md:text-xs text-slate-400 font-medium truncate">{client.telephone || 'Aucun numéro'}</p>
+                                            <p className="text-xs md:text-sm font-semibold text-sand-800 truncate uppercase tracking-tight">{client.nom}</p>
+                                            <p className="text-[10px] md:text-xs text-sand-500 font-medium truncate">{client.telephone || 'Aucun numéro'}</p>
                                         </div>
                                         <div className="flex gap-2 shrink-0">
                                             {client.aKiosque && (
-                                                <div className="w-6 h-6 md:w-7 md:h-7 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 border border-slate-200" title="Kiosque">
+                                                <div className="w-6 h-6 md:w-7 md:h-7 bg-terracotta-50 rounded-lg flex items-center justify-center text-terracotta-600 border border-terracotta-100" title="Kiosque">
                                                     <Icon icon="mdi:store" className="text-sm md:text-lg" />
                                                 </div>
                                             )}
@@ -313,19 +313,19 @@ export const Dashboard: React.FC = () => {
     );
 };
 
-const StatCard: React.FC<{ title: string; value: string; subtitle: string; icon: string; color: 'blue' | 'red' | 'orange' | 'green' | 'slate'; progress?: number }> = ({ title, value, subtitle, icon, color, progress }) => {
+const StatCard: React.FC<{ title: string; value: string; subtitle: string; icon: string; color: 'brand' | 'danger' | 'warning' | 'success' | 'neutral'; progress?: number }> = ({ title, value, subtitle, icon, color, progress }) => {
     const colorConfig = {
-        blue: { bg: 'bg-gray-50', text: 'text-gray-600', accent: 'bg-gray-600', light: 'bg-gray-100' },
-        red: { bg: 'bg-red-50', text: 'text-red-600', accent: 'bg-red-500', light: 'bg-red-100' },
-        orange: { bg: 'bg-orange-50', text: 'text-orange-600', accent: 'bg-orange-500', light: 'bg-orange-100' },
-        green: { bg: 'bg-emerald-50', text: 'text-emerald-600', accent: 'bg-emerald-500', light: 'bg-emerald-100' },
-        slate: { bg: 'bg-gray-50', text: 'text-gray-600', accent: 'bg-gray-600', light: 'bg-gray-100' },
+        brand: { bg: 'bg-terracotta-50', text: 'text-terracotta-600' },
+        danger: { bg: 'bg-danger-50', text: 'text-danger-600' },
+        warning: { bg: 'bg-warning-50', text: 'text-warning-600' },
+        success: { bg: 'bg-success-50', text: 'text-success-600' },
+        neutral: { bg: 'bg-sand-100', text: 'text-sand-600' },
     };
 
     const cfg = colorConfig[color];
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 md:p-6 relative overflow-hidden group hover:shadow-md transition-all duration-200">
+        <div className="bg-white rounded-xl shadow-card border border-sand-200 p-4 sm:p-5 md:p-6 relative overflow-hidden group hover:shadow-elevated transition-all duration-200">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg ${cfg.bg} ${cfg.text} flex items-center justify-center shrink-0`}>
                     <Icon icon={icon} className="text-xl sm:text-2xl" />
@@ -336,9 +336,9 @@ const StatCard: React.FC<{ title: string; value: string; subtitle: string; icon:
             </div>
 
             <div className="relative z-10 min-w-0">
-                <h3 className="text-[9px] sm:text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1 sm:mb-2 truncate">{title}</h3>
-                <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 tracking-tight mb-1 truncate" title={value}>{value}</p>
-                <p className="text-[10px] sm:text-xs text-gray-500 truncate" title={subtitle}>{subtitle}</p>
+                <h3 className="text-[9px] sm:text-[10px] font-semibold text-sand-500 uppercase tracking-wide mb-1 sm:mb-2 truncate">{title}</h3>
+                <p className="font-display text-lg sm:text-xl md:text-2xl font-semibold text-sand-900 tracking-tight mb-1 truncate" title={value}>{value}</p>
+                <p className="text-[10px] sm:text-xs text-sand-500 truncate" title={subtitle}>{subtitle}</p>
             </div>
         </div>
     );
@@ -351,16 +351,16 @@ const DashboardBox: React.FC<{
     className?: string;
     headerAction?: React.ReactNode;
 }> = ({ title, icon, children, className, headerAction }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition-all duration-200 ${className}`}>
-        <div className="px-4 py-3 sm:px-5 sm:py-4 md:px-6 md:py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+    <div className={`bg-white rounded-xl shadow-card border border-sand-200 overflow-hidden flex flex-col hover:shadow-elevated transition-all duration-200 ${className}`}>
+        <div className="px-4 py-3 sm:px-5 sm:py-4 md:px-6 md:py-4 border-b border-sand-200 flex items-center justify-between bg-sand-50">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                    <Icon icon={icon} className="text-lg sm:text-xl text-gray-600" />
+                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-terracotta-50 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon={icon} className="text-lg sm:text-xl text-terracotta-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{title}</h3>
+                <h3 className="font-display font-semibold text-sand-900 text-sm sm:text-base truncate">{title}</h3>
             </div>
             {headerAction ? headerAction : (
-                <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 transition-colors shrink-0">
+                <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-sand-100 flex items-center justify-center text-sand-500 transition-colors shrink-0">
                     <Icon icon="mdi:dots-horizontal" className="text-lg sm:text-xl" />
                 </button>
             )}
@@ -368,14 +368,5 @@ const DashboardBox: React.FC<{
         <div className="p-4 sm:p-5 md:p-6 flex-1 overflow-hidden">
             {children}
         </div>
-    </div>
-);
-
-const EmptyState: React.FC<{ message: string }> = ({ message }) => (
-    <div className="flex flex-col items-center justify-center py-16 text-gray-300">
-        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-            <Icon icon="mdi:rocket-launch-outline" className="text-5xl" />
-        </div>
-        <p className="text-sm font-bold uppercase tracking-widest text-center max-w-[200px] leading-relaxed">{message}</p>
     </div>
 );
