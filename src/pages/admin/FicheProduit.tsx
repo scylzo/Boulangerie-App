@@ -99,31 +99,31 @@ export const FicheProduit: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-sand-50">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="bg-white border-b border-sand-200 px-6 py-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-200">
+                        <div className="w-12 h-12 bg-warning-600 rounded-xl flex items-center justify-center shadow-lg shadow-warning-100">
                             <Icon icon="mdi:file-certificate" className="text-2xl text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Générateur de Fiche Produit</h1>
-                            <p className="text-sm text-gray-500 font-medium">Préparez une fiche avec des champs vides pour vos propositions commerciales</p>
+                            <h1 className="text-2xl font-bold text-sand-900">Générateur de Fiche Produit</h1>
+                            <p className="text-sm text-sand-500 font-medium">Préparez une fiche avec des champs vides pour vos propositions commerciales</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3 w-full sm:w-auto">
                         <button
                             onClick={handleToggleAll}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-all"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-sand-100 hover:bg-sand-200 text-sand-700 rounded-xl font-bold transition-all"
                         >
                             <Icon icon={Object.values(selectedItems).every(item => item.active) ? "mdi:checkbox-multiple-marked" : "mdi:checkbox-multiple-blank-outline"} className="text-xl" />
                             {Object.values(selectedItems).every(item => item.active) ? "Tout désélectionner" : "Tout sélectionner"}
                         </button>
                         <button
                             onClick={handleGeneratePDF}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-200 hover:scale-105 active:scale-95"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-warning-600 hover:bg-warning-600 text-white rounded-xl font-bold transition-all shadow-lg shadow-warning-100 hover:scale-105 active:scale-95"
                         >
                             <Icon icon="mdi:pdf-box" className="text-xl" />
                             Générer la Fiche (PDF)
@@ -134,35 +134,35 @@ export const FicheProduit: React.FC = () => {
 
             <div className="max-w-7xl mx-auto p-6 space-y-6">
                 {/* Informations Client */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <div className="bg-white rounded-2xl border border-sand-200 p-6 shadow-sm">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <Icon icon="mdi:account" className="text-blue-600" />
+                        <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+                            <Icon icon="mdi:account" className="text-info-600" />
                         </div>
-                        <h2 className="text-lg font-bold text-gray-900">Informations Client</h2>
+                        <h2 className="text-lg font-bold text-sand-900">Informations Client</h2>
                     </div>
                     <div className="max-w-md">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Nom du Client / Prospect</label>
+                        <label className="block text-sm font-semibold text-sand-700 mb-2">Nom du Client / Prospect</label>
                         <input
                             type="text"
                             value={clientNom}
                             onChange={(e) => setClientNom(e.target.value)}
                             placeholder="Ex: Client de passage ou M. Diop"
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none font-medium"
+                            className="w-full px-4 py-3 bg-sand-50 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500 focus:border-warning-500 transition-all outline-none font-medium"
                         />
                     </div>
                 </div>
 
                 {/* Sélection des Produits */}
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="bg-white rounded-2xl border border-sand-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-5 border-b border-sand-100 flex items-center justify-between bg-sand-50/50">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                                <Icon icon="mdi:bread-slice" className="text-orange-600" />
+                            <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
+                                <Icon icon="mdi:bread-slice" className="text-warning-600" />
                             </div>
-                            <h2 className="text-lg font-bold text-gray-900">Sélection des Produits</h2>
+                            <h2 className="text-lg font-bold text-sand-900">Sélection des Produits</h2>
                         </div>
-                        <div className="text-sm font-medium text-gray-500">
+                        <div className="text-sm font-medium text-sand-500">
                             {Object.values(selectedItems).filter(item => item.active).length} produit(s) sélectionné(s)
                         </div>
                     </div>
@@ -170,30 +170,30 @@ export const FicheProduit: React.FC = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-gray-50/50">
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                <tr className="bg-sand-50/50">
+                                    <th className="px-6 py-4 text-xs font-bold text-sand-500 uppercase tracking-wider">
                                         <div className="flex items-center gap-2 cursor-pointer" onClick={handleToggleAll}>
                                             <button
                                                 className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
                                                     Object.keys(selectedItems).length > 0 && Object.values(selectedItems).every(item => item.active)
-                                                        ? 'bg-orange-600 border-orange-600 text-white'
-                                                        : 'bg-white border-gray-300'
+                                                        ? 'bg-warning-600 border-warning-600 text-white'
+                                                        : 'bg-white border-sand-300'
                                                 }`}
                                             >
                                                 {Object.keys(selectedItems).length > 0 && Object.values(selectedItems).every(item => item.active) && <Icon icon="mdi:check" className="text-sm" />}
                                             </button>
-                                            <span className="hover:text-orange-600 transition-colors">Tout</span>
+                                            <span className="hover:text-warning-600 transition-colors">Tout</span>
                                         </div>
                                     </th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Produit & Prix Revendeur</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Prix Boutique</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Marge</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-sand-500 uppercase tracking-wider">Produit & Prix Revendeur</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-sand-500 uppercase tracking-wider">Prix Boutique</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-sand-500 uppercase tracking-wider">Marge</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-sand-100">
                                 {isLoadingProduits ? (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500 font-medium">
+                                        <td colSpan={4} className="px-6 py-12 text-center text-sand-500 font-medium">
                                             Chargement des produits...
                                         </td>
                                     </tr>
@@ -204,18 +204,18 @@ export const FicheProduit: React.FC = () => {
                                 }).map(produit => {
                                     const item = selectedItems[produit.id] || { marge: '', prixBoutique: '', active: false };
                                     return (
-                                        <tr key={produit.id} className={`hover:bg-gray-50 transition-colors ${item.active ? 'bg-orange-50/30' : ''}`}>
+                                        <tr key={produit.id} className={`hover:bg-sand-50 transition-colors ${item.active ? 'bg-warning-50/30' : ''}`}>
                                             <td className="px-6 py-4">
                                                 <button
                                                     onClick={() => handleToggleProduct(produit.id)}
-                                                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${item.active ? 'bg-orange-600 text-white shadow-md shadow-orange-200' : 'bg-gray-200'}`}
+                                                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${item.active ? 'bg-warning-600 text-white shadow-md shadow-warning-100' : 'bg-sand-200'}`}
                                                 >
                                                     {item.active && <Icon icon="mdi:check" />}
                                                 </button>
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                <div className="font-bold text-gray-900">{produit.nom}</div>
-                                                <div className="text-xs text-gray-500 font-medium">Revendeur: {formatCurrencyCompact(produit.prixClient || produit.prixBoutique || 0)}</div>
+                                                <div className="font-bold text-sand-900">{produit.nom}</div>
+                                                <div className="text-xs text-sand-500 font-medium">Revendeur: {formatCurrencyCompact(produit.prixClient || produit.prixBoutique || 0)}</div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <input
@@ -223,7 +223,7 @@ export const FicheProduit: React.FC = () => {
                                                     min="0"
                                                     value={item.prixBoutique}
                                                     onChange={(e) => handleFieldChange(produit.id, 'prixBoutique', e.target.value)}
-                                                    className="h-10 w-full px-3 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm font-medium"
+                                                    className="h-10 w-full px-3 py-2 border border-sand-200 rounded-lg bg-white focus:ring-2 focus:ring-warning-500 focus:border-warning-500 outline-none transition-all text-sm font-medium"
                                                 />
                                             </td>
                                             <td className="px-6 py-4">
@@ -232,7 +232,7 @@ export const FicheProduit: React.FC = () => {
                                                     min="0"
                                                     value={item.marge}
                                                     onChange={(e) => handleFieldChange(produit.id, 'marge', e.target.value)}
-                                                    className="h-10 w-full px-3 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm font-medium"
+                                                    className="h-10 w-full px-3 py-2 border border-sand-200 rounded-lg bg-white focus:ring-2 focus:ring-warning-500 focus:border-warning-500 outline-none transition-all text-sm font-medium"
                                                 />
                                             </td>
                                         </tr>

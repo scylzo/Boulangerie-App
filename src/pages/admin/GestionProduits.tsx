@@ -85,19 +85,19 @@ export const GestionProduits: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-sand-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+      <div className="bg-white border-b border-sand-200 px-3 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 bg-warning-600 rounded-lg flex items-center justify-center shrink-0">
               <Icon icon="mdi:bread-slice" className="text-lg sm:text-2xl text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">
+              <h1 className="text-base sm:text-xl font-semibold text-sand-900 truncate">
                 Gestion des Produits
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">
+              <p className="text-xs sm:text-sm text-sand-500 truncate">
                 Gérez votre catalogue de produits de boulangerie
               </p>
             </div>
@@ -106,7 +106,7 @@ export const GestionProduits: React.FC = () => {
           <button
             onClick={() => setShowForm(true)}
             disabled={showForm}
-            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-warning-600 hover:bg-warning-600 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto"
           >
             <Icon icon="mdi:plus" className="text-base sm:text-lg" />
             <span>Nouveau produit</span>
@@ -136,21 +136,21 @@ export const GestionProduits: React.FC = () => {
         )}
 
         {/* Section Liste des produits */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-100">
+        <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
+          <div className="px-6 py-4 border-b border-sand-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Icon icon="mdi:format-list-bulleted" className="text-lg text-orange-600" />
+                <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
+                  <Icon icon="mdi:format-list-bulleted" className="text-lg text-warning-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Catalogue produits</h2>
-                  <p className="text-sm text-gray-500">{produits.length} produit(s) enregistré(s)</p>
+                  <h2 className="text-lg font-semibold text-sand-900">Catalogue produits</h2>
+                  <p className="text-sm text-sand-500">{produits.length} produit(s) enregistré(s)</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-sand-600">
                   <span className="font-medium">{produits.filter(p => p.active).length}</span> actifs
                   <span className="mx-2">•</span>
                   <span className="font-medium">{produits.filter(p => !p.active).length}</span> inactifs
@@ -164,18 +164,18 @@ export const GestionProduits: React.FC = () => {
               <TableLoader message="Chargement des produits..." />
             ) : produits.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Icon icon="mdi:bread-slice-outline" className="text-4xl text-orange-500" />
+                <div className="w-20 h-20 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Icon icon="mdi:bread-slice-outline" className="text-4xl text-warning-500" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                <h3 className="text-xl font-semibold text-sand-900 mb-3">
                   Aucun produit enregistré
                 </h3>
-                <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                <p className="text-sand-500 mb-8 max-w-md mx-auto">
                   Commencez par ajouter vos premiers produits de boulangerie pour constituer votre catalogue
                 </p>
                 <button
                   onClick={() => setShowForm(true)}
-                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium"
+                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-warning-600 hover:bg-warning-600 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium"
                 >
                   <Icon icon="mdi:plus" className="text-lg" />
                   <span className="font-medium">Ajouter le premier produit</span>
@@ -186,36 +186,36 @@ export const GestionProduits: React.FC = () => {
                 {produits.map((produit) => (
                   <div
                     key={produit.id}
-                    className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 hover:border-orange-300 hover:shadow-lg transition-all duration-300 group"
+                    className="bg-white border border-sand-200 rounded-2xl p-4 sm:p-6 hover:border-warning-100 hover:shadow-lg transition-all duration-300 group"
                   >
                     {/* Header du produit */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-orange-600 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-warning-600 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                           <Icon icon={getProductIcon(produit.nom)} className="text-2xl text-white" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-sm sm:text-lg text-gray-900 mb-1 line-clamp-2 min-h-[2.5rem] sm:min-h-[3.5rem] flex items-center">
+                          <h3 className="font-bold text-sm sm:text-lg text-sand-900 mb-1 line-clamp-2 min-h-[2.5rem] sm:min-h-[3.5rem] flex items-center">
                             {produit.nom}
                           </h3>
                           <div className="flex flex-wrap items-center gap-2">
                             <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${produit.active
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
+                              ? 'bg-success-100 text-success-700'
+                              : 'bg-danger-100 text-danger-700'
                               }`}>
                               <Icon icon={produit.active ? 'mdi:check-circle' : 'mdi:pause-circle'} className="text-xs" />
                               {produit.active ? 'Actif' : 'Inactif'}
                             </span>
                             {produit.categorie && (
                               <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold uppercase tracking-wider rounded-full border ${produit.categorie === 'boulangerie'
-                                ? 'bg-amber-100 text-amber-800 border-amber-200'
-                                : 'bg-rose-100 text-rose-800 border-rose-200'
+                                ? 'bg-warning-100 text-warning-600 border-warning-100'
+                                : 'bg-danger-100 text-danger-700 border-danger-100'
                                 }`}>
                                 {produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
                               </span>
                             )}
                             {produit.reconduisible && (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                              <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-success-100 text-success-700 border border-success-100">
                                 <Icon icon="mdi:recycle" className="text-xs" />
                                 Reconduisible
                               </span>
@@ -228,22 +228,22 @@ export const GestionProduits: React.FC = () => {
                     {/* Prix */}
                     <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                       <div className="grid grid-cols-1 gap-2 sm:gap-3">
-                        <div className="bg-blue-50 rounded-xl p-2 sm:p-3">
+                        <div className="bg-info-50 rounded-xl p-2 sm:p-3">
                           <div className="flex items-center gap-2 mb-1">
-                            <Icon icon="mdi:account-group" className="text-blue-500 text-xs sm:text-sm" />
-                            <span className="text-[10px] sm:text-xs font-medium text-blue-700">Prix Client</span>
+                            <Icon icon="mdi:account-group" className="text-info-500 text-xs sm:text-sm" />
+                            <span className="text-[10px] sm:text-xs font-medium text-info-600">Prix Client</span>
                           </div>
-                          <div className="text-base sm:text-xl font-bold text-blue-800">
+                          <div className="text-base sm:text-xl font-bold text-info-600">
                             {produit.prixClient ? `${produit.prixClient.toLocaleString('fr-FR')} F` : 'Non défini'}
                           </div>
                         </div>
 
-                        <div className="bg-purple-50 rounded-xl p-2 sm:p-3">
+                        <div className="bg-terracotta-50 rounded-xl p-2 sm:p-3">
                           <div className="flex items-center gap-2 mb-1">
-                            <Icon icon="mdi:storefront" className="text-purple-500 text-xs sm:text-sm" />
-                            <span className="text-[10px] sm:text-xs font-medium text-purple-700">Prix Boutique</span>
+                            <Icon icon="mdi:storefront" className="text-terracotta-500 text-xs sm:text-sm" />
+                            <span className="text-[10px] sm:text-xs font-medium text-terracotta-700">Prix Boutique</span>
                           </div>
-                          <div className="text-base sm:text-xl font-bold text-purple-800">
+                          <div className="text-base sm:text-xl font-bold text-terracotta-800">
                             {produit.prixBoutique ? `${produit.prixBoutique.toLocaleString('fr-FR')} F` : 'Non défini'}
                           </div>
                         </div>
@@ -257,7 +257,7 @@ export const GestionProduits: React.FC = () => {
                       <button
                         onClick={() => handleEditer(produit)}
                         disabled={showForm}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-warning-600 hover:text-warning-600 bg-warning-50 hover:bg-warning-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
                       >
                         <Icon icon="mdi:pencil" className="text-base sm:text-lg" />
                         <span className="hidden sm:inline">Modifier</span>
@@ -265,7 +265,7 @@ export const GestionProduits: React.FC = () => {
                       <button
                         onClick={() => handleSupprimer(produit)}
                         disabled={isLoadingProduits}
-                        className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-danger-600 hover:text-danger-700 bg-danger-50 hover:bg-danger-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
                       >
                         <Icon icon="mdi:delete-outline" className="text-base sm:text-lg" />
                       </button>

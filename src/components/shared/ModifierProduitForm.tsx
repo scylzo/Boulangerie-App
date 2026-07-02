@@ -81,10 +81,10 @@ export const ModifierProduitForm: React.FC<ModifierProduitFormProps> = ({
         {/* Quantité et prix */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-sand-700 mb-1">
               Quantité totale (Calculée)
             </label>
-            <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-500 font-medium select-none">
+            <div className="px-3 py-2 bg-sand-100 border border-sand-300 rounded-lg text-sand-500 font-medium select-none">
               {quantiteCommandee}
             </div>
           </div>
@@ -101,8 +101,8 @@ export const ModifierProduitForm: React.FC<ModifierProduitFormProps> = ({
         {/* Répartition par cars */}
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-4">
-            <Icon icon="mdi:truck-delivery" className="text-lg text-gray-600" />
-            <h4 className="text-lg font-semibold text-gray-900">Répartition par car de livraison</h4>
+            <Icon icon="mdi:truck-delivery" className="text-lg text-sand-600" />
+            <h4 className="text-lg font-semibold text-sand-900">Répartition par car de livraison</h4>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -130,22 +130,22 @@ export const ModifierProduitForm: React.FC<ModifierProduitFormProps> = ({
           </div>
 
           {/* Validation des répartitions */}
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-sand-50 rounded-lg">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Total distribué:</span>
-              <span className="text-sm font-bold text-green-600">
+              <span className="text-sm font-medium text-sand-700">Total distribué:</span>
+              <span className="text-sm font-bold text-success-600">
                 {quantiteCommandee}
               </span>
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-sand-500">
                 La quantité totale est mise à jour automatiquement.
             </div>
           </div>
         </Card>
 
         {/* Total et actions */}
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-          <div className="text-lg font-semibold text-gray-900">
+        <div className="flex items-center justify-between p-4 bg-sand-50 rounded-lg">
+          <div className="text-lg font-semibold text-sand-900">
             Total: {(quantiteCommandee * prixUnitaire).toLocaleString('fr-FR')} F CFA
           </div>
 

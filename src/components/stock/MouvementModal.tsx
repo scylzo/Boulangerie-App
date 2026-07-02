@@ -259,21 +259,21 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+          <label className="block text-sm font-medium text-sand-700 mb-1">Date</label>
           <input
             type="date"
             required
             value={formData.date}
             onChange={e => setFormData({ ...formData, date: e.target.value })}
-            className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+            className="w-full p-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500/20 focus:border-warning-500 outline-none transition-all"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Type de mouvement</label>
+          <label className="block text-sm font-medium text-sand-700 mb-1">Type de mouvement</label>
           <select
             value={formData.type}
             onChange={e => setFormData({ ...formData, type: e.target.value as TypeMouvement })}
-            className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+            className="w-full p-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500/20 focus:border-warning-500 outline-none transition-all"
           >
             <option value="achat">Achat / Entrée</option>
             <option value="consommation">Consommation (Production)</option>
@@ -285,14 +285,14 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
 
         <div>
           <div className="flex justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-sand-700">
               {isSortie ? 'Quantité Sortante' : 'Quantité Entrante'}
             </label>
             <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-wider">
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, inputUnit: selectedMatiere.unite })}
-                className={`px-2 py-0.5 rounded transition-colors ${formData.inputUnit === selectedMatiere.unite ? 'bg-orange-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                className={`px-2 py-0.5 rounded transition-colors ${formData.inputUnit === selectedMatiere.unite ? 'bg-warning-600 text-white' : 'bg-sand-100 text-sand-500 hover:bg-sand-200'}`}
               >
                 {selectedMatiere.unite}
               </button>
@@ -301,14 +301,14 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, inputUnit: 'sac' })}
-                    className={`px-2 py-0.5 rounded transition-colors ${formData.inputUnit === 'sac' ? 'bg-orange-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                    className={`px-2 py-0.5 rounded transition-colors ${formData.inputUnit === 'sac' ? 'bg-warning-600 text-white' : 'bg-sand-100 text-sand-500 hover:bg-sand-200'}`}
                   >
                     Sac
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, inputUnit: 'carton' })}
-                    className={`px-2 py-0.5 rounded transition-colors ${formData.inputUnit === 'carton' ? 'bg-orange-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                    className={`px-2 py-0.5 rounded transition-colors ${formData.inputUnit === 'carton' ? 'bg-warning-600 text-white' : 'bg-sand-100 text-sand-500 hover:bg-sand-200'}`}
                   >
                     Carton
                   </button>
@@ -326,41 +326,41 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
                 required
                 value={formData.quantite}
                 onChange={e => handleQuantiteChange(e.target.value)}
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none font-black text-xl text-slate-800 transition-all"
+                className="w-full p-3 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500/20 focus:border-warning-500 outline-none font-black text-xl text-sand-800 transition-all"
                 placeholder="0.00"
               />
             </div>
-            <div className="flex items-center justify-center bg-slate-50 px-4 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm uppercase">
+            <div className="flex items-center justify-center bg-sand-50 px-4 rounded-xl border border-sand-200 text-sand-600 font-bold text-sm uppercase">
               {formData.inputUnit === 'sac' ? 'Sacs' : formData.inputUnit === 'carton' ? 'Cartons' : selectedMatiere.unite}
             </div>
           </div>
 
           {formData.inputUnit === 'sac' && (
-            <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Poids par sac (kg)</label>
+            <div className="mt-3 p-3 bg-sand-50 rounded-xl border border-sand-200">
+              <label className="block text-[10px] font-black text-sand-400 uppercase tracking-widest mb-1">Poids par sac (kg)</label>
               <input
                 type="number"
                 min="1"
                 value={formData.bagWeight}
                 onChange={e => setFormData({ ...formData, bagWeight: Number(e.target.value) })}
-                className="w-full p-2 text-sm border-slate-200 rounded-lg focus:ring-1 focus:ring-orange-500 outline-none font-bold"
+                className="w-full p-2 text-sm border-sand-200 rounded-lg focus:ring-1 focus:ring-warning-500 outline-none font-bold"
               />
             </div>
           )}
         </div>
 
         {formData.type === 'achat' && (
-          <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-200/60 space-y-4">
+          <div className="p-4 bg-sand-50/50 rounded-2xl border border-sand-200/60 space-y-4">
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-6 h-6 bg-slate-100 rounded-md flex items-center justify-center text-slate-600">
+              <div className="w-6 h-6 bg-sand-100 rounded-md flex items-center justify-center text-sand-600">
                 <Icon icon="mdi:cash" />
               </div>
-              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Valorisation</h4>
+              <h4 className="text-xs font-black text-sand-900 uppercase tracking-wider">Valorisation</h4>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-1">
+                <label className="block text-[10px] font-bold text-sand-400 uppercase tracking-tight mb-1">
                   Prix TOTAL Payé (FCFA)
                 </label>
                 <input
@@ -369,7 +369,7 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
                   placeholder="Ex: 50000"
                   value={formData.prixTotalPaye}
                   onChange={e => handlePrixTotalChange(e.target.value)}
-                  className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 outline-none font-black text-slate-800"
+                  className="w-full p-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-success-500/20 outline-none font-black text-sand-800"
                 />
               </div>
 
@@ -378,22 +378,22 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
                   type="checkbox"
                   checked={formData.inclusTVA}
                   onChange={(e) => handleTVAChange(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                  className="w-4 h-4 rounded border-sand-300 text-warning-600 focus:ring-warning-500"
                 />
-                <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Ce prix inclut la TVA (18%)</span>
+                <span className="text-xs font-medium text-sand-600 group-hover:text-sand-900 transition-colors">Ce prix inclut la TVA (18%)</span>
               </label>
 
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Coût Unitaire HT ({selectedMatiere.unite})</label>
-                  <div className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-600 font-mono text-xs font-bold">
+                  <label className="block text-[10px] font-bold text-sand-400 uppercase mb-1">Coût Unitaire HT ({selectedMatiere.unite})</label>
+                  <div className="px-3 py-2 bg-white border border-sand-200 rounded-lg text-sand-600 font-mono text-xs font-bold">
                     {formData.prixUnitaire ? (typeof formData.prixUnitaire === 'number' ? formData.prixUnitaire.toFixed(2) : formData.prixUnitaire) : '-'}
                   </div>
                 </div>
                 {getHumanUnitPrice() && (
                   <div className="flex-1">
-                    <label className="block text-[10px] font-bold text-orange-600 uppercase mb-1">Prix par {formData.inputUnit}</label>
-                    <div className="px-3 py-2 bg-orange-50 border border-orange-100 rounded-lg text-orange-800 font-black text-xs">
+                    <label className="block text-[10px] font-bold text-warning-600 uppercase mb-1">Prix par {formData.inputUnit}</label>
+                    <div className="px-3 py-2 bg-warning-50 border border-warning-100 rounded-lg text-warning-600 font-black text-xs">
                       {getHumanUnitPrice()} FCFA
                     </div>
                   </div>
@@ -405,38 +405,38 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Auteur</label>
+            <label className="block text-sm font-medium text-sand-700 mb-1">Auteur</label>
             <input
               type="text"
               required
               value={formData.auteur}
               onChange={e => setFormData({ ...formData, auteur: e.target.value })}
-              className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+              className="w-full p-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500/20 outline-none transition-all"
               placeholder="Ex: Moussa Ndiaye"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 text-pretty flex items-center gap-1">
-              Responsable {formData.type !== 'achat' && <span className="text-red-500">*</span>}
+            <label className="block text-sm font-medium text-sand-700 mb-1 text-pretty flex items-center gap-1">
+              Responsable {formData.type !== 'achat' && <span className="text-danger-500">*</span>}
             </label>
             <input
               type="text"
               required={formData.type !== 'achat'}
               value={formData.responsable}
               onChange={e => setFormData({ ...formData, responsable: e.target.value })}
-              className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+              className="w-full p-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500/20 outline-none transition-all"
               placeholder="Ex: Modou (Gérant)"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Motif / Commentaire</label>
+          <label className="block text-sm font-medium text-sand-700 mb-1">Motif / Commentaire</label>
           <input
             type="text"
             value={formData.motif}
             onChange={e => setFormData({ ...formData, motif: e.target.value })}
-            className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+            className="w-full p-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500/20 outline-none transition-all"
             placeholder="Ex: Arrivage Grands Moulins"
           />
         </div>
@@ -445,13 +445,13 @@ export const MouvementModal: React.FC<MouvementModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-5 py-3 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl transition-all"
+            className="flex-1 px-5 py-3 text-sm font-semibold text-sand-700 bg-white hover:bg-sand-50 border border-sand-300 rounded-xl transition-all"
           >
             Annuler
           </button>
           <button
             type="submit"
-            className={`flex-1 px-5 py-3 text-sm font-bold text-white rounded-xl shadow-sm hover:shadow-md transition-all ${isSortie ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
+            className={`flex-1 px-5 py-3 text-sm font-bold text-white rounded-xl shadow-sm hover:shadow-md transition-all ${isSortie ? 'bg-danger-600 hover:bg-danger-700' : 'bg-success-600 hover:bg-success-700'
               }`}
           >
             {isEditing ? 'Modifier' : (isSortie ? 'Valider la Sortie' : "Valider l'Entrée")}

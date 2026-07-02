@@ -122,17 +122,17 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
     const totalRevenue = clientsPerformance.reduce((sum, c) => sum + c.totalAchats, 0);
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition-all duration-200">
+        <div className="bg-white rounded-xl shadow-sm border border-sand-100 overflow-hidden flex flex-col hover:shadow-md transition-all duration-200">
             {/* Header */}
-            <div className="px-4 py-3 sm:px-5 sm:py-4 md:px-6 md:py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="px-4 py-3 sm:px-5 sm:py-4 md:px-6 md:py-4 border-b border-sand-100 bg-gradient-to-r from-info-50 to-terracotta-50">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                        <div className="w-8 h-8 sm:w-9 sm:h-9 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                            <Icon icon="mdi:trophy" className="text-lg sm:text-xl text-blue-600" />
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 bg-info-100 rounded-lg flex items-center justify-center shrink-0">
+                            <Icon icon="mdi:trophy" className="text-lg sm:text-xl text-info-600" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Top Clients</h3>
-                            <p className="text-xs text-gray-500">Score: CA (40%) + Paiement (30%) + Retours (30%)</p>
+                            <h3 className="font-semibold text-sand-900 text-sm sm:text-base">Top Clients</h3>
+                            <p className="text-xs text-sand-500">Score: CA (40%) + Paiement (30%) + Retours (30%)</p>
                         </div>
                     </div>
 
@@ -158,7 +158,7 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                                 alert('Erreur lors de la génération du PDF');
                             }
                         }}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-all text-xs font-semibold shadow-sm"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white border border-info-100 text-info-600 rounded-lg hover:bg-info-50 transition-all text-xs font-semibold shadow-sm"
                     >
                         <Icon icon="mdi:file-pdf-box" className="text-base" />
                         <span className="hidden sm:inline">PDF</span>
@@ -167,17 +167,17 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
 
                 {/* Stats globales */}
                 <div className="grid grid-cols-3 gap-2 mt-4">
-                    <div className="bg-white rounded-lg p-2 border border-blue-100">
-                        <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Total</p>
-                        <p className="text-sm font-bold text-gray-900">{formatCurrency(totalRevenue)}</p>
+                    <div className="bg-white rounded-lg p-2 border border-info-100">
+                        <p className="text-[9px] text-sand-500 font-semibold uppercase tracking-wide">Total</p>
+                        <p className="text-sm font-bold text-sand-900">{formatCurrency(totalRevenue)}</p>
                     </div>
-                    <div className="bg-white rounded-lg p-2 border border-blue-100">
-                        <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Clients actifs</p>
-                        <p className="text-sm font-bold text-gray-900">{clientsPerformance.length}</p>
+                    <div className="bg-white rounded-lg p-2 border border-info-100">
+                        <p className="text-[9px] text-sand-500 font-semibold uppercase tracking-wide">Clients actifs</p>
+                        <p className="text-sm font-bold text-sand-900">{clientsPerformance.length}</p>
                     </div>
-                    <div className="bg-white rounded-lg p-2 border border-blue-100">
-                        <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Moy./Client</p>
-                        <p className="text-sm font-bold text-gray-900">
+                    <div className="bg-white rounded-lg p-2 border border-info-100">
+                        <p className="text-[9px] text-sand-500 font-semibold uppercase tracking-wide">Moy./Client</p>
+                        <p className="text-sm font-bold text-sand-900">
                             {clientsPerformance.length > 0 ? formatCurrency(totalRevenue / clientsPerformance.length) : '0 F'}
                         </p>
                     </div>
@@ -188,11 +188,11 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
             <div className="p-4 sm:p-5 md:p-6 flex-1 overflow-hidden">
                 {topClients.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
-                            <Icon icon="mdi:chart-line" className="text-3xl text-gray-400" />
+                        <div className="w-16 h-16 bg-sand-50 rounded-full flex items-center justify-center mb-4 border border-sand-100">
+                            <Icon icon="mdi:chart-line" className="text-3xl text-sand-400" />
                         </div>
-                        <p className="font-bold text-gray-900">Aucune donnée</p>
-                        <p className="text-sm text-gray-400 mt-1">Aucune vente sur cette période</p>
+                        <p className="font-bold text-sand-900">Aucune donnée</p>
+                        <p className="text-sm text-sand-400 mt-1">Aucune vente sur cette période</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
@@ -204,16 +204,16 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                                 <div
                                     key={perf.client.id}
                                     className={`relative p-3 sm:p-4 rounded-xl border transition-all hover:shadow-md ${isTop3
-                                        ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200'
-                                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                                        ? 'bg-gradient-to-r from-warning-50 to-warning-50 border-warning-100'
+                                        : 'bg-sand-50 border-sand-200 hover:border-sand-300'
                                         }`}
                                 >
                                     {/* Rang */}
                                     <div className="absolute -left-2 -top-2">
-                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shadow-md ${index === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white' :
-                                            index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
-                                                index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' :
-                                                    'bg-gray-600 text-white'
+                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shadow-md ${index === 0 ? 'bg-gradient-to-br from-warning-500 to-warning-500 text-white' :
+                                            index === 1 ? 'bg-gradient-to-br from-sand-300 to-sand-400 text-white' :
+                                                index === 2 ? 'bg-gradient-to-br from-warning-500 to-warning-500 text-white' :
+                                                    'bg-sand-600 text-white'
                                             }`}>
                                             {index + 1}
                                         </div>
@@ -223,35 +223,35 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                                         {/* Info client */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1 flex-wrap sm:flex-nowrap">
-                                                <h4 className="font-bold text-gray-900 text-sm truncate flex-shrink-1 min-w-[100px]">
+                                                <h4 className="font-bold text-sand-900 text-sm truncate flex-shrink-1 min-w-[100px]">
                                                     {perf.client.nom}
                                                 </h4>
 
                                                 {perf.client.aKiosque && (
-                                                    <Icon icon="mdi:store" className="text-blue-600 text-sm shrink-0" />
+                                                    <Icon icon="mdi:store" className="text-info-600 text-sm shrink-0" />
                                                 )}
                                                 {/* Score de performance */}
-                                                <div className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${perf.scorePerformance >= 80 ? 'bg-green-100 text-green-700' :
-                                                    perf.scorePerformance >= 60 ? 'bg-blue-100 text-blue-700' :
-                                                        perf.scorePerformance >= 40 ? 'bg-orange-100 text-orange-700' :
-                                                            'bg-red-100 text-red-700'
+                                                <div className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${perf.scorePerformance >= 80 ? 'bg-success-100 text-success-700' :
+                                                    perf.scorePerformance >= 60 ? 'bg-info-100 text-info-600' :
+                                                        perf.scorePerformance >= 40 ? 'bg-warning-100 text-warning-600' :
+                                                            'bg-danger-100 text-danger-700'
                                                     }`}>
                                                     {perf.scorePerformance.toFixed(0)}/100
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-sand-600">
                                                 <span className="inline-flex items-center gap-1 whitespace-nowrap">
                                                     <Icon icon="mdi:receipt-text" className="text-xs" />
                                                     {perf.nombreFactures} facture{perf.nombreFactures > 1 ? 's' : ''}
                                                 </span>
-                                                <span className="inline-flex items-center gap-1 whitespace-nowrap border-l border-gray-300 pl-3 sm:border-0 sm:pl-0">
+                                                <span className="inline-flex items-center gap-1 whitespace-nowrap border-l border-sand-300 pl-3 sm:border-0 sm:pl-0">
                                                     <Icon icon="mdi:chart-line" className="text-xs" />
                                                     {formatCurrency(perf.moyenneParFacture)}/facture
                                                 </span>
-                                                <span className={`inline-flex items-center gap-1 font-semibold whitespace-nowrap border-l border-gray-300 pl-3 sm:border-0 sm:pl-0 ${perf.tauxRetour <= 5 ? 'text-green-600' :
-                                                    perf.tauxRetour <= 15 ? 'text-orange-600' :
-                                                        'text-red-600'
+                                                <span className={`inline-flex items-center gap-1 font-semibold whitespace-nowrap border-l border-sand-300 pl-3 sm:border-0 sm:pl-0 ${perf.tauxRetour <= 5 ? 'text-success-600' :
+                                                    perf.tauxRetour <= 15 ? 'text-warning-600' :
+                                                        'text-danger-600'
                                                     }`}>
                                                     <Icon icon="mdi:package-variant-closed-remove" className="text-xs" />
                                                     {perf.tauxRetour.toFixed(1)}% retours
@@ -261,18 +261,18 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
 
                                             {/* Barre de progression */}
                                             <div className="mt-2">
-                                                <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
+                                                <div className="flex items-center justify-between text-[10px] text-sand-500 mb-1">
                                                     <span>{partRevenue.toFixed(1)}% du CA</span>
-                                                    <span className={`font-semibold ${perf.tauxPaiement === 100 ? 'text-green-600' :
-                                                        perf.tauxPaiement >= 50 ? 'text-orange-600' :
-                                                            'text-red-600'
+                                                    <span className={`font-semibold ${perf.tauxPaiement === 100 ? 'text-success-600' :
+                                                        perf.tauxPaiement >= 50 ? 'text-warning-600' :
+                                                            'text-danger-600'
                                                         }`}>
                                                         {perf.tauxPaiement.toFixed(0)}% payé
                                                     </span>
                                                 </div>
-                                                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                                                <div className="h-1.5 w-full bg-sand-200 rounded-full overflow-hidden">
                                                     <div
-                                                        className={`h-full rounded-full transition-all duration-500 ${isTop3 ? 'bg-gradient-to-r from-amber-500 to-yellow-500' : 'bg-blue-500'
+                                                        className={`h-full rounded-full transition-all duration-500 ${isTop3 ? 'bg-gradient-to-r from-warning-500 to-warning-500' : 'bg-info-500'
                                                             }`}
                                                         style={{ width: `${Math.min(100, partRevenue * 2)}%` }}
                                                     />
@@ -282,11 +282,11 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
 
                                         {/* Total */}
                                         <div className="text-right shrink-0">
-                                            <p className="text-lg sm:text-xl font-black text-gray-900">
+                                            <p className="text-lg sm:text-xl font-black text-sand-900">
                                                 {formatCurrency(perf.totalAchats)}
                                             </p>
                                             {perf.dernierAchat && (
-                                                <p className="text-[10px] text-gray-500 mt-1">
+                                                <p className="text-[10px] text-sand-500 mt-1">
                                                     {new Date(perf.dernierAchat).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                                                 </p>
                                             )}

@@ -83,55 +83,55 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                 <div className="fixed inset-0 bg-transparent" onClick={onClose} />
 
                 {/* Modal */}
-                <div className="relative bg-gray-100 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-200 animate-in zoom-in-95 fade-in duration-300">
+                <div className="relative bg-sand-100 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-sand-200 animate-in zoom-in-95 fade-in duration-300">
                     {/* Header moderne */}
-                    <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-200">
+                    <div className="bg-gradient-to-r from-sand-50 to-white px-6 py-4 border-b border-sand-200">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                    <Icon icon="mdi:moon-waning-crescent" className="text-2xl text-indigo-600" />
+                                <div className="w-10 h-10 bg-terracotta-100 rounded-lg flex items-center justify-center">
+                                    <Icon icon="mdi:moon-waning-crescent" className="text-2xl text-terracotta-600" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full"></div>
+                                    <h2 className="text-xl font-bold text-sand-900 flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-gradient-to-r from-terracotta-600 to-info-600 rounded-full"></div>
                                         Clôture de Journée
                                     </h2>
-                                    <p className="text-sm text-gray-500">Répartition des invendus</p>
+                                    <p className="text-sm text-sand-500">Répartition des invendus</p>
                                 </div>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="rounded-lg p-2 hover:bg-gray-100 hover:scale-105 transition-all duration-200 group"
+                                className="rounded-lg p-2 hover:bg-sand-100 hover:scale-105 transition-all duration-200 group"
                                 title="Fermer"
                             >
-                                <Icon icon="mdi:close" className="text-gray-500 group-hover:text-gray-700 text-xl transition-colors" />
+                                <Icon icon="mdi:close" className="text-sand-500 group-hover:text-sand-700 text-xl transition-colors" />
                             </button>
                         </div>
                     </div>
 
                     {/* Summary */}
-                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <div className="bg-sand-50 px-6 py-4 border-b border-sand-200">
                         <div className="grid grid-cols-3 gap-4">
-                            <div className="bg-white rounded-lg p-3 border border-gray-200">
+                            <div className="bg-white rounded-lg p-3 border border-sand-200">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <Icon icon="mdi:package-variant" className="text-gray-500" />
-                                    <span className="text-xs text-gray-600 font-medium">Total invendus</span>
+                                    <Icon icon="mdi:package-variant" className="text-sand-500" />
+                                    <span className="text-xs text-sand-600 font-medium">Total invendus</span>
                                 </div>
-                                <p className="text-2xl font-bold text-gray-900">{totalInvendus}</p>
+                                <p className="text-2xl font-bold text-sand-900">{totalInvendus}</p>
                             </div>
-                            <div className="bg-white rounded-lg p-3 border border-green-200">
+                            <div className="bg-white rounded-lg p-3 border border-success-100">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <Icon icon="mdi:recycle" className="text-green-600" />
-                                    <span className="text-xs text-green-700 font-medium">À reconduire</span>
+                                    <Icon icon="mdi:recycle" className="text-success-600" />
+                                    <span className="text-xs text-success-700 font-medium">À reconduire</span>
                                 </div>
-                                <p className="text-2xl font-bold text-green-600">{totalRestants}</p>
+                                <p className="text-2xl font-bold text-success-600">{totalRestants}</p>
                             </div>
-                            <div className="bg-white rounded-lg p-3 border border-red-200">
+                            <div className="bg-white rounded-lg p-3 border border-danger-100">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <Icon icon="mdi:delete-outline" className="text-red-600" />
-                                    <span className="text-xs text-red-700 font-medium">Invendus</span>
+                                    <Icon icon="mdi:delete-outline" className="text-danger-600" />
+                                    <span className="text-xs text-danger-700 font-medium">Invendus</span>
                                 </div>
-                                <p className="text-2xl font-bold text-red-600">{totalPertes}</p>
+                                <p className="text-2xl font-bold text-danger-600">{totalPertes}</p>
                             </div>
                         </div>
                     </div>
@@ -146,19 +146,19 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                                 return (
                                     <div
                                         key={produit.produitId}
-                                        className="bg-white border border-gray-200 rounded-xl p-4 hover:border-indigo-300 transition-all"
+                                        className="bg-white border border-sand-200 rounded-xl p-4 hover:border-terracotta-300 transition-all"
                                     >
                                         <div className="flex items-start justify-between mb-3">
                                             <div className="flex-1">
-                                                <h3 className="font-semibold text-gray-900 mb-1">
+                                                <h3 className="font-semibold text-sand-900 mb-1">
                                                     {produit.produit?.nom || produit.produitId}
                                                 </h3>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm text-gray-600">
+                                                    <span className="text-sm text-sand-600">
                                                         {produit.reste} restants
                                                     </span>
                                                     {produit.produit?.reconduisible && (
-                                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                                                        <span className="text-xs bg-success-100 text-success-700 px-2 py-0.5 rounded-full font-medium">
                                                             Reconduisible
                                                         </span>
                                                     )}
@@ -168,7 +168,7 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
 
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                <label className="block text-xs font-medium text-sand-700 mb-1">
                                                     À reconduire (J+1)
                                                 </label>
                                                 <div className="relative">
@@ -179,13 +179,13 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                                                         value={rep.restants === 0 ? '' : rep.restants}
                                                         onChange={(e) => handleRestantsChange(produit.produitId, parseInt(e.target.value) || 0)}
                                                         placeholder="0"
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                                        className="w-full px-3 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-success-500 focus:border-transparent"
                                                     />
-                                                    <Icon icon="mdi:pencil" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                                                    <Icon icon="mdi:pencil" className="absolute right-3 top-1/2 -translate-y-1/2 text-sand-400 text-sm" />
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                <label className="block text-xs font-medium text-sand-700 mb-1">
                                                     Invendus
                                                 </label>
                                                 <div className="relative">
@@ -196,9 +196,9 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                                                         value={rep.pertes === 0 ? '' : rep.pertes}
                                                         onChange={(e) => handlePertesChange(produit.produitId, parseInt(e.target.value) || 0)}
                                                         placeholder="0"
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                                        className="w-full px-3 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-danger-500 focus:border-transparent"
                                                     />
-                                                    <Icon icon="mdi:pencil" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                                                    <Icon icon="mdi:pencil" className="absolute right-3 top-1/2 -translate-y-1/2 text-sand-400 text-sm" />
                                                 </div>
                                             </div>
                                         </div>
@@ -209,26 +209,26 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                     </div>
 
                     {/* Info */}
-                    <div className="px-6 py-3 bg-amber-50 border-t border-amber-200">
+                    <div className="px-6 py-3 bg-warning-50 border-t border-warning-100">
                         <div className="flex items-start gap-2">
-                            <Icon icon="mdi:information" className="text-amber-600 text-lg mt-0.5 shrink-0" />
-                            <p className="text-sm text-amber-800">
+                            <Icon icon="mdi:information" className="text-warning-600 text-lg mt-0.5 shrink-0" />
+                            <p className="text-sm text-warning-600">
                                 Les produits marqués comme "restants" seront automatiquement ajoutés au stock boutique de demain.
                             </p>
                         </div>
                     </div>
 
                     {/* Footer */}
-                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+                    <div className="px-6 py-4 bg-sand-50 border-t border-sand-200 flex justify-end gap-3">
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                            className="px-4 py-2 text-sand-700 bg-white border border-sand-300 rounded-lg hover:bg-sand-50 transition-colors font-medium"
                         >
                             Annuler
                         </button>
                         <button
                             onClick={handleConfirm}
-                            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
+                            className="px-6 py-2 bg-terracotta-600 text-white rounded-lg hover:bg-terracotta-700 transition-colors font-medium flex items-center gap-2"
                         >
                             <Icon icon="mdi:check-circle" className="text-lg" />
                             Valider la clôture

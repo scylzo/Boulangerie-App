@@ -323,7 +323,7 @@ export const PageBoutique: React.FC = () => {
                                 max={p.stockDebut}
                                 value={currentValue}
                                 onChange={(e) => setFastSaleValues(prev => ({ ...prev, [p.produitId]: parseInt(e.target.value) }))}
-                                className="w-full accent-purple-600 h-2 bg-sand-200 rounded-lg appearance-none cursor-pointer"
+                                className="w-full accent-terracotta-600 h-2 bg-sand-200 rounded-lg appearance-none cursor-pointer"
                               />
 
                               <div className="flex gap-2">
@@ -871,7 +871,7 @@ export const PageBoutique: React.FC = () => {
                                   {produit.produit?.categorie && (
                                     <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${produit.produit.categorie === 'boulangerie'
                                       ? 'bg-warning-50 text-warning-600 border-warning-100'
-                                      : 'bg-rose-50 text-rose-700 border-rose-200'
+                                      : 'bg-danger-50 text-danger-700 border-danger-100'
                                       }`}>
                                       {produit.produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
                                     </span>
@@ -1095,7 +1095,7 @@ export const PageBoutique: React.FC = () => {
                                     {produit.produit?.categorie && (
                                       <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${produit.produit.categorie === 'boulangerie'
                                         ? 'bg-warning-50 text-warning-600 border-warning-100'
-                                        : 'bg-rose-50 text-rose-700 border-rose-200'
+                                        : 'bg-danger-50 text-danger-700 border-danger-100'
                                         }`}>
                                         {produit.produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
                                       </span>
@@ -1328,7 +1328,7 @@ export const PageBoutique: React.FC = () => {
                                     {produit.produit?.categorie && (
                                       <span className={`text-[9px] uppercase font-bold tracking-wider w-fit px-1.5 py-0.5 rounded-full mt-1 border ${produit.produit.categorie === 'boulangerie'
                                         ? 'bg-warning-50 text-warning-600 border-warning-100'
-                                        : 'bg-rose-50 text-rose-700 border-rose-200'
+                                        : 'bg-danger-50 text-danger-700 border-danger-100'
                                         }`}>
                                         {produit.produit.categorie === 'boulangerie' ? 'Boulangerie' : 'Viennoiserie'}
                                       </span>

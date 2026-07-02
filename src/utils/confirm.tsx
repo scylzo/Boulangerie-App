@@ -20,14 +20,14 @@ const ConfirmToast: React.FC<ConfirmToastProps> = ({
   cancelText = 'Annuler'
 }) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-md">
+    <div className="bg-white border border-sand-200 rounded-lg shadow-lg p-4 max-w-md">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
-          <Icon icon="mdi:help-circle" className="text-orange-500 text-2xl" />
+          <Icon icon="mdi:help-circle" className="text-warning-500 text-2xl" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-          <div className="text-sm text-gray-600 whitespace-pre-line mb-4">
+          <h3 className="text-lg font-semibold text-sand-900 mb-2">{title}</h3>
+          <div className="text-sm text-sand-600 whitespace-pre-line mb-4">
             {message}
           </div>
           <div className="flex gap-2">
@@ -36,7 +36,7 @@ const ConfirmToast: React.FC<ConfirmToastProps> = ({
                 onConfirm();
                 toast.dismiss();
               }}
-              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              className="flex-1 bg-warning-500 hover:bg-warning-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
               {confirmText}
             </button>
@@ -45,7 +45,7 @@ const ConfirmToast: React.FC<ConfirmToastProps> = ({
                 onCancel?.();
                 toast.dismiss();
               }}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              className="flex-1 bg-sand-200 hover:bg-sand-300 text-sand-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
               {cancelText}
             </button>

@@ -119,7 +119,7 @@ export const QuantiteBoutiqueForm: React.FC<QuantiteBoutiqueFormProps> = ({
     return (
       <Card title="Ajouter quantité boutique">
         <div className="text-center py-8">
-          <p className="text-gray-500">Tous les produits ont déjà été ajoutés</p>
+          <p className="text-sand-500">Tous les produits ont déjà été ajoutés</p>
           <Button variant="outline" onClick={onCancel} className="mt-4">
             Fermer
           </Button>
@@ -144,13 +144,13 @@ export const QuantiteBoutiqueForm: React.FC<QuantiteBoutiqueFormProps> = ({
           />
 
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-2">Quantité Totale (Calculée)</label>
-            <div className="px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
+            <label className="text-sm font-medium text-sand-700 mb-2">Quantité Totale (Calculée)</label>
+            <div className="px-4 py-3 bg-sand-50 border border-sand-300 rounded-lg">
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-green-600">{quantiteTotale}</span>
-                <span className="text-sm text-gray-500">pièces</span>
+                <span className="text-2xl font-bold text-success-600">{quantiteTotale}</span>
+                <span className="text-sm text-sand-500">pièces</span>
                 {quantiteTotale === 0 && (
-                  <span className="text-xs text-gray-400 ml-2">→ Saisissez les répartitions ci-dessous</span>
+                  <span className="text-xs text-sand-400 ml-2">→ Saisissez les répartitions ci-dessous</span>
                 )}
               </div>
             </div>
@@ -158,22 +158,22 @@ export const QuantiteBoutiqueForm: React.FC<QuantiteBoutiqueFormProps> = ({
         </div>
 
         {/* Section Répartition par Cars */}
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+        <div className="bg-sand-50 rounded-xl p-4 border border-sand-200">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Icon icon="mdi:truck-delivery" className="text-lg text-blue-600" />
+            <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+              <Icon icon="mdi:truck-delivery" className="text-lg text-info-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Répartition par Cars</h3>
-              <p className="text-sm text-gray-500">Définissez comment répartir les quantités boutique entre les cars de livraison</p>
+              <h3 className="text-lg font-semibold text-sand-900">Répartition par Cars</h3>
+              <p className="text-sm text-sand-500">Définissez comment répartir les quantités boutique entre les cars de livraison</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="bg-white rounded-lg p-4 border border-sand-200">
               <div className="flex items-center gap-2 mb-2">
-                <Icon icon="mdi:truck" className="text-orange-600" />
-                <label className="text-sm font-semibold text-gray-700">Car 1 - Matin</label>
+                <Icon icon="mdi:truck" className="text-warning-600" />
+                <label className="text-sm font-semibold text-sand-700">Car 1 - Matin</label>
               </div>
               <Input
                 type="number"
@@ -185,10 +185,10 @@ export const QuantiteBoutiqueForm: React.FC<QuantiteBoutiqueFormProps> = ({
               />
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="bg-white rounded-lg p-4 border border-sand-200">
               <div className="flex items-center gap-2 mb-2">
-                <Icon icon="mdi:truck-outline" className="text-blue-600" />
-                <label className="text-sm font-semibold text-gray-700">Car 2 - Matin</label>
+                <Icon icon="mdi:truck-outline" className="text-info-600" />
+                <label className="text-sm font-semibold text-sand-700">Car 2 - Matin</label>
               </div>
               <Input
                 type="number"
@@ -200,10 +200,10 @@ export const QuantiteBoutiqueForm: React.FC<QuantiteBoutiqueFormProps> = ({
               />
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="bg-white rounded-lg p-4 border border-sand-200">
               <div className="flex items-center gap-2 mb-2">
-                <Icon icon="mdi:truck-fast" className="text-purple-600" />
-                <label className="text-sm font-semibold text-gray-700">Car - Soir</label>
+                <Icon icon="mdi:truck-fast" className="text-terracotta-600" />
+                <label className="text-sm font-semibold text-sand-700">Car - Soir</label>
               </div>
               <Input
                 type="number"
@@ -218,7 +218,7 @@ export const QuantiteBoutiqueForm: React.FC<QuantiteBoutiqueFormProps> = ({
 
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+        <div className="flex justify-end space-x-3 pt-4 border-t border-sand-200">
           <Button
             type="button"
             variant="outline"

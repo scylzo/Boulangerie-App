@@ -165,12 +165,12 @@ export const GestionUtilisateurs: React.FC = () => {
 
   const getRoleStyle = (role: string) => {
     switch (role) {
-      case 'admin': return { bg: 'bg-purple-100', text: 'text-purple-700', icon: 'mdi:shield-crown' };
-      case 'livreur': return { bg: 'bg-blue-100', text: 'text-blue-700', icon: 'mdi:truck-delivery' };
-      case 'boulanger': return { bg: 'bg-orange-100', text: 'text-orange-700', icon: 'mdi:chef-hat' };
-      case 'vendeuse': return { bg: 'bg-pink-100', text: 'text-pink-700', icon: 'mdi:store' };
-      case 'gestionnaire': return { bg: 'bg-emerald-100', text: 'text-emerald-700', icon: 'mdi:briefcase-check' };
-      default: return { bg: 'bg-gray-100', text: 'text-gray-700', icon: 'mdi:account' };
+      case 'admin': return { bg: 'bg-terracotta-100', text: 'text-terracotta-700', icon: 'mdi:shield-crown' };
+      case 'livreur': return { bg: 'bg-info-100', text: 'text-info-600', icon: 'mdi:truck-delivery' };
+      case 'boulanger': return { bg: 'bg-warning-100', text: 'text-warning-600', icon: 'mdi:chef-hat' };
+      case 'vendeuse': return { bg: 'bg-gold-100', text: 'text-gold-600', icon: 'mdi:store' };
+      case 'gestionnaire': return { bg: 'bg-success-100', text: 'text-success-700', icon: 'mdi:briefcase-check' };
+      default: return { bg: 'bg-sand-100', text: 'text-sand-700', icon: 'mdi:account' };
     }
   };
 
@@ -179,19 +179,19 @@ export const GestionUtilisateurs: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-sand-50">
       {/* Header Responsive */}
-      <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+      <div className="bg-white border-b border-sand-200 px-3 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 bg-terracotta-600 rounded-lg flex items-center justify-center shrink-0">
               <Icon icon="mdi:account-group-outline" className="text-lg sm:text-2xl text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">
+              <h1 className="text-base sm:text-xl font-semibold text-sand-900 truncate">
                 Gestion des Utilisateurs
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">
+              <p className="text-xs sm:text-sm text-sand-500 truncate">
                 Gestion des accès utilisateurs
               </p>
             </div>
@@ -199,7 +199,7 @@ export const GestionUtilisateurs: React.FC = () => {
 
           <button
             onClick={() => handleOpenModal()}
-            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-terracotta-600 hover:bg-terracotta-700 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto"
           >
             <Icon icon="mdi:account-plus" className="text-base sm:text-lg" />
             <span>Nouvel Utilisateur</span>
@@ -212,19 +212,19 @@ export const GestionUtilisateurs: React.FC = () => {
 
         {/* Liste des utilisateurs (Cards) */}
         {!users || users.length === 0 ? (
-          <div className="text-center py-12 sm:py-16 bg-white rounded-xl border border-gray-200 shadow-sm">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-              <Icon icon="mdi:account-off-outline" className="text-3xl sm:text-4xl text-gray-400" />
+          <div className="text-center py-12 sm:py-16 bg-white rounded-xl border border-sand-200 shadow-sm">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-sand-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <Icon icon="mdi:account-off-outline" className="text-3xl sm:text-4xl text-sand-400" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
+            <h3 className="text-lg sm:text-xl font-semibold text-sand-900 mb-2 sm:mb-3">
               Aucun utilisateur trouvé
             </h3>
-            <p className="text-sm sm:text-base text-gray-500 mb-6 sm:mb-8 max-w-md mx-auto px-4">
+            <p className="text-sm sm:text-base text-sand-500 mb-6 sm:mb-8 max-w-md mx-auto px-4">
               Commencez par ajouter des utilisateurs pour gérer les accès à l'application.
             </p>
             <button
               onClick={() => handleOpenModal()}
-              className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all shadow-sm font-medium"
+              className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-terracotta-600 hover:bg-terracotta-700 text-white rounded-lg transition-all shadow-sm font-medium"
             >
               <Icon icon="mdi:plus" className="text-lg" />
               Ajouter un utilisateur
@@ -235,18 +235,18 @@ export const GestionUtilisateurs: React.FC = () => {
             {users.map((user) => {
               const roleStyle = getRoleStyle(user.role);
               return (
-                <div key={user.id} className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 hover:border-indigo-300 hover:shadow-md transition-all duration-200 group flex flex-col">
+                <div key={user.id} className="bg-white border border-sand-200 rounded-xl p-4 sm:p-5 hover:border-terracotta-300 hover:shadow-md transition-all duration-200 group flex flex-col">
                   {/* Header Card */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3 w-full overflow-hidden">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center shrink-0 border border-gray-200 text-gray-600 font-bold text-sm sm:text-base">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-100 rounded-full flex items-center justify-center shrink-0 border border-sand-200 text-sand-600 font-bold text-sm sm:text-base">
                         {getInitials(user.nom, user.prenom)}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-sm sm:text-base text-gray-900 truncate" title={`${user.nom} ${user.prenom}`}>
+                        <h3 className="font-semibold text-sm sm:text-base text-sand-900 truncate" title={`${user.nom} ${user.prenom}`}>
                           {user.nom} {user.prenom}
                         </h3>
-                        <p className="text-xs text-gray-500 truncate" title={user.email}>
+                        <p className="text-xs text-sand-500 truncate" title={user.email}>
                           {user.email}
                         </p>
                       </div>
@@ -262,17 +262,17 @@ export const GestionUtilisateurs: React.FC = () => {
                   </div>
 
                   {/* Actions Footer */}
-                  <div className="mt-auto flex gap-2 pt-4 border-t border-gray-50">
+                  <div className="mt-auto flex gap-2 pt-4 border-t border-sand-50">
                     <button
                       onClick={() => handleOpenModal(user)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all text-xs sm:text-sm font-medium"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-terracotta-600 hover:text-terracotta-700 bg-terracotta-50 hover:bg-terracotta-100 rounded-lg transition-all text-xs sm:text-sm font-medium"
                     >
                       <Icon icon="mdi:pencil" className="text-base" />
                       <span>Modifier</span>
                     </button>
                     <button
                       onClick={() => handleDeleteUser(user.id, `${user.nom} ${user.prenom}`)}
-                      className="flex items-center justify-center px-3 py-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-all"
+                      className="flex items-center justify-center px-3 py-2 text-danger-600 hover:text-danger-700 bg-danger-50 hover:bg-danger-100 rounded-lg transition-all"
                       title="Supprimer"
                     >
                       <Icon icon="mdi:trash-can-outline" className="text-lg" />
@@ -295,39 +295,39 @@ export const GestionUtilisateurs: React.FC = () => {
         <div className="space-y-4 sm:space-y-5 py-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">Nom</label>
+              <label className="block text-sm font-medium text-sand-700">Nom</label>
               <input
                 type="text"
                 value={newUser.nom}
                 onChange={(e) => setNewUser({ ...newUser, nom: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
+                className="w-full px-3 py-2 border border-sand-300 rounded-lg focus:ring-terracotta-500 focus:border-terracotta-500 sm:text-sm transition-colors"
                 placeholder="Ex: Ndiaye"
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">Prénom</label>
+              <label className="block text-sm font-medium text-sand-700">Prénom</label>
               <input
                 type="text"
                 value={newUser.prenom}
                 onChange={(e) => setNewUser({ ...newUser, prenom: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
+                className="w-full px-3 py-2 border border-sand-300 rounded-lg focus:ring-terracotta-500 focus:border-terracotta-500 sm:text-sm transition-colors"
                 placeholder="Ex: Moussa"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-sand-700">Email</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Icon icon="mdi:email-outline" className="text-gray-400" />
+                <Icon icon="mdi:email-outline" className="text-sand-400" />
               </div>
               <input
                 type="email"
                 value={newUser.email}
                 onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                 disabled={!!editingUser}
-                className={`w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors ${editingUser ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
+                className={`w-full pl-10 px-3 py-2 border border-sand-300 rounded-lg focus:ring-terracotta-500 focus:border-terracotta-500 sm:text-sm transition-colors ${editingUser ? "bg-sand-100 text-sand-500 cursor-not-allowed" : ""}`}
                 placeholder="Ex: nom@boulangerie.sn"
               />
             </div>
@@ -335,22 +335,22 @@ export const GestionUtilisateurs: React.FC = () => {
 
           {!editingUser && (
             <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
+              <label className="block text-sm font-medium text-sand-700">Mot de passe</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Icon icon="mdi:lock-outline" className="text-gray-400" />
+                  <Icon icon="mdi:lock-outline" className="text-sand-400" />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={newUser.password}
                   onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                  className="w-full pl-10 pr-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
+                  className="w-full pl-10 pr-10 px-3 py-2 border border-sand-300 rounded-lg focus:ring-terracotta-500 focus:border-terracotta-500 sm:text-sm transition-colors"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-sand-400 hover:text-sand-600 focus:outline-none"
                   tabIndex={-1}
                 >
                   <Icon icon={showPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="text-xl" />
@@ -360,15 +360,15 @@ export const GestionUtilisateurs: React.FC = () => {
           )}
 
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">Rôle</label>
+            <label className="block text-sm font-medium text-sand-700">Rôle</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Icon icon="mdi:badge-account-outline" className="text-gray-400" />
+                <Icon icon="mdi:badge-account-outline" className="text-sand-400" />
               </div>
               <select
                 value={newUser.role}
                 onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors appearance-none bg-white"
+                className="w-full pl-10 px-3 py-2 border border-sand-300 rounded-lg focus:ring-terracotta-500 focus:border-terracotta-500 sm:text-sm transition-colors appearance-none bg-white"
               >
                 <option value="livreur">Livreur</option>
                 <option value="vendeuse">Vendeuse</option>
@@ -381,15 +381,15 @@ export const GestionUtilisateurs: React.FC = () => {
 
           {/* SECTION PERMISSIONS MODULES */}
           <div className="space-y-3 pt-2">
-            <div className="flex items-center gap-2 pb-1 border-b border-gray-100">
-              <Icon icon="mdi:shield-lock-outline" className="text-indigo-600" />
-              <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Modules accessibles</label>
+            <div className="flex items-center gap-2 pb-1 border-b border-sand-100">
+              <Icon icon="mdi:shield-lock-outline" className="text-terracotta-600" />
+              <label className="text-sm font-bold text-sand-700 uppercase tracking-wider">Modules accessibles</label>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 bg-gray-50 p-4 rounded-xl border border-gray-100 max-h-60 overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 bg-sand-50 p-4 rounded-xl border border-sand-100 max-h-60 overflow-y-auto">
               {newUser.role === 'admin' ? (
                 <div className="col-span-full py-4 text-center">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-100 text-terracotta-700 rounded-lg text-sm font-bold">
                     <Icon icon="mdi:shield-check" className="text-lg" />
                     L'administrateur a accès à TOUS les modules par défaut
                   </div>
@@ -409,11 +409,11 @@ export const GestionUtilisateurs: React.FC = () => {
                             : prev.permissions.filter(id => id !== module.id)
                         }));
                       }}
-                      className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-all cursor-pointer"
+                      className="w-5 h-5 text-terracotta-600 border-sand-300 rounded focus:ring-terracotta-500 transition-all cursor-pointer"
                     />
                     <div className="flex items-center gap-2">
-                      <Icon icon={module.icon} className={`text-lg ${newUser.permissions.includes(module.id) ? 'text-indigo-600' : 'text-gray-400'} group-hover:scale-110 transition-transform`} />
-                      <span className={`text-sm font-medium ${newUser.permissions.includes(module.id) ? 'text-gray-900' : 'text-gray-500'}`}>
+                      <Icon icon={module.icon} className={`text-lg ${newUser.permissions.includes(module.id) ? 'text-terracotta-600' : 'text-sand-400'} group-hover:scale-110 transition-transform`} />
+                      <span className={`text-sm font-medium ${newUser.permissions.includes(module.id) ? 'text-sand-900' : 'text-sand-500'}`}>
                         {module.name}
                       </span>
                     </div>
@@ -426,11 +426,11 @@ export const GestionUtilisateurs: React.FC = () => {
           <div className="flex justify-end pt-4 gap-3">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-sand-300 rounded-lg text-sm font-medium text-sand-700 hover:bg-sand-50 transition-colors"
             >
               Annuler
             </button>
-            <Button onClick={handleSaveUser} isLoading={loading} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors">
+            <Button onClick={handleSaveUser} isLoading={loading} className="px-4 py-2 bg-terracotta-600 hover:bg-terracotta-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors">
               {editingUser ? "Enregistrer" : "Créer l'utilisateur"}
             </Button>
           </div>

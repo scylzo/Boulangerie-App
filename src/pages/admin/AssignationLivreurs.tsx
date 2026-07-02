@@ -4,19 +4,19 @@ import { AssignationClientLivreur } from '../../components/shared/AssignationCli
 
 export const AssignationLivreurs: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-sand-50">
       {/* Header moderne type Odoo */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-sand-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-info-600 to-terracotta-600 rounded-lg flex items-center justify-center">
               <Icon icon="mdi:truck-fast" className="text-2xl text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-xl font-semibold text-sand-900">
                 Assignation des Livreurs
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-sand-500">
                 Gérez l'assignation des clients aux livreurs pour optimiser les livraisons
               </p>
             </div>

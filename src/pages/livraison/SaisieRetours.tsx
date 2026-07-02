@@ -317,19 +317,19 @@ export const SaisieRetours: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-sand-50 overflow-x-hidden">
       {/* Header moderne */}
-      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+      <div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 bg-sand-900 rounded-lg flex items-center justify-center shrink-0">
               <Icon icon="mdi:keyboard-return" className="text-xl text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
+              <h1 className="text-lg sm:text-xl font-semibold text-sand-900 truncate">
                 Saisie des Retours Clients
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">
+              <p className="text-xs sm:text-sm text-sand-500 truncate">
                 <span className="hidden sm:inline">Enregistrez les invendus de chaque client pour la facturation</span>
                 <span className="sm:hidden">Enregistrement des invendus</span>
               </p>
@@ -360,7 +360,7 @@ export const SaisieRetours: React.FC = () => {
                   toast.success(`✅ ${clientIds.length} clients marqués sans retour !`);
                 }
               }}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-sand-900 hover:bg-sand-800 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
               disabled={isLoading || clientsAvecDonnees.every(c => clientARetoursCompletes(c.id!))}
             >
               <Icon icon="mdi:check-all" className="text-base sm:text-lg" />
@@ -373,12 +373,12 @@ export const SaisieRetours: React.FC = () => {
         {/* Barre de recherche et filtres */}
         <div className="flex flex-col md:flex-row gap-3 sm:gap-4 mt-3 sm:mt-4">
           {/* Filtres */}
-          <div className="flex items-center bg-gray-100 rounded-lg p-1 shrink-0">
+          <div className="flex items-center bg-sand-100 rounded-lg p-1 shrink-0">
             <button
               onClick={() => setFilterStatus('all')}
               className={`px-2 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filterStatus === 'all'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-sand-900 shadow-sm'
+                : 'text-sand-500 hover:text-sand-700'
                 }`}
             >
               Tous
@@ -386,8 +386,8 @@ export const SaisieRetours: React.FC = () => {
             <button
               onClick={() => setFilterStatus('with_returns')}
               className={`px-2 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filterStatus === 'with_returns'
-                ? 'bg-white text-red-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-danger-600 shadow-sm'
+                : 'text-sand-500 hover:text-sand-700'
                 }`}
             >
               Avec retours
@@ -395,8 +395,8 @@ export const SaisieRetours: React.FC = () => {
             <button
               onClick={() => setFilterStatus('without_returns')}
               className={`px-2 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filterStatus === 'without_returns'
-                ? 'bg-white text-emerald-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-success-600 shadow-sm'
+                : 'text-sand-500 hover:text-sand-700'
                 }`}
             >
               Sans retour
@@ -405,13 +405,13 @@ export const SaisieRetours: React.FC = () => {
 
           {/* Barre de recherche */}
           <div className="flex-1 relative">
-            <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base sm:text-lg" />
+            <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-sand-400 text-base sm:text-lg" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Rechercher un client..."
-              className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-xs sm:text-sm"
+              className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 bg-sand-50 border border-sand-300 rounded-lg focus:ring-2 focus:ring-sand-900 focus:border-transparent text-xs sm:text-sm"
             />
           </div>
         </div>
@@ -421,35 +421,35 @@ export const SaisieRetours: React.FC = () => {
       <div className="max-w-7xl mx-auto p-6 space-y-6">
 
         {/* Widget de sélection de date moderne et visible */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+        <div className="bg-white rounded-xl border border-sand-200 shadow-sm p-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             {/* Sélecteur de date à gauche */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <Icon icon="mdi:calendar" className="text-xl text-red-600" />
+              <div className="w-10 h-10 bg-danger-100 rounded-lg flex items-center justify-center">
+                <Icon icon="mdi:calendar" className="text-xl text-danger-600" />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Date de livraison</h2>
+                <h2 className="text-sm font-semibold text-sand-500 uppercase tracking-wider">Date de livraison</h2>
                 <input
                   type="date"
                   value={dateSelectionnee}
                   onChange={(e) => setDateSelectionnee(e.target.value)}
-                  className="mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 font-medium shadow-sm hover:border-gray-400 transition-all cursor-pointer"
+                  className="mt-1 px-4 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-danger-500 focus:border-transparent text-sand-900 font-medium shadow-sm hover:border-sand-400 transition-all cursor-pointer"
                 />
               </div>
             </div>
 
             {/* Affichage GROS de la date à droite */}
-            <div className="flex-1 max-w-lg bg-gradient-to-r from-red-50 to-rose-50 border border-red-100 rounded-xl p-4 shadow-sm">
+            <div className="flex-1 max-w-lg bg-gradient-to-r from-danger-50 to-danger-50 border border-danger-100 rounded-xl p-4 shadow-sm">
               <div className="flex items-center gap-4">
-                <div className="hidden sm:flex w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl items-center justify-center text-white shadow-md transform rotate-3">
+                <div className="hidden sm:flex w-12 h-12 bg-gradient-to-br from-danger-500 to-danger-600 rounded-xl items-center justify-center text-white shadow-md transform rotate-3">
                   <Icon icon="mdi:calendar-check" className="text-2xl" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-red-600 uppercase tracking-widest mb-1">
+                  <div className="text-xs font-bold text-danger-600 uppercase tracking-widest mb-1">
                     Retours du
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-gray-800 capitalize leading-tight">
+                  <div className="text-xl sm:text-2xl font-black text-sand-800 capitalize leading-tight">
                     {new Date(dateSelectionnee).toLocaleDateString('fr-FR', {
                       weekday: 'long',
                       day: 'numeric',
@@ -465,19 +465,19 @@ export const SaisieRetours: React.FC = () => {
 
         {/* Liste des clients avec livraisons */}
         {clientsAvecDonnees.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
             <div className="p-6">
               <div className="text-center py-12">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Icon icon="mdi:package-variant-closed" className="text-4xl text-gray-400" />
+                <div className="w-20 h-20 bg-sand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Icon icon="mdi:package-variant-closed" className="text-4xl text-sand-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-sand-900 mb-2">
                   Aucune livraison prévue
                 </h3>
-                <p className="text-gray-500 mb-6">
+                <p className="text-sand-500 mb-6">
                   Aucune commande client pour cette date
                 </p>
-                <button className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md">
+                <button className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-info-600 to-terracotta-600 text-white rounded-lg hover:from-info-600 hover:to-terracotta-700 transition-all shadow-md">
                   <Icon icon="mdi:plus" className="text-lg" />
                   <span className="font-medium">Créer une commande</span>
                 </button>
@@ -488,88 +488,88 @@ export const SaisieRetours: React.FC = () => {
           <div className="space-y-4 sm:space-y-6">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                    <Icon icon="mdi:account-group" className="text-lg sm:text-xl text-gray-600" />
+                  <div className="w-10 h-10 bg-sand-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon="mdi:account-group" className="text-lg sm:text-xl text-sand-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
                       {clientsAvecDonnees.length}
                     </div>
-                    <div className="text-gray-500 text-xs">clients</div>
+                    <div className="text-sand-500 text-xs">clients</div>
                   </div>
                 </div>
-                <div className="text-sm sm:text-base font-semibold text-gray-700 truncate">Clients Livrés</div>
+                <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Clients Livrés</div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                    <Icon icon="mdi:package-variant" className="text-lg sm:text-xl text-blue-600" />
+                  <div className="w-10 h-10 bg-info-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon="mdi:package-variant" className="text-lg sm:text-xl text-info-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
                       {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.quantiteLivree, 0), 0
                       )}
                     </div>
-                    <div className="text-gray-500 text-xs">pièces</div>
+                    <div className="text-sand-500 text-xs">pièces</div>
                   </div>
                 </div>
-                <div className="text-sm sm:text-base font-semibold text-gray-700 truncate">Total Livré</div>
+                <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Total Livré</div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
-                    <Icon icon="mdi:package-down" className="text-lg sm:text-xl text-red-600" />
+                  <div className="w-10 h-10 bg-danger-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon="mdi:package-down" className="text-lg sm:text-xl text-danger-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
                       {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.invendus, 0), 0
                       )}
                     </div>
-                    <div className="text-gray-500 text-xs">pièces</div>
+                    <div className="text-sand-500 text-xs">pièces</div>
                   </div>
                 </div>
-                <div className="text-sm sm:text-base font-semibold text-gray-700 truncate">Total Invendus</div>
+                <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Total Invendus</div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
-                    <Icon icon="mdi:chart-line" className="text-lg sm:text-xl text-emerald-600" />
+                  <div className="w-10 h-10 bg-success-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Icon icon="mdi:chart-line" className="text-lg sm:text-xl text-success-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
                       {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.vendu, 0), 0
                       )}
                     </div>
-                    <div className="text-gray-500 text-xs">pièces</div>
+                    <div className="text-sand-500 text-xs">pièces</div>
                   </div>
                 </div>
-                <div className="text-sm sm:text-base font-semibold text-gray-700 truncate">Total Vendu</div>
+                <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Total Vendu</div>
               </div>
             </div>
 
             {/* Liste des clients */}
             {clientsAvecDonnees.map((client) => (
-              <div key={client.id} className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-gray-100">
+              <div key={client.id} className="bg-white rounded-xl border border-sand-200 shadow-sm">
+                <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-sand-100">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className={`w-8 h-8 ${clientARetoursCompletes(client.id!) ? 'bg-emerald-100' : 'bg-orange-100'} rounded-lg flex items-center justify-center shrink-0`}>
+                      <div className={`w-8 h-8 ${clientARetoursCompletes(client.id!) ? 'bg-success-100' : 'bg-warning-100'} rounded-lg flex items-center justify-center shrink-0`}>
                         <Icon
                           icon={clientARetoursCompletes(client.id!) ? "mdi:check" : "mdi:account"}
-                          className={`text-base sm:text-lg ${clientARetoursCompletes(client.id!) ? 'text-emerald-600' : 'text-orange-600'}`}
+                          className={`text-base sm:text-lg ${clientARetoursCompletes(client.id!) ? 'text-success-600' : 'text-warning-600'}`}
                         />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{client.nom}</h2>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-gray-500">
+                        <h2 className="text-base sm:text-lg font-semibold text-sand-900 truncate">{client.nom}</h2>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-sand-500">
                           <div className="flex items-center gap-1 min-w-0">
                             <Icon icon="mdi:map-marker" className="text-xs sm:text-sm shrink-0" />
                             <span className="truncate">{client.adresse}</span>
@@ -586,14 +586,14 @@ export const SaisieRetours: React.FC = () => {
 
                     {clientARetoursCompletes(client.id!) ? (
                       <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                        <div className="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-2 sm:px-3 py-1 rounded-full">
+                        <div className="flex items-center gap-2 bg-success-100 text-success-700 px-2 sm:px-3 py-1 rounded-full">
                           <Icon icon="mdi:check-circle" className="text-xs sm:text-sm" />
                           <span className="text-xs sm:text-sm font-medium">Retours finalisés</span>
                         </div>
                         <button
                           onClick={() => handleAnnulerValidation(client.id!)}
                           disabled={isLoading}
-                          className="flex items-center gap-1.5 px-2 sm:px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all text-xs sm:text-sm"
+                          className="flex items-center gap-1.5 px-2 sm:px-3 py-1 bg-sand-100 hover:bg-sand-200 text-sand-600 rounded-lg transition-all text-xs sm:text-sm"
                           title="Modifier les retours"
                         >
                           <Icon icon="mdi:pencil" className="text-xs sm:text-sm" />
@@ -602,7 +602,7 @@ export const SaisieRetours: React.FC = () => {
                         <button
                           onClick={() => handleSupprimerRetour(client.id!)}
                           disabled={isLoading}
-                          className="flex items-center gap-1.5 px-2 sm:px-3 py-1 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all text-xs sm:text-sm"
+                          className="flex items-center gap-1.5 px-2 sm:px-3 py-1 bg-danger-100 hover:bg-danger-100 text-danger-600 rounded-lg transition-all text-xs sm:text-sm"
                           title="Supprimer le retour"
                         >
                           <Icon icon="mdi:trash-can" className="text-xs sm:text-sm" />
@@ -613,7 +613,7 @@ export const SaisieRetours: React.FC = () => {
                         <button
                           onClick={() => handleEnregistrerRetours(client.id!)}
                           disabled={isLoading}
-                          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all disabled:opacity-50 shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-success-600 hover:bg-success-700 text-white rounded-lg transition-all disabled:opacity-50 shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
                         >
                           <Icon icon="mdi:content-save-check" className="text-sm" />
                           <span>Enregistrer</span>
@@ -621,7 +621,7 @@ export const SaisieRetours: React.FC = () => {
                         <button
                           onClick={() => handleAucunRetour(client.id!)}
                           disabled={isLoading}
-                          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all disabled:opacity-50 shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-sand-900 hover:bg-sand-800 text-white rounded-lg transition-all disabled:opacity-50 shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
                         >
                           <Icon icon="mdi:check-bold" className="text-sm" />
                           <span>Aucun retour</span>
@@ -630,7 +630,7 @@ export const SaisieRetours: React.FC = () => {
                           <button
                             onClick={() => handleSupprimerRetour(client.id!)}
                             disabled={isLoading}
-                            className="flex items-center gap-1.5 px-2 sm:px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all text-xs sm:text-sm shadow-sm"
+                            className="flex items-center gap-1.5 px-2 sm:px-3 py-2 bg-danger-100 hover:bg-danger-100 text-danger-600 rounded-lg transition-all text-xs sm:text-sm shadow-sm"
                             title="Supprimer le retour"
                           >
                             <Icon icon="mdi:trash-can" className="text-base sm:text-lg" />
@@ -644,10 +644,10 @@ export const SaisieRetours: React.FC = () => {
                 <div className="p-6">
                   {/* Grille des produits */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                      <Icon icon="mdi:view-grid" className="text-gray-500" />
-                      <h3 className="text-lg font-semibold text-gray-800">Produits livrés</h3>
-                      <span className="ml-auto text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">
+                    <div className="flex items-center gap-2 pb-2 border-b border-sand-200">
+                      <Icon icon="mdi:view-grid" className="text-sand-500" />
+                      <h3 className="text-lg font-semibold text-sand-800">Produits livrés</h3>
+                      <span className="ml-auto text-sm font-medium text-sand-500 bg-sand-100 px-2 py-1 rounded-lg">
                         {client.produits.length} produit{client.produits.length > 1 ? 's' : ''}
                       </span>
                     </div>
@@ -656,20 +656,20 @@ export const SaisieRetours: React.FC = () => {
                       {client.produits.map((produitLivraison) => (
                         <div
                           key={produitLivraison.produitId}
-                          className={`bg-linear-to-br ${produitLivraison.invendus > 0 ? 'from-red-50 to-rose-50 border-red-200' : 'from-green-50 to-emerald-50 border-green-200'} border rounded-xl p-4 hover:shadow-md transition-all`}
+                          className={`bg-linear-to-br ${produitLivraison.invendus > 0 ? 'from-danger-50 to-danger-50 border-danger-100' : 'from-success-50 to-success-50 border-success-100'} border rounded-xl p-4 hover:shadow-md transition-all`}
                         >
                           <div className="flex items-center gap-3 mb-4">
-                            <div className={`w-12 h-12 bg-linear-to-br ${produitLivraison.invendus > 0 ? 'from-red-500 to-rose-500' : 'from-green-500 to-emerald-500'} rounded-xl flex items-center justify-center shadow-md`}>
+                            <div className={`w-12 h-12 bg-linear-to-br ${produitLivraison.invendus > 0 ? 'from-danger-500 to-danger-500' : 'from-success-500 to-success-500'} rounded-xl flex items-center justify-center shadow-md`}>
                               <Icon
                                 icon={getProductIcon(produitLivraison.produit?.nom || '')}
                                 className="text-xl text-white"
                               />
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 mb-1">
+                              <h4 className="font-semibold text-sand-900 mb-1">
                                 {produitLivraison.produit?.nom || 'Produit inconnu'}
                               </h4>
-                              <div className="text-sm text-gray-600">
+                              <div className="text-sm text-sand-600">
                                 Livré: <span className="font-bold">{produitLivraison.quantiteLivree} pièces</span>
                               </div>
                             </div>
@@ -677,7 +677,7 @@ export const SaisieRetours: React.FC = () => {
 
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Invendus retour:</label>
+                              <label className="block text-sm font-medium text-sand-700 mb-1">Invendus retour:</label>
                               <input
                                 type="number"
                                 min="0"
@@ -695,22 +695,22 @@ export const SaisieRetours: React.FC = () => {
                                 }
                                 onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                 disabled={clientARetoursCompletes(client.id!)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                className="w-full px-3 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-danger-500 focus:border-transparent disabled:bg-sand-100 disabled:text-sand-500 disabled:cursor-not-allowed"
                                 placeholder="0"
                               />
                             </div>
 
                             <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3">
                               <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Vendu final:</span>
-                                <span className={`text-lg font-bold ${produitLivraison.vendu > 0 ? 'text-green-600' : 'text-gray-600'}`}>
+                                <span className="text-sm text-sand-600">Vendu final:</span>
+                                <span className={`text-lg font-bold ${produitLivraison.vendu > 0 ? 'text-success-600' : 'text-sand-600'}`}>
                                   {produitLivraison.vendu} pièces
                                 </span>
                               </div>
                               {produitLivraison.invendus > 0 && (
                                 <div className="mt-2 flex items-center gap-2">
-                                  <Icon icon="mdi:package-variant-closed" className="text-red-500 text-sm" />
-                                  <span className="text-xs text-red-600 font-medium">
+                                  <Icon icon="mdi:package-variant-closed" className="text-danger-500 text-sm" />
+                                  <span className="text-xs text-danger-600 font-medium">
                                     {produitLivraison.invendus} invendu{produitLivraison.invendus > 1 ? 's' : ''}
                                   </span>
                                 </div>
@@ -722,29 +722,29 @@ export const SaisieRetours: React.FC = () => {
                     </div>
 
                     {/* Résumé client */}
-                    <div className="bg-gray-50 rounded-xl p-6 mt-6">
+                    <div className="bg-sand-50 rounded-xl p-6 mt-6">
                       <div className="flex items-center gap-2 mb-4">
-                        <Icon icon="mdi:chart-box" className="text-gray-600" />
-                        <h4 className="font-semibold text-gray-800">Résumé client</h4>
+                        <Icon icon="mdi:chart-box" className="text-sand-600" />
+                        <h4 className="font-semibold text-sand-800">Résumé client</h4>
                       </div>
                       <div className="grid grid-cols-3 gap-4">
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600">
+                          <div className="text-2xl font-bold text-info-600">
                             {client.produits.reduce((sum, p) => sum + p.quantiteLivree, 0)}
                           </div>
-                          <div className="text-sm text-gray-600">Total livré</div>
+                          <div className="text-sm text-sand-600">Total livré</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-red-600">
+                          <div className="text-2xl font-bold text-danger-600">
                             {client.produits.reduce((sum, p) => sum + p.invendus, 0)}
                           </div>
-                          <div className="text-sm text-gray-600">Invendus</div>
+                          <div className="text-sm text-sand-600">Invendus</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-green-600">
+                          <div className="text-2xl font-bold text-success-600">
                             {client.produits.reduce((sum, p) => sum + p.vendu, 0)}
                           </div>
-                          <div className="text-sm text-gray-600">Vendu</div>
+                          <div className="text-sm text-sand-600">Vendu</div>
                         </div>
                       </div>
                     </div>

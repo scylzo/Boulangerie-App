@@ -203,59 +203,59 @@ export const StockDeclaration: React.FC = () => {
     if (isLoading && lignes.length === 0) {
         return (
             <div className="flex items-center justify-center h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terracotta-600"></div>
             </div>
         );
     }
 
     return (
-        <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+        <div className="p-6 space-y-6 bg-sand-50 min-h-screen">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center space-x-4">
                     <Link
                         to="/stocks"
-                        className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200"
+                        className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-sand-200"
                     >
-                        <ChevronLeft className="w-6 h-6 text-gray-600" />
+                        <ChevronLeft className="w-6 h-6 text-sand-600" />
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Saisie des consommations</h1>
+                        <h1 className="text-2xl font-bold text-sand-900">Saisie des consommations</h1>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                     <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg border shadow-sm">
-                        <Calendar className="w-5 h-5 text-gray-500" />
+                        <Calendar className="w-5 h-5 text-sand-500" />
                         <input
                             type="date"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
-                            className="border-none focus:ring-0 text-gray-700 font-medium bg-transparent outline-none"
+                            className="border-none focus:ring-0 text-sand-700 font-medium bg-transparent outline-none"
                         />
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[calc(100vh-140px)]">
+            <div className="bg-white rounded-xl shadow-sm border border-sand-200 overflow-hidden flex flex-col h-[calc(100vh-140px)]">
                 {/* Toolbar */}
-                <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50/50">
+                <div className="p-4 border-b border-sand-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-sand-50/50">
                     <div className="relative w-full sm:max-w-md">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Package className="h-5 w-5 text-gray-400" />
+                            <Package className="h-5 w-5 text-sand-400" />
                         </div>
                         <input
                             type="text"
                             placeholder="Ex: Farine, Sucre, Levure..."
-                            className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2"
+                            className="pl-10 block w-full rounded-md border-sand-300 shadow-sm focus:border-terracotta-500 focus:ring-terracotta-500 sm:text-sm py-2"
                             value={filterText}
                             onChange={(e) => setFilterText(e.target.value)}
                         />
                     </div>
 
-                    <div className="flex items-center gap-4 text-sm text-gray-600 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
-                        <span className={`font-semibold ${totalArticlesSaisis > 0 ? 'text-indigo-600' : 'text-gray-400'}`}>
+                    <div className="flex items-center gap-4 text-sm text-sand-600 bg-white px-3 py-1.5 rounded-full border border-sand-200 shadow-sm">
+                        <span className={`font-semibold ${totalArticlesSaisis > 0 ? 'text-terracotta-600' : 'text-sand-400'}`}>
                             {totalArticlesSaisis}
                         </span>
                         <span>article(s) à déclarer</span>
@@ -264,24 +264,24 @@ export const StockDeclaration: React.FC = () => {
 
                 {/* Table Scrollable */}
                 <div className="flex-1 overflow-auto">
-                    <table className="min-w-full divide-y divide-gray-200 relative">
-                        <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
+                    <table className="min-w-full divide-y divide-sand-200 relative">
+                        <thead className="bg-sand-50 sticky top-0 z-10 shadow-sm">
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-sand-500 uppercase tracking-wider w-1/3">
                                     Matière Première
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-sand-500 uppercase tracking-wider">
                                     Stock Actuel
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-indigo-600 uppercase tracking-wider w-64">
+                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-terracotta-600 uppercase tracking-wider w-64">
                                     Quantité Utilisée
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-sand-500 uppercase tracking-wider w-40">
                                     Unité & Conversion
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-white divide-y divide-sand-200">
                             {lignesFiltrees.map((ligne) => {
                                 const isPackaged = ligne.inputUnit !== ligne.unite;
                                 const showPackageOptions = ['kg', 'g'].includes(ligne.unite);
@@ -296,17 +296,17 @@ export const StockDeclaration: React.FC = () => {
                                 const effectiveFactor = resolveFactor(ligne);
 
                                 return (
-                                    <tr key={ligne.matiereId} className={`hover:bg-gray-50 transition-colors ${ligne.qteSaisie ? 'bg-indigo-50/30' : ''}`}>
+                                    <tr key={ligne.matiereId} className={`hover:bg-sand-50 transition-colors ${ligne.qteSaisie ? 'bg-terracotta-50/30' : ''}`}>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">{ligne.nom}</div>
+                                            <div className="text-sm font-medium text-sand-900">{ligne.nom}</div>
                                             {isPackaged && (
-                                                <div className="text-xs text-indigo-600 mt-1 font-medium">
+                                                <div className="text-xs text-terracotta-600 mt-1 font-medium">
                                                     ~ {(parseFloat(ligne.qteSaisie || '0') * effectiveFactor).toLocaleString()} {ligne.unite}
                                                 </div>
                                             )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                                            <span className={`inline-flex px-2 py-1 text-xs rounded-full ${ligne.stockActuel <= 0 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
+                                            <span className={`inline-flex px-2 py-1 text-xs rounded-full ${ligne.stockActuel <= 0 ? 'bg-danger-100 text-danger-700' : 'bg-sand-100 text-sand-800'}`}>
                                                 {ligne.stockActuel.toLocaleString()} {ligne.unite}
                                             </span>
                                         </td>
@@ -320,17 +320,17 @@ export const StockDeclaration: React.FC = () => {
                                                 onChange={(e) => handleQteChange(ligne.matiereId, e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                                 className={`
-                                                block w-32 ml-auto rounded-md shadow-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-center font-bold h-10
-                                                ${ligne.qteSaisie ? 'border-indigo-300 bg-white text-indigo-700' : 'bg-gray-50'}
+                                                block w-32 ml-auto rounded-md shadow-sm border-sand-300 focus:border-terracotta-500 focus:ring-terracotta-500 sm:text-sm text-center font-bold h-10
+                                                ${ligne.qteSaisie ? 'border-terracotta-300 bg-white text-terracotta-700' : 'bg-sand-50'}
                                             `}
                                             />
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-sand-500">
                                             <div className="flex flex-col gap-2">
                                                 <select
                                                     value={ligne.inputUnit}
                                                     onChange={(e) => handleUnitChange(ligne.matiereId, e.target.value)}
-                                                    className="block w-full text-xs rounded-md border-gray-300 py-1.5 focus:border-indigo-500 focus:ring-indigo-500"
+                                                    className="block w-full text-xs rounded-md border-sand-300 py-1.5 focus:border-terracotta-500 focus:ring-terracotta-500"
                                                 >
                                                     <option value={ligne.unite}>{ligne.unite} (Base)</option>
                                                     {showPackageOptions && (
@@ -343,15 +343,15 @@ export const StockDeclaration: React.FC = () => {
                                                 </select>
 
                                                 {isPackaged && (
-                                                    <div className="flex items-center gap-1 bg-gray-100 rounded px-1.5 py-1">
-                                                        <span className="text-xs text-gray-500">x</span>
+                                                    <div className="flex items-center gap-1 bg-sand-100 rounded px-1.5 py-1">
+                                                        <span className="text-xs text-sand-500">x</span>
                                                         <input
                                                             type="number"
                                                             value={ligne.weightFactor}
                                                             onChange={(e) => handleFactorChange(ligne.matiereId, e.target.value)}
-                                                            className="block w-12 text-xs border-none bg-transparent p-0 focus:ring-0 font-medium text-gray-700 text-center"
+                                                            className="block w-12 text-xs border-none bg-transparent p-0 focus:ring-0 font-medium text-sand-700 text-center"
                                                         />
-                                                        <span className="text-xs text-gray-500">{ligne.unite}</span>
+                                                        <span className="text-xs text-sand-500">{ligne.unite}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -361,7 +361,7 @@ export const StockDeclaration: React.FC = () => {
                             })}
                             {lignesFiltrees.length === 0 && (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={4} className="px-6 py-12 text-center text-sand-500">
                                         Aucune matière trouvée
                                     </td>
                                 </tr>
@@ -371,15 +371,15 @@ export const StockDeclaration: React.FC = () => {
                 </div>
 
                 {/* Footer Action */}
-                <div className="p-4 bg-white border-t border-gray-200 flex justify-end sticky bottom-0 z-20">
+                <div className="p-4 bg-white border-t border-sand-200 flex justify-end sticky bottom-0 z-20">
                     <button
                         onClick={handleValider}
                         disabled={isSubmitting || totalArticlesSaisis === 0}
                         className={`
                             flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-lg shadow-md transition-all
                             ${isSubmitting || totalArticlesSaisis === 0
-                                ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                                : 'bg-indigo-600 hover:bg-indigo-700 text-white hover:shadow-lg transform hover:-translate-y-0.5'
+                                ? 'bg-sand-300 cursor-not-allowed text-sand-500'
+                                : 'bg-terracotta-600 hover:bg-terracotta-700 text-white hover:shadow-lg transform hover:-translate-y-0.5'
                             }
                         `}
                     >

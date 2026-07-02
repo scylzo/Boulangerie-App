@@ -128,14 +128,14 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <h2 className="text-base sm:text-lg font-bold text-gray-800">Matières Premières</h2>
+        <h2 className="text-base sm:text-lg font-bold text-sand-800">Matières Premières</h2>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <button
             onClick={() => useStockStore.getState().reparerHistoriqueStock()}
-            className="flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg transition-colors text-xs sm:text-sm font-semibold border border-slate-300"
+            className="flex items-center justify-center space-x-2 bg-sand-100 hover:bg-sand-200 text-sand-700 px-3 py-2 rounded-lg transition-colors text-xs sm:text-sm font-semibold border border-sand-300"
             title="Recalcule le stock actuel et le Prix Moyen Pondéré de toutes les matières en rejouant l'historique des mouvements"
           >
-            <AlertTriangle size={14} className="sm:w-4 sm:h-4 text-orange-500" />
+            <AlertTriangle size={14} className="sm:w-4 sm:h-4 text-warning-500" />
             <span>Réparer PMP</span>
           </button>
           <button
@@ -144,7 +144,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
               setFormData({ nom: '', unite: 'kg', stockMinimum: '', stockActuel: '', dateCreation: new Date().toISOString().split('T')[0] });
               setShowForm(!showForm);
             }}
-            className="flex items-center justify-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex-1 sm:flex-none text-sm sm:text-base"
+            className="flex items-center justify-center space-x-2 bg-warning-600 hover:bg-warning-600 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex-1 sm:flex-none text-sm sm:text-base"
           >
             <Plus size={18} className="sm:w-5 sm:h-5" />
             <span>Nouvelle Matière</span>
@@ -161,31 +161,31 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+              <label className="block text-sm font-medium text-sand-700 mb-1">Nom</label>
               <input
                 required
                 type="text"
                 value={formData.nom}
                 onChange={e => setFormData({ ...formData, nom: e.target.value })}
-                className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                className="w-full p-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500/20 focus:border-warning-500 outline-none transition-all"
                 placeholder="Ex: Farine GMD (Sac 50kg)"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date de création</label>
+              <label className="block text-sm font-medium text-sand-700 mb-1">Date de création</label>
               <input
                 type="date"
                 value={formData.dateCreation}
                 onChange={e => setFormData({ ...formData, dateCreation: e.target.value })}
-                className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                className="w-full p-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500/20 focus:border-warning-500 outline-none transition-all"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Unité</label>
+              <label className="block text-sm font-medium text-sand-700 mb-1">Unité</label>
               <select
                 value={formData.unite}
                 onChange={e => setFormData({ ...formData, unite: e.target.value as UniteMesure })}
-                className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                className="w-full p-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500/20 focus:border-warning-500 outline-none transition-all"
               >
                 <option value="kg">Kilogramme (kg)</option>
                 <option value="g">Gramme (g)</option>
@@ -196,19 +196,19 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Seuil d'alerte</label>
+              <label className="block text-sm font-medium text-sand-700 mb-1">Seuil d'alerte</label>
               <input
                 type="number"
                 min="0"
                 value={formData.stockMinimum}
                 onChange={e => setFormData({ ...formData, stockMinimum: e.target.value === '' ? '' : parseFloat(e.target.value) })}
-                className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                className="w-full p-2.5 border border-sand-200 rounded-xl focus:ring-2 focus:ring-warning-500/20 focus:border-warning-500 outline-none transition-all"
               />
             </div>
 
-            <div className="col-span-1 md:col-span-2 bg-orange-50/50 p-4 rounded-xl flex items-start space-x-3 border border-orange-100">
-              <div className="text-orange-600 mt-0.5"><AlertTriangle size={18} /></div>
-              <div className="text-sm text-orange-800 leading-relaxed">
+            <div className="col-span-1 md:col-span-2 bg-warning-50/50 p-4 rounded-xl flex items-start space-x-3 border border-warning-100">
+              <div className="text-warning-600 mt-0.5"><AlertTriangle size={18} /></div>
+              <div className="text-sm text-warning-600 leading-relaxed">
                 <span className="font-bold">Note :</span> Créez d'abord la matière avec son unité de base.
                 Vous pourrez ensuite ajouter du stock via le bouton <b>Mouvements</b> <ArrowRightLeft className="inline mx-1" size={14} /> dans la liste.
               </div>
@@ -218,13 +218,13 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="flex-1 px-5 py-3 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl transition-all"
+              className="flex-1 px-5 py-3 text-sm font-semibold text-sand-700 bg-white hover:bg-sand-50 border border-sand-300 rounded-xl transition-all"
             >
               Annuler
             </button>
             <button
               type="submit"
-              className="flex-1 px-5 py-3 text-sm font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-xl shadow-sm hover:shadow-md transition-all"
+              className="flex-1 px-5 py-3 text-sm font-bold text-white bg-warning-600 hover:bg-warning-600 rounded-xl shadow-sm hover:shadow-md transition-all"
             >
               {isEditing ? 'Mettre à jour' : 'Créer la matière'}
             </button>
@@ -235,29 +235,29 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
       {conversionState.isOpen && conversionState.matiere && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-gray-800">
+            <div className="px-6 py-4 border-b border-sand-100 flex justify-between items-center bg-sand-50">
+              <h3 className="font-bold text-sand-800">
                 Convertir l'unité : {conversionState.matiere.nom}
               </h3>
               <button
                 onClick={() => setConversionState({ ...conversionState, isOpen: false })}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-sand-400 hover:text-sand-600"
               >
                 <Plus className="rotate-45" size={20} />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-sm text-gray-500 mb-2">
+              <p className="text-sm text-sand-500 mb-2">
                 Convertir de <b>{conversionState.matiere.unite}</b> vers :
               </p>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nouvelle Unité</label>
+                <label className="block text-sm font-medium text-sand-700 mb-1">Nouvelle Unité</label>
                 <select
                   value={conversionState.targetUnit}
                   onChange={(e) => setConversionState({ ...conversionState, targetUnit: e.target.value as UniteMesure })}
-                  className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                  className="w-full p-2 border border-sand-200 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
                 >
                   <option value="kg">Kilogramme (kg)</option>
                   <option value="g">Gramme (g)</option>
@@ -266,7 +266,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sand-700 mb-1">
                   Facteur de conversion : 1 {conversionState.matiere.unite} = ? {conversionState.targetUnit}
                 </label>
                 <input
@@ -275,15 +275,15 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                   step="0.1"
                   value={conversionState.factor}
                   onChange={(e) => setConversionState({ ...conversionState, factor: e.target.value })}
-                  className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none font-bold"
+                  className="w-full p-2 border border-sand-200 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none font-bold"
                   placeholder="Ex: 50"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-sand-500 mt-1">
                   Exemple: Si 1 sac = 50kg, entrez <b>50</b>.
                 </p>
               </div>
 
-              <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
+              <div className="bg-info-50 p-3 rounded-lg text-sm text-info-600">
                 <p className="font-medium">Aperçu du résultat :</p>
                 <ul className="list-disc list-inside mt-1 space-y-1 text-xs">
                   <li>Stock : {conversionState.matiere.stockActuel} → <b>{((conversionState.matiere.stockActuel || 0) * parseFloat(conversionState.factor || '0')).toLocaleString()} {conversionState.targetUnit}</b></li>
@@ -291,16 +291,16 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3 border-t border-gray-100">
+            <div className="px-6 py-4 bg-sand-50 flex justify-end gap-3 border-t border-sand-100">
               <button
                 onClick={() => setConversionState({ ...conversionState, isOpen: false })}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
+                className="px-4 py-2 border border-sand-300 rounded-lg text-sand-700 hover:bg-sand-100"
               >
                 Annuler
               </button>
               <button
                 onClick={handleConversion}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm"
+                className="px-4 py-2 bg-info-600 text-white rounded-lg hover:bg-info-600 font-medium shadow-sm"
               >
                 Confirmer la conversion
               </button>
@@ -309,47 +309,47 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-sand-100 overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-600">Nom</th>
-              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-600">Date Création</th>
-              <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-gray-600">Stock Actuel</th>
-              <th className="px-3 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm font-semibold text-gray-600">État</th>
-              <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-gray-600">Actions</th>
+            <tr className="bg-sand-50 border-b border-sand-100">
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-sand-600">Nom</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-sand-600">Date Création</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-sand-600">Stock Actuel</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm font-semibold text-sand-600">État</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-sand-600">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-sand-100">
             {matieres.map((matiere) => {
               // Si le seuil est à 0, on considère que l'alerte est désactivée (État vert/OK)
               const isLowStock = matiere.stockMinimum > 0 && matiere.stockActuel <= matiere.stockMinimum;
               const isConvertible = matiere.unite.includes('sac');
 
               return (
-                <tr key={matiere.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={matiere.id} className="hover:bg-sand-50 transition-colors">
                   <td className="px-3 sm:px-6 py-3 sm:py-4">
-                    <div className="text-xs sm:text-sm font-medium text-gray-900">{matiere.nom}</div>
+                    <div className="text-xs sm:text-sm font-medium text-sand-900">{matiere.nom}</div>
                   </td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-600">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-sand-600">
                     {new Date(matiere.createdAt).toLocaleDateString('fr-FR')}
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
-                    <div className="text-xs sm:text-sm font-medium text-gray-900">
-                      {matiere.stockActuel.toLocaleString()} <span className="text-gray-500 text-xs">{matiere.unite}</span>
+                    <div className="text-xs sm:text-sm font-medium text-sand-900">
+                      {matiere.stockActuel.toLocaleString()} <span className="text-sand-500 text-xs">{matiere.unite}</span>
                     </div>
-                    <div className="text-[10px] text-gray-400 mt-0.5">
+                    <div className="text-[10px] text-sand-400 mt-0.5">
                       Seuil: {matiere.stockMinimum.toLocaleString()} {matiere.unite}
                     </div>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
                     {isLowStock ? (
-                      <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger-100 text-danger-700">
                         <AlertTriangle size={12} className="mr-1" />
                         Critique
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">
                         OK
                       </span>
                     )}
@@ -359,19 +359,19 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                       {isConvertible && (
                         <button
                           onClick={() => openConversion(matiere)}
-                          className="px-1.5 sm:px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100"
+                          className="px-1.5 sm:px-2 py-1 text-xs bg-terracotta-50 text-terracotta-700 rounded border border-terracotta-200 hover:bg-terracotta-100"
                         >
                           <span className="hidden sm:inline">Convertir kg</span>
                           <span className="sm:hidden">Conv.</span>
                         </button>
                       )}
-                      <button onClick={() => onAddMouvement(matiere)} className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
+                      <button onClick={() => onAddMouvement(matiere)} className="p-1.5 sm:p-2 text-info-600 hover:bg-info-50 rounded-lg">
                         <ArrowRightLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
-                      <button onClick={() => startEdit(matiere)} className="p-1.5 sm:p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                      <button onClick={() => startEdit(matiere)} className="p-1.5 sm:p-2 text-sand-600 hover:bg-sand-100 rounded-lg">
                         <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
-                      <button onClick={() => handleDelete(matiere.id, matiere.nom)} className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                      <button onClick={() => handleDelete(matiere.id, matiere.nom)} className="p-1.5 sm:p-2 text-danger-600 hover:bg-danger-50 rounded-lg">
                         <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
                     </div>

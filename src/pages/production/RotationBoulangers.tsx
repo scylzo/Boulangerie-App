@@ -116,7 +116,7 @@ export const RotationBoulangers: React.FC = () => {
       startY: 40,
       theme: 'grid',
       styles: { fontSize: 10, cellPadding: 4 },
-      headStyles: { fillColor: [249, 115, 22], textColor: 255 }, // orange-500
+      headStyles: { fillColor: [249, 115, 22], textColor: 255 }, // warning-500
       alternateRowStyles: { fillColor: [250, 245, 240] }
     });
 
@@ -149,15 +149,15 @@ export const RotationBoulangers: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sm:py-5">
+    <div className="min-h-screen bg-sand-50 overflow-x-hidden">
+      <div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-4 sm:py-5">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center shrink-0">
-            <Icon icon="mdi:calendar-sync" className="text-2xl text-orange-600" />
+          <div className="w-12 h-12 bg-warning-100 rounded-xl flex items-center justify-center shrink-0">
+            <Icon icon="mdi:calendar-sync" className="text-2xl text-warning-600" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Rotation des Boulangers</h1>
-            <p className="text-sm text-gray-500 mt-1">Générez un calendrier de rotation (3 jours par équipe)</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-sand-900">Rotation des Boulangers</h1>
+            <p className="text-sm text-sand-500 mt-1">Générez un calendrier de rotation (3 jours par équipe)</p>
           </div>
         </div>
       </div>
@@ -165,91 +165,91 @@ export const RotationBoulangers: React.FC = () => {
       <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
         
         {/* Paramètres du calendrier */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex items-center gap-2">
-            <Icon icon="mdi:cog" className="text-xl text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-800">Paramètres de la Rotation</h2>
+        <div className="bg-white rounded-xl shadow-sm border border-sand-200 overflow-hidden">
+          <div className="p-4 border-b border-sand-200 bg-sand-50/50 flex items-center gap-2">
+            <Icon icon="mdi:cog" className="text-xl text-sand-600" />
+            <h2 className="text-lg font-semibold text-sand-800">Paramètres de la Rotation</h2>
           </div>
           <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date de début</label>
+              <label className="block text-sm font-medium text-sand-700 mb-2">Date de début</label>
               <input 
                 type="date" 
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                className="w-full px-4 py-2 bg-sand-50 border border-sand-300 rounded-lg focus:ring-2 focus:ring-warning-500 focus:border-warning-500 outline-none transition-all"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date de fin</label>
+              <label className="block text-sm font-medium text-sand-700 mb-2">Date de fin</label>
               <input 
                 type="date" 
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                className="w-full px-4 py-2 bg-sand-50 border border-sand-300 rounded-lg focus:ring-2 focus:ring-warning-500 focus:border-warning-500 outline-none transition-all"
               />
             </div>
           </div>
         </div>
 
         {/* Équipes */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex items-center justify-between">
+        <div className="bg-white rounded-xl shadow-sm border border-sand-200 overflow-hidden">
+          <div className="p-4 border-b border-sand-200 bg-sand-50/50 flex items-center justify-between">
              <div className="flex items-center gap-2">
-                <Icon icon="mdi:account-group" className="text-xl text-gray-600" />
-                <h2 className="text-lg font-semibold text-gray-800">Équipes de Boulangers</h2>
+                <Icon icon="mdi:account-group" className="text-xl text-sand-600" />
+                <h2 className="text-lg font-semibold text-sand-800">Équipes de Boulangers</h2>
              </div>
              <button 
                 onClick={handleAddTeam}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sand-900 text-white rounded-lg hover:bg-sand-800 transition-colors text-sm font-medium"
              >
                 <Icon icon="mdi:plus" /> Ajouter une équipe
              </button>
           </div>
           <div className="p-5 space-y-4">
             {teams.map((team, index) => (
-              <div key={team.id} className="p-4 rounded-xl border border-gray-100 bg-gray-50 flex flex-col md:flex-row gap-4 items-start md:items-center relative">
+              <div key={team.id} className="p-4 rounded-xl border border-sand-100 bg-sand-50 flex flex-col md:flex-row gap-4 items-start md:items-center relative">
                 <div className="absolute top-2 right-2 md:static md:ml-auto">
                     <button 
                         onClick={() => handleRemoveTeam(team.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors"
+                        className="p-2 text-danger-500 hover:bg-danger-50 hover:text-danger-700 rounded-lg transition-colors"
                         title="Supprimer cette équipe"
                     >
                         <Icon icon="mdi:trash-can" className="text-xl" />
                     </button>
                 </div>
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-700 font-bold shrink-0">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-warning-100 text-warning-600 font-bold shrink-0">
                     {index + 1}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full flex-1">
                     <div>
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Boulanger</label>
+                        <label className="block text-xs font-semibold text-sand-500 uppercase tracking-wider mb-1">Boulanger</label>
                         <input
                             type="text"
                             placeholder="Nom du boulanger"
                             value={team.boulanger}
                             onChange={(e) => handleChangeTeam(team.id, 'boulanger', e.target.value)}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                            className="w-full px-3 py-2 bg-white border border-sand-300 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Assistant 1</label>
+                        <label className="block text-xs font-semibold text-sand-500 uppercase tracking-wider mb-1">Assistant 1</label>
                         <input
                             type="text"
                             placeholder="Nom de l'assistant 1"
                             value={team.assistant1}
                             onChange={(e) => handleChangeTeam(team.id, 'assistant1', e.target.value)}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                            className="w-full px-3 py-2 bg-white border border-sand-300 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Assistant 2</label>
+                        <label className="block text-xs font-semibold text-sand-500 uppercase tracking-wider mb-1">Assistant 2</label>
                         <input
                             type="text"
                             placeholder="Nom de l'assistant 2"
                             value={team.assistant2}
                             onChange={(e) => handleChangeTeam(team.id, 'assistant2', e.target.value)}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                            className="w-full px-3 py-2 bg-white border border-sand-300 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
                         />
                     </div>
                 </div>
@@ -262,7 +262,7 @@ export const RotationBoulangers: React.FC = () => {
         <div className="flex items-center justify-end gap-4">
             <button 
                 onClick={generateSchedule}
-                className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white font-medium rounded-xl hover:bg-gray-800 transition-colors shadow-sm"
+                className="flex items-center gap-2 px-6 py-3 bg-sand-900 text-white font-medium rounded-xl hover:bg-sand-800 transition-colors shadow-sm"
             >
                 <Icon icon="mdi:calendar-check" className="text-xl" />
                 Générer le calendrier
@@ -272,8 +272,8 @@ export const RotationBoulangers: React.FC = () => {
                 disabled={schedule.length === 0}
                 className={`flex items-center gap-2 px-6 py-3 font-medium rounded-xl transition-colors shadow-sm ${
                     schedule.length > 0 
-                    ? 'bg-orange-500 text-white hover:bg-orange-600 cursor-pointer' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    ? 'bg-warning-500 text-white hover:bg-warning-600 cursor-pointer' 
+                    : 'bg-sand-200 text-sand-400 cursor-not-allowed'
                 }`}
             >
                 <Icon icon="mdi:file-pdf-box" className="text-xl" />
@@ -284,8 +284,8 @@ export const RotationBoulangers: React.FC = () => {
                 disabled={schedule.length === 0}
                 className={`flex items-center gap-2 px-6 py-3 font-medium rounded-xl transition-colors shadow-sm ${
                     schedule.length > 0 
-                    ? 'bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    ? 'bg-success-600 text-white hover:bg-success-700 cursor-pointer' 
+                    : 'bg-sand-200 text-sand-400 cursor-not-allowed'
                 }`}
             >
                 <Icon icon="mdi:whatsapp" className="text-xl" />
@@ -295,37 +295,37 @@ export const RotationBoulangers: React.FC = () => {
 
         {/* Aperçu du calendrier */}
         {schedule.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex items-center gap-2">
-                    <Icon icon="mdi:eye" className="text-xl text-gray-600" />
-                    <h2 className="text-lg font-semibold text-gray-800">Aperçu du Calendrier</h2>
+            <div className="bg-white rounded-xl shadow-sm border border-sand-200 overflow-hidden">
+                <div className="p-4 border-b border-sand-200 bg-sand-50/50 flex items-center gap-2">
+                    <Icon icon="mdi:eye" className="text-xl text-sand-600" />
+                    <h2 className="text-lg font-semibold text-sand-800">Aperçu du Calendrier</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Boulanger</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Assistant 1</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Assistant 2</th>
+                            <tr className="bg-sand-50 border-b border-sand-200">
+                                <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Date</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Boulanger</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Assistant 1</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Assistant 2</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-sand-100">
                             {schedule.map((day, idx) => (
-                                <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 capitalize">
+                                <tr key={idx} className="hover:bg-sand-50/50 transition-colors">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sand-900 capitalize">
                                         {day.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-sand-700">
                                         <div className="flex items-center gap-2">
-                                            <Icon icon="mdi:chef-hat" className="text-orange-500" />
+                                            <Icon icon="mdi:chef-hat" className="text-warning-500" />
                                             <span className="font-semibold">{day.team.boulanger}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-sand-600">
                                         {day.team.assistant1}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-sand-600">
                                         {day.team.assistant2}
                                     </td>
                                 </tr>

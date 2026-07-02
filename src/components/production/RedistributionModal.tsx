@@ -93,7 +93,7 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 px-6 py-4 text-white">
+                <div className="bg-gradient-to-r from-warning-500 to-danger-500 px-6 py-4 text-white">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <Icon icon="mdi:alert-circle" className="text-3xl" />
@@ -111,12 +111,12 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {/* Info commande */}
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <div className="bg-warning-50 border border-warning-100 rounded-lg p-4">
                         <div className="flex items-start gap-3">
-                            <Icon icon="mdi:information" className="text-orange-600 text-xl mt-0.5" />
+                            <Icon icon="mdi:information" className="text-warning-600 text-xl mt-0.5" />
                             <div className="flex-1">
-                                <p className="font-semibold text-orange-900">Produits déjà fabriqués</p>
-                                <p className="text-sm text-orange-700 mt-1">
+                                <p className="font-semibold text-warning-600">Produits déjà fabriqués</p>
+                                <p className="text-sm text-warning-600 mt-1">
                                     Ces produits ont été produits pour cette commande. Choisissez comment les redistribuer.
                                 </p>
                             </div>
@@ -125,47 +125,47 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
 
                     {/* Type de redistribution */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                        <label className="block text-sm font-medium text-sand-700 mb-3">
                             Type de redistribution
                         </label>
                         <div className="grid grid-cols-3 gap-3">
                             <button
                                 onClick={() => setTypeRedistribution('boutique')}
                                 className={`p-4 rounded-lg border-2 transition-all ${typeRedistribution === 'boutique'
-                                    ? 'border-green-500 bg-green-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-success-500 bg-success-50'
+                                    : 'border-sand-200 hover:border-sand-300'
                                     }`}
                             >
-                                <Icon icon="mdi:store" className={`text-3xl mx-auto mb-2 ${typeRedistribution === 'boutique' ? 'text-green-600' : 'text-gray-400'
+                                <Icon icon="mdi:store" className={`text-3xl mx-auto mb-2 ${typeRedistribution === 'boutique' ? 'text-success-600' : 'text-sand-400'
                                     }`} />
                                 <div className="text-sm font-medium">Vers Boutique</div>
-                                <div className="text-xs text-gray-500 mt-1">Tout en boutique</div>
+                                <div className="text-xs text-sand-500 mt-1">Tout en boutique</div>
                             </button>
 
                             <button
                                 onClick={() => setTypeRedistribution('client')}
                                 className={`p-4 rounded-lg border-2 transition-all ${typeRedistribution === 'client'
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-info-500 bg-info-50'
+                                    : 'border-sand-200 hover:border-sand-300'
                                     }`}
                             >
-                                <Icon icon="mdi:account-arrow-right" className={`text-3xl mx-auto mb-2 ${typeRedistribution === 'client' ? 'text-blue-600' : 'text-gray-400'
+                                <Icon icon="mdi:account-arrow-right" className={`text-3xl mx-auto mb-2 ${typeRedistribution === 'client' ? 'text-info-600' : 'text-sand-400'
                                     }`} />
                                 <div className="text-sm font-medium">Vers Client</div>
-                                <div className="text-xs text-gray-500 mt-1">Autre client</div>
+                                <div className="text-xs text-sand-500 mt-1">Autre client</div>
                             </button>
 
                             <button
                                 onClick={() => setTypeRedistribution('mixte')}
                                 className={`p-4 rounded-lg border-2 transition-all ${typeRedistribution === 'mixte'
-                                    ? 'border-purple-500 bg-purple-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-terracotta-500 bg-terracotta-50'
+                                    : 'border-sand-200 hover:border-sand-300'
                                     }`}
                             >
-                                <Icon icon="mdi:call-split" className={`text-3xl mx-auto mb-2 ${typeRedistribution === 'mixte' ? 'text-purple-600' : 'text-gray-400'
+                                <Icon icon="mdi:call-split" className={`text-3xl mx-auto mb-2 ${typeRedistribution === 'mixte' ? 'text-terracotta-600' : 'text-sand-400'
                                     }`} />
                                 <div className="text-sm font-medium">Mixte</div>
-                                <div className="text-xs text-gray-500 mt-1">Répartir</div>
+                                <div className="text-xs text-sand-500 mt-1">Répartir</div>
                             </button>
                         </div>
                     </div>
@@ -173,13 +173,13 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
                     {/* Sélection client destinataire (si type client) */}
                     {typeRedistribution === 'client' && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-sand-700 mb-2">
                                 Client destinataire
                             </label>
                             <select
                                 value={clientDestinataireId}
                                 onChange={(e) => setClientDestinataireId(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-4 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-info-500"
                             >
                                 <option value="">Sélectionner un client</option>
                                 {clientsDisponibles.map(client => (
@@ -194,7 +194,7 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
                     {/* Répartition détaillée (si type mixte) */}
                     {typeRedistribution === 'mixte' && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                            <label className="block text-sm font-medium text-sand-700 mb-3">
                                 Répartition par produit
                             </label>
                             <div className="space-y-3">
@@ -204,31 +204,31 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
                                     const restant = produit.quantiteCommandee - total;
 
                                     return (
-                                        <div key={produit.produitId} className="border border-gray-200 rounded-lg p-4">
+                                        <div key={produit.produitId} className="border border-sand-200 rounded-lg p-4">
                                             <div className="flex items-center justify-between mb-3">
                                                 <div className="font-medium">{produit.produit?.nom || produit.produitId}</div>
                                                 <div className="text-sm">
                                                     <span className="font-semibold">{produit.quantiteCommandee}</span> unités
                                                     {restant > 0 && (
-                                                        <span className="ml-2 text-orange-600">({restant} restant{restant > 1 ? 's' : ''})</span>
+                                                        <span className="ml-2 text-warning-600">({restant} restant{restant > 1 ? 's' : ''})</span>
                                                     )}
                                                 </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-xs text-gray-600 mb-1">Vers Boutique</label>
+                                                    <label className="block text-xs text-sand-600 mb-1">Vers Boutique</label>
                                                     <input
                                                         type="number"
                                                         min="0"
                                                         max={produit.quantiteCommandee}
                                                         value={repart.boutique}
                                                         onChange={(e) => handleQuantiteChange(produit.produitId, 'boutique', parseInt(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                                        className="w-full px-3 py-2 border border-sand-300 rounded-lg"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs text-gray-600 mb-1">Vers Client</label>
+                                                    <label className="block text-xs text-sand-600 mb-1">Vers Client</label>
                                                     <div className="space-y-2">
                                                         <input
                                                             type="number"
@@ -236,13 +236,13 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
                                                             max={produit.quantiteCommandee}
                                                             value={repart.client}
                                                             onChange={(e) => handleQuantiteChange(produit.produitId, 'client', parseInt(e.target.value) || 0)}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                                            className="w-full px-3 py-2 border border-sand-300 rounded-lg"
                                                         />
                                                         {repart.client > 0 && (
                                                             <select
                                                                 value={repart.clientId || ''}
                                                                 onChange={(e) => handleClientDestinataire(produit.produitId, e.target.value)}
-                                                                className="w-full px-3 py-1.5 border border-gray-300 rounded text-xs"
+                                                                className="w-full px-3 py-1.5 border border-sand-300 rounded text-xs"
                                                             >
                                                                 <option value="">Client...</option>
                                                                 {clientsDisponibles.map(client => (
@@ -264,31 +264,31 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
 
                     {/* Motif */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Motif d'annulation <span className="text-red-500">*</span>
+                        <label className="block text-sm font-medium text-sand-700 mb-2">
+                            Motif d'annulation <span className="text-danger-500">*</span>
                         </label>
                         <textarea
                             value={motif}
                             onChange={(e) => setMotif(e.target.value)}
                             placeholder="Ex: Client a annulé au dernier moment, problème de livraison..."
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                            className="w-full px-4 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-warning-500"
                             rows={3}
                         />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-end gap-3">
+                <div className="border-t border-sand-200 px-6 py-4 bg-sand-50 flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+                        className="px-4 py-2 text-sand-700 hover:bg-sand-200 rounded-lg transition-colors"
                     >
                         Annuler
                     </button>
                     <button
                         onClick={handleConfirm}
                         disabled={!isValid() || isLoading}
-                        className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+                        className="px-6 py-2 bg-warning-600 text-white rounded-lg hover:bg-warning-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
                     >
                         {isLoading ? (
                             <>

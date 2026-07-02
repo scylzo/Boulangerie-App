@@ -141,22 +141,22 @@ export const AssignationClientLivreur: React.FC = () => {
         subtitle="Assignez un livreur à chaque client pour optimiser les livraisons"
       >
         {getClientsSansLivreur().length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-sand-500">
             <p>Tous les clients actifs ont un livreur assigné</p>
-            <p className="text-sm text-gray-400 mt-1">👏 Excellent ! Toutes les assignations sont complètes</p>
+            <p className="text-sm text-sand-400 mt-1">👏 Excellent ! Toutes les assignations sont complètes</p>
           </div>
         ) : (
           <div className="space-y-3">
             {getClientsSansLivreur().map((client) => (
               <div
                 key={client.id}
-                className="flex items-center justify-between p-4 border border-orange-200 rounded-lg bg-orange-50"
+                className="flex items-center justify-between p-4 border border-warning-100 rounded-lg bg-warning-50"
               >
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{client.nom}</h4>
-                  <p className="text-sm text-gray-600">{client.adresse}</p>
+                  <h4 className="font-medium text-sand-900">{client.nom}</h4>
+                  <p className="text-sm text-sand-600">{client.adresse}</p>
                   {client.telephone && (
-                    <p className="text-xs text-gray-500">📞 {client.telephone}</p>
+                    <p className="text-xs text-sand-500">📞 {client.telephone}</p>
                   )}
                 </div>
                 <div className="flex items-center space-x-3">
@@ -198,74 +198,74 @@ export const AssignationClientLivreur: React.FC = () => {
             subtitle={`Clients assignés (${clientsDuLivreur.length}) ${livreur.vehicule ? `• Véhicule: ${livreur.vehicule}` : ''}`}
           >
             {clientsDuLivreur.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-sand-500">
                 <p>Aucun client assigné à ce livreur</p>
-                <p className="text-sm text-gray-400 mt-1">Assignez des clients depuis la section ci-dessus</p>
+                <p className="text-sm text-sand-400 mt-1">Assignez des clients depuis la section ci-dessus</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {clientsDuLivreur.map((client) => (
                   <div
                     key={client.id}
-                    className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
+                    className="p-4 border border-sand-200 rounded-lg hover:border-info-100 transition-colors"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium text-gray-900">{client.nom}</h4>
+                      <h4 className="font-medium text-sand-900">{client.nom}</h4>
                       <button
                         onClick={() => handleUnassignLivreur(client.id, livreur.id)}
-                        className="text-red-500 hover:text-red-700 text-sm font-semibold p-1 hover:bg-red-50 rounded"
+                        className="text-danger-500 hover:text-danger-700 text-sm font-semibold p-1 hover:bg-danger-50 rounded"
                         title="Désassigner de ce livreur"
                       >
                         ✕
                       </button>
                     </div>
-                    <p className="text-sm text-gray-600">{client.adresse}</p>
+                    <p className="text-sm text-sand-600">{client.adresse}</p>
                     {client.telephone && (
-                      <p className="text-xs text-gray-500 mt-1">📞 {client.telephone}</p>
+                      <p className="text-xs text-sand-500 mt-1">📞 {client.telephone}</p>
                     )}
                     
                     <div className="flex flex-wrap gap-1 mt-2">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         client.typeClient === 'client'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-green-100 text-green-800'
+                          ? 'bg-info-100 text-info-600'
+                          : 'bg-success-100 text-success-700'
                       }`}>
                         {client.typeClient === 'client' ? '🏠 Client' : '🏪 Boutique'}
                       </span>
                       {client.livreurId === livreur.id && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-terracotta-100 text-terracotta-800">
                           Général
                         </span>
                       )}
                       {client.livreursParCar?.car1_matin === livreur.id && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning-100 text-warning-600">
                           Car 1 Matin
                         </span>
                       )}
                       {client.livreursParCar?.car2_matin === livreur.id && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning-100 text-warning-600">
                           Car 2 Matin
                         </span>
                       )}
                       {client.livreursParCar?.car_soir === livreur.id && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-terracotta-100 text-terracotta-800">
                           Car Soir
                         </span>
                       )}
                     </div>
 
-                    <details className="mt-3 text-xs border-t border-gray-100 pt-2 group">
-                      <summary className="cursor-pointer text-gray-500 hover:text-gray-700 font-medium flex items-center gap-1 select-none">
+                    <details className="mt-3 text-xs border-t border-sand-100 pt-2 group">
+                      <summary className="cursor-pointer text-sand-500 hover:text-sand-700 font-medium flex items-center gap-1 select-none">
                         <span>Configuration par car</span>
                         <Icon icon="lucide:chevron-down" className="w-3 h-3 transition-transform group-open:rotate-180" />
                       </summary>
-                      <div className="mt-2 space-y-2 bg-gray-50 p-2 rounded border border-gray-100">
+                      <div className="mt-2 space-y-2 bg-sand-50 p-2 rounded border border-sand-100">
                         <div>
-                          <label className="block text-[10px] text-gray-500 font-medium mb-0.5">Par défaut (Général)</label>
+                          <label className="block text-[10px] text-sand-500 font-medium mb-0.5">Par défaut (Général)</label>
                           <select
                             value={client.livreurId || ''}
                             onChange={(e) => handleAssignerLivreurParCar(client.id, 'default', e.target.value)}
-                            className="w-full text-xs p-1 border border-gray-200 rounded bg-white"
+                            className="w-full text-xs p-1 border border-sand-200 rounded bg-white"
                           >
                             <option value="">Aucun livreur par défaut</option>
                             {livreursActifs.map(l => (
@@ -274,11 +274,11 @@ export const AssignationClientLivreur: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-[10px] text-gray-500 font-medium mb-0.5">Car 1 - Matin</label>
+                          <label className="block text-[10px] text-sand-500 font-medium mb-0.5">Car 1 - Matin</label>
                           <select
                             value={client.livreursParCar?.car1_matin || ''}
                             onChange={(e) => handleAssignerLivreurParCar(client.id, 'car1_matin', e.target.value)}
-                            className="w-full text-xs p-1 border border-gray-200 rounded bg-white"
+                            className="w-full text-xs p-1 border border-sand-200 rounded bg-white"
                           >
                             <option value="">Utiliser le livreur par défaut</option>
                             {livreursActifs.map(l => (
@@ -287,11 +287,11 @@ export const AssignationClientLivreur: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-[10px] text-gray-500 font-medium mb-0.5">Car 2 - Matin</label>
+                          <label className="block text-[10px] text-sand-500 font-medium mb-0.5">Car 2 - Matin</label>
                           <select
                             value={client.livreursParCar?.car2_matin || ''}
                             onChange={(e) => handleAssignerLivreurParCar(client.id, 'car2_matin', e.target.value)}
-                            className="w-full text-xs p-1 border border-gray-200 rounded bg-white"
+                            className="w-full text-xs p-1 border border-sand-200 rounded bg-white"
                           >
                             <option value="">Utiliser le livreur par défaut</option>
                             {livreursActifs.map(l => (
@@ -300,11 +300,11 @@ export const AssignationClientLivreur: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-[10px] text-gray-500 font-medium mb-0.5">Car - Soir</label>
+                          <label className="block text-[10px] text-sand-500 font-medium mb-0.5">Car - Soir</label>
                           <select
                             value={client.livreursParCar?.car_soir || ''}
                             onChange={(e) => handleAssignerLivreurParCar(client.id, 'car_soir', e.target.value)}
-                            className="w-full text-xs p-1 border border-gray-200 rounded bg-white"
+                            className="w-full text-xs p-1 border border-sand-200 rounded bg-white"
                           >
                             <option value="">Utiliser le livreur par défaut</option>
                             {livreursActifs.map(l => (
@@ -325,8 +325,8 @@ export const AssignationClientLivreur: React.FC = () => {
       {livreursActifs.length === 0 && (
         <Card title="Aucun livreur disponible">
           <div className="text-center py-8">
-            <p className="text-gray-500">Aucun livreur actif trouvé</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sand-500">Aucun livreur actif trouvé</p>
+            <p className="text-sm text-sand-400 mt-1">
               Allez dans "Gestion Livreurs" pour ajouter des livreurs
             </p>
           </div>

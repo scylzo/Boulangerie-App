@@ -216,18 +216,18 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           onChange={(e) => setFormData({ ...formData, conditionsPaiement: e.target.value })}
           placeholder="ex: Payable à 15 jours, Comptant, Fin de mois"
         />
-        <p className="text-xs text-gray-500 -mt-3">
+        <p className="text-xs text-sand-500 -mt-3">
           Conditions spécifiques à ce client. Si vide, les conditions par défaut seront utilisées.
         </p>
 
         <div className="md:col-span-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-sand-700 mb-1">
             Mode de paiement préféré
           </label>
           <select
             value={formData.modePaiementPreference}
             onChange={(e) => setFormData({ ...formData, modePaiementPreference: e.target.value as any })}
-            className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-orange-500 focus:ring-orange-500 focus:ring-1 sm:text-sm transition-colors bg-white"
+            className="block w-full rounded-lg border border-sand-300 px-3 py-2 focus:border-warning-500 focus:ring-warning-500 focus:ring-1 sm:text-sm transition-colors bg-white"
           >
             <option value="">Non défini</option>
             <option value="espece">Espèces 💵</option>
@@ -236,26 +236,26 @@ export const ClientForm: React.FC<ClientFormProps> = ({
             <option value="cheque">Chèque 🏦</option>
             <option value="virement">Virement 💳</option>
           </select>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-sand-500 mt-1">
             Aide à distinguer les paiements (OM, Wave, etc.)
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-sand-700 mb-1">
               Type de client *
             </label>
             <select
               value={formData.typeClient}
               onChange={(e) => setFormData({ ...formData, typeClient: e.target.value as any })}
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-orange-500 focus:ring-orange-500 focus:ring-1 sm:text-sm transition-colors bg-white"
+              className="block w-full rounded-lg border border-sand-300 px-3 py-2 focus:border-warning-500 focus:ring-warning-500 focus:ring-1 sm:text-sm transition-colors bg-white"
               required
             >
               <option value="client">Client (prix réduit)</option>
               <option value="boutique">Boutique (prix normal)</option>
             </select>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-sand-500 mt-1">
               Définit le type de tarification
             </p>
 
@@ -267,14 +267,14 @@ export const ClientForm: React.FC<ClientFormProps> = ({
                     type="checkbox"
                     checked={formData.eligibleRistourne}
                     onChange={(e) => setFormData({ ...formData, eligibleRistourne: e.target.checked })}
-                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-warning-600 focus:ring-warning-500 border-sand-300 rounded"
                   />
                 </div>
                 <div className="ml-3 text-sm">
-                  <label htmlFor="eligibleRistourne" className="font-medium text-gray-700">
+                  <label htmlFor="eligibleRistourne" className="font-medium text-sand-700">
                     Éligible à la Ristourne (Cashback)
                   </label>
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-sand-500 text-xs">
                     Le client paie le prix boutique, mais cumule la différence avec le prix client.
                   </p>
                 </div>
@@ -282,9 +282,9 @@ export const ClientForm: React.FC<ClientFormProps> = ({
             )}
           </div>
 
-          <div className="md:col-span-2 bg-gray-50/50 p-4 rounded-xl border border-gray-200/80 space-y-4">
-            <div className="flex items-center gap-2 text-gray-800 font-semibold text-sm">
-              <Icon icon="mdi:truck-delivery" className="text-lg text-blue-600" />
+          <div className="md:col-span-2 bg-sand-50/50 p-4 rounded-xl border border-sand-200/80 space-y-4">
+            <div className="flex items-center gap-2 text-sand-800 font-semibold text-sm">
+              <Icon icon="mdi:truck-delivery" className="text-lg text-info-600" />
               <span>Assignation des Livreurs</span>
             </div>
 
@@ -302,7 +302,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
                     }))
                   ]}
                 />
-                <p className="text-[10px] text-gray-500 mt-1">
+                <p className="text-[10px] text-sand-500 mt-1">
                   Livreur utilisé si aucun n'est spécifié pour un car
                 </p>
               </div>
@@ -374,16 +374,16 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         </div>
 
         {/* Section Géolocalisation */}
-        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-4">
+        <div className="bg-info-50 p-4 rounded-xl border border-info-100 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-blue-800">
+            <div className="flex items-center gap-2 text-info-600">
               <Icon icon="mdi:map-marker-radius" className="text-xl shrink-0" />
               <span className="text-sm font-bold uppercase tracking-wider leading-tight">Géolocalisation du Kiosque</span>
             </div>
             <button
               type="button"
               onClick={getGeolocation}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-md active:scale-95 w-full sm:w-auto"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-info-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-info-600 transition-all shadow-md active:scale-95 w-full sm:w-auto"
             >
               <Icon icon="mdi:crosshairs-gps" className="text-lg" />
               Ma position actuelle
@@ -392,7 +392,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-blue-600 uppercase ml-1">Latitude</label>
+              <label className="text-[10px] font-black text-info-600 uppercase ml-1">Latitude</label>
               <Input
                 type="number"
                 step="any"
@@ -402,7 +402,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-blue-600 uppercase ml-1">Longitude</label>
+              <label className="text-[10px] font-black text-info-600 uppercase ml-1">Longitude</label>
               <Input
                 type="number"
                 step="any"
@@ -412,23 +412,23 @@ export const ClientForm: React.FC<ClientFormProps> = ({
               />
             </div>
           </div>
-          <p className="text-[10px] text-blue-500 italic">
+          <p className="text-[10px] text-info-500 italic">
             Note: La position actuelle est plus précise si vous êtes devant le kiosque avec votre téléphone.
           </p>
         </div>
 
 
-        <div className="flex flex-wrap items-center gap-6 bg-gray-50 p-3 rounded-lg border border-gray-100">
+        <div className="flex flex-wrap items-center gap-6 bg-sand-50 p-3 rounded-lg border border-sand-100">
           <div className="flex items-center">
             <input
               id="estRegulier"
               type="checkbox"
               checked={formData.estRegulier}
               onChange={(e) => setFormData({ ...formData, estRegulier: e.target.checked })}
-              className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
+              className="h-5 w-5 text-terracotta-600 focus:ring-terracotta-500 border-sand-300 rounded cursor-pointer"
             />
-            <label htmlFor="estRegulier" className="ml-2 block text-sm font-medium text-gray-900 cursor-pointer">
-              Client Régulier <span className="text-xs text-gray-500 font-normal">(Alerte si oublié)</span>
+            <label htmlFor="estRegulier" className="ml-2 block text-sm font-medium text-sand-900 cursor-pointer">
+              Client Régulier <span className="text-xs text-sand-500 font-normal">(Alerte si oublié)</span>
             </label>
           </div>
 
@@ -438,9 +438,9 @@ export const ClientForm: React.FC<ClientFormProps> = ({
               type="checkbox"
               checked={formData.aKiosque}
               onChange={(e) => setFormData({ ...formData, aKiosque: e.target.checked })}
-              className="h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer"
+              className="h-5 w-5 text-warning-600 focus:ring-warning-500 border-sand-300 rounded cursor-pointer"
             />
-            <label htmlFor="aKiosque" className="ml-2 block text-sm font-medium text-gray-900 cursor-pointer">
+            <label htmlFor="aKiosque" className="ml-2 block text-sm font-medium text-sand-900 cursor-pointer">
               A un kiosque
             </label>
           </div>
@@ -451,9 +451,9 @@ export const ClientForm: React.FC<ClientFormProps> = ({
               type="checkbox"
               checked={formData.neTravaillePasDimanche}
               onChange={(e) => setFormData({ ...formData, neTravaillePasDimanche: e.target.checked })}
-              className="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 rounded cursor-pointer"
+              className="h-5 w-5 text-danger-600 focus:ring-danger-500 border-sand-300 rounded cursor-pointer"
             />
-            <label htmlFor="neTravaillePasDimanche" className="ml-2 block text-sm font-medium text-gray-900 cursor-pointer">
+            <label htmlFor="neTravaillePasDimanche" className="ml-2 block text-sm font-medium text-sand-900 cursor-pointer">
               Repos le Dimanche
             </label>
           </div>
@@ -464,9 +464,9 @@ export const ClientForm: React.FC<ClientFormProps> = ({
               type="checkbox"
               checked={formData.active}
               onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-              className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+              className="h-5 w-5 text-info-600 focus:ring-info-500 border-sand-300 rounded cursor-pointer"
             />
-            <label htmlFor="active" className="ml-2 block text-sm font-medium text-gray-900 cursor-pointer">
+            <label htmlFor="active" className="ml-2 block text-sm font-medium text-sand-900 cursor-pointer">
               Client actif
             </label>
           </div>

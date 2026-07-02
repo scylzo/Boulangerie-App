@@ -646,7 +646,7 @@ export const GestionFactures: React.FC = () => {
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-sand-100">
               {(() => {
                 const daysInMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0).getDate();
                 const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
@@ -1123,7 +1123,7 @@ export const GestionFactures: React.FC = () => {
 
       {isLoading && (
         <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-sand-200 border-t-gray-900 rounded-full animate-spin mb-4" />
+          <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-sand-200 border-t-sand-900 rounded-full animate-spin mb-4" />
           <p className="font-medium text-sand-900 text-sm sm:text-base">Traitement en cours...</p>
         </div>
       )}

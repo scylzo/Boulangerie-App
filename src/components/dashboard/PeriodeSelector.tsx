@@ -15,31 +15,31 @@ export const PeriodeSelector: React.FC<PeriodeSelectorProps> = ({
     onDateFinChange
 }) => {
     return (
-        <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-lg shadow-sm border border-sand-200">
             <div className="flex items-center gap-2">
-                <Icon icon="mdi:calendar-range" className="text-indigo-600 text-xl" />
-                <span className="text-sm font-medium text-gray-700">Période :</span>
+                <Icon icon="mdi:calendar-range" className="text-terracotta-600 text-xl" />
+                <span className="text-sm font-medium text-sand-700">Période :</span>
             </div>
 
             <div className="flex items-center gap-2">
-                <label htmlFor="dateDebut" className="text-sm text-gray-600">Du</label>
+                <label htmlFor="dateDebut" className="text-sm text-sand-600">Du</label>
                 <input
                     id="dateDebut"
                     type="date"
                     value={dateDebut}
                     onChange={(e) => onDateDebutChange(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="px-3 py-2 border border-sand-300 rounded-lg text-sm focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
                 />
             </div>
 
             <div className="flex items-center gap-2">
-                <label htmlFor="dateFin" className="text-sm text-gray-600">Au</label>
+                <label htmlFor="dateFin" className="text-sm text-sand-600">Au</label>
                 <input
                     id="dateFin"
                     type="date"
                     value={dateFin}
                     onChange={(e) => onDateFinChange(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="px-3 py-2 border border-sand-300 rounded-lg text-sm focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
                 />
             </div>
         </div>

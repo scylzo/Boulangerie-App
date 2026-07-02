@@ -88,17 +88,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Paiement Multi-modes - ${facture.numeroFacture}`} size="lg">
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="bg-gradient-to-br from-indigo-50 to-white p-5 rounded-2xl border border-indigo-100 shadow-sm space-y-3">
+                <div className="bg-gradient-to-br from-terracotta-50 to-white p-5 rounded-2xl border border-terracotta-100 shadow-sm space-y-3">
                     <div className="flex justify-between items-center text-sm">
-                        <span className="text-indigo-600 font-medium">Récapitulatif Facture :</span>
-                        <span className="text-gray-400 font-mono text-xs">{facture.numeroFacture}</span>
+                        <span className="text-terracotta-600 font-medium">Récapitulatif Facture :</span>
+                        <span className="text-sand-400 font-mono text-xs">{facture.numeroFacture}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Montant Total TTC :</span>
-                        <span className="font-semibold text-gray-900">{formatCurrency(facture.totalTTC)}</span>
+                        <span className="text-sand-600">Montant Total TTC :</span>
+                        <span className="font-semibold text-sand-900">{formatCurrency(facture.totalTTC)}</span>
                     </div>
                     {facture.soldeUtilise ? (
-                        <div className="flex justify-between items-center text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-sm border border-emerald-100">
+                        <div className="flex justify-between items-center text-success-600 bg-success-50 px-3 py-1.5 rounded-lg text-sm border border-success-100">
                             <span className="flex items-center gap-2">
                                 <Icon icon="mdi:wallet-outline" />
                                 Avoir utilisé :
@@ -107,7 +107,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         </div>
                     ) : null}
                     {dejaPaye > 0 ? (
-                        <div className="flex justify-between items-center text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-sm border border-blue-100">
+                        <div className="flex justify-between items-center text-info-600 bg-info-50 px-3 py-1.5 rounded-lg text-sm border border-info-100">
                             <span className="flex items-center gap-2">
                                 <Icon icon="mdi:history" />
                                 Déjà réglé :
@@ -115,22 +115,22 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             <span className="font-bold">{formatCurrency(dejaPaye)}</span>
                         </div>
                     ) : null}
-                    <div className="flex justify-between items-center border-t border-indigo-100 pt-3">
-                        <span className="font-bold text-gray-900">Reste à encaisser :</span>
-                        <span className="text-2xl font-black text-indigo-700">{formatCurrency(netARester)}</span>
+                    <div className="flex justify-between items-center border-t border-terracotta-100 pt-3">
+                        <span className="font-bold text-sand-900">Reste à encaisser :</span>
+                        <span className="text-2xl font-black text-terracotta-700">{formatCurrency(netARester)}</span>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-bold text-gray-700 uppercase tracking-widest flex items-center gap-2">
-                            <Icon icon="mdi:cash-multiple" className="text-indigo-500 text-lg" />
+                        <h4 className="text-sm font-bold text-sand-700 uppercase tracking-widest flex items-center gap-2">
+                            <Icon icon="mdi:cash-multiple" className="text-terracotta-500 text-lg" />
                             Détail des versements
                         </h4>
                         <button
                             type="button"
                             onClick={handleAddReglement}
-                            className="flex items-center gap-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-full transition-all shadow-md hover:shadow-indigo-200 active:scale-95"
+                            className="flex items-center gap-2 text-xs font-bold text-white bg-terracotta-600 hover:bg-terracotta-700 px-4 py-2 rounded-full transition-all shadow-md hover:shadow-terracotta-200 active:scale-95"
                         >
                             <Icon icon="mdi:plus-circle" className="text-sm" />
                             Ajouter un mode
@@ -139,36 +139,36 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
                     <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
                         {reglements.map((reg, index) => (
-                            <div key={reg.id} className="relative bg-white p-4 rounded-2xl border border-gray-200 shadow-sm hover:border-indigo-200 transition-all group animate-in slide-in-from-bottom-4 duration-300">
+                            <div key={reg.id} className="relative bg-white p-4 rounded-2xl border border-sand-200 shadow-sm hover:border-terracotta-200 transition-all group animate-in slide-in-from-bottom-4 duration-300">
                                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
                                     <div className="sm:col-span-5">
-                                        <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5 ml-1">Montant du versement</label>
+                                        <label className="block text-[10px] font-bold text-sand-400 uppercase mb-1.5 ml-1">Montant du versement</label>
                                         <div className="relative group/input">
                                             <input
                                                 type="number"
                                                 value={reg.montant}
                                                 onChange={(e) => handleUpdateReglement(reg.id, 'montant', e.target.value)}
-                                                className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-bold text-gray-900 text-lg transition-all"
+                                                className="w-full pl-4 pr-12 py-3 bg-sand-50 border border-sand-200 rounded-xl focus:ring-4 focus:ring-terracotta-500/10 focus:border-terracotta-500 outline-none font-bold text-sand-900 text-lg transition-all"
                                                 placeholder="0"
                                                 min="0"
                                                 required
                                                 autoFocus={index === reglements.length - 1}
                                             />
-                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 group-focus-within/input:text-indigo-500">FCFA</span>
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-sand-400 group-focus-within/input:text-terracotta-500">FCFA</span>
                                         </div>
                                     </div>
 
                                     <div className="sm:col-span-6">
-                                        <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5 ml-1">Moyen de paiement</label>
-                                        <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-xl">
+                                        <label className="block text-[10px] font-bold text-sand-400 uppercase mb-1.5 ml-1">Moyen de paiement</label>
+                                        <div className="grid grid-cols-3 gap-2 p-1 bg-sand-100 rounded-xl">
                                             {(['espece', 'om', 'wave'] as const).map(m => (
                                                 <button
                                                     key={m}
                                                     type="button"
                                                     onClick={() => handleUpdateReglement(reg.id, 'mode', m)}
                                                     className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all border-2 h-14 ${reg.mode === m
-                                                        ? 'bg-white border-indigo-500 text-indigo-700 shadow-sm scale-[1.02]'
-                                                        : 'border-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                                                        ? 'bg-white border-terracotta-500 text-terracotta-700 shadow-sm scale-[1.02]'
+                                                        : 'border-transparent text-sand-500 hover:bg-sand-50 hover:text-sand-700'
                                                         }`}
                                                 >
                                                     {m === 'espece' ? (
@@ -193,7 +193,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveReglement(reg.id)}
-                                                className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                className="p-3 text-danger-500 hover:text-danger-600 hover:bg-danger-50 rounded-xl transition-all"
                                                 title="Supprimer ce mode"
                                             >
                                                 <Icon icon="mdi:close-circle-outline" className="text-2xl" />
@@ -203,7 +203,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                 </div>
                                 
                                 {index < reglements.length - 1 && (
-                                    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-gray-200 text-gray-500 rounded-full p-0.5 z-10 border-4 border-white">
+                                    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-sand-200 text-sand-500 rounded-full p-0.5 z-10 border-4 border-white">
                                         <Icon icon="mdi:plus" className="text-xs" />
                                     </div>
                                 )}
@@ -212,8 +212,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     </div>
                 </div>
 
-                <div className="bg-white border-2 border-dashed border-gray-200 p-5 rounded-2xl space-y-4">
-                    <div className="flex justify-between items-center text-gray-500">
+                <div className="bg-white border-2 border-dashed border-sand-200 p-5 rounded-2xl space-y-4">
+                    <div className="flex justify-between items-center text-sand-500">
                         <span className="text-sm flex items-center gap-2">
                             <Icon icon="mdi:calculator-variant" />
                             Total encaissé :
@@ -221,17 +221,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         <span className="font-bold">{formatCurrency(totalSaisi)}</span>
                     </div>
                     
-                    <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+                    <div className="h-px bg-gradient-to-r from-transparent via-sand-200 to-transparent"></div>
 
                     <div className="flex justify-between items-center">
                         <div className="space-y-0.5">
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Reste à percevoir</span>
-                            <p className={`text-2xl font-black transition-colors ${resteAPayer === 0 ? 'text-emerald-600' : 'text-gray-900'}`}>
+                            <span className="text-xs font-bold text-sand-400 uppercase tracking-widest">Reste à percevoir</span>
+                            <p className={`text-2xl font-black transition-colors ${resteAPayer === 0 ? 'text-success-600' : 'text-sand-900'}`}>
                                 {formatCurrency(resteAPayer)}
                             </p>
                         </div>
                         {resteAPayer === 0 && (
-                            <div className="bg-emerald-100 text-emerald-700 p-2 rounded-full animate-bounce">
+                            <div className="bg-success-100 text-success-700 p-2 rounded-full animate-bounce">
                                 <Icon icon="mdi:check-bold" className="text-xl" />
                             </div>
                         )}
@@ -239,26 +239,26 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 </div>
 
                 {isOverpayment && (
-                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 text-amber-900 p-5 rounded-2xl flex gap-4 shadow-sm animate-in zoom-in duration-300">
-                        <div className="bg-amber-100 p-3 rounded-full h-fit">
-                            <Icon icon="mdi:alert-decagram" className="text-2xl text-amber-600" />
+                    <div className="bg-gradient-to-br from-warning-50 to-warning-50 border border-warning-100 text-warning-600 p-5 rounded-2xl flex gap-4 shadow-sm animate-in zoom-in duration-300">
+                        <div className="bg-warning-100 p-3 rounded-full h-fit">
+                            <Icon icon="mdi:alert-decagram" className="text-2xl text-warning-600" />
                         </div>
                         <div className="text-sm">
-                            <p className="font-black text-amber-800 uppercase tracking-tight mb-1">Montant supérieur au net !</p>
-                            <p className="text-amber-700 leading-relaxed">
+                            <p className="font-black text-warning-600 uppercase tracking-tight mb-1">Montant supérieur au net !</p>
+                            <p className="text-warning-600 leading-relaxed">
                                 Le montant total saisi est de <span className="font-bold">{formatCurrency(totalSaisi)}</span>. 
-                                Un avoir de <span className="bg-white px-2 py-0.5 rounded-lg font-black text-orange-600 shadow-sm">{formatCurrency(totalSaisi - netARester)}</span> sera automatiquement ajouté au solde du client.
+                                Un avoir de <span className="bg-white px-2 py-0.5 rounded-lg font-black text-warning-600 shadow-sm">{formatCurrency(totalSaisi - netARester)}</span> sera automatiquement ajouté au solde du client.
                             </p>
                         </div>
                     </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4 border-t border-gray-100">
+                <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4 border-t border-sand-100">
                     <button
                         type="button"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="px-6 py-3 text-sm font-bold text-gray-400 hover:text-gray-600 transition-all"
+                        className="px-6 py-3 text-sm font-bold text-sand-400 hover:text-sand-600 transition-all"
                     >
                         Annuler
                     </button>
@@ -266,7 +266,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         type="submit"
                         isLoading={isLoading}
                         disabled={totalSaisi <= 0}
-                        className="bg-gray-900 hover:bg-black text-white py-4 px-10 rounded-2xl shadow-xl shadow-gray-200 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                        className="bg-sand-900 hover:bg-black text-white py-4 px-10 rounded-2xl shadow-xl shadow-sand-200 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
                     >
                         <Icon icon="mdi:check-circle" className="text-xl" />
                         <span>Enregistrer le paiement</span>

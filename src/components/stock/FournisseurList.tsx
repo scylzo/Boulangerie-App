@@ -88,14 +88,14 @@ export const FournisseurList: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-800">Fournisseurs</h3>
+        <h3 className="text-lg font-semibold text-sand-800">Fournisseurs</h3>
         <button
           onClick={() => {
             setIsEditing(null);
             resetForm();
             setShowForm(!showForm);
           }}
-          className="flex items-center space-x-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+          className="flex items-center space-x-2 bg-warning-500 text-white px-4 py-2 rounded-lg hover:bg-warning-600 transition-colors"
         >
           <Plus size={20} />
           <span>Nouveau Fournisseur</span>
@@ -103,52 +103,52 @@ export const FournisseurList: React.FC = () => {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-sand-100 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nom de l'entreprise</label>
+              <label className="block text-sm font-medium text-sand-700 mb-1">Nom de l'entreprise</label>
               <input
                 required
                 type="text"
                 value={formData.nom}
                 onChange={e => setFormData({ ...formData, nom: e.target.value })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
                 placeholder="Ex: Grands Moulins de Dakar"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contact Principal (Nom)</label>
+              <label className="block text-sm font-medium text-sand-700 mb-1">Contact Principal (Nom)</label>
               <input
                 required
                 type="text"
                 value={formData.contact}
                 onChange={e => setFormData({ ...formData, contact: e.target.value })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
                 placeholder="Ex: M. Diallo"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+              <label className="block text-sm font-medium text-sand-700 mb-1">Téléphone</label>
               <input
                 type="tel"
                 value={formData.telephone}
                 onChange={e => setFormData({ ...formData, telephone: e.target.value })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
                 placeholder="Ex: 77 123 45 67"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+              <label className="block text-sm font-medium text-sand-700 mb-1">Adresse</label>
               <input
                 type="text"
                 value={formData.adresse}
                 onChange={e => setFormData({ ...formData, adresse: e.target.value })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
                 placeholder="Ex: Rue 10 x Avenue Lamine Gueye, Plateau"
               />
             </div>
             <div className="md:col-span-2 space-y-3">
-              <label className="block text-sm font-medium text-gray-700">Catégories</label>
+              <label className="block text-sm font-medium text-sand-700">Catégories</label>
 
               {/* Catégories prédéfinies */}
               <div className="flex flex-wrap gap-2 mb-2">
@@ -184,8 +184,8 @@ export const FournisseurList: React.FC = () => {
                         setFormData({ ...formData, categories: newCats.join(', ') });
                       }}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isSelected
-                        ? 'bg-orange-100 text-orange-700 border-orange-200'
-                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                        ? 'bg-warning-100 text-warning-600 border-warning-100'
+                        : 'bg-sand-50 text-sand-600 border-sand-200 hover:bg-sand-100'
                         }`}
                     >
                       {cat}
@@ -196,13 +196,13 @@ export const FournisseurList: React.FC = () => {
 
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Tag size={14} className="text-gray-400" />
+                  <Tag size={14} className="text-sand-400" />
                 </div>
                 <input
                   type="text"
                   value={formData.categories}
                   onChange={e => setFormData({ ...formData, categories: e.target.value })}
-                  className="w-full pl-9 p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                  className="w-full pl-9 p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none text-sm"
                   placeholder="Ajoutez d'autres catégories, séparées par des virgules..."
                 />
               </div>
@@ -212,13 +212,13 @@ export const FournisseurList: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              className="px-4 py-2 text-sand-600 hover:text-sand-800"
             >
               Annuler
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              className="px-4 py-2 bg-warning-500 text-white rounded-lg hover:bg-warning-600"
             >
               {isEditing ? 'Mettre à jour' : 'Ajouter'}
             </button>
@@ -228,11 +228,11 @@ export const FournisseurList: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {fournisseurs.map((fournisseur) => (
-          <div key={fournisseur.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+          <div key={fournisseur.id} className="bg-white rounded-xl shadow-sm border border-sand-100 p-5 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h4 className="font-bold text-lg text-gray-800">{fournisseur.nom}</h4>
-                <div className="flex items-center text-gray-500 text-sm mt-1">
+                <h4 className="font-bold text-lg text-sand-800">{fournisseur.nom}</h4>
+                <div className="flex items-center text-sand-500 text-sm mt-1">
                   <User size={14} className="mr-1" />
                   {fournisseur.contact}
                 </div>
@@ -240,55 +240,55 @@ export const FournisseurList: React.FC = () => {
               <div className="flex space-x-1">
                 <button
                   onClick={() => startEdit(fournisseur)}
-                  className="p-1.5 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                  className="p-1.5 text-sand-400 hover:text-warning-600 hover:bg-warning-50 rounded-lg transition-colors"
                 >
                   <Edit2 size={16} />
                 </button>
                 <button
                   onClick={() => handleDelete(fournisseur.id, fournisseur.nom)}
-                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-1.5 text-sand-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-colors"
                 >
                   <Trash2 size={16} />
                 </button>
               </div>
             </div>
 
-            <div className="space-y-2 text-sm text-gray-600">
+            <div className="space-y-2 text-sm text-sand-600">
               {fournisseur.telephone && (
                 <div className="flex items-center">
-                  <Phone size={14} className="mr-2 text-gray-400" />
+                  <Phone size={14} className="mr-2 text-sand-400" />
                   {fournisseur.telephone}
                 </div>
               )}
               {fournisseur.adresse && (
                 <div className="flex items-center">
-                  <MapPin size={14} className="mr-2 text-gray-400" />
+                  <MapPin size={14} className="mr-2 text-sand-400" />
                   {fournisseur.adresse}
                 </div>
               )}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-50 flex flex-wrap gap-2">
+            <div className="mt-4 pt-4 border-t border-sand-50 flex flex-wrap gap-2">
               {fournisseur.categories.map((cat, idx) => (
-                <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+                <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-sand-100 text-sand-600">
                   <Tag size={10} className="mr-1" />
                   {cat}
                 </span>
               ))}
               {fournisseur.categories.length === 0 && (
-                <span className="text-xs text-gray-400 italic">Aucune catégorie</span>
+                <span className="text-xs text-sand-400 italic">Aucune catégorie</span>
               )}
             </div>
           </div>
         ))}
 
         {fournisseurs.length === 0 && !showForm && (
-          <div className="col-span-full py-12 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+          <div className="col-span-full py-12 text-center text-sand-500 bg-sand-50 rounded-xl border border-dashed border-sand-200">
             <User size={48} className="mx-auto mb-4 opacity-20" />
             <p>Aucun fournisseur enregistré.</p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-4 text-orange-500 hover:text-orange-600 font-medium"
+              className="mt-4 text-warning-500 hover:text-warning-600 font-medium"
             >
               Ajouter le premier fournisseur
             </button>

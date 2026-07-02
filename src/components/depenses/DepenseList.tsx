@@ -54,74 +54,74 @@ export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, onDeleteStock,
   if (isLoading && depenses.length === 0) {
     return (
       <div className="flex justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-warning-500"></div>
       </div>
     );
   }
 
   if (depenses.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-xl border border-gray-100">
-        <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CreditCard className="text-gray-400" size={32} />
+      <div className="text-center py-12 bg-white rounded-xl border border-sand-100">
+        <div className="bg-sand-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CreditCard className="text-sand-400" size={32} />
         </div>
-        <h3 className="text-lg font-medium text-gray-900">Aucune dépense</h3>
-        <p className="text-gray-500 mt-1">Commencez par ajouter une nouvelle dépense.</p>
+        <h3 className="text-lg font-medium text-sand-900">Aucune dépense</h3>
+        <p className="text-sand-500 mt-1">Commencez par ajouter une nouvelle dépense.</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-sand-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-sand-200">
+            <thead className="bg-sand-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-sand-500 uppercase tracking-wider">
                   Date
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-sand-500 uppercase tracking-wider">
                   Catégorie
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-sand-500 uppercase tracking-wider">
                   Description
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-sand-500 uppercase tracking-wider">
                   Montant
                 </th>
                 {!readOnly && (
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-sand-500 uppercase tracking-wider">
                     Actions
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-sand-200">
               {depenses.map((depense) => (
-                <tr key={depense.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <tr key={depense.id} className="hover:bg-sand-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-sand-500">
                     <div className="flex items-center">
-                      <Calendar size={16} className="mr-2 text-gray-400" />
+                      <Calendar size={16} className="mr-2 text-sand-400" />
                       {depense.date.toLocaleDateString('fr-FR')}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sand-100 text-sand-800">
                       <Tag size={12} className="mr-1" />
                       {depense.categorie}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 font-medium">{depense.description}</div>
+                    <div className="text-sm text-sand-900 font-medium">{depense.description}</div>
                     {depense.fournisseur && (
-                      <div className="flex items-center text-xs text-gray-500 mt-1">
+                      <div className="flex items-center text-xs text-sand-500 mt-1">
                         <Building2 size={12} className="mr-1" />
                         {depense.fournisseur}
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-sand-900">
                     {depense.montant.toLocaleString()} FCFA
                   </td>
                   {!readOnly && (
@@ -130,7 +130,7 @@ export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, onDeleteStock,
                         {onEdit && (
                           <button
                             onClick={() => onEdit(depense)}
-                            className="text-gray-400 hover:text-orange-600 transition-colors p-2 hover:bg-orange-50 rounded-full"
+                            className="text-sand-400 hover:text-warning-600 transition-colors p-2 hover:bg-warning-50 rounded-full"
                             title="Modifier"
                           >
                             <Edit2 size={18} />
@@ -138,7 +138,7 @@ export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, onDeleteStock,
                         )}
                         <button
                           onClick={() => handleDelete(depense.id)}
-                          className="text-gray-400 hover:text-red-900 transition-colors p-2 hover:bg-red-50 rounded-full"
+                          className="text-sand-400 hover:text-danger-700 transition-colors p-2 hover:bg-danger-50 rounded-full"
                           title="Supprimer"
                         >
                           <Trash2 size={18} />

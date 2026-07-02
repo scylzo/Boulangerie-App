@@ -83,17 +83,17 @@ export const MouvementsList: React.FC = () => {
   const getTypeStyle = (type: MouvementStock['type']) => {
     switch (type) {
       case 'achat':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success-100 text-success-700';
       case 'consommation':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-info-100 text-info-600';
       case 'perte':
-        return 'bg-red-100 text-red-800';
+        return 'bg-danger-100 text-danger-700';
       case 'correction':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-sand-100 text-sand-800';
       case 'retour_fournisseur':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-warning-100 text-warning-600';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-sand-100 text-sand-800';
     }
   };
 
@@ -113,29 +113,29 @@ export const MouvementsList: React.FC = () => {
   return (
     <div className="space-y-3 sm:space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-800">Historique des Mouvements</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-sand-800">Historique des Mouvements</h3>
         <div className="relative w-full sm:w-auto">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sand-400" size={18} />
           <input
             type="text"
             placeholder="Rechercher..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 outline-none w-full sm:w-64"
+            className="pl-10 pr-4 py-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-warning-500 outline-none w-full sm:w-64"
           />
         </div>
       </div>
 
       {/* Filtres */}
-      <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+      <div className="bg-sand-50 p-3 sm:p-4 rounded-lg border border-sand-200">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Filtre Type */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Type de mouvement</label>
+            <label className="block text-xs font-medium text-sand-700 mb-1">Type de mouvement</label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-warning-500 outline-none bg-white"
             >
               <option value="all">Tous les types</option>
               <option value="achat">Achat / Entrée</option>
@@ -148,11 +148,11 @@ export const MouvementsList: React.FC = () => {
 
           {/* Filtre Article */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Article</label>
+            <label className="block text-xs font-medium text-sand-700 mb-1">Article</label>
             <select
               value={filterArticle}
               onChange={(e) => setFilterArticle(e.target.value)}
-              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-warning-500 outline-none bg-white"
             >
               <option value="all">Tous les articles</option>
               {matieres
@@ -169,23 +169,23 @@ export const MouvementsList: React.FC = () => {
 
           {/* Filtre Date Début */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Date début</label>
+            <label className="block text-xs font-medium text-sand-700 mb-1">Date début</label>
             <input
               type="date"
               value={filterDateDebut}
               onChange={(e) => setFilterDateDebut(e.target.value)}
-              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-warning-500 outline-none"
             />
           </div>
 
           {/* Filtre Date Fin */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Date fin</label>
+            <label className="block text-xs font-medium text-sand-700 mb-1">Date fin</label>
             <input
               type="date"
               value={filterDateFin}
               onChange={(e) => setFilterDateFin(e.target.value)}
-              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full p-2 border rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-warning-500 outline-none"
             />
           </div>
         </div>
@@ -194,13 +194,13 @@ export const MouvementsList: React.FC = () => {
         <div className="mt-3 flex justify-end">
           <button
             onClick={resetFilters}
-            className="text-xs sm:text-sm text-orange-600 hover:text-orange-700 font-medium">
+            className="text-xs sm:text-sm text-warning-600 hover:text-warning-600 font-medium">
             Réinitialiser les filtres
           </button>
         </div>
 
         {/* Résumé des filtres actifs */}
-        <div className="mt-2 text-xs text-gray-600">
+        <div className="mt-2 text-xs text-sand-600">
           <span className="font-medium">{filteredMouvements.length}</span> mouvement(s) affiché(s)
           {mouvements.length !== filteredMouvements.length && (
             <span> sur {mouvements.length} au total</span>
@@ -211,7 +211,7 @@ export const MouvementsList: React.FC = () => {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <tr className="bg-sand-50 text-left text-xs font-semibold text-sand-500 uppercase tracking-wider">
               <th className="px-3 py-3 w-32">Date</th>
               <th className="px-3 py-3">Article</th>
               <th className="px-3 py-3">Type</th>
@@ -220,20 +220,20 @@ export const MouvementsList: React.FC = () => {
               <th className="px-3 py-3 w-20">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-100">
+          <tbody className="bg-white divide-y divide-sand-100">
             {filteredMouvements.map((m) => (
-              <tr key={m.id} className="hover:bg-gray-50 transition-colors group">
-                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+              <tr key={m.id} className="hover:bg-sand-50 transition-colors group">
+                <td className="px-3 py-4 whitespace-nowrap text-sm text-sand-500">
                   <div className="flex flex-col">
                     <span className="font-medium">{new Date(m.date).toLocaleDateString('fr-FR')}</span>
                     {new Date(m.date).getHours() !== 0 && new Date(m.date).getMinutes() !== 0 && (
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-sand-400">
                         {new Date(m.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     )}
                   </div>
                 </td>
-                <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-sand-900">
                   {m.matiereNom}
                 </td>
                 <td className="px-3 py-4 whitespace-nowrap">
@@ -242,9 +242,9 @@ export const MouvementsList: React.FC = () => {
                     {m.type === 'achat' ? 'Entrée' : m.type.charAt(0).toUpperCase() + m.type.slice(1)}
                   </span>
                 </td>
-                <td className="px-3 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                <td className="px-3 py-4 whitespace-nowrap text-sm text-right font-medium text-sand-900">
                   {/* Affichage Quantité */}
-                  <div className="font-bold text-gray-900">
+                  <div className="font-bold text-sand-900">
                     {m.quantite.toLocaleString('fr-FR')} {m.matiereUnite}
                   </div>
                   {/* Parsing du motif pour afficher les sacs ou sachets si présents */}
@@ -258,7 +258,7 @@ export const MouvementsList: React.FC = () => {
                       const unitLabel = containerMatch[2].toLowerCase();
 
                       return (
-                        <div className="text-xs text-blue-600 font-medium">
+                        <div className="text-xs text-info-600 font-medium">
                           {count} {unitLabel} {weightMatch ? `x ${weightMatch[1]}kg` : ''}
                         </div>
                       );
@@ -267,12 +267,12 @@ export const MouvementsList: React.FC = () => {
                   })()}
                 </td>
 
-                <td className="px-3 py-4 text-sm text-gray-500 max-w-xs truncate">
+                <td className="px-3 py-4 text-sm text-sand-500 max-w-xs truncate">
                   <div className="flex flex-col">
                     <span title={m.motif}>{m.motif || '-'}</span>
-                    <div className="flex gap-2 text-xs text-gray-400 mt-0.5">
+                    <div className="flex gap-2 text-xs text-sand-400 mt-0.5">
                       {m.referenceDocument && <span>Ref: {m.referenceDocument}</span>}
-                      {m.responsable && <span className="text-green-600">Validé: {m.responsable}</span>}
+                      {m.responsable && <span className="text-success-600">Validé: {m.responsable}</span>}
                     </div>
                   </div>
                 </td>
@@ -281,14 +281,14 @@ export const MouvementsList: React.FC = () => {
                   <div className="flex items-center justify-end gap-2">
                     <button
                       onClick={() => m.matiere && setEditingMouvement(m)}
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                      className="p-1.5 text-info-600 hover:bg-info-50 rounded"
                       title="Modifier"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => setDeleteConfirm({ isOpen: true, id: m.id })}
-                      className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                      className="p-1.5 text-danger-600 hover:bg-danger-50 rounded"
                       title="Supprimer (Annule l'impact stock)"
                     >
                       <Trash2 size={16} />
@@ -299,7 +299,7 @@ export const MouvementsList: React.FC = () => {
             ))}
             {filteredMouvements.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-12 text-center text-sand-500">
                   Aucun mouvement trouvé.
                 </td>
               </tr>

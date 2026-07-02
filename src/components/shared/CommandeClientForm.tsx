@@ -351,8 +351,8 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
   return (
     <div>
       {/* Sous-titre explicatif */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-gray-700 text-sm">
+      <div className="mb-6 p-4 bg-sand-50 rounded-lg border border-sand-200">
+        <p className="text-sand-700 text-sm">
           {mode === 'addProducts' ? "Ajoutez des produits à la commande existante. Les quantités seront fusionnées avec les produits déjà commandés." :
             mode === 'edit' ? "Modifiez les détails de la commande. Cette action remplacera tous les produits actuels." :
               mode === 'editSpecific' ? "Modifiez les détails de ce produit spécifique dans la commande." :
@@ -362,8 +362,8 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
 
       {/* Résumé de la commande existante en mode addProducts */}
       {mode === 'addProducts' && commande && (
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
+        <div className="mb-6 p-4 bg-info-50 rounded-lg border border-info-100">
+          <h4 className="text-sm font-semibold text-info-600 mb-3 flex items-center gap-2">
             <Icon icon="mdi:information" />
             Produits actuellement commandés
           </h4>
@@ -372,8 +372,8 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
               const produit = produits.find(p => p.id === item.produitId);
               return (
                 <div key={index} className="flex items-center justify-between text-sm">
-                  <span className="text-blue-700">{produit?.nom || 'Produit inconnu'}</span>
-                  <span className="font-medium text-blue-800">x{item.quantiteCommandee}</span>
+                  <span className="text-info-600">{produit?.nom || 'Produit inconnu'}</span>
+                  <span className="font-medium text-info-600">x{item.quantiteCommandee}</span>
                 </div>
               );
             })}
@@ -383,12 +383,12 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
 
       {/* Information en mode editSpecific */}
       {mode === 'editSpecific' && commande && (
-        <div className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
-          <h4 className="text-sm font-semibold text-amber-800 mb-2 flex items-center gap-2">
+        <div className="mb-6 p-4 bg-warning-50 rounded-lg border border-warning-100">
+          <h4 className="text-sm font-semibold text-warning-600 mb-2 flex items-center gap-2">
             <Icon icon="mdi:pencil-outline" />
             Mode édition produit spécifique
           </h4>
-          <p className="text-sm text-amber-700">
+          <p className="text-sm text-warning-600">
             Vous modifiez uniquement le produit sélectionné. Les autres produits de la commande ne seront pas affectés.
           </p>
         </div>
@@ -422,11 +422,11 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
           const isSunday = new Date(dateLivraison).getDay() === 0;
           if (client?.neTravaillePasDimanche && isSunday) {
             return (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 animate-pulse">
-                <Icon icon="mdi:alert" className="text-red-600 text-xl mt-0.5" />
+              <div className="p-4 bg-danger-50 border border-danger-100 rounded-lg flex items-start gap-3 animate-pulse">
+                <Icon icon="mdi:alert" className="text-danger-600 text-xl mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-red-800">Attention : Repos le Dimanche</h4>
-                  <p className="text-sm text-red-700">
+                  <h4 className="text-sm font-bold text-danger-700">Attention : Repos le Dimanche</h4>
+                  <p className="text-sm text-danger-700">
                     Ce client ne travaille habituellement pas le dimanche. Vérifiez bien qu'il a passé commande pour cette date.
                   </p>
                 </div>
@@ -437,19 +437,19 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
         })()}
 
         {/* Choix du type de prix */}
-        <div className="flex items-center space-x-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+        <div className="flex items-center space-x-3 p-4 bg-warning-50 border border-warning-100 rounded-lg">
           <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={utiliserPrixClient}
               onChange={(e) => setUtiliserPrixClient(e.target.checked)}
-              className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+              className="h-4 w-4 text-warning-600 focus:ring-warning-500 border-sand-300 rounded"
             />
-            <span className="ml-2 text-sm font-medium text-gray-900">
+            <span className="ml-2 text-sm font-medium text-sand-900">
               Utiliser les prix client
             </span>
           </label>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-sand-600">
             {utiliserPrixClient ? '(Prix réduits pour les clients)' : '(Prix boutique standard)'}
           </span>
         </div>
@@ -458,16 +458,16 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
         <div>
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h4 className="text-lg font-medium text-gray-900">
+              <h4 className="text-lg font-medium text-sand-900">
                 {mode === 'addProducts' ? 'Nouveaux produits à ajouter' : mode === 'editSpecific' ? 'Produit à modifier' : 'Produits commandés'}
               </h4>
               {mode === 'edit' && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-sand-500 mt-1">
                   Vous pouvez modifier les quantités ou ajouter de nouveaux produits
                 </p>
               )}
               {mode === 'create' && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-sand-500 mt-1">
                   Une seule commande par client et par date - Les produits ultérieurs s'ajouteront à cette commande
                 </p>
               )}
@@ -476,16 +476,16 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
               type="button"
               variant="outline"
               onClick={ajouterProduit}
-              className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
+              className="bg-info-50 hover:bg-info-100 text-info-600 border-info-100"
             >
               + Ajouter un produit
             </Button>
           </div>
 
           {produitsCommandes.length === 0 ? (
-            <div className="text-center py-8 bg-gray-50 rounded-lg">
-              <p className="text-gray-500">Aucun produit ajouté</p>
-              <p className="text-sm text-gray-400 mt-1">Cliquez sur "Ajouter un produit" pour commencer</p>
+            <div className="text-center py-8 bg-sand-50 rounded-lg">
+              <p className="text-sand-500">Aucun produit ajouté</p>
+              <p className="text-sm text-sand-400 mt-1">Cliquez sur "Ajouter un produit" pour commencer</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -498,14 +498,14 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                 return (
                   <div
                     key={index}
-                    className="border border-gray-200 rounded-lg p-4 bg-white"
+                    className="border border-sand-200 rounded-lg p-4 bg-white"
                   >
                     {/* En-tête du produit */}
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
                         {/* Sélection produit */}
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Produit</label>
+                          <label className="block text-xs font-medium text-sand-700 mb-1">Produit</label>
                           <Select
                             options={produitsOptions}
                             value={item.produitId}
@@ -516,23 +516,23 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
 
                         {/* Quantité totale calculée */}
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Quantité totale</label>
-                          <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm font-bold text-gray-900">
+                          <label className="block text-xs font-medium text-sand-700 mb-1">Quantité totale</label>
+                          <div className="px-3 py-2 bg-sand-50 border border-sand-300 rounded-md text-sm font-bold text-sand-900">
                             {repartitionTotal || 0} pièce(s)
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">Calculé automatiquement</p>
+                          <p className="text-xs text-sand-500 mt-1">Calculé automatiquement</p>
                         </div>
 
                         {/* Prix unitaire */}
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Prix unitaire</label>
+                          <label className="block text-xs font-medium text-sand-700 mb-1">Prix unitaire</label>
                           <Input
                             type="number"
                             step="1"
                             placeholder="Prix"
                             value={item.prixUnitaire ?? produitSelectionne?.prixUnitaire ?? ''}
                             onChange={(e) => modifierProduit(index, 'prixUnitaire', e.target.value === '' ? '' : parseFloat(e.target.value))}
-                            className="bg-gray-50"
+                            className="bg-sand-50"
                           />
                         </div>
                       </div>
@@ -540,7 +540,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                       <button
                         type="button"
                         onClick={() => supprimerProduit(index)}
-                        className="ml-3 text-red-500 hover:text-red-700 text-sm"
+                        className="ml-3 text-danger-500 hover:text-danger-700 text-sm"
                         title="Supprimer ce produit"
                       >
                         ✕
@@ -550,14 +550,14 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                     {/* Répartition par car */}
                     <div className="border-t pt-3">
                       <div className="mb-3">
-                        <h4 className="text-sm font-medium text-gray-700">Répartition par car de livraison</h4>
-                        <p className="text-xs text-gray-500">Saisissez les quantités pour chaque car</p>
+                        <h4 className="text-sm font-medium text-sand-700">Répartition par car de livraison</h4>
+                        <p className="text-xs text-sand-500">Saisissez les quantités pour chaque car</p>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {/* Car 1 Matin */}
-                        <div className="bg-orange-50 border border-orange-200 rounded p-2">
-                          <label className="block text-xs font-medium text-orange-700 mb-1 flex items-center gap-1">
+                        <div className="bg-warning-50 border border-warning-100 rounded p-2">
+                          <label className="block text-xs font-medium text-warning-600 mb-1 flex items-center gap-1">
                             <Icon icon="lucide:truck" className="text-xs" />
                             Car 1 - Matin
                           </label>
@@ -568,13 +568,13 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                             onChange={(e) => {
                               modifierRepartition(index, 'car1_matin', e.target.value);
                             }}
-                            className="text-center font-bold text-orange-700"
+                            className="text-center font-bold text-warning-600"
                           />
                         </div>
 
                         {/* Car 2 Matin */}
-                        <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                          <label className="block text-xs font-medium text-blue-700 mb-1 flex items-center gap-1">
+                        <div className="bg-info-50 border border-info-100 rounded p-2">
+                          <label className="block text-xs font-medium text-info-600 mb-1 flex items-center gap-1">
                             <Icon icon="lucide:truck" className="text-xs" />
                             Car 2 - Matin
                           </label>
@@ -585,13 +585,13 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                             onChange={(e) => {
                               modifierRepartition(index, 'car2_matin', e.target.value);
                             }}
-                            className="text-center font-bold text-blue-700"
+                            className="text-center font-bold text-info-600"
                           />
                         </div>
 
                         {/* Car 1 Soir */}
-                        <div className="bg-indigo-50 border border-indigo-200 rounded p-2">
-                          <label className="block text-xs font-medium text-indigo-700 mb-1 flex items-center gap-1">
+                        <div className="bg-terracotta-50 border border-terracotta-200 rounded p-2">
+                          <label className="block text-xs font-medium text-terracotta-700 mb-1 flex items-center gap-1">
                             <Icon icon="lucide:truck" className="text-xs" />
                             Car 1 - Soir
                           </label>
@@ -602,7 +602,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                             onChange={(e) => {
                               modifierRepartition(index, 'car_soir', e.target.value);
                             }}
-                            className="text-center font-bold text-indigo-700"
+                            className="text-center font-bold text-terracotta-700"
                           />
                         </div>
                       </div>
@@ -611,7 +611,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
 
                     {/* Total du produit */}
                     <div className="flex justify-end mt-3 pt-2 border-t">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-sand-900">
                         Total: {repartitionTotal && (item.prixUnitaire || produitSelectionne?.prixUnitaire)
                           ? `${(repartitionTotal * (item.prixUnitaire || produitSelectionne?.prixUnitaire || 0)).toLocaleString('fr-FR')} FCFA`
                           : '0 FCFA'
@@ -628,7 +628,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                   type="button"
                   variant="outline"
                   onClick={ajouterProduit}
-                  className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300 border-dashed"
+                  className="bg-success-50 hover:bg-success-100 text-success-700 border-success-100 border-dashed"
                 >
                   <Icon icon="mdi:plus" className="mr-2" />
                   Ajouter un autre produit
@@ -636,9 +636,9 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
               </div>
 
               {/* Total et aide */}
-              <div className="pt-4 border-t border-gray-200">
+              <div className="pt-4 border-t border-sand-200">
                 <div className="flex justify-between items-center">
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-lg font-bold text-sand-900">
                     Total: {calculerTotal().toLocaleString('fr-FR')} FCFA
                   </div>
                 </div>
@@ -648,7 +648,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+        <div className="flex justify-end space-x-3 pt-6 border-t border-sand-200">
           <Button
             type="button"
             variant="outline"
@@ -670,16 +670,16 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
 
         {/* Bouton Commande Type (visible seulement en création/édition si des produits sont présents) */}
         {mode !== 'editSpecific' && produitsCommandes.length > 0 && selectedClientId && (
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
+          <div className="bg-info-50 border border-info-100 rounded-lg p-4 mb-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-semibold text-blue-900">Commande Type</h4>
-                <p className="text-xs text-blue-700">Sauvegarder cette configuration pour ce client ?</p>
+                <h4 className="text-sm font-semibold text-info-600">Commande Type</h4>
+                <p className="text-xs text-info-600">Sauvegarder cette configuration pour ce client ?</p>
               </div>
               <button
                 type="button"
                 onClick={handleSauvegarderType}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm hover:shadow-md text-sm font-medium"
+                className="flex items-center gap-2 px-4 py-2 bg-info-600 hover:bg-info-600 text-white rounded-lg transition-all shadow-sm hover:shadow-md text-sm font-medium"
               >
                 <Icon icon="mdi:content-save-settings" className="text-lg" />
                 Définir comme commande type

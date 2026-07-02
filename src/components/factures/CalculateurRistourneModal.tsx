@@ -325,7 +325,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
       <div className="space-y-6">
         
         {/* Filtres */}
-        <div className="flex gap-4 items-end bg-gray-50 p-4 rounded-lg">
+        <div className="flex gap-4 items-end bg-sand-50 p-4 rounded-lg">
             <div className="flex-1">
                 <Select
                     label="Mois"
@@ -360,36 +360,36 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
             ) : resultats.length > 0 ? (
                 <div className="space-y-4">
                     <div className="overflow-x-auto border rounded-lg">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                        <table className="min-w-full divide-y divide-sand-200">
+                            <thead className="bg-sand-50">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
-                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Vol. Produits</th>
-                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Ristourne</th>
-                                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">Action</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-sand-500 uppercase">Client</th>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-sand-500 uppercase">Vol. Produits</th>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-sand-500 uppercase">Ristourne</th>
+                                    <th className="px-4 py-3 text-center text-xs font-medium text-sand-500 uppercase w-20">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-white divide-y divide-sand-200">
                                 {resultats.map((row, idx) => (
                                     <React.Fragment key={idx}>
                                         <tr 
-                                            className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                            className="hover:bg-sand-50 cursor-pointer transition-colors"
                                             onClick={() => toggleExpand(idx)}
                                         >
-                                            <td className="px-4 py-3 text-sm font-medium text-gray-900 flex items-center gap-2 select-none">
+                                            <td className="px-4 py-3 text-sm font-medium text-sand-900 flex items-center gap-2 select-none">
                                                 <Icon 
                                                     icon={expandedClients[idx] ? "mdi:chevron-down" : "mdi:chevron-right"} 
-                                                    className="text-gray-500 text-lg transition-transform" 
+                                                    className="text-sand-500 text-lg transition-transform" 
                                                 />
                                                 {row.client}
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-right text-gray-500">{row.volumeProduits}</td>
-                                            <td className="px-4 py-3 text-sm text-right font-bold text-green-600">
+                                            <td className="px-4 py-3 text-sm text-right text-sand-500">{row.volumeProduits}</td>
+                                            <td className="px-4 py-3 text-sm text-right font-bold text-success-600">
                                                 {formatCurrency(row.totalRistourne)}
                                             </td>
                                             <td className="px-4 py-3 text-center">
                                                 <button
-                                                    className="p-1 hover:bg-gray-200 rounded text-red-500 hover:text-red-700 transition-colors"
+                                                    className="p-1 hover:bg-sand-200 rounded text-danger-500 hover:text-danger-700 transition-colors"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         exportPDFClient(row);
@@ -402,9 +402,9 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                         </tr>
                                         {expandedClients[idx] && row.details && row.details.length > 0 && (
                                             <tr>
-                                                <td colSpan={4} className="px-4 py-3 bg-gray-50">
+                                                <td colSpan={4} className="px-4 py-3 bg-sand-50">
                                                     <div className="flex justify-between items-center mb-2">
-                                                        <div className="text-xs font-semibold text-gray-600">
+                                                        <div className="text-xs font-semibold text-sand-600">
                                                             Détails des calculs de ristourne :
                                                         </div>
                                                         <Button 
@@ -419,9 +419,9 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                                             Télécharger PDF Client
                                                         </Button>
                                                     </div>
-                                                    <div className="overflow-x-auto border border-gray-200 rounded-lg bg-white shadow-sm">
-                                                        <table className="min-w-full divide-y divide-gray-100 text-xs">
-                                                            <thead className="bg-gray-50 text-gray-500">
+                                                    <div className="overflow-x-auto border border-sand-200 rounded-lg bg-white shadow-sm">
+                                                        <table className="min-w-full divide-y divide-sand-100 text-xs">
+                                                            <thead className="bg-sand-50 text-sand-500">
                                                                 <tr>
                                                                     <th className="px-3 py-2 text-left font-medium">Facture</th>
                                                                     <th className="px-3 py-2 text-left font-medium">Date</th>
@@ -430,19 +430,19 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                                                     <th className="px-3 py-2 text-right font-medium">Ristourne</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody className="divide-y divide-gray-100 text-gray-700">
+                                                            <tbody className="divide-y divide-sand-100 text-sand-700">
                                                                 {row.details.map((detail: any, dIdx: number) => (
-                                                                    <tr key={dIdx} className="hover:bg-gray-50">
-                                                                        <td className="px-3 py-2 font-mono font-medium text-gray-900">{detail.numeroFacture}</td>
-                                                                        <td className="px-3 py-2 text-gray-500">
+                                                                    <tr key={dIdx} className="hover:bg-sand-50">
+                                                                        <td className="px-3 py-2 font-mono font-medium text-sand-900">{detail.numeroFacture}</td>
+                                                                        <td className="px-3 py-2 text-sand-500">
                                                                             {new Date(detail.dateLivraison).toLocaleDateString('fr-FR')}
                                                                         </td>
-                                                                        <td className="px-3 py-2 font-medium text-gray-600">
+                                                                        <td className="px-3 py-2 font-medium text-sand-600">
                                                                             <div className="flex flex-col gap-1 py-1">
                                                                                 {detail.produitsList.map((prod: string, pIdx: number) => (
                                                                                     <div 
                                                                                         key={pIdx} 
-                                                                                        className="bg-white border border-gray-200 px-2 py-1 rounded text-[11px] text-gray-700 shadow-sm font-mono whitespace-nowrap inline-block"
+                                                                                        className="bg-white border border-sand-200 px-2 py-1 rounded text-[11px] text-sand-700 shadow-sm font-mono whitespace-nowrap inline-block"
                                                                                     >
                                                                                         {prod}
                                                                                     </div>
@@ -450,7 +450,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                                                             </div>
                                                                         </td>
                                                                         <td className="px-3 py-2 text-right">{detail.quantite}</td>
-                                                                        <td className="px-3 py-2 text-right font-semibold text-green-600 bg-green-50/20">
+                                                                        <td className="px-3 py-2 text-right font-semibold text-success-600 bg-success-50/20">
                                                                             {formatCurrency(detail.totalRistourne)}
                                                                         </td>
                                                                     </tr>
@@ -464,10 +464,10 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                     </React.Fragment>
                                 ))}
                             </tbody>
-                            <tfoot className="bg-gray-50">
+                            <tfoot className="bg-sand-50">
                                 <tr>
-                                    <td colSpan={2} className="px-4 py-3 text-sm font-bold text-gray-900 text-right">TOTAL</td>
-                                    <td className="px-4 py-3 text-sm font-bold text-green-700 text-right">
+                                    <td colSpan={2} className="px-4 py-3 text-sm font-bold text-sand-900 text-right">TOTAL</td>
+                                    <td className="px-4 py-3 text-sm font-bold text-success-700 text-right">
                                         {formatCurrency(resultats.reduce((acc, curr) => acc + curr.totalRistourne, 0))}
                                     </td>
                                     <td></td>
@@ -484,7 +484,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                     </div>
                 </div>
             ) : (
-                <div className="text-center py-10 text-gray-500">
+                <div className="text-center py-10 text-sand-500">
                     Cliquez sur Calculer pour voir les ristournes à reverser.
                 </div>
             )}
