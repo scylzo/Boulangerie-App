@@ -99,7 +99,7 @@ export const FicheProduit: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-sand-50">
+        <div className="min-h-screen bg-sand-100">
             {/* Header */}
             <div className="bg-white border-b border-sand-200 px-6 py-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

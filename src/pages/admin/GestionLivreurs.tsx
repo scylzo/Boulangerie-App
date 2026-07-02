@@ -71,12 +71,12 @@ export const GestionLivreurs: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-sand-50">
+    <div className="min-h-screen bg-sand-100">
       {/* Header moderne */}
       <div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-sand-900 rounded-lg flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 bg-terracotta-500 rounded-xl flex items-center justify-center shrink-0">
               <Icon icon="mdi:truck-delivery" className="text-xl text-white" />
             </div>
             <div className="min-w-0 flex-1">

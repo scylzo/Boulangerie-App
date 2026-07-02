@@ -31,7 +31,7 @@ export const DatabaseAdmin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-sand-50">
+    <div className="min-h-screen bg-sand-100">
       {/* Header moderne type Odoo */}
       <div className="bg-white border-b border-sand-200 px-6 py-4">
         <div className="flex items-center justify-between">

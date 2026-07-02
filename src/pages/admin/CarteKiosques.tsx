@@ -276,7 +276,7 @@ export const CarteKiosques: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-sand-50 flex flex-col font-jakarta">
+        <div className="min-h-screen bg-sand-100 flex flex-col font-jakarta">
             {/* Header Intelligent */}
             <div className="bg-white border-b border-sand-200 px-6 py-4 shadow-sm z-20">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6">

@@ -149,7 +149,7 @@ export const RotationBoulangers: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-sand-50 overflow-x-hidden">
+    <div className="min-h-screen bg-sand-100 overflow-x-hidden">
       <div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-4 sm:py-5">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-warning-100 rounded-xl flex items-center justify-center shrink-0">
