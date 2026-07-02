@@ -236,14 +236,14 @@ export const GestionFactures: React.FC = () => {
 
   const getStatutColor = (statut: string) => {
     switch (statut) {
-      case 'brouillon': return 'text-gray-600 bg-gray-100';
-      case 'en_attente_retours': return 'text-yellow-700 bg-yellow-100';
-      case 'validee': return 'text-blue-700 bg-blue-100';
-      case 'envoyee': return 'text-indigo-700 bg-indigo-100';
-      case 'payee': return 'text-green-700 bg-green-100';
-      case 'partiellement_payee': return 'text-orange-700 bg-orange-100 border-orange-200';
-      case 'annulee': return 'text-red-700 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'brouillon': return 'text-sand-600 bg-sand-100';
+      case 'en_attente_retours': return 'text-warning-600 bg-warning-100';
+      case 'validee': return 'text-info-600 bg-info-100';
+      case 'envoyee': return 'text-terracotta-700 bg-terracotta-100';
+      case 'payee': return 'text-success-700 bg-success-100';
+      case 'partiellement_payee': return 'text-warning-600 bg-warning-100 border-warning-100';
+      case 'annulee': return 'text-danger-700 bg-danger-100';
+      default: return 'text-sand-600 bg-sand-100';
     }
   };
 
@@ -338,65 +338,65 @@ export const GestionFactures: React.FC = () => {
   const renderClientsList = () => (
     <div className="space-y-4 sm:space-y-6">
       {/* Global Daily Stats Card */}
-      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-sand-200">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div className="min-w-0 flex-1">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 truncate">Chiffre d'Affaires Facturé</h2>
-            <p className="text-xs sm:text-sm text-gray-500 truncate">
+            <h2 className="text-base sm:text-lg font-semibold text-sand-900 mb-1 truncate">Chiffre d'Affaires Facturé</h2>
+            <p className="text-xs sm:text-sm text-sand-500 truncate">
               <span className="hidden sm:inline">Total global de tous les clients pour la journée sélectionnée</span>
               <span className="sm:hidden">Total journalier tous clients</span>
             </p>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4 bg-gray-50 p-2 rounded-lg border border-gray-200 w-full sm:w-auto">
+          <div className="flex items-center gap-2 sm:gap-4 bg-sand-50 p-2 rounded-lg border border-sand-200 w-full sm:w-auto">
             <button
               onClick={() => {
                 const d = new Date(globalDate); d.setDate(d.getDate() - 1); setGlobalDate(d);
               }}
-              className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600"
+              className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-sand-600"
             >
               <Icon icon="mdi:chevron-left" className="text-lg sm:text-xl" />
             </button>
 
             <div className="flex flex-col items-center min-w-[120px] sm:min-w-[140px] flex-1 sm:flex-none">
-              <span className="font-semibold text-gray-900 text-sm sm:text-base capitalize truncate w-full text-center">{globalDate.toLocaleDateString('fr-FR', { weekday: 'long' })}</span>
-              <span className="text-xs sm:text-sm text-gray-500 truncate w-full text-center">{globalDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              <span className="font-semibold text-sand-900 text-sm sm:text-base capitalize truncate w-full text-center">{globalDate.toLocaleDateString('fr-FR', { weekday: 'long' })}</span>
+              <span className="text-xs sm:text-sm text-sand-500 truncate w-full text-center">{globalDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
             </div>
 
             <button
               onClick={() => {
                 const d = new Date(globalDate); d.setDate(d.getDate() + 1); setGlobalDate(d);
               }}
-              className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600"
+              className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-sand-600"
             >
               <Icon icon="mdi:chevron-right" className="text-lg sm:text-xl" />
             </button>
           </div>
 
-          <div className="text-left sm:text-right pl-0 sm:pl-6 border-l-0 sm:border-l border-gray-100 w-full sm:w-auto sm:min-w-[180px]">
-            <p className="text-[10px] sm:text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Total Journalier</p>
-            <p className="text-xl sm:text-2xl font-bold text-gray-900">{formatCurrency(globalDailyStats.totalTTC)}</p>
-            <p className="text-xs text-gray-400">{globalDailyStats.count} facture(s)</p>
+          <div className="text-left sm:text-right pl-0 sm:pl-6 border-l-0 sm:border-l border-sand-100 w-full sm:w-auto sm:min-w-[180px]">
+            <p className="text-[10px] sm:text-xs text-sand-500 font-semibold uppercase tracking-wider mb-1">Total Journalier</p>
+            <p className="font-display text-xl sm:text-2xl font-semibold text-sand-900">{formatCurrency(globalDailyStats.totalTTC)}</p>
+            <p className="text-xs text-sand-400">{globalDailyStats.count} facture(s)</p>
           </div>
         </div>
       </div>
 
       {/* Search & Actions Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 bg-white p-4 rounded-xl shadow-sm border border-sand-200">
         <div className="relative w-full sm:w-96">
-          <Icon icon="mdi:search" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg sm:text-xl" />
+          <Icon icon="mdi:search" className="absolute left-3 top-1/2 -translate-y-1/2 text-sand-400 text-lg sm:text-xl" />
           <input
             type="text"
             placeholder="Rechercher un client..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 sm:pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-sm sm:text-base"
+            className="w-full pl-9 sm:pl-10 pr-4 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-terracotta-500 focus:border-transparent outline-none text-sm sm:text-base"
           />
         </div>
         <Button
           onClick={() => setShowRistourneModal(true)}
           variant="outline"
-          className="flex items-center justify-center gap-2 text-gray-700 hover:bg-gray-50 border-gray-300 w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 text-sand-700 hover:bg-sand-50 border-sand-300 w-full sm:w-auto"
         >
           <Icon icon="mdi:calculator" className="text-lg sm:text-xl" />
           <span className="text-sm sm:text-base">Ristournes</span>
@@ -409,29 +409,29 @@ export const GestionFactures: React.FC = () => {
           return (
             <div
               key={client.id}
-              className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all group relative overflow-hidden"
+              className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-sand-200 hover:shadow-md hover:border-sand-300 transition-all group relative overflow-hidden"
             >
               <div
                 onClick={() => handleSelectClient(client)}
                 className="cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-3 sm:mb-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 text-gray-900 rounded-full flex items-center justify-center font-bold text-base sm:text-xl group-hover:bg-gray-900 group-hover:text-white transition-colors shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-100 text-sand-900 rounded-full flex items-center justify-center font-bold text-base sm:text-xl group-hover:bg-sand-900 group-hover:text-white transition-colors shrink-0">
                     {client.nom.charAt(0).toUpperCase()}
                   </div>
-                  <Icon icon="mdi:chevron-right" className="text-gray-300 group-hover:text-gray-900 text-xl sm:text-2xl" />
+                  <Icon icon="mdi:chevron-right" className="text-sand-300 group-hover:text-sand-900 text-xl sm:text-2xl" />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-base sm:text-lg mb-1 truncate" title={client.nom}>{client.nom}</h3>
-                <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2 mb-3 sm:mb-4 truncate">
-                  <Icon icon="mdi:phone" className="text-gray-400 shrink-0" />
+                <h3 className="font-semibold text-sand-900 text-base sm:text-lg mb-1 truncate" title={client.nom}>{client.nom}</h3>
+                <p className="text-xs sm:text-sm text-sand-500 flex items-center gap-2 mb-3 sm:mb-4 truncate">
+                  <Icon icon="mdi:phone" className="text-sand-400 shrink-0" />
                   <span className="truncate">{client.telephone || 'Non renseigné'}</span>
                 </p>
                 {client.modePaiementPreference && (
-                  <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${client.modePaiementPreference === 'espece' ? 'bg-green-100 text-green-800' :
-                    client.modePaiementPreference === 'om' ? 'bg-orange-100 text-orange-800' :
-                      client.modePaiementPreference === 'wave' ? 'bg-blue-100 text-blue-800' :
-                        client.modePaiementPreference === 'cheque' ? 'bg-gray-100 text-gray-800' :
-                          'bg-purple-100 text-purple-800'
+                  <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${client.modePaiementPreference === 'espece' ? 'bg-success-100 text-success-700' :
+                    client.modePaiementPreference === 'om' ? 'bg-warning-100 text-warning-600' :
+                      client.modePaiementPreference === 'wave' ? 'bg-info-100 text-info-600' :
+                        client.modePaiementPreference === 'cheque' ? 'bg-sand-100 text-sand-800' :
+                          'bg-terracotta-100 text-terracotta-700'
                     }`}>
                     {(client.modePaiementPreference === 'om' || client.modePaiementPreference === 'wave') ? (
                       <img
@@ -462,8 +462,8 @@ export const GestionFactures: React.FC = () => {
       </div>
 
       {filteredClients.length === 0 && (
-        <div className="text-center py-12 sm:py-20 text-gray-500">
-          <Icon icon="mdi:account-off" className="text-5xl sm:text-6xl mx-auto mb-4 text-gray-300" />
+        <div className="text-center py-12 sm:py-20 text-sand-500">
+          <Icon icon="mdi:account-off" className="text-5xl sm:text-6xl mx-auto mb-4 text-sand-300" />
           <p className="text-sm sm:text-base">Aucun client trouvé pour "{searchTerm}"</p>
         </div>
       )}
@@ -499,20 +499,20 @@ export const GestionFactures: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <button
           onClick={handleBackToClients}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium text-sm sm:text-base"
+          className="flex items-center gap-2 text-sand-600 hover:text-sand-900 transition-colors font-medium text-sm sm:text-base"
         >
           <Icon icon="mdi:arrow-left" className="text-lg sm:text-xl" />
           <span>Retour aux clients</span>
         </button>
 
-        <div className="flex items-center gap-2 sm:gap-4 bg-white p-2 rounded-lg shadow-sm border border-gray-200 w-full sm:w-auto">
-          <button onClick={() => handleChangeMonth(-1)} className="p-2 hover:bg-gray-100 rounded-lg">
+        <div className="flex items-center gap-2 sm:gap-4 bg-white p-2 rounded-lg shadow-sm border border-sand-200 w-full sm:w-auto">
+          <button onClick={() => handleChangeMonth(-1)} className="p-2 hover:bg-sand-100 rounded-lg">
             <Icon icon="mdi:chevron-left" className="text-lg sm:text-xl" />
           </button>
-          <span className="font-semibold text-gray-900 min-w-[120px] sm:min-w-32 text-center capitalize text-sm sm:text-base truncate">
+          <span className="font-semibold text-sand-900 min-w-[120px] sm:min-w-32 text-center capitalize text-sm sm:text-base truncate">
             {selectedMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
           </span>
-          <button onClick={() => handleChangeMonth(1)} className="p-2 hover:bg-gray-100 rounded-lg">
+          <button onClick={() => handleChangeMonth(1)} className="p-2 hover:bg-sand-100 rounded-lg">
             <Icon icon="mdi:chevron-right" className="text-lg sm:text-xl" />
           </button>
         </div>
@@ -520,45 +520,45 @@ export const GestionFactures: React.FC = () => {
 
       {/* Client Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
-          <h4 className="text-gray-500 text-xs sm:text-sm font-medium mb-1 truncate">Montant Total</h4>
-          <p className="text-lg sm:text-2xl font-bold text-gray-900 truncate">{formatCurrency(clientStats.montantTotal)}</p>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-sand-200">
+          <h4 className="text-sand-500 text-xs sm:text-sm font-medium mb-1 truncate">Montant Total</h4>
+          <p className="font-display text-lg sm:text-2xl font-semibold text-sand-900 truncate">{formatCurrency(clientStats.montantTotal)}</p>
         </div>
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
-          <h4 className="text-gray-500 text-xs sm:text-sm font-medium mb-1 truncate">Reste à payer</h4>
-          <p className={`text-lg sm:text-2xl font-bold truncate ${clientStats.montantImpaye > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-sand-200">
+          <h4 className="text-sand-500 text-xs sm:text-sm font-medium mb-1 truncate">Reste à payer</h4>
+          <p className={`font-display text-lg sm:text-2xl font-semibold truncate ${clientStats.montantImpaye > 0 ? 'text-danger-600' : 'text-success-600'}`}>
             {formatCurrency(clientStats.montantImpaye)}
           </p>
         </div>
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
-          <h4 className="text-gray-500 text-xs sm:text-sm font-medium mb-1 truncate">Produits Livrés</h4>
-          <p className="text-lg sm:text-2xl font-bold text-blue-600 truncate">{clientStats.totalLivres}</p>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-sand-200">
+          <h4 className="text-sand-500 text-xs sm:text-sm font-medium mb-1 truncate">Produits Livrés</h4>
+          <p className="font-display text-lg sm:text-2xl font-semibold text-info-600 truncate">{clientStats.totalLivres}</p>
         </div>
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
-          <h4 className="text-gray-500 text-xs sm:text-sm font-medium mb-1 truncate">Invendus</h4>
-          <p className="text-lg sm:text-2xl font-bold text-orange-600 truncate">{clientStats.totalInvendus}</p>
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-sand-200">
+          <h4 className="text-sand-500 text-xs sm:text-sm font-medium mb-1 truncate">Invendus</h4>
+          <p className="font-display text-lg sm:text-2xl font-semibold text-warning-600 truncate">{clientStats.totalInvendus}</p>
         </div>
       </div>
 
       {/* Filters & Content */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+      <div className="bg-white rounded-xl shadow-sm border border-sand-200 overflow-hidden">
+        <div className="border-b border-sand-200 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 sm:gap-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
               <div className="min-w-0 flex-1">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2 mb-1 truncate">
-                  <Icon icon="mdi:account-details" className="text-gray-900 shrink-0" />
+                <h2 className="text-base sm:text-lg font-semibold text-sand-900 flex items-center gap-2 mb-1 truncate">
+                  <Icon icon="mdi:account-details" className="text-sand-900 shrink-0" />
                   <span className="truncate">{selectedClient?.nom}</span>
                 </h2>
-                <p className="text-xs sm:text-sm text-gray-500 truncate">Historique des commandes et règlements</p>
+                <p className="text-xs sm:text-sm text-sand-500 truncate">Historique des commandes et règlements</p>
               </div>
 
               {/* Somme sélectionnée */}
               {selectedInvoiceIds.length > 0 && (
-                <div className="bg-gray-100 border border-gray-200 px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 sm:gap-3 animate-in fade-in zoom-in duration-200 w-full sm:w-auto">
-                  <span className="text-gray-700 font-medium text-xs sm:text-sm truncate">{selectedInvoiceIds.length} sélectionnée(s)</span>
-                  <div className="h-4 w-px bg-gray-300"></div>
-                  <span className="text-gray-900 font-bold text-sm sm:text-base truncate">Total: {formatCurrency(totalSelectedAmount)}</span>
+                <div className="bg-sand-100 border border-sand-200 px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 sm:gap-3 animate-in fade-in zoom-in duration-200 w-full sm:w-auto">
+                  <span className="text-sand-700 font-medium text-xs sm:text-sm truncate">{selectedInvoiceIds.length} sélectionnée(s)</span>
+                  <div className="h-4 w-px bg-sand-300"></div>
+                  <span className="text-sand-900 font-bold text-sm sm:text-base truncate">Total: {formatCurrency(totalSelectedAmount)}</span>
                 </div>
               )}
             </div>
@@ -567,7 +567,7 @@ export const GestionFactures: React.FC = () => {
               <Button
                 onClick={() => selectedClient && handleGenererFacturesClient(selectedClient.id)}
                 isLoading={selectedClient ? generatingClientId === selectedClient.id : false}
-                className="bg-gray-900 text-white hover:bg-gray-800 h-9 text-xs sm:text-sm w-full sm:w-auto"
+                className="bg-sand-900 text-white hover:bg-sand-800 h-9 text-xs sm:text-sm w-full sm:w-auto"
                 size="sm"
               >
                 <Icon icon="mdi:refresh-auto" className="text-base sm:text-lg mr-2" />
@@ -580,7 +580,7 @@ export const GestionFactures: React.FC = () => {
                   setShowReleveModal(true);
                 }}
                 variant="outline"
-                className="border-gray-300 text-red-700 hover:bg-red-50 h-9 text-xs sm:text-sm w-full sm:w-auto"
+                className="border-sand-300 text-danger-700 hover:bg-danger-50 h-9 text-xs sm:text-sm w-full sm:w-auto"
                 size="sm"
               >
                 <Icon icon="mdi:printer-eye" className="text-base sm:text-lg mr-2" />
@@ -593,29 +593,29 @@ export const GestionFactures: React.FC = () => {
                   setShowReleveModal(true);
                 }}
                 variant="outline"
-                className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 h-9 text-xs sm:text-sm w-full sm:w-auto"
+                className="border-success-100 text-success-700 hover:bg-success-50 h-9 text-xs sm:text-sm w-full sm:w-auto"
                 size="sm"
               >
                 <Icon icon="mdi:printer-check" className="text-base sm:text-lg mr-2" />
                 <span className="truncate">Relevé Payés</span>
               </Button>
 
-              <div className="flex bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
+              <div className="flex bg-sand-100 p-1 rounded-lg w-full sm:w-auto">
                 <button
                   onClick={() => setFiltreStatut('tous')}
-                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filtreStatut === 'tous' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filtreStatut === 'tous' ? 'bg-white text-sand-900 shadow-sm' : 'text-sand-500 hover:text-sand-900'}`}
                 >
                   Tout
                 </button>
                 <button
                   onClick={() => setFiltreStatut('payee')}
-                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filtreStatut === 'payee' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filtreStatut === 'payee' ? 'bg-white text-success-700 shadow-sm' : 'text-sand-500 hover:text-sand-900'}`}
                 >
                   Payé
                 </button>
                 <button
                   onClick={() => setFiltreStatut('impayee')}
-                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filtreStatut === 'impayee' ? 'bg-white text-red-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${filtreStatut === 'impayee' ? 'bg-white text-danger-700 shadow-sm' : 'text-sand-500 hover:text-sand-900'}`}
                 >
                   Impayé
                 </button>
@@ -626,12 +626,12 @@ export const GestionFactures: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-medium">
+            <thead className="bg-sand-50 text-sand-500 text-xs uppercase font-medium">
               <tr>
                 <th className="px-6 py-3 w-4">
                   <input
                     type="checkbox"
-                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    className="rounded border-sand-300 text-terracotta-600 focus:ring-terracotta-500"
                     checked={clientInvoices.length > 0 && selectedInvoiceIds.length === clientInvoices.length}
                     onChange={toggleSelectAll}
                   />
@@ -660,14 +660,14 @@ export const GestionFactures: React.FC = () => {
 
                   if (!invoice) {
                     return (
-                      <tr key={`day-${day}`} className={`border-b border-gray-100 ${isWeekend ? 'bg-gray-50/80' : 'bg-slate-50'}`}>
+                      <tr key={`day-${day}`} className={`border-b border-sand-100 ${isWeekend ? 'bg-sand-50/80' : 'bg-sand-50'}`}>
                         <td className="px-6 py-4"></td>
-                        <td className="px-6 py-4 text-center font-bold text-gray-300">{day}</td>
-                        <td className="px-6 py-4 text-sm text-gray-400">
+                        <td className="px-6 py-4 text-center font-bold text-sand-300">{day}</td>
+                        <td className="px-6 py-4 text-sm text-sand-400">
                           {dateOfDay.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
                         </td>
                         <td colSpan={6} className="px-6 py-4">
-                          <div className="flex items-center gap-2 text-gray-400 font-medium bg-gray-100/50 w-fit px-3 py-1 rounded-full text-xs">
+                          <div className="flex items-center gap-2 text-sand-400 font-medium bg-sand-100/50 w-fit px-3 py-1 rounded-full text-xs">
                             <Icon icon="mdi:minus-circle-outline" className="text-base" />
                             <span>Aucune commande ce jour</span>
                           </div>
@@ -680,37 +680,37 @@ export const GestionFactures: React.FC = () => {
                   const totalRetournee = invoice.lignes.reduce((sum, l) => sum + l.quantiteRetournee, 0);
 
                   return (
-                    <tr key={invoice.id} className={`hover:bg-gray-50 group border-b border-gray-100 ${selectedInvoiceIds.includes(invoice.id) ? 'bg-purple-50 hover:bg-purple-50' : ''}`}>
+                    <tr key={invoice.id} className={`hover:bg-sand-50 group border-b border-sand-100 ${selectedInvoiceIds.includes(invoice.id) ? 'bg-terracotta-50 hover:bg-terracotta-50' : ''}`}>
                       <td className="px-6 py-4">
                         <input
                           type="checkbox"
-                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                          className="rounded border-sand-300 text-terracotta-600 focus:ring-terracotta-500 cursor-pointer"
                           checked={selectedInvoiceIds.includes(invoice.id)}
                           onChange={() => toggleSelectInvoice(invoice.id)}
                         />
                       </td>
-                      <td className="px-6 py-4 text-center font-bold text-gray-700">{day}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 text-center font-bold text-sand-700">{day}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-sand-900">
                         {new Date(invoice.dateLivraison).toLocaleDateString('fr-FR')}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm text-sand-500">
                         {invoice.numeroFacture}
                       </td>
                       <td className="px-6 py-4 text-center text-sm">
-                        <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md font-medium text-xs">
+                        <span className="bg-info-50 text-info-600 px-2 py-1 rounded-md font-medium text-xs">
                           {totalLivree}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center text-sm">
                         {totalRetournee > 0 ? (
-                          <span className="bg-orange-50 text-orange-700 px-2 py-1 rounded-md font-medium text-xs">
+                          <span className="bg-warning-50 text-warning-600 px-2 py-1 rounded-md font-medium text-xs">
                             {totalRetournee}
                           </span>
                         ) : (
-                          <span className="text-gray-300">-</span>
+                          <span className="text-sand-300">-</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
+                      <td className="px-6 py-4 text-right text-sm font-bold text-sand-900">
                         {formatCurrency(invoice.totalTTC)}
                       </td>
                       <td className="px-6 py-4">
@@ -720,14 +720,14 @@ export const GestionFactures: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-1">
-                          <button onClick={() => handleActionFacture('voir', invoice)} className="p-2 hover:bg-gray-200 rounded text-gray-600" title="Détails">
+                          <button onClick={() => handleActionFacture('voir', invoice)} className="p-2 hover:bg-sand-200 rounded text-sand-600" title="Détails">
                             <Icon icon="mdi:eye" />
                           </button>
-                          <button onClick={() => handleActionFacture('pdf', invoice)} className="p-2 hover:bg-gray-200 rounded text-gray-600" title="PDF">
+                          <button onClick={() => handleActionFacture('pdf', invoice)} className="p-2 hover:bg-sand-200 rounded text-sand-600" title="PDF">
                             <Icon icon="mdi:file-pdf-box" />
                           </button>
                           {invoice.statut !== 'payee' && invoice.statut !== 'annulee' && (
-                            <button onClick={() => handleActionFacture('payer', invoice)} className="p-2 hover:bg-green-100 rounded text-green-600" title="Payer">
+                            <button onClick={() => handleActionFacture('payer', invoice)} className="p-2 hover:bg-success-100 rounded text-success-600" title="Payer">
                               <Icon icon="mdi:cash-check" />
                             </button>
                           )}
@@ -739,7 +739,7 @@ export const GestionFactures: React.FC = () => {
                               setFacturePourRetour(invoice);
                               setShowRetourModal(true);
                             }}
-                            className="p-2 hover:bg-orange-100 rounded text-orange-600"
+                            className="p-2 hover:bg-warning-100 rounded text-warning-600"
                             title="Saisir retour"
                           >
                             <Icon icon="mdi:package-variant-minus" />
@@ -749,14 +749,14 @@ export const GestionFactures: React.FC = () => {
                               setFacturePourAvoir(invoice);
                               setShowAvoirModal(true);
                             }}
-                            className="p-2 hover:bg-blue-100 rounded text-blue-600"
+                            className="p-2 hover:bg-info-100 rounded text-info-600"
                             title="Ajouter un avoir/crédit"
                           >
                             <Icon icon="mdi:wallet-plus" />
                           </button>
                           <button
                             onClick={() => handleActionFacture('supprimer', invoice)}
-                            className="p-2 hover:bg-red-100 rounded text-red-600"
+                            className="p-2 hover:bg-danger-100 rounded text-danger-600"
                             title="Supprimer"
                           >
                             <Icon icon="mdi:trash-can" />
@@ -875,22 +875,22 @@ export const GestionFactures: React.FC = () => {
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
-          <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <h3 className="font-bold text-gray-800">Saisie Retours - {facturePourRetour.client?.nom}</h3>
-            <button onClick={() => setShowRetourModal(false)} className="text-gray-400 hover:text-gray-600">
+          <div className="p-4 border-b border-sand-100 flex justify-between items-center bg-sand-50">
+            <h3 className="font-bold text-sand-800">Saisie Retours - {facturePourRetour.client?.nom}</h3>
+            <button onClick={() => setShowRetourModal(false)} className="text-sand-400 hover:text-sand-600">
               <Icon icon="mdi:close" className="text-xl" />
             </button>
           </div>
           <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
-            <p className="text-sm text-gray-500 mb-4">Date : {new Date(facturePourRetour.dateLivraison).toLocaleDateString('fr-FR')}</p>
+            <p className="text-sm text-sand-500 mb-4">Date : {new Date(facturePourRetour.dateLivraison).toLocaleDateString('fr-FR')}</p>
             {facturePourRetour.lignes.map(ligne => (
-              <div key={ligne.produitId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={ligne.produitId} className="flex items-center justify-between p-3 bg-sand-50 rounded-lg">
                 <div>
-                  <p className="font-medium text-gray-900">{ligne.produit?.nom || 'Produit'}</p>
-                  <p className="text-xs text-gray-500">Livré : {ligne.quantiteLivree}</p>
+                  <p className="font-medium text-sand-900">{ligne.produit?.nom || 'Produit'}</p>
+                  <p className="text-xs text-sand-500">Livré : {ligne.quantiteLivree}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 uppercase font-bold">Retour :</span>
+                  <span className="text-xs text-sand-500 uppercase font-bold">Retour :</span>
                   <input
                     type="number"
                     min="0"
@@ -901,19 +901,19 @@ export const GestionFactures: React.FC = () => {
                     })()}
                     onChange={e => setValeursRetours({ ...valeursRetours, [ligne.produitId]: parseInt(e.target.value) || 0 })}
                     onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
-                    className="w-20 p-2 border rounded text-center font-bold text-orange-600 focus:ring-2 focus:ring-orange-500 outline-none"
+                    className="w-20 p-2 border rounded text-center font-bold text-warning-600 focus:ring-2 focus:ring-terracotta-500 outline-none"
                     placeholder="0"
                   />
                 </div>
               </div>
             ))}
           </div>
-          <div className="p-4 border-t border-gray-100 flex justify-between gap-2 bg-gray-50">
+          <div className="p-4 border-t border-sand-100 flex justify-between gap-2 bg-sand-50">
             <Button
               type="button"
               variant="secondary"
               onClick={handleAucunRetour}
-              className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+              className="bg-info-50 text-info-600 hover:bg-info-100 border-info-100"
               isLoading={savingStatus === 'saving_aucun'}
               disabled={savingStatus !== 'idle'}
             >
@@ -984,25 +984,25 @@ export const GestionFactures: React.FC = () => {
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
-          <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <h3 className="font-bold text-gray-800">Gestion de l'Avoir</h3>
-            <button onClick={() => setShowAvoirModal(false)} className="text-gray-400 hover:text-gray-600">
+          <div className="p-4 border-b border-sand-100 flex justify-between items-center bg-sand-50">
+            <h3 className="font-bold text-sand-800">Gestion de l'Avoir</h3>
+            <button onClick={() => setShowAvoirModal(false)} className="text-sand-400 hover:text-sand-600">
               <Icon icon="mdi:close" className="text-xl" />
             </button>
           </div>
 
           <div className="p-6 space-y-6">
-            <div className="bg-gray-50 p-3 rounded-lg flex justify-between items-center">
-              <span className="text-sm text-gray-600">Déjà utilisé sur cette facture :</span>
-              <span className="font-bold text-gray-900">{formatCurrency(soldeUtilise)}</span>
+            <div className="bg-sand-50 p-3 rounded-lg flex justify-between items-center">
+              <span className="text-sm text-sand-600">Déjà utilisé sur cette facture :</span>
+              <span className="font-bold text-sand-900">{formatCurrency(soldeUtilise)}</span>
             </div>
 
-            <div className="flex bg-gray-100 p-1 rounded-lg">
+            <div className="flex bg-sand-100 p-1 rounded-lg">
               <button
                 onClick={() => setMode('add')}
                 className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${mode === 'add'
-                  ? 'bg-white text-green-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-success-600 shadow-sm'
+                  : 'text-sand-500 hover:text-sand-700'
                   }`}
               >
                 Ajouter
@@ -1010,8 +1010,8 @@ export const GestionFactures: React.FC = () => {
               <button
                 onClick={() => setMode('remove')}
                 className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${mode === 'remove'
-                  ? 'bg-white text-red-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-danger-600 shadow-sm'
+                  : 'text-sand-500 hover:text-sand-700'
                   }`}
               >
                 Retirer / Corriger
@@ -1019,7 +1019,7 @@ export const GestionFactures: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-sand-700 mb-1">
                 {mode === 'add' ? 'Montant à ajouter (FCFA)' : 'Montant à retirer (FCFA)'}
               </label>
               <Input
@@ -1027,10 +1027,10 @@ export const GestionFactures: React.FC = () => {
                 value={montantAvoir}
                 onChange={(e) => setMontantAvoir(e.target.value)}
                 placeholder="Ex: 5000"
-                className={mode === 'remove' ? 'text-red-600' : 'text-green-600'}
+                className={mode === 'remove' ? 'text-danger-600' : 'text-success-600'}
                 autoFocus
               />
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-sand-400 mt-1">
                 {mode === 'add'
                   ? "Ce montant sera ajouté au solde du client et déduit de la facture."
                   : "Ce montant sera retiré du solde du client (correction d'erreur)."}
@@ -1038,12 +1038,12 @@ export const GestionFactures: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-4 border-t border-gray-100 flex justify-end gap-2 bg-gray-50">
+          <div className="p-4 border-t border-sand-100 flex justify-end gap-2 bg-sand-50">
             <Button variant="outline" onClick={() => setShowAvoirModal(false)}>Annuler</Button>
             <Button
               onClick={handleSaveAvoir}
               isLoading={isSaving}
-              className={mode === 'remove' ? '!bg-red-600 hover:!bg-red-700' : ''}
+              className={mode === 'remove' ? '!bg-danger-500 hover:!bg-danger-600' : ''}
             >
               {mode === 'add' ? 'Ajouter' : 'Retirer'}
             </Button>
@@ -1055,16 +1055,16 @@ export const GestionFactures: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-sand-100 overflow-x-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
+      <div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
-            <Icon icon="mdi:invoice-text-multiple" className="text-xl text-white" />
+          <div className="w-10 h-10 bg-terracotta-50 rounded-xl flex items-center justify-center shrink-0">
+            <Icon icon="mdi:receipt-text-outline" className="text-xl text-terracotta-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">Facturation</h1>
-            <p className="text-xs sm:text-sm text-gray-500 truncate">Gestion des factures clients</p>
+            <h1 className="font-display text-lg sm:text-2xl font-semibold text-sand-900 truncate">Facturation</h1>
+            <p className="text-xs sm:text-sm text-sand-500 truncate">Génération, encaissements, retours & avoirs clients</p>
           </div>
         </div>
       </div>
@@ -1123,8 +1123,8 @@ export const GestionFactures: React.FC = () => {
 
       {isLoading && (
         <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mb-4" />
-          <p className="font-medium text-gray-900 text-sm sm:text-base">Traitement en cours...</p>
+          <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-sand-200 border-t-gray-900 rounded-full animate-spin mb-4" />
+          <p className="font-medium text-sand-900 text-sm sm:text-base">Traitement en cours...</p>
         </div>
       )}
     </div>
