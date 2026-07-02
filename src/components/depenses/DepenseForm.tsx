@@ -86,7 +86,7 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md my-8 flex flex-col max-h-[90vh]">
         <div className="px-6 py-4 border-b border-sand-100 flex justify-between items-center bg-sand-50 flex-shrink-0">
-          <h3 className="text-xl font-bold">{initialData ? 'Modifier la Dépense' : 'Nouvelle Dépense'}</h3>
+          <h3 className="font-display text-xl font-semibold">{initialData ? 'Modifier la Dépense' : 'Nouvelle Dépense'}</h3>
           <button onClick={onDesc} className="text-sand-400 hover:text-sand-600">
             <X size={24} />
           </button>

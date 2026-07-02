@@ -56,7 +56,7 @@ export const StockDashboard: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-sand-500">Matières Référencées</p>
-              <h3 className="text-2xl font-bold text-sand-900 mt-1">
+              <h3 className="font-display text-2xl font-semibold text-sand-900 mt-1">
                 {matieres.length}
               </h3>
               <p className="text-xs text-sand-400 mt-1">Au total</p>
@@ -71,7 +71,7 @@ export const StockDashboard: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-sand-500">Stock Faible</p>
-              <h3 className="text-2xl font-bold text-sand-900 mt-1">
+              <h3 className="font-display text-2xl font-semibold text-sand-900 mt-1">
                 {matieres.filter(m => m.stockMinimum > 0 && m.stockActuel <= m.stockMinimum).length}
               </h3>
               <p className="text-xs text-danger-500 mt-1">À réapprovisionner</p>

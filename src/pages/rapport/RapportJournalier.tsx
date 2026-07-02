@@ -61,16 +61,16 @@ export const RapportJournalier: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-sand-50">
+    <div className="min-h-screen bg-sand-100">
       {/* Header */}
       <div className="bg-white border-b border-sand-200 px-3 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-terracotta-600 rounded-lg flex items-center justify-center shrink-0">
-              <Icon icon="mdi:chart-bar" className="text-lg sm:text-2xl text-white" />
+            <div className="w-10 h-10 bg-terracotta-50 rounded-xl flex items-center justify-center shrink-0">
+              <Icon icon="mdi:file-chart-outline" className="text-lg sm:text-2xl text-terracotta-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-xl font-semibold text-sand-900 truncate">
+              <h1 className="font-display text-base sm:text-2xl font-semibold text-sand-900 truncate">
                 Rapport Journalier
               </h1>
               <p className="text-xs sm:text-sm text-sand-500 truncate">
@@ -195,7 +195,7 @@ export const RapportJournalier: React.FC = () => {
                         <Icon icon="mdi:storefront" className="text-2xl" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-sand-900">Performance Boutique</h2>
+                        <h2 className="font-display text-xl font-semibold text-sand-900">Performance Boutique</h2>
                         <p className="text-xs text-sand-500 uppercase tracking-widest font-semibold">Ventes directes & Rayon</p>
                       </div>
                     </div>
@@ -250,7 +250,7 @@ export const RapportJournalier: React.FC = () => {
                         <Icon icon="mdi:account-group" className="text-2xl" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-sand-900">Performance Clients</h2>
+                        <h2 className="font-display text-xl font-semibold text-sand-900">Performance Clients</h2>
                         <p className="text-xs text-sand-500 uppercase tracking-widest font-semibold">Livraisons & Grossistes</p>
                       </div>
                     </div>
@@ -311,11 +311,11 @@ export const RapportJournalier: React.FC = () => {
                       <div className="grid grid-cols-2 gap-8 md:border-l md:border-white/10 md:pl-12">
                         <div>
                           <div className="text-terracotta-400 text-[10px] font-black uppercase tracking-widest mb-1">Performance</div>
-                          <div className="text-2xl font-bold">{indicateurs.tauxVenteGlobal.toFixed(1)}%</div>
+                          <div className="font-display text-2xl font-semibold">{indicateurs.tauxVenteGlobal.toFixed(1)}%</div>
                         </div>
                         <div>
                           <div className="text-terracotta-400 text-[10px] font-black uppercase tracking-widest mb-1">Report total</div>
-                          <div className="text-2xl font-bold">{indicateurs.restantsTotaux} u.</div>
+                          <div className="font-display text-2xl font-semibold">{indicateurs.restantsTotaux} u.</div>
                         </div>
                       </div>
                     </div>
@@ -334,15 +334,15 @@ export const RapportJournalier: React.FC = () => {
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
 
                     <div className="bg-white p-2 sm:p-3 rounded-lg border border-sand-100 text-center">
-                      <div className="text-base sm:text-xl font-bold">{rapportJour.totaux.quantitePrevue}</div>
+                      <div className="font-display text-base sm:text-xl font-semibold">{rapportJour.totaux.quantitePrevue}</div>
                       <div className="text-[10px] sm:text-xs text-sand-500 uppercase font-bold">Prévu</div>
                     </div>
                     <div className="bg-white p-2 sm:p-3 rounded-lg border border-sand-100 text-center">
-                      <div className="text-base sm:text-xl font-bold text-info-600">{rapportJour.totaux.quantiteProduite}</div>
+                      <div className="font-display text-base sm:text-xl font-semibold text-info-600">{rapportJour.totaux.quantiteProduite}</div>
                       <div className="text-[10px] sm:text-xs text-sand-500 uppercase font-bold">Produit</div>
                     </div>
                     <div className="bg-white p-2 sm:p-3 rounded-lg border border-sand-100 text-center">
-                      <div className="text-base sm:text-xl font-bold text-success-600">{rapportJour.totaux.quantiteVendueTotal}</div>
+                      <div className="font-display text-base sm:text-xl font-semibold text-success-600">{rapportJour.totaux.quantiteVendueTotal}</div>
                       <div className="text-[10px] sm:text-xs text-sand-500 uppercase font-bold">Vendu</div>
                     </div>
                     <div className="bg-terracotta-50 p-2 sm:p-3 rounded-lg border border-terracotta-100 text-center col-span-2 sm:col-span-1">
@@ -710,7 +710,7 @@ export const RapportJournalier: React.FC = () => {
             <div className="w-24 h-24 bg-sand-50 rounded-full flex items-center justify-center mx-auto mb-6">
               <Icon icon="mdi:chart-bar-off" className="text-5xl text-sand-300" />
             </div>
-            <h2 className="text-2xl font-bold text-sand-900 mb-2">Aucun rapport disponible</h2>
+            <h2 className="font-display text-2xl font-semibold text-sand-900 mb-2">Aucun rapport disponible</h2>
             <p className="text-sand-500 mb-8 max-w-md mx-auto">
               Il n'y a pas encore de rapport pour cette journée. Cliquez sur le bouton ci-dessous pour lancer l'analyse des ventes et des stocks.
             </p>

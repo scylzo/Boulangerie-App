@@ -98,7 +98,7 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
                         <div className="flex items-center gap-3">
                             <Icon icon="mdi:alert-circle" className="text-3xl" />
                             <div>
-                                <h2 className="text-xl font-bold">Annulation & Redistribution</h2>
+                                <h2 className="font-display text-xl font-semibold">Annulation & Redistribution</h2>
                                 <p className="text-sm text-white/90">Commande déjà produite - Que faire des produits ?</p>
                             </div>
                         </div>

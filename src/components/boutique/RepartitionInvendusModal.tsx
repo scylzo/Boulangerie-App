@@ -92,7 +92,7 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                                     <Icon icon="mdi:moon-waning-crescent" className="text-2xl text-terracotta-600" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-sand-900 flex items-center gap-2">
+                                    <h2 className="font-display text-xl font-semibold text-sand-900 flex items-center gap-2">
                                         <div className="w-2 h-2 bg-gradient-to-r from-terracotta-600 to-info-600 rounded-full"></div>
                                         Clôture de Journée
                                     </h2>
@@ -117,21 +117,21 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                                     <Icon icon="mdi:package-variant" className="text-sand-500" />
                                     <span className="text-xs text-sand-600 font-medium">Total invendus</span>
                                 </div>
-                                <p className="text-2xl font-bold text-sand-900">{totalInvendus}</p>
+                                <p className="font-display text-2xl font-semibold text-sand-900">{totalInvendus}</p>
                             </div>
                             <div className="bg-white rounded-lg p-3 border border-success-100">
                                 <div className="flex items-center gap-2 mb-1">
                                     <Icon icon="mdi:recycle" className="text-success-600" />
                                     <span className="text-xs text-success-700 font-medium">À reconduire</span>
                                 </div>
-                                <p className="text-2xl font-bold text-success-600">{totalRestants}</p>
+                                <p className="font-display text-2xl font-semibold text-success-600">{totalRestants}</p>
                             </div>
                             <div className="bg-white rounded-lg p-3 border border-danger-100">
                                 <div className="flex items-center gap-2 mb-1">
                                     <Icon icon="mdi:delete-outline" className="text-danger-600" />
                                     <span className="text-xs text-danger-700 font-medium">Invendus</span>
                                 </div>
-                                <p className="text-2xl font-bold text-danger-600">{totalPertes}</p>
+                                <p className="font-display text-2xl font-semibold text-danger-600">{totalPertes}</p>
                             </div>
                         </div>
                     </div>

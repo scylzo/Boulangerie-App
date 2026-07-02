@@ -410,7 +410,7 @@ export const SaisieConsommations: React.FC = () => {
                         <ChevronLeft className="w-6 h-6 text-sand-600" />
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold text-sand-900">Saisie des Consommations</h1>
+                        <h1 className="font-display text-2xl font-semibold text-sand-900">Saisie des Consommations</h1>
                         <p className="text-sand-500">Intrants, Carburant Four, etc.</p>
                     </div>
                 </div>

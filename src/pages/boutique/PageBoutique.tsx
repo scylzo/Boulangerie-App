@@ -280,7 +280,7 @@ export const PageBoutique: React.FC = () => {
                 <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl p-6 animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
                   <div className="flex justify-between items-start mb-6">
                     <div>
-                      <h3 className="text-xl font-bold text-sand-900 flex items-center gap-2">
+                      <h3 className="font-display text-xl font-semibold text-sand-900 flex items-center gap-2">
                         <Icon icon="mdi:flash-circle" className="text-terracotta-600" />
                         Saisie Rapide des Ventes
                       </h3>
@@ -411,7 +411,7 @@ export const PageBoutique: React.FC = () => {
             {showAddProductModal && (
               <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
-                  <h3 className="text-xl font-bold text-sand-900 mb-4 flex items-center gap-2">
+                  <h3 className="font-display text-xl font-semibold text-sand-900 mb-4 flex items-center gap-2">
                     <Icon icon="mdi:plus-box" className="text-info-600" />
                     Ajouter un produit au stock
                   </h3>

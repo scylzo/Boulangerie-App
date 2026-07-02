@@ -256,7 +256,7 @@ export const GestionDepenses: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-sand-900">Gestion des Dépenses</h1>
+          <h1 className="font-display text-2xl font-semibold text-sand-900">Gestion des Dépenses</h1>
           <p className="text-sand-500">Suivi des coûts d'exploitation et gestion des fournisseurs</p>
         </div>
         <div className="flex gap-2">
@@ -309,7 +309,7 @@ export const GestionDepenses: React.FC = () => {
                 <TrendingDown size={20} />
               </div>
             </div>
-            <p className="text-3xl font-bold text-sand-900">{totalDepenses.toLocaleString()} FCFA</p>
+            <p className="font-display text-3xl font-semibold text-sand-900">{totalDepenses.toLocaleString()} FCFA</p>
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-sm border border-sand-100 md:col-span-2">

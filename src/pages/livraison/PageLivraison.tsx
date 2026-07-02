@@ -364,7 +364,7 @@ export const PageLivraison: React.FC = () => {
                     <Icon icon="mdi:account-group" className="text-lg sm:text-xl text-sand-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
+                    <div className="font-display text-2xl sm:text-3xl font-semibold text-sand-900">
                       {commandesOrganisees.length}
                     </div>
                     <div className="text-sand-500 text-xs">livreurs</div>
@@ -379,7 +379,7 @@ export const PageLivraison: React.FC = () => {
                     <Icon icon="mdi:package-variant" className="text-lg sm:text-xl text-success-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
+                    <div className="font-display text-2xl sm:text-3xl font-semibold text-sand-900">
                       {commandesClients.length}
                     </div>
                     <div className="text-sand-500 text-xs">commandes</div>
@@ -394,7 +394,7 @@ export const PageLivraison: React.FC = () => {
                     <Icon icon="mdi:truck-delivery" className="text-lg sm:text-xl text-warning-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
+                    <div className="font-display text-2xl sm:text-3xl font-semibold text-sand-900">
                       {commandesOrganisees.reduce((total, [, data]) => total + data.commandesParCar.size, 0)}
                     </div>
                     <div className="text-sand-500 text-xs">tournées</div>
@@ -409,7 +409,7 @@ export const PageLivraison: React.FC = () => {
                     <Icon icon="mdi:map-marker" className="text-lg sm:text-xl text-info-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
+                    <div className="font-display text-2xl sm:text-3xl font-semibold text-sand-900">
                       {Array.from(new Set(
                         commandesOrganisees.flatMap(([, data]) =>
                           Array.from(data.commandesParCar.values()).flat().map((liv: any) => liv.client?.id)

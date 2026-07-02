@@ -108,7 +108,7 @@ export const FicheProduit: React.FC = () => {
                             <Icon icon="mdi:file-certificate" className="text-2xl text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-sand-900">Générateur de Fiche Produit</h1>
+                            <h1 className="font-display text-2xl font-semibold text-sand-900">Générateur de Fiche Produit</h1>
                             <p className="text-sm text-sand-500 font-medium">Préparez une fiche avec des champs vides pour vos propositions commerciales</p>
                         </div>
                     </div>

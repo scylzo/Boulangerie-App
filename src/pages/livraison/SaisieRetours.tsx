@@ -494,7 +494,7 @@ export const SaisieRetours: React.FC = () => {
                     <Icon icon="mdi:account-group" className="text-lg sm:text-xl text-sand-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
+                    <div className="font-display text-2xl sm:text-3xl font-semibold text-sand-900">
                       {clientsAvecDonnees.length}
                     </div>
                     <div className="text-sand-500 text-xs">clients</div>
@@ -509,7 +509,7 @@ export const SaisieRetours: React.FC = () => {
                     <Icon icon="mdi:package-variant" className="text-lg sm:text-xl text-info-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
+                    <div className="font-display text-2xl sm:text-3xl font-semibold text-sand-900">
                       {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.quantiteLivree, 0), 0
                       )}
@@ -526,7 +526,7 @@ export const SaisieRetours: React.FC = () => {
                     <Icon icon="mdi:package-down" className="text-lg sm:text-xl text-danger-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
+                    <div className="font-display text-2xl sm:text-3xl font-semibold text-sand-900">
                       {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.invendus, 0), 0
                       )}
@@ -543,7 +543,7 @@ export const SaisieRetours: React.FC = () => {
                     <Icon icon="mdi:chart-line" className="text-lg sm:text-xl text-success-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
-                    <div className="text-2xl sm:text-3xl font-bold text-sand-900">
+                    <div className="font-display text-2xl sm:text-3xl font-semibold text-sand-900">
                       {clientsAvecDonnees.reduce((sum, client) =>
                         sum + client.produits.reduce((prodSum, p) => prodSum + p.vendu, 0), 0
                       )}
@@ -729,19 +729,19 @@ export const SaisieRetours: React.FC = () => {
                       </div>
                       <div className="grid grid-cols-3 gap-4">
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-info-600">
+                          <div className="font-display text-2xl font-semibold text-info-600">
                             {client.produits.reduce((sum, p) => sum + p.quantiteLivree, 0)}
                           </div>
                           <div className="text-sm text-sand-600">Total livré</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-danger-600">
+                          <div className="font-display text-2xl font-semibold text-danger-600">
                             {client.produits.reduce((sum, p) => sum + p.invendus, 0)}
                           </div>
                           <div className="text-sm text-sand-600">Invendus</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-success-600">
+                          <div className="font-display text-2xl font-semibold text-success-600">
                             {client.produits.reduce((sum, p) => sum + p.vendu, 0)}
                           </div>
                           <div className="text-sm text-sand-600">Vendu</div>

@@ -100,7 +100,7 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
               <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatutColor(facture.statut)}`}>
                 {getStatutLibelle(facture.statut)}
               </span>
-              <div className="mt-2 text-2xl font-bold text-sand-900">
+              <div className="mt-2 font-display text-2xl font-semibold text-sand-900">
                 {formatCurrency(facture.totalTTC)}
               </div>
               {(facture.statut === 'validee' || facture.statut === 'envoyee' || facture.statut === 'payee') && (

@@ -156,7 +156,7 @@ export const RotationBoulangers: React.FC = () => {
             <Icon icon="mdi:calendar-sync" className="text-2xl text-warning-600" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-sand-900">Rotation des Boulangers</h1>
+            <h1 className="font-display text-xl sm:text-2xl font-semibold text-sand-900">Rotation des Boulangers</h1>
             <p className="text-sm text-sand-500 mt-1">Générez un calendrier de rotation (3 jours par équipe)</p>
           </div>
         </div>

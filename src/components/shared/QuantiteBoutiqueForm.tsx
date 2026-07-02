@@ -147,7 +147,7 @@ export const QuantiteBoutiqueForm: React.FC<QuantiteBoutiqueFormProps> = ({
             <label className="text-sm font-medium text-sand-700 mb-2">Quantité Totale (Calculée)</label>
             <div className="px-4 py-3 bg-sand-50 border border-sand-300 rounded-lg">
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-success-600">{quantiteTotale}</span>
+                <span className="font-display text-2xl font-semibold text-success-600">{quantiteTotale}</span>
                 <span className="text-sm text-sand-500">pièces</span>
                 {quantiteTotale === 0 && (
                   <span className="text-xs text-sand-400 ml-2">→ Saisissez les répartitions ci-dessous</span>
