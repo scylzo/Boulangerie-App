@@ -33,11 +33,11 @@ export const Loader: React.FC<LoaderProps> = ({
       <div className="animate-spin">
         <Icon
           icon="mdi:loading"
-          className={`${sizeClasses[size]} text-orange-600`}
+          className={`${sizeClasses[size]} text-terracotta-500`}
         />
       </div>
       {message && (
-        <p className={`${textSizes[size]} text-gray-600 font-medium`}>
+        <p className={`${textSizes[size]} text-sand-600 font-medium`}>
           {message}
         </p>
       )}

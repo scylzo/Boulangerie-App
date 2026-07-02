@@ -1,11 +1,101 @@
+/* ── Fonts ─────────────────────────────────────────────────────────────
+   Fraunces = serif optique chaleureux pour les titres (identité artisan)
+   Inter    = sans-serif lisible pour le texte et les données            */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
 @import "tailwindcss";
 
+/* ── Design System « Chez Mina » — Artisan chaleureux ─────────────────────
+   Source de vérité unique. Toute couleur/typo/rayon/ombre passe par ici.
+   Tailwind v4 génère les utilitaires automatiquement :
+     --color-sand-100      -> bg-sand-100, text-sand-100, border-sand-100
+     --font-display        -> font-display
+     --radius-xl           -> rounded-xl
+     --shadow-card         -> shadow-card
+*/
+@theme {
+  /* Neutres chauds (fonds, bordures, texte) — du crème à l'espresso */
+  --color-sand-50:  #FDFBF7;
+  --color-sand-100: #FBF7F0;
+  --color-sand-200: #F4EDE1;
+  --color-sand-300: #E8DDCB;
+  --color-sand-400: #D4C4A9;
+  --color-sand-500: #B3A184;
+  --color-sand-600: #8A7860;
+  --color-sand-700: #665847;
+  --color-sand-800: #453C30;
+  --color-sand-900: #2B2119;
+  --color-sand-950: #1A140F;
+
+  /* Terracotta — accent principal (boutons, liens, focus) */
+  --color-terracotta-50:  #FBF3EC;
+  --color-terracotta-100: #F6E3D3;
+  --color-terracotta-200: #EDC5A8;
+  --color-terracotta-300: #E1A379;
+  --color-terracotta-400: #D4844F;
+  --color-terracotta-500: #C8712D;
+  --color-terracotta-600: #AE5D22;
+  --color-terracotta-700: #8C4A1E;
+  --color-terracotta-800: #6E3B1C;
+  --color-terracotta-900: #5A3119;
+
+  /* Or doux — accent secondaire (highlights, badges premium) */
+  --color-gold-50:  #FDF8EE;
+  --color-gold-100: #F9EDD1;
+  --color-gold-200: #F1D79E;
+  --color-gold-300: #E8B976;
+  --color-gold-400: #DEA04E;
+  --color-gold-500: #CE8730;
+  --color-gold-600: #AE6C24;
+
+  /* Sémantiques — accordées aux tons chauds */
+  --color-success-50:  #EEF4EC;
+  --color-success-100: #D6E7D2;
+  --color-success-500: #5B8C5A;
+  --color-success-600: #497348;
+  --color-success-700: #3B5E3B;
+
+  --color-danger-50:  #FCEEEA;
+  --color-danger-100: #F7D8CF;
+  --color-danger-500: #C1492E;
+  --color-danger-600: #A13A23;
+  --color-danger-700: #83301D;
+
+  --color-warning-50:  #FDF4E3;
+  --color-warning-100: #F9E5BF;
+  --color-warning-500: #D89A2E;
+  --color-warning-600: #B87C1E;
+
+  --color-info-50:  #EAF0F4;
+  --color-info-100: #CFDEE8;
+  --color-info-500: #3E6B8C;
+  --color-info-600: #315671;
+
+  /* Typographie */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+
+  /* Rayons — cohérence "rounded-*" */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* Élévations douces et chaudes (ombres teintées espresso, pas noir pur) */
+  --shadow-soft: 0 1px 2px 0 rgb(43 33 25 / 0.04), 0 1px 3px 0 rgb(43 33 25 / 0.06);
+  --shadow-card: 0 1px 3px 0 rgb(43 33 25 / 0.06), 0 4px 12px -2px rgb(43 33 25 / 0.08);
+  --shadow-elevated: 0 8px 24px -4px rgb(43 33 25 / 0.12), 0 2px 6px -2px rgb(43 33 25 / 0.08);
+  --shadow-overlay: 0 20px 48px -8px rgb(43 33 25 / 0.20), 0 8px 16px -8px rgb(43 33 25 / 0.14);
+}
+
+/* ── Base ───────────────────────────────────────────────────────────── */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.5;
   font-weight: 400;
-  color: #111827;
-  background-color: #f9fafb;
+  color: var(--color-sand-900);
+  background-color: var(--color-sand-100);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -20,6 +110,14 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
+  background-color: var(--color-sand-100);
+  color: var(--color-sand-900);
+}
+
+/* Titres : police display chaleureuse par défaut */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 /* Hide number input arrows globally */
@@ -66,7 +164,7 @@ input[type="number"] {
 
 /* Smooth transitions */
 * {
-  transition-property: background-color, border-color, color, fill, stroke;
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }

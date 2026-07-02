@@ -2,7 +2,7 @@ import React from 'react';
 import { ButtonLoader } from './Loader';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'outline';
+  variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -16,13 +16,14 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200';
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-terracotta-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200';
 
   const variantClasses = {
-    primary: 'bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-500 shadow-sm',
-    secondary: 'bg-gray-500 hover:bg-gray-600 text-white focus:ring-gray-500 shadow-sm',
-    danger: 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500 shadow-sm',
-    outline: 'border border-gray-300 hover:bg-gray-50 text-gray-700 focus:ring-orange-500'
+    primary: 'bg-terracotta-500 hover:bg-terracotta-600 active:bg-terracotta-700 text-white shadow-soft',
+    secondary: 'bg-sand-800 hover:bg-sand-900 text-white shadow-soft',
+    danger: 'bg-danger-500 hover:bg-danger-600 text-white shadow-soft',
+    outline: 'border border-sand-300 hover:bg-sand-100 text-sand-800',
+    ghost: 'text-sand-700 hover:bg-sand-100'
   };
 
   const sizeClasses = {

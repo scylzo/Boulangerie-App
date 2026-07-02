@@ -37,26 +37,26 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       case 'warning':
         return {
           icon: 'mdi:alert-circle',
-          iconColor: 'text-amber-600',
-          confirmBg: 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
+          iconColor: 'text-warning-600',
+          confirmBg: 'bg-warning-500 hover:bg-warning-600'
         };
       case 'danger':
         return {
           icon: 'mdi:alert-circle',
-          iconColor: 'text-red-600',
-          confirmBg: 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700'
+          iconColor: 'text-danger-600',
+          confirmBg: 'bg-danger-500 hover:bg-danger-600'
         };
       case 'success':
         return {
           icon: 'mdi:check-circle',
-          iconColor: 'text-green-600',
-          confirmBg: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
+          iconColor: 'text-success-600',
+          confirmBg: 'bg-success-500 hover:bg-success-600'
         };
       default:
         return {
           icon: 'mdi:help-circle',
-          iconColor: 'text-purple-600',
-          confirmBg: 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
+          iconColor: 'text-terracotta-500',
+          confirmBg: 'bg-terracotta-500 hover:bg-terracotta-600'
         };
     }
   };
@@ -71,7 +71,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <Icon icon={config.icon} className={`text-3xl ${config.iconColor}`} />
           </div>
           <div className="flex-1">
-            <div className="text-gray-700">
+            <div className="text-sand-700">
               {message}
             </div>
           </div>
@@ -80,13 +80,13 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <div className="flex gap-3 pt-6">
           <button
             onClick={onClose}
-            className="flex-1 px-5 py-3 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            className="flex-1 px-5 py-3 text-sm font-semibold text-sand-700 bg-white hover:bg-sand-50 border border-sand-300 rounded-lg hover:shadow-soft transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sand-400 focus:ring-offset-2"
           >
             {cancelText}
           </button>
           <button
             onClick={handleConfirm}
-            className={`flex-1 px-5 py-3 text-sm font-bold text-white ${config.confirmBg} border border-transparent rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2`}
+            className={`flex-1 px-5 py-3 text-sm font-semibold text-white ${config.confirmBg} border border-transparent rounded-lg shadow-soft hover:shadow-card transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2`}
           >
             {confirmText}
           </button>

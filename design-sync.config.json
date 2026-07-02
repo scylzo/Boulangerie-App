@@ -1,0 +1,23 @@
+{
+  "pkg": "boulangerie-app",
+  "globalName": "ChezMina",
+  "shape": "package",
+  "srcDir": "src/components/ui",
+  "cssEntry": "ds-styles.css",
+  "componentSrcMap": {
+    "PageLoader": null,
+    "TableLoader": null,
+    "CardLoader": null,
+    "ButtonLoader": null
+  },
+  "previewArgs": {
+    "Button": { "children": "Ajouter au stock", "variant": "primary" },
+    "Badge": { "children": "Payé", "tone": "success", "icon": "mdi:check-circle" },
+    "Card": { "title": "Croissant au beurre", "subtitle": "Viennoiserie · 500 FCFA", "children": "Prix, stock et actions du produit." },
+    "Input": { "label": "Nom du produit", "placeholder": "Pain de campagne" },
+    "Select": { "label": "Catégorie", "options": [{ "value": "pains", "label": "Pains" }, { "value": "viennoiseries", "label": "Viennoiseries" }, { "value": "patisseries", "label": "Pâtisseries" }] },
+    "StatCard": { "label": "Chiffre d'affaires", "value": "1 250 000 FCFA", "icon": "mdi:cash-multiple", "trend": 12, "trendLabel": "vs hier", "tone": "brand" },
+    "EmptyState": { "title": "Aucune commande", "description": "Les nouvelles commandes du jour apparaîtront ici.", "icon": "mdi:tray" },
+    "Loader": { "message": "Chargement...", "size": "lg" }
+  }
+}
