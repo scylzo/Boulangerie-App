@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chez Mina — Dashboard Premium (proposition)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/iconify-icon@2/dist/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-sand-50:#FAFAFA; --color-sand-100:#F4F4F5; --color-sand-200:#E4E4E7; --color-sand-300:#D4D4D8;
+      --color-sand-400:#A1A1AA; --color-sand-500:#71717A; --color-sand-600:#52525B; --color-sand-700:#3F3F46;
+      --color-sand-800:#27272A; --color-sand-900:#18181B; --color-sand-950:#09090B;
+      --color-gold-400:#818CF8; --color-gold-500:#6366F1; --color-gold-600:#4F46E5;
+      --color-success-50:#F0FDF4; --color-success-500:#22C55E; --color-success-600:#16A34A;
+      --color-danger-50:#FEF2F2; --color-danger-500:#EF4444; --color-danger-600:#DC2626;
+      --color-warning-50:#FFFBEB; --color-warning-500:#F59E0B; --color-warning-600:#D97706;
+      --font-sans:"Inter",system-ui,sans-serif;
+    }
+    body{font-family:var(--font-sans);background:#F4F4F5}
+    h1,h2,h3{letter-spacing:-.02em}
+    .tnums{font-variant-numeric:tabular-nums}
+    .navitem{display:flex;align-items:center;gap:.75rem;padding:.7rem .8rem;border-radius:.6rem;color:#A1A1AA;font-size:.9rem;font-weight:500;transition:all .15s}
+    .navitem:hover{background:rgba(255,255,255,.06);color:#fff}
+    .navitem.active{background:rgba(255,255,255,.10);color:#fff}
+    .navitem.active iconify-icon{color:#818CF8}
+  </style>
+</head>
+<body>
+  <div class="flex min-h-screen">
+    <!-- Sidebar sombre, aérée, avec sections -->
+    <aside class="w-64 shrink-0 bg-sand-950 flex flex-col">
+      <div class="h-16 flex items-center gap-2.5 px-5 border-b border-white/10">
+        <div class="w-8 h-8 rounded-lg bg-gold-500 flex items-center justify-center text-white"><iconify-icon icon="mdi:bread-slice-outline" class="text-lg"></iconify-icon></div>
+        <span class="text-white font-semibold text-lg">Chez Mina</span>
+      </div>
+      <nav class="flex-1 overflow-y-auto px-3 py-5 space-y-6">
+        <div>
+          <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sand-600">Principal</p>
+          <div class="space-y-1.5">
+            <a class="navitem active"><iconify-icon icon="mdi:view-dashboard-outline" class="text-xl"></iconify-icon> Tableau de bord</a>
+            <a class="navitem"><iconify-icon icon="mdi:bread-slice-outline" class="text-xl"></iconify-icon> Production</a>
+            <a class="navitem"><iconify-icon icon="mdi:receipt-text-outline" class="text-xl"></iconify-icon> Facturation</a>
+            <a class="navitem"><iconify-icon icon="mdi:truck-outline" class="text-xl"></iconify-icon> Livraisons</a>
+          </div>
+        </div>
+        <div>
+          <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sand-600">Boutique & Stock</p>
+          <div class="space-y-1.5">
+            <a class="navitem"><iconify-icon icon="mdi:storefront-outline" class="text-xl"></iconify-icon> Boutique</a>
+            <a class="navitem"><iconify-icon icon="mdi:sack" class="text-xl"></iconify-icon> Stock</a>
+            <a class="navitem"><iconify-icon icon="mdi:wallet-outline" class="text-xl"></iconify-icon> Dépenses</a>
+          </div>
+        </div>
+        <div>
+          <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sand-600">Administration</p>
+          <div class="space-y-1.5">
+            <a class="navitem"><iconify-icon icon="mdi:cube-outline" class="text-xl"></iconify-icon> Produits</a>
+            <a class="navitem"><iconify-icon icon="mdi:account-group-outline" class="text-xl"></iconify-icon> Clients</a>
+            <a class="navitem"><iconify-icon icon="mdi:chart-box-outline" class="text-xl"></iconify-icon> Comptabilité</a>
+            <a class="navitem"><iconify-icon icon="mdi:file-chart-outline" class="text-xl"></iconify-icon> Rapport</a>
+          </div>
+        </div>
+      </nav>
+      <div class="p-3 border-t border-white/10">
+        <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/5 cursor-pointer">
+          <div class="w-9 h-9 rounded-full bg-gold-500 text-white flex items-center justify-center text-xs font-semibold">MK</div>
+          <div class="min-w-0"><div class="text-white text-sm font-medium truncate">Mina Koné</div><div class="text-sand-500 text-xs">Gérante</div></div>
+          <iconify-icon icon="mdi:logout" class="text-sand-500 ml-auto text-lg"></iconify-icon>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Zone principale -->
+    <div class="flex-1 min-w-0 flex flex-col">
+      <!-- Topbar riche -->
+      <header class="h-16 bg-white border-b border-sand-200 flex items-center justify-between px-6 gap-4 sticky top-0 z-10">
+        <div class="flex items-center gap-2 h-10 px-3.5 rounded-xl bg-sand-100 text-sand-400 text-sm w-80 max-w-[40vw]">
+          <iconify-icon icon="mdi:magnify" class="text-lg"></iconify-icon> Recherche rapide…
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="w-10 h-10 rounded-xl text-sand-500 hover:bg-sand-100 flex items-center justify-center"><iconify-icon icon="mdi:weather-night" class="text-xl"></iconify-icon></button>
+          <button class="relative w-10 h-10 rounded-xl text-sand-500 hover:bg-sand-100 flex items-center justify-center"><iconify-icon icon="mdi:bell-outline" class="text-xl"></iconify-icon><span class="absolute top-2 right-2.5 w-4 h-4 rounded-full bg-danger-500 text-white text-[9px] font-bold flex items-center justify-center">5</span></button>
+          <button class="w-10 h-10 rounded-xl text-sand-500 hover:bg-sand-100 flex items-center justify-center"><iconify-icon icon="mdi:cog-outline" class="text-xl"></iconify-icon></button>
+          <div class="w-px h-6 bg-sand-200 mx-2"></div>
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-full bg-sand-900 text-white flex items-center justify-center text-xs font-semibold">MK</div>
+            <div class="hidden sm:block leading-tight"><div class="text-sm font-medium text-sand-900">Mina Koné</div><div class="text-xs text-sand-500">Gérante</div></div>
+            <iconify-icon icon="mdi:chevron-down" class="text-sand-400"></iconify-icon>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6 space-y-6 max-w-[1400px]">
+        <!-- Titre + breadcrumb -->
+        <div class="flex items-center justify-between">
+          <h1 class="text-xl font-semibold text-sand-900">Tableau de bord</h1>
+          <div class="text-sm text-sand-400 flex items-center gap-1.5"><span>Chez Mina</span><iconify-icon icon="mdi:chevron-right"></iconify-icon><span class="text-sand-700">Tableau de bord</span></div>
+        </div>
+
+        <!-- KPI généreux -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+          <div class="bg-white rounded-2xl border border-sand-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,.05)]">
+            <div class="flex items-center justify-between mb-4"><span class="text-xs font-semibold uppercase tracking-wide text-sand-500">Chiffre d'affaires</span><div class="w-11 h-11 rounded-full bg-gold-50 text-gold-600 flex items-center justify-center"><iconify-icon icon="mdi:cash-multiple" class="text-xl"></iconify-icon></div></div>
+            <div class="text-3xl font-semibold text-sand-900 tnums">1 250 000</div>
+            <div class="mt-2 text-sm flex items-center gap-1.5"><span class="text-success-600 font-medium flex items-center gap-0.5"><iconify-icon icon="mdi:arrow-up"></iconify-icon>12%</span><span class="text-sand-400">vs hier</span></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-sand-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,.05)]">
+            <div class="flex items-center justify-between mb-4"><span class="text-xs font-semibold uppercase tracking-wide text-sand-500">Commandes</span><div class="w-11 h-11 rounded-full bg-sand-100 text-sand-700 flex items-center justify-center"><iconify-icon icon="mdi:receipt-text-outline" class="text-xl"></iconify-icon></div></div>
+            <div class="text-3xl font-semibold text-sand-900 tnums">42</div>
+            <div class="mt-2 text-sm flex items-center gap-1.5"><span class="text-success-600 font-medium flex items-center gap-0.5"><iconify-icon icon="mdi:arrow-up"></iconify-icon>5%</span><span class="text-sand-400">vs hier</span></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-sand-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,.05)]">
+            <div class="flex items-center justify-between mb-4"><span class="text-xs font-semibold uppercase tracking-wide text-sand-500">Impayés</span><div class="w-11 h-11 rounded-full bg-danger-50 text-danger-600 flex items-center justify-center"><iconify-icon icon="mdi:cash-clock" class="text-xl"></iconify-icon></div></div>
+            <div class="text-3xl font-semibold text-sand-900 tnums">345 000</div>
+            <div class="mt-2 text-sm flex items-center gap-1.5"><span class="text-danger-600 font-medium flex items-center gap-0.5"><iconify-icon icon="mdi:arrow-down"></iconify-icon>3%</span><span class="text-sand-400">dette globale</span></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-sand-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,.05)]">
+            <div class="flex items-center justify-between mb-4"><span class="text-xs font-semibold uppercase tracking-wide text-sand-500">Alertes stock</span><div class="w-11 h-11 rounded-full bg-warning-50 text-warning-600 flex items-center justify-center"><iconify-icon icon="mdi:sack" class="text-xl"></iconify-icon></div></div>
+            <div class="text-3xl font-semibold text-sand-900 tnums">3</div>
+            <div class="mt-2 text-sm flex items-center gap-1.5"><span class="text-sand-400">articles sous le seuil</span></div>
+          </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <!-- Donut -->
+          <div class="bg-white rounded-2xl border border-sand-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,.05)]">
+            <h3 class="text-sm font-semibold text-sand-900 mb-4">Production par car</h3>
+            <div class="flex items-center justify-center py-2">
+              <div class="relative w-44 h-44">
+                <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E4E4E7" stroke-width="3.2"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#18181B" stroke-width="3.2" stroke-dasharray="45 55" stroke-dashoffset="0"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#6366F1" stroke-width="3.2" stroke-dasharray="32 68" stroke-dashoffset="-45"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#A1A1AA" stroke-width="3.2" stroke-dasharray="23 77" stroke-dashoffset="-77"/>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-2xl font-semibold text-sand-900 tnums">312</span><span class="text-xs text-sand-500">pièces</span></div>
+              </div>
+            </div>
+            <div class="space-y-1.5 mt-3">
+              <div class="flex items-center gap-2 text-xs"><span class="w-2.5 h-2.5 rounded-full bg-sand-900"></span><span class="text-sand-600 flex-1">Car 1 · Matin</span><span class="font-medium text-sand-900 tnums">140</span></div>
+              <div class="flex items-center gap-2 text-xs"><span class="w-2.5 h-2.5 rounded-full bg-gold-500"></span><span class="text-sand-600 flex-1">Car 2 · Matin</span><span class="font-medium text-sand-900 tnums">100</span></div>
+              <div class="flex items-center gap-2 text-xs"><span class="w-2.5 h-2.5 rounded-full bg-sand-400"></span><span class="text-sand-600 flex-1">Car · Soir</span><span class="font-medium text-sand-900 tnums">72</span></div>
+            </div>
+          </div>
+          <!-- Trend CA (2 cols) -->
+          <div class="bg-white rounded-2xl border border-sand-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,.05)] lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+              <div><h3 class="text-sm font-semibold text-sand-900">Chiffre d'affaires</h3><p class="text-xs text-sand-500">7 derniers jours</p></div>
+              <div class="flex gap-1 text-xs">
+                <button class="px-3 py-1 rounded-lg bg-sand-900 text-white font-medium">7j</button>
+                <button class="px-3 py-1 rounded-lg text-sand-500 hover:bg-sand-100">30j</button>
+                <button class="px-3 py-1 rounded-lg text-sand-500 hover:bg-sand-100">Année</button>
+              </div>
+            </div>
+            <svg viewBox="0 0 320 150" preserveAspectRatio="none" class="w-full" style="height:150px">
+              <line x1="0" y1="37" x2="320" y2="37" stroke="#E4E4E7" stroke-width="1" stroke-dasharray="3 4"/>
+              <line x1="0" y1="75" x2="320" y2="75" stroke="#E4E4E7" stroke-width="1" stroke-dasharray="3 4"/>
+              <line x1="0" y1="113" x2="320" y2="113" stroke="#E4E4E7" stroke-width="1" stroke-dasharray="3 4"/>
+              <polygon points="0,150 0,110 53,95 106,120 160,70 213,80 266,40 320,55 320,150" fill="#18181B" opacity="0.06"/>
+              <polyline points="0,110 53,95 106,120 160,70 213,80 266,40 320,55" fill="none" stroke="#18181B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+            </svg>
+            <div class="flex justify-between mt-2 text-[10px] text-sand-400"><span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span></div>
+          </div>
+        </div>
+
+        <!-- Table produits -->
+        <div class="bg-white rounded-2xl border border-sand-200 shadow-[0_1px_3px_rgba(0,0,0,.05)] overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-sand-200">
+            <h3 class="text-sm font-semibold text-sand-900">Produits les plus vendus</h3>
+            <div class="flex gap-2">
+              <button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-sand-300 text-sand-700 text-sm hover:bg-sand-50"><iconify-icon icon="mdi:tray-arrow-down"></iconify-icon> Exporter</button>
+            </div>
+          </div>
+          <table class="w-full text-sm">
+            <thead><tr class="text-left text-xs uppercase tracking-wide text-sand-500 border-b border-sand-200">
+              <th class="font-medium px-5 py-3">Produit</th><th class="font-medium px-5 py-3 text-right">Prix</th><th class="font-medium px-5 py-3 text-right">Vendus</th><th class="font-medium px-5 py-3 text-right">Montant</th><th class="font-medium px-5 py-3">Stock</th>
+            </tr></thead>
+            <tbody class="tnums">
+              <tr class="border-b border-sand-100">
+                <td class="px-5 py-3"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-lg bg-sand-100 text-sand-700 flex items-center justify-center"><iconify-icon icon="mdi:baguette" class="text-lg"></iconify-icon></div><div><div class="font-medium text-sand-900">Baguette tradition</div><div class="text-xs text-sand-400">Pains</div></div></div></td>
+                <td class="px-5 py-3 text-right text-sand-700">150</td><td class="px-5 py-3 text-right text-sand-700">420</td><td class="px-5 py-3 text-right font-medium text-sand-900">63 000</td>
+                <td class="px-5 py-3"><span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-success-50 text-success-600 ring-1 ring-inset ring-success-500/20">En stock</span></td>
+              </tr>
+              <tr class="border-b border-sand-100">
+                <td class="px-5 py-3"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-lg bg-sand-100 text-sand-700 flex items-center justify-center"><iconify-icon icon="mdi:croissant" class="text-lg"></iconify-icon></div><div><div class="font-medium text-sand-900">Croissant beurre</div><div class="text-xs text-sand-400">Viennoiseries</div></div></div></td>
+                <td class="px-5 py-3 text-right text-sand-700">500</td><td class="px-5 py-3 text-right text-sand-700">180</td><td class="px-5 py-3 text-right font-medium text-sand-900">90 000</td>
+                <td class="px-5 py-3"><span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-warning-50 text-warning-600 ring-1 ring-inset ring-warning-500/20">Stock bas</span></td>
+              </tr>
+              <tr>
+                <td class="px-5 py-3"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-lg bg-sand-100 text-sand-700 flex items-center justify-center"><iconify-icon icon="mdi:bread-slice" class="text-lg"></iconify-icon></div><div><div class="font-medium text-sand-900">Pain de mie</div><div class="text-xs text-sand-400">Pains</div></div></div></td>
+                <td class="px-5 py-3 text-right text-sand-700">800</td><td class="px-5 py-3 text-right text-sand-700">95</td><td class="px-5 py-3 text-right font-medium text-sand-900">76 000</td>
+                <td class="px-5 py-3"><span class="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-success-50 text-success-600 ring-1 ring-inset ring-success-500/20">En stock</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

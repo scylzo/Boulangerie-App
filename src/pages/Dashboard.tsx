@@ -349,7 +349,7 @@ export const Dashboard: React.FC = () => {
     );
 };
 
-const StatCard: React.FC<{ title: string; value: string; subtitle: string; icon: string; color: 'brand' | 'danger' | 'warning' | 'success' | 'neutral'; progress?: number }> = ({ title, value, subtitle, icon, color, progress }) => {
+const StatCard: React.FC<{ title: string; value: string; subtitle: string; icon: string; color: 'brand' | 'danger' | 'warning' | 'success' | 'neutral' }> = ({ title, value, subtitle, icon, color }) => {
     const colorConfig = {
         brand: { bg: 'bg-terracotta-50', text: 'text-terracotta-600' },
         danger: { bg: 'bg-danger-50', text: 'text-danger-600' },
@@ -361,21 +361,15 @@ const StatCard: React.FC<{ title: string; value: string; subtitle: string; icon:
     const cfg = colorConfig[color];
 
     return (
-        <div className="bg-white rounded-xl shadow-card border border-sand-200 p-4 sm:p-5 md:p-6 relative overflow-hidden group hover:shadow-elevated transition-all duration-200">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg ${cfg.bg} ${cfg.text} flex items-center justify-center shrink-0`}>
-                    <Icon icon={icon} className="text-xl sm:text-2xl" />
+        <div className="bg-white rounded-2xl shadow-card border border-sand-200 p-5 overflow-hidden group hover:shadow-elevated transition-all duration-200">
+            <div className="flex items-center justify-between gap-2 mb-4">
+                <h3 className="text-[10px] sm:text-xs font-semibold text-sand-500 uppercase tracking-wide truncate">{title}</h3>
+                <div className={`w-11 h-11 rounded-full ${cfg.bg} ${cfg.text} flex items-center justify-center shrink-0`}>
+                    <Icon icon={icon} className="text-xl" />
                 </div>
-                {progress !== undefined && (
-                    <span className={`text-[9px] sm:text-[10px] font-semibold px-2 py-1 rounded-full ${cfg.bg} ${cfg.text} uppercase tracking-wide`}>Direct</span>
-                )}
             </div>
-
-            <div className="relative z-10 min-w-0">
-                <h3 className="text-[9px] sm:text-[10px] font-semibold text-sand-500 uppercase tracking-wide mb-1 sm:mb-2 truncate">{title}</h3>
-                <p className="font-display text-lg sm:text-xl md:text-2xl font-semibold text-sand-900 tracking-tight mb-1 truncate" title={value}>{value}</p>
-                <p className="text-[10px] sm:text-xs text-sand-500 truncate" title={subtitle}>{subtitle}</p>
-            </div>
+            <p className="font-display text-2xl sm:text-3xl font-semibold text-sand-900 tracking-tight truncate tabular-nums" title={value}>{value}</p>
+            <p className="mt-2 text-xs text-sand-500 truncate" title={subtitle}>{subtitle}</p>
         </div>
     );
 };
