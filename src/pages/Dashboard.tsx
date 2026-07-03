@@ -8,7 +8,7 @@ import { formatCurrency } from '../utils/currency';
 import { formaterQuantite } from '../utils/calculations';
 import { ClientPerformanceWidget } from '../components/dashboard/ClientPerformanceWidget';
 import { PeriodeSelector } from '../components/dashboard/PeriodeSelector';
-import { EmptyState } from '../components/ui';
+import { EmptyState, TrendChart, RadialGauge } from '../components/ui';
 
 export const Dashboard: React.FC = () => {
     const { factures, chargerFactures } = useFacturationStore();
@@ -111,6 +111,30 @@ export const Dashboard: React.FC = () => {
         return { total: activeClients.length, withKiosk, noKiosk };
     }, [clients]);
 
+    // Série CA — 7 derniers jours (à partir des factures livrées, hors annulées)
+    const caSeries = useMemo(() => {
+        const days: { label: string; value: number }[] = [];
+        for (let i = 6; i >= 0; i--) {
+            const day = new Date();
+            day.setHours(0, 0, 0, 0);
+            day.setDate(day.getDate() - i);
+            const next = new Date(day);
+            next.setDate(day.getDate() + 1);
+            const total = factures
+                .filter(f => f.statut !== 'annulee')
+                .filter(f => {
+                    const d = new Date(f.dateLivraison);
+                    return d >= day && d < next;
+                })
+                .reduce((s, f) => s + f.totalTTC, 0);
+            days.push({
+                label: day.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', ''),
+                value: total,
+            });
+        }
+        return days;
+    }, [factures]);
+
     return (
         <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 pb-20 bg-sand-100 min-h-screen overflow-x-hidden">
             {/* Welcome Header */}
@@ -164,6 +188,20 @@ export const Dashboard: React.FC = () => {
                 />
             </div>
 
+            {/* Tendance CA — 7 derniers jours */}
+            <div className="bg-white border border-sand-200 rounded-xl shadow-card p-4 sm:p-5 overflow-hidden">
+                <div className="flex items-center justify-between mb-4 gap-3">
+                    <div className="min-w-0">
+                        <h2 className="text-sm font-semibold text-sand-900">Chiffre d'affaires</h2>
+                        <p className="text-xs text-sand-500">7 derniers jours</p>
+                    </div>
+                    <span className="text-xs font-medium text-sand-500 tabular-nums shrink-0">
+                        Total&nbsp;: {formatCurrency(caSeries.reduce((s, d) => s + d.value, 0))}
+                    </span>
+                </div>
+                <TrendChart data={caSeries} height={150} className="text-sand-900" valueFormat={(v) => formatCurrency(v)} />
+            </div>
+
             {/* Grid Layout for details */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {/* Production Details */}
@@ -177,10 +215,8 @@ export const Dashboard: React.FC = () => {
                                 }`}>
                                 {programmeActuel?.statut === 'produit' ? 'Terminée' : 'En cours'}
                             </span>
-                            <div className="flex flex-col items-end">
-                                <span className="font-display text-lg sm:text-xl font-semibold text-sand-900 leading-none">{productionProgress}%</span>
-                                <span className="text-[8px] sm:text-[9px] text-sand-500 font-semibold uppercase tracking-tighter">Avancement</span>
-                            </div>
+                            <RadialGauge value={productionProgress} size={52} stroke={6} className="text-sand-900" />
+
                         </div>
                     }
                 >

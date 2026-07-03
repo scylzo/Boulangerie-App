@@ -11,6 +11,12 @@ export { ConfirmButton } from './ConfirmButton';
 export { Badge } from './Badge';
 export { StatCard } from './StatCard';
 export { EmptyState } from './EmptyState';
+export { Sparkline } from './Sparkline';
+export { RadialGauge } from './RadialGauge';
+export { DonutChart } from './DonutChart';
+export type { DonutSlice } from './DonutChart';
+export { TrendChart } from './TrendChart';
+export type { TrendPoint } from './TrendChart';
 export {
   Loader,
   PageLoader,
