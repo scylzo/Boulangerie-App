@@ -1,92 +1,94 @@
 /* ── Fonts ─────────────────────────────────────────────────────────────
-   Fraunces = serif optique chaleureux pour les titres (identité artisan)
-   Inter    = sans-serif lisible pour le texte et les données            */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+   Inter uniquement — dashboard pro, sans-serif nette (fini le serif décoratif). */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
-/* ── Design System « Chez Mina » — Artisan chaleureux ─────────────────────
-   Source de vérité unique. Toute couleur/typo/rayon/ombre passe par ici.
-   Tailwind v4 génère les utilitaires automatiquement :
-     --color-sand-100      -> bg-sand-100, text-sand-100, border-sand-100
-     --font-display        -> font-display
-     --radius-xl           -> rounded-xl
-     --shadow-card         -> shadow-card
+/* ── Design System « Chez Mina » — Monochrome Pro ─────────────────────────
+   Direction : dashboard haut de gamme (Linear/Vercel), neutres froids +
+   primaire quasi-noir + accent indigo rare. Source de vérité unique (@theme).
+
+   NB: on conserve les NOMS de tokens historiques pour ne pas retoucher tout le
+   code, mais leurs VALEURS sont désormais monochromes pro :
+     sand-*        = neutres zinc froids (fonds, bordures, texte)
+     terracotta-*  = PRIMAIRE (boutons, actif, focus) — ramp quasi-noir
+     gold-*        = ACCENT indigo (rare : liens, highlights, premium)
+     success/danger/warning/info = statuts colorés nets
 */
 @theme {
-  /* Neutres chauds (fonds, bordures, texte) — du crème à l'espresso */
-  --color-sand-50:  #FDFBF7;
-  --color-sand-100: #FBF7F0;
-  --color-sand-200: #F4EDE1;
-  --color-sand-300: #E8DDCB;
-  --color-sand-400: #D4C4A9;
-  --color-sand-500: #B3A184;
-  --color-sand-600: #8A7860;
-  --color-sand-700: #665847;
-  --color-sand-800: #453C30;
-  --color-sand-900: #2B2119;
-  --color-sand-950: #1A140F;
+  /* Neutres froids (zinc) */
+  --color-sand-50:  #FAFAFA;
+  --color-sand-100: #F4F4F5;
+  --color-sand-200: #E4E4E7;
+  --color-sand-300: #D4D4D8;
+  --color-sand-400: #A1A1AA;
+  --color-sand-500: #71717A;
+  --color-sand-600: #52525B;
+  --color-sand-700: #3F3F46;
+  --color-sand-800: #27272A;
+  --color-sand-900: #18181B;
+  --color-sand-950: #09090B;
 
-  /* Terracotta — accent principal (boutons, liens, focus) */
-  --color-terracotta-50:  #FBF3EC;
-  --color-terracotta-100: #F6E3D3;
-  --color-terracotta-200: #EDC5A8;
-  --color-terracotta-300: #E1A379;
-  --color-terracotta-400: #D4844F;
-  --color-terracotta-500: #C8712D;
-  --color-terracotta-600: #AE5D22;
-  --color-terracotta-700: #8C4A1E;
-  --color-terracotta-800: #6E3B1C;
-  --color-terracotta-900: #5A3119;
+  /* Primaire — ramp quasi-noir (boutons, éléments actifs, focus) */
+  --color-terracotta-50:  #F4F4F5;
+  --color-terracotta-100: #E4E4E7;
+  --color-terracotta-200: #D4D4D8;
+  --color-terracotta-300: #A1A1AA;
+  --color-terracotta-400: #52525B;
+  --color-terracotta-500: #18181B;
+  --color-terracotta-600: #09090B;
+  --color-terracotta-700: #000000;
+  --color-terracotta-800: #18181B;
+  --color-terracotta-900: #09090B;
 
-  /* Or doux — accent secondaire (highlights, badges premium) */
-  --color-gold-50:  #FDF8EE;
-  --color-gold-100: #F9EDD1;
-  --color-gold-200: #F1D79E;
-  --color-gold-300: #E8B976;
-  --color-gold-400: #DEA04E;
-  --color-gold-500: #CE8730;
-  --color-gold-600: #AE6C24;
+  /* Accent — indigo (usage rare : liens, highlights, badges premium) */
+  --color-gold-50:  #EEF2FF;
+  --color-gold-100: #E0E7FF;
+  --color-gold-200: #C7D2FE;
+  --color-gold-300: #A5B4FC;
+  --color-gold-400: #818CF8;
+  --color-gold-500: #6366F1;
+  --color-gold-600: #4F46E5;
 
-  /* Sémantiques — accordées aux tons chauds */
-  --color-success-50:  #EEF4EC;
-  --color-success-100: #D6E7D2;
-  --color-success-500: #5B8C5A;
-  --color-success-600: #497348;
-  --color-success-700: #3B5E3B;
+  /* Sémantiques — nettes et modernes */
+  --color-success-50:  #F0FDF4;
+  --color-success-100: #DCFCE7;
+  --color-success-500: #22C55E;
+  --color-success-600: #16A34A;
+  --color-success-700: #15803D;
 
-  --color-danger-50:  #FCEEEA;
-  --color-danger-100: #F7D8CF;
-  --color-danger-500: #C1492E;
-  --color-danger-600: #A13A23;
-  --color-danger-700: #83301D;
+  --color-danger-50:  #FEF2F2;
+  --color-danger-100: #FEE2E2;
+  --color-danger-500: #EF4444;
+  --color-danger-600: #DC2626;
+  --color-danger-700: #B91C1C;
 
-  --color-warning-50:  #FDF4E3;
-  --color-warning-100: #F9E5BF;
-  --color-warning-500: #D89A2E;
-  --color-warning-600: #B87C1E;
+  --color-warning-50:  #FFFBEB;
+  --color-warning-100: #FEF3C7;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
 
-  --color-info-50:  #EAF0F4;
-  --color-info-100: #CFDEE8;
-  --color-info-500: #3E6B8C;
-  --color-info-600: #315671;
+  --color-info-50:  #EEF2FF;
+  --color-info-100: #E0E7FF;
+  --color-info-500: #6366F1;
+  --color-info-600: #4F46E5;
 
-  /* Typographie */
+  /* Typographie — Inter partout. font-display = Inter (plus de serif). */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-display: "Inter", system-ui, -apple-system, sans-serif;
 
-  /* Rayons — cohérence "rounded-*" */
+  /* Rayons resserrés (look pro/dense) */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
 
-  /* Élévations douces et chaudes (ombres teintées espresso, pas noir pur) */
-  --shadow-soft: 0 1px 2px 0 rgb(43 33 25 / 0.04), 0 1px 3px 0 rgb(43 33 25 / 0.06);
-  --shadow-card: 0 1px 3px 0 rgb(43 33 25 / 0.06), 0 4px 12px -2px rgb(43 33 25 / 0.08);
-  --shadow-elevated: 0 8px 24px -4px rgb(43 33 25 / 0.12), 0 2px 6px -2px rgb(43 33 25 / 0.08);
-  --shadow-overlay: 0 20px 48px -8px rgb(43 33 25 / 0.20), 0 8px 16px -8px rgb(43 33 25 / 0.14);
+  /* Élévations neutres, très subtiles (on s'appuie sur les bordures) */
+  --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.05), 0 1px 3px 0 rgb(0 0 0 / 0.05);
+  --shadow-elevated: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-overlay: 0 16px 40px -8px rgb(0 0 0 / 0.18), 0 4px 10px -4px rgb(0 0 0 / 0.10);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────── */
@@ -102,9 +104,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -114,11 +114,14 @@ body {
   color: var(--color-sand-900);
 }
 
-/* Titres : police display chaleureuse par défaut */
+/* Titres : Inter, tracking resserré (modernité SaaS) */
 h1, h2, h3 {
   font-family: var(--font-display);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
+
+/* Chiffres alignés dans les tableaux/KPI */
+.tabular-nums { font-variant-numeric: tabular-nums; }
 
 /* Hide number input arrows globally */
 input[type="number"]::-webkit-inner-spin-button,
@@ -126,11 +129,7 @@ input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-
-input[type="number"] {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Prevent text overflow globally */
 .truncate-safe {
@@ -147,20 +146,12 @@ input[type="number"] {
   padding-left: 1rem;
   padding-right: 1rem;
 }
-
 @media (min-width: 640px) {
-  .container-responsive {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
+  .container-responsive { padding-left: 1.5rem; padding-right: 1.5rem; }
 }
 
 /* Prevent card overflow */
-.card-safe {
-  overflow: hidden;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
+.card-safe { overflow: hidden; word-wrap: break-word; overflow-wrap: break-word; }
 
 /* Smooth transitions */
 * {

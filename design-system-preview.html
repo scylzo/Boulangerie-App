@@ -3,253 +3,185 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Design System — Chez Mina · Artisan chaleureux</title>
+  <title>Design System — Chez Mina · Monochrome Pro</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/iconify-icon@2/dist/iconify-icon.min.js"></script>
   <style type="text/tailwindcss">
     @theme {
-      --color-sand-50:#FDFBF7; --color-sand-100:#FBF7F0; --color-sand-200:#F4EDE1;
-      --color-sand-300:#E8DDCB; --color-sand-400:#D4C4A9; --color-sand-500:#B3A184;
-      --color-sand-600:#8A7860; --color-sand-700:#665847; --color-sand-800:#453C30;
-      --color-sand-900:#2B2119; --color-sand-950:#1A140F;
-      --color-terracotta-50:#FBF3EC; --color-terracotta-100:#F6E3D3; --color-terracotta-200:#EDC5A8;
-      --color-terracotta-300:#E1A379; --color-terracotta-400:#D4844F; --color-terracotta-500:#C8712D;
-      --color-terracotta-600:#AE5D22; --color-terracotta-700:#8C4A1E; --color-terracotta-800:#6E3B1C; --color-terracotta-900:#5A3119;
-      --color-gold-50:#FDF8EE; --color-gold-100:#F9EDD1; --color-gold-200:#F1D79E;
-      --color-gold-300:#E8B976; --color-gold-400:#DEA04E; --color-gold-500:#CE8730; --color-gold-600:#AE6C24;
-      --color-success-50:#EEF4EC; --color-success-100:#D6E7D2; --color-success-500:#5B8C5A; --color-success-600:#497348; --color-success-700:#3B5E3B;
-      --color-danger-50:#FCEEEA; --color-danger-100:#F7D8CF; --color-danger-500:#C1492E; --color-danger-600:#A13A23; --color-danger-700:#83301D;
-      --color-warning-50:#FDF4E3; --color-warning-100:#F9E5BF; --color-warning-500:#D89A2E; --color-warning-600:#B87C1E;
-      --color-info-50:#EAF0F4; --color-info-100:#CFDEE8; --color-info-500:#3E6B8C; --color-info-600:#315671;
+      --color-sand-50:#FAFAFA; --color-sand-100:#F4F4F5; --color-sand-200:#E4E4E7;
+      --color-sand-300:#D4D4D8; --color-sand-400:#A1A1AA; --color-sand-500:#71717A;
+      --color-sand-600:#52525B; --color-sand-700:#3F3F46; --color-sand-800:#27272A;
+      --color-sand-900:#18181B; --color-sand-950:#09090B;
+      --color-terracotta-50:#F4F4F5; --color-terracotta-100:#E4E4E7; --color-terracotta-500:#18181B; --color-terracotta-600:#09090B;
+      --color-gold-50:#EEF2FF; --color-gold-100:#E0E7FF; --color-gold-500:#6366F1; --color-gold-600:#4F46E5;
+      --color-success-50:#F0FDF4; --color-success-100:#DCFCE7; --color-success-500:#22C55E; --color-success-600:#16A34A; --color-success-700:#15803D;
+      --color-danger-50:#FEF2F2; --color-danger-100:#FEE2E2; --color-danger-500:#EF4444; --color-danger-600:#DC2626; --color-danger-700:#B91C1C;
+      --color-warning-50:#FFFBEB; --color-warning-100:#FEF3C7; --color-warning-500:#F59E0B; --color-warning-600:#D97706;
+      --color-info-50:#EEF2FF; --color-info-100:#E0E7FF; --color-info-500:#6366F1; --color-info-600:#4F46E5;
       --font-sans:"Inter",system-ui,sans-serif;
-      --font-display:"Fraunces",Georgia,serif;
-      --shadow-soft:0 1px 2px 0 rgb(43 33 25 / 0.04), 0 1px 3px 0 rgb(43 33 25 / 0.06);
-      --shadow-card:0 1px 3px 0 rgb(43 33 25 / 0.06), 0 4px 12px -2px rgb(43 33 25 / 0.08);
-      --shadow-elevated:0 8px 24px -4px rgb(43 33 25 / 0.12), 0 2px 6px -2px rgb(43 33 25 / 0.08);
+      --shadow-card:0 1px 2px 0 rgb(0 0 0 / 0.05), 0 1px 3px 0 rgb(0 0 0 / 0.05);
+      --shadow-elevated:0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
     }
-    body { font-family: var(--font-sans); background: var(--color-sand-100); color: var(--color-sand-900); }
-    h1,h2,h3 { font-family: var(--font-display); letter-spacing:-0.01em; }
+    body { font-family: var(--font-sans); background: var(--color-sand-100); color: var(--color-sand-800); }
+    h1,h2,h3 { letter-spacing:-0.02em; }
+    .tnums { font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body class="min-h-screen">
-  <!-- Topbar -->
-  <header class="bg-white border-b border-sand-200 sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-terracotta-500 flex items-center justify-center text-white">
-          <iconify-icon icon="mdi:bread-slice-outline" class="text-2xl"></iconify-icon>
+  <!-- App shell: sidebar rail + topbar -->
+  <div class="flex min-h-screen">
+    <!-- Sidebar (rail) -->
+    <aside class="hidden md:flex w-16 shrink-0 flex-col items-center gap-1 border-r border-sand-200 bg-white py-4">
+      <div class="w-9 h-9 rounded-lg bg-sand-900 text-white flex items-center justify-center mb-3"><iconify-icon icon="mdi:bread-slice-outline" class="text-lg"></iconify-icon></div>
+      <button class="w-10 h-10 rounded-lg bg-sand-100 text-sand-900 flex items-center justify-center"><iconify-icon icon="mdi:view-dashboard-outline" class="text-xl"></iconify-icon></button>
+      <button class="w-10 h-10 rounded-lg text-sand-500 hover:bg-sand-100 flex items-center justify-center"><iconify-icon icon="mdi:receipt-text-outline" class="text-xl"></iconify-icon></button>
+      <button class="w-10 h-10 rounded-lg text-sand-500 hover:bg-sand-100 flex items-center justify-center"><iconify-icon icon="mdi:sack" class="text-xl"></iconify-icon></button>
+      <button class="w-10 h-10 rounded-lg text-sand-500 hover:bg-sand-100 flex items-center justify-center"><iconify-icon icon="mdi:truck-outline" class="text-xl"></iconify-icon></button>
+    </aside>
+
+    <div class="flex-1 min-w-0 flex flex-col">
+      <!-- Topbar -->
+      <header class="h-14 border-b border-sand-200 bg-white flex items-center justify-between px-4 sm:px-6 gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+          <h1 class="text-sm font-semibold text-sand-900 truncate">Tableau de bord</h1>
+          <span class="text-sand-300">/</span>
+          <span class="text-sm text-sand-500 truncate">Aujourd'hui</span>
         </div>
-        <div>
-          <h1 class="text-lg font-semibold text-sand-900 leading-tight">Chez Mina</h1>
-          <p class="text-xs text-sand-500">Design System · Artisan chaleureux</p>
+        <div class="flex items-center gap-2">
+          <div class="hidden sm:flex items-center gap-2 h-9 px-3 rounded-lg border border-sand-200 bg-sand-50 text-sand-400 text-sm w-56">
+            <iconify-icon icon="mdi:magnify"></iconify-icon> Rechercher…
+          </div>
+          <button class="w-9 h-9 rounded-lg text-sand-500 hover:bg-sand-100 flex items-center justify-center relative">
+            <iconify-icon icon="mdi:bell-outline" class="text-xl"></iconify-icon>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-gold-500"></span>
+          </button>
+          <div class="w-9 h-9 rounded-full bg-sand-900 text-white flex items-center justify-center text-xs font-semibold">MK</div>
         </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-sand-300 text-sand-800 hover:bg-sand-100 transition">
-          <iconify-icon icon="mdi:cog-outline"></iconify-icon> Réglages
-        </button>
-        <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-terracotta-500 hover:bg-terracotta-600 text-white shadow-soft transition">
-          <iconify-icon icon="mdi:plus"></iconify-icon> Nouvelle facture
-        </button>
-      </div>
+      </header>
+
+      <main class="p-4 sm:p-6 space-y-8 max-w-6xl">
+        <!-- Intro -->
+        <section>
+          <p class="text-xs font-semibold text-gold-600 uppercase tracking-wider mb-1">Design System · Monochrome Pro</p>
+          <h2 class="text-2xl font-semibold text-sand-900">Un dashboard sobre, dense, haut de gamme</h2>
+          <p class="text-sm text-sand-500 mt-1 max-w-2xl">Neutres froids, primaire quasi-noir, accent indigo rare. Le langage des outils pro (Linear, Vercel) — crédible face à Odoo / Dolibarr.</p>
+        </section>
+
+        <!-- KPI StatCards with sparkline -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white border border-sand-200 rounded-xl shadow-card p-4">
+            <div class="flex items-center justify-between"><span class="text-xs font-medium text-sand-500">Chiffre d'affaires</span><iconify-icon icon="mdi:cash-multiple" class="text-sand-400"></iconify-icon></div>
+            <div class="mt-2 flex items-end justify-between gap-2">
+              <p class="text-2xl font-semibold text-sand-900 tnums">1 250 000</p>
+              <svg width="60" height="24" viewBox="0 0 60 24" class="text-success-500"><polyline points="0,20 12,16 24,18 36,10 48,12 60,4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+            <div class="mt-1 text-xs font-medium text-success-600">▲ 12% <span class="text-sand-400 font-normal">vs hier</span></div>
+          </div>
+          <div class="bg-white border border-sand-200 rounded-xl shadow-card p-4">
+            <div class="flex items-center justify-between"><span class="text-xs font-medium text-sand-500">Commandes</span><iconify-icon icon="mdi:receipt-text-outline" class="text-sand-400"></iconify-icon></div>
+            <div class="mt-2 flex items-end justify-between gap-2">
+              <p class="text-2xl font-semibold text-sand-900 tnums">42</p>
+              <svg width="60" height="24" viewBox="0 0 60 24" class="text-sand-300"><polyline points="0,14 12,12 24,16 36,10 48,13 60,8" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+            <div class="mt-1 text-xs font-medium text-success-600">▲ 5% <span class="text-sand-400 font-normal">vs hier</span></div>
+          </div>
+          <div class="bg-white border border-sand-200 rounded-xl shadow-card p-4">
+            <div class="flex items-center justify-between"><span class="text-xs font-medium text-sand-500">Stock farine</span><iconify-icon icon="mdi:sack" class="text-sand-400"></iconify-icon></div>
+            <div class="mt-2 flex items-end justify-between gap-2">
+              <p class="text-2xl font-semibold text-sand-900 tnums">18 <span class="text-sm text-sand-400 font-normal">sacs</span></p>
+              <svg width="60" height="24" viewBox="0 0 60 24" class="text-danger-500"><polyline points="0,6 12,8 24,7 36,12 48,15 60,20" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+            <div class="mt-1 text-xs font-medium text-danger-600">▼ 9% <span class="text-sand-400 font-normal">à recommander</span></div>
+          </div>
+          <div class="bg-white border border-sand-200 rounded-xl shadow-card p-4">
+            <div class="flex items-center justify-between"><span class="text-xs font-medium text-sand-500">Objectif production</span><iconify-icon icon="mdi:target" class="text-sand-400"></iconify-icon></div>
+            <div class="mt-2 flex items-end justify-between gap-2">
+              <p class="text-2xl font-semibold text-sand-900 tnums">86%</p>
+              <div class="w-10 h-10 rounded-full grid place-items-center" style="background:conic-gradient(#18181B 86%, #E4E4E7 0)"><div class="w-7 h-7 rounded-full bg-white"></div></div>
+            </div>
+            <div class="mt-1 text-xs text-sand-400">312 / 360 pièces</div>
+          </div>
+        </section>
+
+        <!-- Palette -->
+        <section>
+          <h3 class="text-sm font-semibold text-sand-900 mb-3">Palette</h3>
+          <div class="space-y-4">
+            <div>
+              <p class="text-xs text-sand-500 mb-1.5">Neutres (zinc)</p>
+              <div class="grid grid-cols-6 sm:grid-cols-11 gap-1.5">
+                <div><div class="h-9 rounded-md border border-sand-200" style="background:#FAFAFA"></div></div>
+                <div><div class="h-9 rounded-md" style="background:#F4F4F5"></div></div>
+                <div><div class="h-9 rounded-md" style="background:#E4E4E7"></div></div>
+                <div><div class="h-9 rounded-md" style="background:#D4D4D8"></div></div>
+                <div><div class="h-9 rounded-md" style="background:#A1A1AA"></div></div>
+                <div><div class="h-9 rounded-md" style="background:#71717A"></div></div>
+                <div><div class="h-9 rounded-md" style="background:#52525B"></div></div>
+                <div><div class="h-9 rounded-md" style="background:#3F3F46"></div></div>
+                <div><div class="h-9 rounded-md" style="background:#27272A"></div></div>
+                <div><div class="h-9 rounded-md" style="background:#18181B"></div></div>
+                <div><div class="h-9 rounded-md" style="background:#09090B"></div></div>
+              </div>
+            </div>
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div><p class="text-xs text-sand-500 mb-1.5">Primaire (quasi-noir)</p><div class="flex gap-1.5"><div class="h-9 flex-1 rounded-md" style="background:#F4F4F5"></div><div class="h-9 flex-1 rounded-md" style="background:#3F3F46"></div><div class="h-9 flex-1 rounded-md" style="background:#18181B"></div><div class="h-9 flex-1 rounded-md" style="background:#09090B"></div></div></div>
+              <div><p class="text-xs text-sand-500 mb-1.5">Accent (indigo, rare)</p><div class="flex gap-1.5"><div class="h-9 flex-1 rounded-md" style="background:#EEF2FF"></div><div class="h-9 flex-1 rounded-md" style="background:#A5B4FC"></div><div class="h-9 flex-1 rounded-md" style="background:#6366F1"></div><div class="h-9 flex-1 rounded-md" style="background:#4F46E5"></div></div></div>
+              <div><p class="text-xs text-sand-500 mb-1.5">Statuts</p><div class="flex gap-1.5"><div class="h-9 flex-1 rounded-md" style="background:#16A34A"></div><div class="h-9 flex-1 rounded-md" style="background:#DC2626"></div><div class="h-9 flex-1 rounded-md" style="background:#D97706"></div><div class="h-9 flex-1 rounded-md" style="background:#4F46E5"></div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Buttons + badges -->
+        <section class="grid lg:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-sm font-semibold text-sand-900 mb-3">Boutons</h3>
+            <div class="bg-white border border-sand-200 rounded-xl shadow-card p-5 flex flex-wrap gap-2 items-center">
+              <button class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg bg-sand-900 hover:bg-sand-950 text-white">Primaire</button>
+              <button class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg border border-sand-300 hover:bg-sand-50 text-sand-800">Secondaire</button>
+              <button class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg bg-danger-600 hover:bg-danger-700 text-white">Danger</button>
+              <button class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg text-gold-600 hover:bg-gold-50">Lien accent</button>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-sand-900 mb-3">Badges de statut</h3>
+            <div class="bg-white border border-sand-200 rounded-xl shadow-card p-5 flex flex-wrap gap-2 items-center">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-md bg-success-50 text-success-700 ring-1 ring-inset ring-success-100">● Payé</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-md bg-warning-50 text-warning-600 ring-1 ring-inset ring-warning-100">● En attente</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-md bg-danger-50 text-danger-600 ring-1 ring-inset ring-danger-100">● En rupture</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-md bg-gold-50 text-gold-600 ring-1 ring-inset ring-gold-100">★ Premium</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-md bg-sand-100 text-sand-600 ring-1 ring-inset ring-sand-200">Neutre</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Table -->
+        <section>
+          <h3 class="text-sm font-semibold text-sand-900 mb-3">Table (Recent Orders)</h3>
+          <div class="bg-white border border-sand-200 rounded-xl shadow-card overflow-hidden">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-sand-200 text-left text-xs uppercase tracking-wide text-sand-500">
+                  <th class="font-medium px-4 py-2.5">N° facture</th><th class="font-medium px-4 py-2.5">Client</th>
+                  <th class="font-medium px-4 py-2.5 text-right">Montant</th><th class="font-medium px-4 py-2.5">Statut</th>
+                </tr>
+              </thead>
+              <tbody class="tnums">
+                <tr class="border-b border-sand-100"><td class="px-4 py-3 text-sand-900 font-medium">F-2026-0418</td><td class="px-4 py-3 text-sand-600">Le Croissant d'Or</td><td class="px-4 py-3 text-right text-sand-900">85 000</td><td class="px-4 py-3"><span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-md bg-danger-50 text-danger-600 ring-1 ring-inset ring-danger-100">Impayée</span></td></tr>
+                <tr class="border-b border-sand-100"><td class="px-4 py-3 text-sand-900 font-medium">F-2026-0402</td><td class="px-4 py-3 text-sand-600">Hôtel Ivoire</td><td class="px-4 py-3 text-right text-sand-900">60 000</td><td class="px-4 py-3"><span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-md bg-warning-50 text-warning-600 ring-1 ring-inset ring-warning-100">Partielle</span></td></tr>
+                <tr><td class="px-4 py-3 text-sand-900 font-medium">F-2026-0377</td><td class="px-4 py-3 text-sand-600">Cafétéria Plateau</td><td class="px-4 py-3 text-right text-sand-900">145 000</td><td class="px-4 py-3"><span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-md bg-success-50 text-success-700 ring-1 ring-inset ring-success-100">Payée</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <footer class="pt-4 border-t border-sand-200 text-xs text-sand-400">
+          Design System « Chez Mina » — Monochrome Pro · tokens dans <code class="text-sand-600">src/index.css</code>
+        </footer>
+      </main>
     </div>
-  </header>
-
-  <main class="max-w-6xl mx-auto px-6 py-10 space-y-14">
-
-    <!-- Intro -->
-    <section>
-      <p class="text-sm font-medium text-terracotta-600 mb-2">DESIGN SYSTEM</p>
-      <h2 class="text-4xl font-semibold text-sand-900 mb-3">Un look artisan, chaleureux et sophistiqué</h2>
-      <p class="text-sand-600 max-w-2xl">Voici les fondations (couleurs, typographie, ombres) et les composants du socle
-        appliqués à ton app de gestion. Tout est piloté par des <em>tokens</em> : une seule source de vérité.</p>
-    </section>
-
-    <!-- Palette -->
-    <section>
-      <h3 class="text-xl font-semibold mb-5">Palette</h3>
-      <div class="space-y-6">
-        <div>
-          <p class="text-sm font-medium text-sand-700 mb-2">Sable (neutres chauds)</p>
-          <div class="grid grid-cols-6 sm:grid-cols-11 gap-2">
-            <div><div class="h-12 rounded-lg border border-sand-200" style="background:#FDFBF7"></div><p class="text-[10px] text-sand-500 mt-1 text-center">50</p></div>
-            <div><div class="h-12 rounded-lg" style="background:#FBF7F0"></div><p class="text-[10px] text-sand-500 mt-1 text-center">100</p></div>
-            <div><div class="h-12 rounded-lg" style="background:#F4EDE1"></div><p class="text-[10px] text-sand-500 mt-1 text-center">200</p></div>
-            <div><div class="h-12 rounded-lg" style="background:#E8DDCB"></div><p class="text-[10px] text-sand-500 mt-1 text-center">300</p></div>
-            <div><div class="h-12 rounded-lg" style="background:#D4C4A9"></div><p class="text-[10px] text-sand-500 mt-1 text-center">400</p></div>
-            <div><div class="h-12 rounded-lg" style="background:#B3A184"></div><p class="text-[10px] text-sand-500 mt-1 text-center">500</p></div>
-            <div><div class="h-12 rounded-lg" style="background:#8A7860"></div><p class="text-[10px] text-sand-500 mt-1 text-center">600</p></div>
-            <div><div class="h-12 rounded-lg" style="background:#665847"></div><p class="text-[10px] text-sand-500 mt-1 text-center">700</p></div>
-            <div><div class="h-12 rounded-lg" style="background:#453C30"></div><p class="text-[10px] text-sand-500 mt-1 text-center">800</p></div>
-            <div><div class="h-12 rounded-lg" style="background:#2B2119"></div><p class="text-[10px] text-sand-500 mt-1 text-center">900</p></div>
-            <div><div class="h-12 rounded-lg" style="background:#1A140F"></div><p class="text-[10px] text-sand-500 mt-1 text-center">950</p></div>
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-3 gap-6">
-          <div>
-            <p class="text-sm font-medium text-sand-700 mb-2">Terracotta (accent)</p>
-            <div class="grid grid-cols-5 gap-2">
-              <div class="h-10 rounded-lg" style="background:#F6E3D3"></div>
-              <div class="h-10 rounded-lg" style="background:#E1A379"></div>
-              <div class="h-10 rounded-lg" style="background:#C8712D"></div>
-              <div class="h-10 rounded-lg" style="background:#AE5D22"></div>
-              <div class="h-10 rounded-lg" style="background:#8C4A1E"></div>
-            </div>
-          </div>
-          <div>
-            <p class="text-sm font-medium text-sand-700 mb-2">Or doux (secondaire)</p>
-            <div class="grid grid-cols-5 gap-2">
-              <div class="h-10 rounded-lg" style="background:#F9EDD1"></div>
-              <div class="h-10 rounded-lg" style="background:#F1D79E"></div>
-              <div class="h-10 rounded-lg" style="background:#E8B976"></div>
-              <div class="h-10 rounded-lg" style="background:#DEA04E"></div>
-              <div class="h-10 rounded-lg" style="background:#CE8730"></div>
-            </div>
-          </div>
-          <div>
-            <p class="text-sm font-medium text-sand-700 mb-2">Sémantiques</p>
-            <div class="grid grid-cols-4 gap-2">
-              <div class="h-10 rounded-lg" style="background:#5B8C5A" title="success"></div>
-              <div class="h-10 rounded-lg" style="background:#C1492E" title="danger"></div>
-              <div class="h-10 rounded-lg" style="background:#D89A2E" title="warning"></div>
-              <div class="h-10 rounded-lg" style="background:#3E6B8C" title="info"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Typo -->
-    <section>
-      <h3 class="text-xl font-semibold mb-5">Typographie</h3>
-      <div class="bg-white border border-sand-200 rounded-xl shadow-card p-6 space-y-3">
-        <p class="text-xs uppercase tracking-wide text-sand-500">Fraunces · titres</p>
-        <p class="font-display text-4xl font-semibold text-sand-900">Boulangerie Chez Mina</p>
-        <p class="font-display text-2xl font-medium text-sand-800">Tableau de bord du jour</p>
-        <hr class="border-sand-200" />
-        <p class="text-xs uppercase tracking-wide text-sand-500">Inter · texte & données</p>
-        <p class="text-base text-sand-700">Le pain de campagne s'est vendu à 87 % avant midi. Chiffre d'affaires en hausse.</p>
-        <p class="text-sm text-sand-500">Texte secondaire — 1 250 000 FCFA · 42 commandes · 8 livreurs</p>
-      </div>
-    </section>
-
-    <!-- KPI / StatCards -->
-    <section>
-      <h3 class="text-xl font-semibold mb-5">Cartes KPI (StatCard)</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white border border-sand-200 rounded-xl shadow-card p-5">
-          <div class="flex items-start justify-between">
-            <p class="text-sm font-medium text-sand-600">Chiffre d'affaires</p>
-            <div class="w-9 h-9 rounded-lg bg-terracotta-50 text-terracotta-600 flex items-center justify-center"><iconify-icon icon="mdi:cash-multiple" class="text-lg"></iconify-icon></div>
-          </div>
-          <p class="mt-2 font-display text-3xl font-semibold text-sand-900">1 250 000</p>
-          <div class="mt-2 flex items-center gap-1.5 text-xs"><span class="inline-flex items-center gap-0.5 font-semibold text-success-600"><iconify-icon icon="mdi:trending-up"></iconify-icon>+12%</span><span class="text-sand-500">vs hier</span></div>
-        </div>
-        <div class="bg-white border border-sand-200 rounded-xl shadow-card p-5">
-          <div class="flex items-start justify-between">
-            <p class="text-sm font-medium text-sand-600">Commandes</p>
-            <div class="w-9 h-9 rounded-lg bg-gold-50 text-gold-600 flex items-center justify-center"><iconify-icon icon="mdi:receipt-text-outline" class="text-lg"></iconify-icon></div>
-          </div>
-          <p class="mt-2 font-display text-3xl font-semibold text-sand-900">42</p>
-          <div class="mt-2 flex items-center gap-1.5 text-xs"><span class="inline-flex items-center gap-0.5 font-semibold text-success-600"><iconify-icon icon="mdi:trending-up"></iconify-icon>+5%</span><span class="text-sand-500">vs hier</span></div>
-        </div>
-        <div class="bg-white border border-sand-200 rounded-xl shadow-card p-5">
-          <div class="flex items-start justify-between">
-            <p class="text-sm font-medium text-sand-600">Stock farine</p>
-            <div class="w-9 h-9 rounded-lg bg-info-50 text-info-600 flex items-center justify-center"><iconify-icon icon="mdi:sack" class="text-lg"></iconify-icon></div>
-          </div>
-          <p class="mt-2 font-display text-3xl font-semibold text-sand-900">18 sacs</p>
-          <div class="mt-2 flex items-center gap-1.5 text-xs"><span class="inline-flex items-center gap-0.5 font-semibold text-danger-600"><iconify-icon icon="mdi:trending-down"></iconify-icon>-9%</span><span class="text-sand-500">à recommander</span></div>
-        </div>
-        <div class="bg-white border border-sand-200 rounded-xl shadow-card p-5">
-          <div class="flex items-start justify-between">
-            <p class="text-sm font-medium text-sand-600">Dépenses</p>
-            <div class="w-9 h-9 rounded-lg bg-sand-100 text-sand-600 flex items-center justify-center"><iconify-icon icon="mdi:wallet-outline" class="text-lg"></iconify-icon></div>
-          </div>
-          <p class="mt-2 font-display text-3xl font-semibold text-sand-900">320 000</p>
-          <div class="mt-2 flex items-center gap-1.5 text-xs"><span class="inline-flex items-center gap-0.5 font-semibold text-success-600"><iconify-icon icon="mdi:trending-down"></iconify-icon>-3%</span><span class="text-sand-500">maîtrisées</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Buttons + Badges -->
-    <section class="grid lg:grid-cols-2 gap-8">
-      <div>
-        <h3 class="text-xl font-semibold mb-5">Boutons</h3>
-        <div class="bg-white border border-sand-200 rounded-xl shadow-card p-6 flex flex-wrap gap-3 items-center">
-          <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-terracotta-500 hover:bg-terracotta-600 text-white shadow-soft transition">Primaire</button>
-          <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-sand-800 hover:bg-sand-900 text-white shadow-soft transition">Secondaire</button>
-          <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-danger-500 hover:bg-danger-600 text-white shadow-soft transition">Danger</button>
-          <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-sand-300 hover:bg-sand-100 text-sand-800 transition">Outline</button>
-          <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-sand-700 hover:bg-sand-100 transition">Ghost</button>
-        </div>
-      </div>
-      <div>
-        <h3 class="text-xl font-semibold mb-5">Badges de statut</h3>
-        <div class="bg-white border border-sand-200 rounded-xl shadow-card p-6 flex flex-wrap gap-2 items-center">
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ring-1 ring-inset bg-success-50 text-success-700 ring-success-100"><iconify-icon icon="mdi:check-circle"></iconify-icon> Payé</span>
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ring-1 ring-inset bg-warning-50 text-warning-600 ring-warning-100"><iconify-icon icon="mdi:clock-outline"></iconify-icon> En attente</span>
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ring-1 ring-inset bg-danger-50 text-danger-600 ring-danger-100"><iconify-icon icon="mdi:alert-circle"></iconify-icon> En rupture</span>
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ring-1 ring-inset bg-terracotta-50 text-terracotta-700 ring-terracotta-100"><iconify-icon icon="mdi:star"></iconify-icon> Client régulier</span>
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ring-1 ring-inset bg-gold-50 text-gold-600 ring-gold-200"><iconify-icon icon="mdi:crown"></iconify-icon> Premium</span>
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ring-1 ring-inset bg-sand-100 text-sand-700 ring-sand-200">Neutre</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Form + Card -->
-    <section class="grid lg:grid-cols-2 gap-8">
-      <div>
-        <h3 class="text-xl font-semibold mb-5">Formulaire</h3>
-        <div class="bg-white border border-sand-200 rounded-xl shadow-card p-6 space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-sand-700 mb-1">Nom du produit</label>
-            <input class="block w-full rounded-lg border border-sand-300 bg-white px-3 py-2 text-sand-900 placeholder:text-sand-500 focus:border-terracotta-500 focus:ring-terracotta-500 focus:ring-1 text-sm" placeholder="Pain de campagne" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-sand-700 mb-1">Catégorie</label>
-            <select class="block w-full rounded-lg border border-sand-300 bg-white px-3 py-2 text-sand-900 focus:border-terracotta-500 focus:ring-terracotta-500 focus:ring-1 text-sm">
-              <option>Pains</option><option>Viennoiseries</option><option>Pâtisseries</option>
-            </select>
-          </div>
-          <div class="pt-2 flex gap-3">
-            <button class="flex-1 px-4 py-2 text-sm font-medium rounded-lg bg-terracotta-500 hover:bg-terracotta-600 text-white shadow-soft transition">Enregistrer</button>
-            <button class="px-4 py-2 text-sm font-medium rounded-lg border border-sand-300 hover:bg-sand-100 text-sand-800 transition">Annuler</button>
-          </div>
-        </div>
-      </div>
-      <div>
-        <h3 class="text-xl font-semibold mb-5">Carte produit + État vide</h3>
-        <div class="bg-white border border-sand-200 rounded-xl shadow-card overflow-hidden mb-4">
-          <div class="px-6 py-4 border-b border-sand-200 bg-sand-50">
-            <div class="font-display text-lg font-semibold text-sand-900">Croissant au beurre</div>
-            <div class="mt-1 text-sm text-sand-600">Viennoiserie · 500 FCFA</div>
-          </div>
-          <div class="px-6 py-4 flex items-center justify-between">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ring-1 ring-inset bg-success-50 text-success-700 ring-success-100"><iconify-icon icon="mdi:check-circle"></iconify-icon> En vente</span>
-            <div class="flex gap-2">
-              <button class="p-2 rounded-lg text-sand-700 hover:bg-sand-100 transition"><iconify-icon icon="mdi:pencil"></iconify-icon></button>
-              <button class="p-2 rounded-lg text-danger-600 hover:bg-danger-50 transition"><iconify-icon icon="mdi:delete-outline"></iconify-icon></button>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white border border-sand-200 rounded-xl shadow-card">
-          <div class="text-center py-10 px-4">
-            <div class="w-16 h-16 bg-sand-100 rounded-full flex items-center justify-center mx-auto mb-4"><iconify-icon icon="mdi:tray" class="text-3xl text-sand-500"></iconify-icon></div>
-            <h3 class="text-lg font-semibold text-sand-900 mb-1">Aucune commande</h3>
-            <p class="text-sm text-sand-600 max-w-xs mx-auto mb-4">Les nouvelles commandes du jour apparaîtront ici.</p>
-            <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-terracotta-500 hover:bg-terracotta-600 text-white shadow-soft transition"><iconify-icon icon="mdi:plus"></iconify-icon> Créer une commande</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer class="pt-6 border-t border-sand-200 text-center text-sm text-sand-500">
-      Design System « Chez Mina » — Artisan chaleureux · piloté par tokens dans <code class="text-sand-700">src/index.css</code>
-    </footer>
-  </main>
+  </div>
 </body>
 </html>
