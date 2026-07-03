@@ -601,7 +601,7 @@ export const ProgrammeProduction: React.FC = () => {
       <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
 
         {/* Widget de sélection de date moderne */}
-        <div className="bg-white rounded-xl border border-sand-200 shadow-sm p-4 sm:p-5 overflow-hidden">
+        <div className="bg-white rounded-xl border border-sand-200 shadow-card p-4 sm:p-5 overflow-hidden">
           <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div className="w-8 h-8 bg-sand-100 rounded-lg flex items-center justify-center shrink-0">
               <Icon icon="mdi:calendar" className="text-lg text-sand-600" />
@@ -725,7 +725,7 @@ export const ProgrammeProduction: React.FC = () => {
 
 
         {/* Section Commandes Clients avec design moderne */}
-        <div className="bg-white rounded-xl border border-sand-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-sand-200 shadow-card overflow-hidden">
           {/* Header de la section */}
           <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-sand-100 bg-sand-50/50">
             <div className="flex flex-col gap-3 sm:gap-4">
@@ -890,7 +890,7 @@ export const ProgrammeProduction: React.FC = () => {
                   return (
                     <div
                       key={commande.id}
-                      className={`relative bg-white border ${alertSunday ? 'border-warning-500 ring-4 ring-warning-100' : 'border-sand-200'} rounded-xl p-4 sm:p-5 hover:border-sand-300 hover:shadow-md transition-all duration-200 overflow-hidden`}
+                      className={`relative bg-white border ${alertSunday ? 'border-warning-500 ring-4 ring-warning-100' : 'border-sand-200'} rounded-xl p-4 sm:p-5 hover:border-sand-300 hover:shadow-elevated transition-all duration-200 overflow-hidden`}
                     >
                       {/* En-tête de la commande */}
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
@@ -908,7 +908,7 @@ export const ProgrammeProduction: React.FC = () => {
                                 <span className="truncate">{new Date(commande.dateLivraison).toLocaleDateString('fr-FR')}</span>
                               </div>
                               {alertSunday && (
-                                <span className="flex items-center gap-1 px-2 py-1 bg-warning-50 text-warning-600 text-[10px] sm:text-xs font-bold rounded-full border border-warning-100 animate-pulse">
+                                <span className="flex items-center gap-1 px-2 py-1 bg-warning-50 text-warning-600 text-[10px] sm:text-xs font-semibold rounded-full border border-warning-100 animate-pulse">
                                   <Icon icon="mdi:alert" className="text-warning-600" />
                                   Repos Dimanche !
                                 </span>
@@ -1051,7 +1051,7 @@ export const ProgrammeProduction: React.FC = () => {
                                         x{item.quantiteCommandee}
                                       </span>
                                       <div className="flex items-center justify-between sm:justify-end gap-2 flex-1">
-                                        <div className="text-sm sm:text-base font-bold text-sand-800">
+                                        <div className="text-sm sm:text-base font-semibold text-sand-800">
                                           {((item.prixUnitaire || 0) * item.quantiteCommandee).toLocaleString('fr-FR')} F
                                         </div>
                                         <div className="flex items-center gap-1">
@@ -1181,7 +1181,7 @@ export const ProgrammeProduction: React.FC = () => {
         </Modal>
 
         {/* Section Quantités Boutique */}
-        <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
+        <div className="bg-white rounded-xl border border-sand-200 shadow-card">
           <div className="px-6 py-4 border-b border-sand-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -1197,7 +1197,7 @@ export const ProgrammeProduction: React.FC = () => {
               <button
                 onClick={() => setShowQuantiteBoutiqueForm(true)}
                 disabled={showQuantiteBoutiqueForm}
-                className="flex items-center gap-2 px-4 py-2 text-sand-700 bg-white border border-sand-300 hover:bg-sand-50 hover:border-sand-400 rounded-lg transition-all disabled:opacity-50 shadow-sm hover:shadow-md"
+                className="flex items-center gap-2 px-4 py-2 text-sand-700 bg-white border border-sand-300 hover:bg-sand-50 hover:border-sand-400 rounded-lg transition-all disabled:opacity-50 shadow-sm hover:shadow-elevated"
               >
                 <Icon icon="mdi:plus" className="text-lg" />
                 <span className="font-medium">Ajouter produit</span>
@@ -1220,7 +1220,7 @@ export const ProgrammeProduction: React.FC = () => {
                 </p>
                 <button
                   onClick={() => setShowQuantiteBoutiqueForm(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 text-sand-700 bg-white border border-sand-300 hover:bg-sand-50 hover:border-sand-400 rounded-lg transition-all shadow-sm hover:shadow-md"
+                  className="inline-flex items-center gap-2 px-6 py-3 text-sand-700 bg-white border border-sand-300 hover:bg-sand-50 hover:border-sand-400 rounded-lg transition-all shadow-sm hover:shadow-elevated"
                 >
                   <Icon icon="mdi:plus" className="text-lg" />
                   <span className="font-medium">Ajouter le premier produit</span>
@@ -1234,11 +1234,11 @@ export const ProgrammeProduction: React.FC = () => {
                     return (
                       <div
                         key={item.produitId}
-                        className="bg-gradient-to-br from-sand-50 to-white border border-sand-200 rounded-xl p-4 hover:border-sand-300 hover:shadow-md transition-all group"
+                        className="bg-white border border-sand-200 rounded-xl p-4 hover:border-sand-300 hover:shadow-elevated transition-all group"
                       >
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-sand-800 to-sand-900 rounded-lg flex items-center justify-center shadow-md">
+                            <div className="w-10 h-10 bg-sand-900 rounded-lg flex items-center justify-center shadow-md">
                               <Icon icon="mdi:storefront" className="text-lg text-white" />
                             </div>
                             <div>
@@ -1287,7 +1287,7 @@ export const ProgrammeProduction: React.FC = () => {
                                     <Icon icon="mdi:truck" className="text-warning-600 text-sm" />
                                     <span className="text-xs font-medium text-warning-600">Car 1M</span>
                                   </div>
-                                  <span className="text-xs font-bold text-warning-600">
+                                  <span className="text-xs font-semibold text-warning-600">
                                     {item.repartitionCars.car1_matin}
                                   </span>
                                 </div>
@@ -1298,7 +1298,7 @@ export const ProgrammeProduction: React.FC = () => {
                                     <Icon icon="mdi:truck-outline" className="text-info-600 text-sm" />
                                     <span className="text-xs font-medium text-info-600">Car 2M</span>
                                   </div>
-                                  <span className="text-xs font-bold text-info-600">
+                                  <span className="text-xs font-semibold text-info-600">
                                     {item.repartitionCars.car2_matin}
                                   </span>
                                 </div>
@@ -1309,7 +1309,7 @@ export const ProgrammeProduction: React.FC = () => {
                                     <Icon icon="mdi:truck-fast" className="text-terracotta-600 text-sm" />
                                     <span className="text-xs font-medium text-terracotta-700">Car S</span>
                                   </div>
-                                  <span className="text-xs font-bold text-terracotta-700">
+                                  <span className="text-xs font-semibold text-terracotta-700">
                                     {item.repartitionCars.car_soir}
                                   </span>
                                 </div>
@@ -1363,7 +1363,7 @@ export const ProgrammeProduction: React.FC = () => {
 
         {/* Section Programme de Production */}
         {programmeActuel?.totauxParProduit && programmeActuel.totauxParProduit.length > 0 && (
-          <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
+          <div className="bg-white rounded-xl border border-sand-200 shadow-card">
             <div className="px-6 py-4 border-b border-sand-100">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-terracotta-100 rounded-lg flex items-center justify-center">
@@ -1379,7 +1379,7 @@ export const ProgrammeProduction: React.FC = () => {
             <div className="p-4">
               {/* KPI Cards - Style Odoo moderne */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="bg-linear-to-br from-sand-800 to-sand-900 rounded-2xl p-4 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
+                <div className="bg-sand-900 rounded-2xl p-4 text-white shadow-card hover:shadow-elevated transition-all group">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                       <Icon icon="mdi:truck-delivery" className="text-xl text-white" />
@@ -1400,7 +1400,7 @@ export const ProgrammeProduction: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-linear-to-br from-sand-800 to-sand-900 rounded-2xl p-4 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
+                <div className="bg-sand-900 rounded-2xl p-4 text-white shadow-card hover:shadow-elevated transition-all group">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                       <Icon icon="mdi:truck-delivery-outline" className="text-xl text-white" />
@@ -1421,7 +1421,7 @@ export const ProgrammeProduction: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-linear-to-br from-sand-800 to-sand-900 rounded-2xl p-4 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
+                <div className="bg-sand-900 rounded-2xl p-4 text-white shadow-card hover:shadow-elevated transition-all group">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                       <Icon icon="mdi:truck-fast" className="text-xl text-white" />
@@ -1442,7 +1442,7 @@ export const ProgrammeProduction: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-linear-to-br from-sand-800 to-sand-900 rounded-2xl p-4 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
+                <div className="bg-sand-900 rounded-2xl p-4 text-white shadow-card hover:shadow-elevated transition-all group">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                       <Icon icon="mdi:package-variant" className="text-xl text-white" />
@@ -1494,18 +1494,18 @@ export const ProgrammeProduction: React.FC = () => {
                     return (
                       <div
                         key={total.produitId}
-                        className="bg-linear-to-br from-white to-sand-100 border border-sand-200 rounded-2xl p-4 hover:border-terracotta-100 hover:shadow-2xl transition-all duration-300 group"
+                        className="bg-white border border-sand-200 rounded-2xl p-4 hover:border-terracotta-100 hover:shadow-elevated transition-all duration-300 group"
                       >
                         {/* En-tête du produit */}
                         <div className="flex items-center gap-3 mb-4">
-                          <div className="w-12 h-12 bg-terracotta-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                          <div className="w-12 h-12 bg-terracotta-500 rounded-2xl flex items-center justify-center shadow-card transition-transform">
                             <Icon
                               icon={getProductIcon(total.produit?.nom || '')}
                               className="text-xl text-white"
                             />
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-bold text-lg text-sand-900 mb-0.5">
+                            <h4 className="font-semibold text-lg text-sand-900 mb-0.5">
                               {total.produit?.nom || total.produitId}
                             </h4>
                             <div className="flex items-center gap-2">
@@ -1517,7 +1517,7 @@ export const ProgrammeProduction: React.FC = () => {
 
                         {/* Répartition Client vs Boutique */}
                         <div className="grid grid-cols-2 gap-4 mb-6">
-                          <div className="bg-sand-50 rounded-xl p-4 text-center border border-sand-200 group-hover:shadow-md transition-shadow">
+                          <div className="bg-sand-50 rounded-xl p-4 text-center border border-sand-200 group-hover:shadow-elevated transition-shadow">
                             <div className="flex items-center justify-center gap-2 mb-2">
                               <div className="w-8 h-8 bg-terracotta-500 rounded-lg flex items-center justify-center">
                                 <Icon icon="mdi:account-group" className="text-white text-sm" />
@@ -1526,7 +1526,7 @@ export const ProgrammeProduction: React.FC = () => {
                             </div>
                             <div className="font-display text-2xl font-semibold text-sand-800">{total.totalClient}</div>
                           </div>
-                          <div className="bg-sand-50 rounded-xl p-4 text-center border border-sand-200 group-hover:shadow-md transition-shadow">
+                          <div className="bg-sand-50 rounded-xl p-4 text-center border border-sand-200 group-hover:shadow-elevated transition-shadow">
                             <div className="flex items-center justify-center gap-2 mb-2">
                               <div className="w-8 h-8 bg-terracotta-500 rounded-lg flex items-center justify-center">
                                 <Icon icon="mdi:storefront" className="text-white text-sm" />
@@ -1627,7 +1627,7 @@ export const ProgrammeProduction: React.FC = () => {
       <button
         onClick={() => setShowQuantiteBoutiqueForm(true)}
         disabled={showQuantiteBoutiqueForm}
-        className="fixed bottom-6 right-6 w-16 h-16 bg-info-600 hover:bg-info-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 disabled:opacity-50 z-50 flex items-center justify-center group"
+        className="fixed bottom-6 right-6 w-16 h-16 bg-info-600 hover:bg-info-600 text-white rounded-full shadow-card hover:shadow-elevated transition-all duration-300 hover:scale-110 disabled:opacity-50 z-50 flex items-center justify-center group"
         title="Ajouter un produit boutique"
       >
         <div className="relative">
