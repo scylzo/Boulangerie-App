@@ -9,7 +9,6 @@ interface SidebarProps {
   mobileOpen: boolean;
   collapsed: boolean;
   onClose: () => void;
-  onToggleCollapse: () => void;
 }
 
 // Regroupement des modules en sections (par id)
@@ -20,7 +19,7 @@ const SECTIONS: { label: string; ids: string[] }[] = [
   { label: 'Administration', ids: ['fiche_produit', 'admin_produits', 'admin_clients', 'admin_livreurs', 'admin_users'] },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, collapsed, onClose, onToggleCollapse }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, collapsed, onClose }) => {
   const { user, logout } = useAuthStore();
 
   // Filtrage des modules basé sur les permissions
@@ -97,9 +96,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, collapsed, onClose
         ))}
       </nav>
 
-      {/* Profil + réduire */}
-      <div className="border-t border-white/10 p-3 shrink-0 space-y-1">
-        {user && (
+      {/* Profil */}
+      {user && (
+        <div className="border-t border-white/10 p-3 shrink-0">
           <div className={`flex items-center gap-2.5 px-2 py-2 rounded-lg ${collapsed ? 'lg:justify-center' : ''}`}>
             <div className="w-9 h-9 rounded-full bg-gold-500 text-white flex items-center justify-center text-xs font-semibold shrink-0">
               {(user.nom || user.email || 'U').charAt(0).toUpperCase()}
@@ -119,16 +118,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, collapsed, onClose
               </>
             )}
           </div>
-        )}
-        <button
-          onClick={onToggleCollapse}
-          className={`hidden lg:flex w-full items-center ${collapsed ? 'justify-center' : ''} gap-2 px-3 py-2 rounded-lg text-sand-500 hover:bg-white/5 hover:text-white text-sm transition-colors`}
-          title={collapsed ? 'Déployer le menu' : 'Réduire le menu'}
-        >
-          <Icon icon={collapsed ? 'mdi:chevron-double-right' : 'mdi:chevron-double-left'} className="text-lg" />
-          {!collapsed && <span>Réduire</span>}
-        </button>
-      </div>
+        </div>
+      )}
     </aside>
   );
 };

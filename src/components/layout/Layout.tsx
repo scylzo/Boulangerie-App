@@ -30,7 +30,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         mobileOpen={mobileOpen}
         collapsed={collapsed}
         onClose={() => setMobileOpen(false)}
-        onToggleCollapse={() => setCollapsed((c) => !c)}
       />
 
       {/* Contenu — marge adaptée à l'état du rail */}
