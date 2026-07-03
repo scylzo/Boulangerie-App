@@ -1,140 +1,110 @@
-# Design System « Chez Mina » — Artisan chaleureux
+# Design System « Chez Mina » — Monochrome Pro
 
-Guide de référence du design system de l'application. **Source de vérité unique :
-`src/index.css`** (bloc `@theme`, Tailwind v4). Toute couleur, typo, rayon ou ombre
-passe par un *token* — on n'écrit jamais de valeur en dur.
+Guide de référence du design system. **Source de vérité unique : `src/index.css`**
+(bloc `@theme`, Tailwind v4). Toute couleur, typo, rayon ou ombre passe par un *token*.
 
 > 🎨 Aperçu visuel complet : ouvrir `design-system-preview.html` à la racine.
+
+Direction : **dashboard haut de gamme** (langage Linear / Vercel), pensé pour des
+clientes habituées à Odoo / Dolibarr / Sage — **sobre, dense, orienté données**.
 
 ---
 
 ## 1. Identité
-
-Look **artisan, chaleureux et sophistiqué** : fonds crème, texte espresso, accent
-terracotta, touches d'or doux. Titres en serif optique (**Fraunces**), texte et
-données en **Inter**. On évite les dégradés multicolores, le noir pur et les ombres
-dures — tout est chaud et posé.
+Neutres froids, **primaire quasi-noir**, **accent indigo rare**, statuts colorés nets.
+Typographie **Inter partout** (pas de serif). Densité soignée, bordures fines, ombres
+très discrètes, chiffres tabulaires. On évite : couleurs vives décoratives, gros rayons,
+ombres marquées, tout ce qui fait « template grand public ».
 
 ---
 
 ## 2. Tokens
 
+> ⚠️ Pour raison historique, les **noms** de tokens sont conservés mais leurs **valeurs**
+> sont monochromes pro. Mapping mental : `sand` = neutres, `terracotta` = **primaire (noir)**,
+> `gold` = **accent (indigo)**.
+
 ### Couleurs
-
-Toutes déclarées en `@theme` → utilisables comme `bg-*`, `text-*`, `border-*`, `ring-*`.
-
 | Rôle | Échelle | Usage |
 |------|---------|-------|
-| **Sable** (neutres chauds) | `sand-50 → sand-950` | Fonds, bordures, texte |
-| **Terracotta** (accent principal) | `terracotta-50 → 900` | Boutons primaires, liens, focus, éléments actifs |
-| **Or doux** (secondaire) | `gold-50 → 600` | Highlights, badges premium |
-| **Succès** | `success-50/100/500/600/700` | Payé, validé, en hausse |
-| **Danger** | `danger-50/100/500/600/700` | Erreurs, suppression, rupture |
+| **Neutres** (zinc froids) | `sand-50 → 950` | Fonds, bordures, texte. Fond app `sand-100`, surface `white`, bordure `sand-200`, texte `sand-700/900`, secondaire `sand-500` |
+| **Primaire** (quasi-noir) | `terracotta-50 → 900` | Boutons primaires (`terracotta-500` = `#18181B`), éléments actifs, focus |
+| **Accent** (indigo, rare) | `gold-50 → 600` | Liens, highlights, badges premium (`gold-500/600` = indigo) |
+| **Succès** | `success-50/100/500/600/700` | Payé, validé, hausse |
+| **Danger** | `danger-50/100/500/600/700` | Erreur, suppression, rupture |
 | **Avertissement** | `warning-50/100/500/600` | En attente, seuils |
-| **Info** | `info-50/100/500/600` | Informations neutres |
+| **Info** | `info-50/100/500/600` | Informations (indigo) |
 
-**Conventions d'usage du sable :**
-
-| Élément | Token |
-|---------|-------|
-| Fond de l'app | `bg-sand-100` |
-| Surface / carte | `bg-white` |
-| Fond de section douce (header de carte) | `bg-sand-50` |
-| Bordure subtile | `border-sand-200` |
-| Bordure d'input | `border-sand-300` |
-| Texte secondaire / muted | `text-sand-500` / `text-sand-600` |
-| Texte courant | `text-sand-700` / `text-sand-800` |
-| Titres | `text-sand-900` |
+Valeurs neutres : `50 #FAFAFA · 100 #F4F4F5 · 200 #E4E4E7 · 300 #D4D4D8 · 400 #A1A1AA ·
+500 #71717A · 600 #52525B · 700 #3F3F46 · 800 #27272A · 900 #18181B · 950 #09090B`.
 
 ### Typographie
-
-| Token | Police | Usage |
-|-------|--------|-------|
-| `font-display` | Fraunces (serif) | `h1, h2, h3` (appliqué par défaut), valeurs KPI, titres de cartes |
-| `font-sans` | Inter | Texte courant, labels, données, boutons |
-
-Échelle indicative : titres `text-xl`/`text-2xl`/`text-4xl` en `font-semibold` ;
-texte `text-sm`/`text-base` ; secondaire `text-xs`/`text-sm text-sand-500`.
+- `--font-sans` = `--font-display` = **Inter** (400/500/600/700). Plus aucun serif.
+- Titres (`h1/h2/h3`) : Inter, `letter-spacing: -0.02em`.
+- Chiffres : classe `.tabular-nums` (KPI, tableaux, montants) pour l'alignement.
 
 ### Rayons & ombres
-
-- Rayons : `rounded-lg` (contrôles), `rounded-xl` (cartes, modales), `rounded-full` (badges).
-- Ombres (teintées espresso, jamais noires) :
-  - `shadow-soft` — boutons, éléments plats
-  - `shadow-card` — cartes au repos
-  - `shadow-elevated` — carte au survol
-  - `shadow-overlay` — modales, popovers
+- Rayons resserrés : `rounded-md` (contrôles), `rounded-lg`/`rounded-xl` (cartes = `xl` = 12px), `rounded-full` (badges/avatars).
+- Ombres neutres très subtiles : `shadow-soft`, `shadow-card` (cartes au repos), `shadow-elevated` (survol/panneaux), `shadow-overlay` (modales). On s'appuie surtout sur les **bordures**.
 
 ---
 
-## 3. Composants
-
-Importer depuis le barrel : `import { Button, Card, StatCard, Badge } from '@/components/ui';`
+## 3. Composants (`src/components/ui/`)
+Import : `import { Button, Card, StatCard, TrendChart } from '@/components/ui';`
 
 | Composant | Rôle | Props clés |
 |-----------|------|-----------|
-| `Button` | Action | `variant` = primary \| secondary \| danger \| outline \| ghost ; `size` = sm \| md \| lg ; `isLoading` |
-| `Card` | Conteneur de surface | `title`, `subtitle`, `className` |
-| `Input` | Champ texte | `label`, `error`, `helperText` (gère aussi `type="password"`) |
-| `Select` | Liste déroulante | `label`, `options`, `error`, `helperText` |
-| `Modal` | Fenêtre / popover | `isOpen`, `onClose`, `title`, `size`, `inline`, `position` |
-| `ConfirmModal` / `ConfirmButton` | Confirmation | `type` = info \| warning \| danger \| success |
-| `Badge` | Statut / tag | `tone` = neutral \| success \| danger \| warning \| info \| brand \| gold ; `icon` ; `size` |
-| `StatCard` | KPI dashboard | `label`, `value`, `icon`, `trend`, `trendLabel`, `tone` |
-| `EmptyState` | Liste/tableau vide | `icon`, `title`, `description`, `action` |
-| `Loader` (+ `PageLoader`, `TableLoader`, `CardLoader`, `ButtonLoader`) | Chargement | `size`, `message`, `fullScreen` |
+| `Button` | Action | `variant` primary\|secondary\|danger\|outline\|ghost ; `size` ; `isLoading` |
+| `Card` | Surface | `title`, `subtitle`, `className` |
+| `Input` / `Select` | Formulaire | `label`, `error`, `helperText` (+ `options` pour Select) |
+| `Modal` / `ConfirmModal` / `ConfirmButton` | Fenêtres & confirmations | `isOpen`, `onClose`, `type` |
+| `Badge` | Statut / tag | `tone` neutral\|success\|danger\|warning\|info\|brand\|gold ; `icon` |
+| `StatCard` | KPI | `label`, `value`, `icon`, `trend`, `trendLabel`, `tone` |
+| `EmptyState` | Liste vide | `icon`, `title`, `description`, `action` |
+| `Loader` (+ Page/Table/Card/Button) | Chargement | `size`, `message`, `fullScreen` |
+| **`Sparkline`** | Micro-tendance inline | `data:number[]`, `className`, `fill` |
+| **`RadialGauge`** | Jauge d'objectif | `value` (0–100), `size`, `className`, `label` |
+| **`DonutChart`** | Répartition | `data:{label,value,className}[]`, `centerValue`, `centerLabel` |
+| **`TrendChart`** | Courbe (aire+ligne) | `data:{label,value}[]`, `height`, `className`, `valueFormat` |
+
+Les 4 composants de **dataviz** sont en **SVG pur, sans dépendance**, colorés via les
+tokens (`currentColor` / classes `text-*`).
 
 ---
 
 ## 4. Patterns
-
-### Carte KPI
 ```tsx
-<StatCard label="Chiffre d'affaires" value="1 250 000 FCFA"
-  icon="mdi:cash-multiple" trend={12} trendLabel="vs hier" tone="brand" />
+// KPI avec tendance
+<StatCard label="Chiffre d'affaires" value="1 250 000 FCFA" icon="mdi:cash-multiple" trend={12} trendLabel="vs hier" />
+
+// Courbe CA
+<TrendChart data={caSeries} height={150} valueFormat={formatCurrency} />
+
+// Jauge d'objectif
+<RadialGauge value={productionProgress} size={52} stroke={6} />
+
+// Donut de répartition
+<DonutChart data={[{label:'Matières', value:120000, className:'text-sand-900'}, {label:'Charges', value:60000, className:'text-gold-500'}]} centerValue="180K" centerLabel="FCFA" />
+
+// Badge de statut
+<Badge tone="success" icon="mdi:check-circle">Payée</Badge>
 ```
 
-### Badge de statut
-```tsx
-<Badge tone="success" icon="mdi:check-circle">Payé</Badge>
-<Badge tone="warning" icon="mdi:clock-outline">En attente</Badge>
-<Badge tone="danger" icon="mdi:alert-circle">En rupture</Badge>
-```
-
-### État vide
-```tsx
-<EmptyState icon="mdi:tray" title="Aucune commande"
-  description="Les nouvelles commandes du jour apparaîtront ici."
-  action={<Button>Créer une commande</Button>} />
-```
-
-### En-tête de page (responsive)
-```tsx
-<div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-3 sm:py-4">
-  <div className="flex items-center gap-3 min-w-0">
-    <div className="w-10 h-10 bg-terracotta-500 rounded-lg flex items-center justify-center shrink-0">
-      <Icon icon="mdi:..." className="text-xl text-white" />
-    </div>
-    <div className="min-w-0">
-      <h1 className="text-lg sm:text-xl font-semibold text-sand-900 truncate">Titre</h1>
-      <p className="text-xs sm:text-sm text-sand-500 truncate">Description</p>
-    </div>
-  </div>
-</div>
-```
+### Shell
+- **Sidebar** repliable en rail d'icônes (`Layout` gère `collapsed`, mémorisé en `localStorage`) ; actif = `bg-sand-100 text-sand-900`.
+- **Topbar** : toggle du rail, recherche, notifications, profil + rôle, déconnexion.
 
 ---
 
 ## 5. Règles
-
-1. **Jamais de couleur en dur** — toujours un token (`text-sand-700`, pas `text-[#665847]`).
-2. **Pas de dégradés multicolores** ni de noir pur ; accent = terracotta, highlight = or.
-3. **Titres** en `font-display` ; **données/texte** en `font-sans`.
+1. **Jamais de couleur en dur** — toujours un token.
+2. **Un seul accent coloré** (indigo/`gold`), utilisé avec parcimonie ; le reste est neutre + noir.
+3. **Inter partout**, chiffres en `.tabular-nums`.
 4. **Cartes** : `bg-white border border-sand-200 rounded-xl shadow-card`.
-5. **Responsive** : padding `p-4 sm:p-5 md:p-6`, texte `text-sm sm:text-base`, layout `flex-col sm:flex-row`.
-6. **Anti-débordement** : `truncate` / `line-clamp-2` sur les textes longs, `min-w-0 flex-1` dans les flex, `overflow-hidden` sur les conteneurs.
-7. **Réutiliser les composants** `ui/` plutôt que réécrire des classes au cas par cas.
+5. **Densité** : privilégier tableaux compacts, en-têtes de colonnes `uppercase text-xs text-sand-500`, lignes séparées `border-sand-100`.
+6. **Statuts** = `Badge` colorés (les seules touches de couleur avec l'accent).
+7. **Graphiques** via les composants dataviz du DS (jamais de lib ad hoc).
 
 ---
 
-*Design system « Chez Mina » — mis à jour le 2026-07-02. Tokens : `src/index.css`.*
+*Design system « Chez Mina » — Monochrome Pro · mis à jour le 2026-07-03. Tokens : `src/index.css`.*

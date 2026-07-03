@@ -18,6 +18,10 @@
     "Select": { "label": "Catégorie", "options": [{ "value": "pains", "label": "Pains" }, { "value": "viennoiseries", "label": "Viennoiseries" }, { "value": "patisseries", "label": "Pâtisseries" }] },
     "StatCard": { "label": "Chiffre d'affaires", "value": "1 250 000 FCFA", "icon": "mdi:cash-multiple", "trend": 12, "trendLabel": "vs hier", "tone": "brand" },
     "EmptyState": { "title": "Aucune commande", "description": "Les nouvelles commandes du jour apparaîtront ici.", "icon": "mdi:tray" },
-    "Loader": { "message": "Chargement...", "size": "lg" }
+    "Loader": { "message": "Chargement...", "size": "lg" },
+    "Sparkline": { "data": [12, 18, 15, 22, 19, 27, 31], "fill": true },
+    "RadialGauge": { "value": 86 },
+    "DonutChart": { "data": [{ "label": "Matières", "value": 120000, "className": "text-sand-900" }, { "label": "Charges", "value": 60000, "className": "text-gold-500" }, { "label": "Autres", "value": 30000, "className": "text-sand-400" }], "centerValue": "210K", "centerLabel": "FCFA" },
+    "TrendChart": { "data": [{ "label": "Lun", "value": 850000 }, { "label": "Mar", "value": 920000 }, { "label": "Mer", "value": 780000 }, { "label": "Jeu", "value": 1100000 }, { "label": "Ven", "value": 1250000 }, { "label": "Sam", "value": 1480000 }, { "label": "Dim", "value": 640000 }] }
   }
 }
