@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react';
 import { useAuthStore } from '../../store';
 import { X } from 'lucide-react';
 import { APP_MODULES } from '../../constants/modules';
+import logoImg from '../../assets/logo.png';
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -51,10 +52,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, collapsed, onClose
     >
       {/* Brand */}
       <div className="flex items-center h-16 px-4 border-b border-white/10 gap-2.5 shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-gold-500 text-white flex items-center justify-center shrink-0">
-          <Icon icon="mdi:bread-slice-outline" className="text-lg" />
-        </div>
-        {!collapsed && <span className="text-white font-semibold text-lg tracking-tight truncate">Chez Mina</span>}
+        {collapsed ? (
+          <div className="w-8 h-8 rounded-lg bg-gold-500 text-white flex items-center justify-center shrink-0 lg:mx-auto">
+            <Icon icon="mdi:bread-slice-outline" className="text-lg" />
+          </div>
+        ) : (
+          <img
+            src={logoImg}
+            alt="Chez Mina Noflaye"
+            className="h-9 w-auto object-contain select-none"
+            style={{ filter: 'brightness(0) invert(1)' }}
+          />
+        )}
         <button onClick={onClose} className="lg:hidden ml-auto p-1.5 text-sand-400 hover:text-white rounded-md">
           <X size={20} />
         </button>
