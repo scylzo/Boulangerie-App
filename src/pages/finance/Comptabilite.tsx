@@ -418,15 +418,15 @@ export const Comptabilite: React.FC = () => {
                 {/* KPI Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                     {/* Recettes */}
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-sand-200 relative overflow-hidden">
+                    <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-card border border-sand-200 relative overflow-hidden">
                         <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
-                            <div className="p-2 sm:p-3 bg-success-50 rounded-lg">
+                            <div className="w-11 h-11 bg-success-50 rounded-full flex items-center justify-center">
                                 <TrendingUp className="text-success-600" size={20} />
                             </div>
                             <span className="text-[10px] sm:text-xs font-medium text-success-700 bg-success-50 px-2 sm:px-3 py-1 rounded-full truncate">Recettes</span>
                         </div>
                         <div className="space-y-2 relative z-10">
-                            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-sand-900 truncate">{formatCurrency(totalRecettes)}</h3>
+                            <h3 className="font-display text-2xl sm:text-3xl font-semibold tabular-nums text-sand-900 truncate">{formatCurrency(totalRecettes)}</h3>
                             <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm pt-2">
                                 <div className="bg-success-50/50 p-2 rounded">
                                     <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Boutique</p>
@@ -441,15 +441,15 @@ export const Comptabilite: React.FC = () => {
                     </div>
 
                     {/* Coûts */}
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-sand-200 relative overflow-hidden">
+                    <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-card border border-sand-200 relative overflow-hidden">
                         <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
-                            <div className="p-2 sm:p-3 bg-danger-50 rounded-lg">
+                            <div className="w-11 h-11 bg-danger-50 rounded-full flex items-center justify-center">
                                 <TrendingDown className="text-danger-600" size={20} />
                             </div>
                             <span className="text-[10px] sm:text-xs font-medium text-danger-700 bg-danger-50 px-2 sm:px-3 py-1 rounded-full truncate">Dépenses</span>
                         </div>
                         <div className="space-y-2 relative z-10">
-                            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-sand-900 truncate">{formatCurrency(stats.totalCouts)}</h3>
+                            <h3 className="font-display text-2xl sm:text-3xl font-semibold tabular-nums text-sand-900 truncate">{formatCurrency(stats.totalCouts)}</h3>
                             <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm pt-2">
                                 <div className="bg-danger-50/50 p-2 rounded">
                                     <p className="text-danger-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Matières</p>
@@ -464,9 +464,9 @@ export const Comptabilite: React.FC = () => {
                     </div>
 
                     {/* Résultat */}
-                    <div className={`bg-white p-4 sm:p-6 rounded-xl shadow-sm border relative overflow-hidden ${resultat >= 0 ? 'border-sand-200' : 'border-sand-200'}`}>
+                    <div className={`bg-white p-5 sm:p-6 rounded-2xl shadow-card border relative overflow-hidden ${resultat >= 0 ? 'border-sand-200' : 'border-sand-200'}`}>
                         <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
-                            <div className={`p-2 sm:p-3 rounded-lg ${resultat >= 0 ? 'bg-info-50' : 'bg-warning-50'}`}>
+                            <div className={`w-11 h-11 rounded-full flex items-center justify-center ${resultat >= 0 ? 'bg-info-50' : 'bg-warning-50'}`}>
                                 <Activity className={resultat >= 0 ? 'text-info-600' : 'text-warning-600'} size={20} />
                             </div>
                             <span className={`text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 rounded-full truncate ${resultat >= 0 ? 'text-info-600 bg-info-50' : 'text-warning-600 bg-warning-50'}`}>
@@ -474,7 +474,7 @@ export const Comptabilite: React.FC = () => {
                             </span>
                         </div>
                         <div className="space-y-2 relative z-10">
-                            <h3 className={`text-xl sm:text-2xl md:text-3xl font-bold truncate ${resultat >= 0 ? 'text-info-600' : 'text-warning-600'}`}>
+                            <h3 className={`font-display text-2xl sm:text-3xl font-semibold tabular-nums truncate ${resultat >= 0 ? 'text-info-600' : 'text-warning-600'}`}>
                                 {resultat > 0 ? '+' : ''}{formatCurrency(resultat)}
                             </h3>
                             <div className="flex items-center justify-between pt-2">
@@ -490,7 +490,7 @@ export const Comptabilite: React.FC = () => {
                 {/* Détails */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     {/* Graphique de répartition des Coûts */}
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-sand-200">
+                    <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-card border border-sand-200">
                         <h3 className="text-base sm:text-lg font-semibold text-sand-800 mb-4 sm:mb-6 flex items-center">
                             <PieChartIcon className="mr-2 text-sand-500" size={18} />
                             <span className="truncate">Répartition des Charges</span>
@@ -577,7 +577,7 @@ export const Comptabilite: React.FC = () => {
                     </div>
 
                     {/* Structure du CA */}
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-sand-200">
+                    <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-card border border-sand-200">
                         <h3 className="text-base sm:text-lg font-semibold text-sand-800 mb-4 sm:mb-6 flex items-center">
                             <Coins className="mr-2 text-sand-500" size={18} />
                             <span className="truncate">Sources de Revenus</span>

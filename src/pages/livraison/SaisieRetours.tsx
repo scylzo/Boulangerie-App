@@ -488,9 +488,9 @@ export const SaisieRetours: React.FC = () => {
           <div className="space-y-4 sm:space-y-6">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-2xl p-4 shadow-card hover:shadow-elevated transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-sand-100 rounded-lg flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-sand-100 rounded-full flex items-center justify-center shrink-0">
                     <Icon icon="mdi:account-group" className="text-lg sm:text-xl text-sand-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
@@ -503,9 +503,9 @@ export const SaisieRetours: React.FC = () => {
                 <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Clients Livrés</div>
               </div>
 
-              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-2xl p-4 shadow-card hover:shadow-elevated transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-info-100 rounded-lg flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-info-100 rounded-full flex items-center justify-center shrink-0">
                     <Icon icon="mdi:package-variant" className="text-lg sm:text-xl text-info-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
@@ -520,9 +520,9 @@ export const SaisieRetours: React.FC = () => {
                 <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Total Livré</div>
               </div>
 
-              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-2xl p-4 shadow-card hover:shadow-elevated transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-danger-100 rounded-lg flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-danger-100 rounded-full flex items-center justify-center shrink-0">
                     <Icon icon="mdi:package-down" className="text-lg sm:text-xl text-danger-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
@@ -537,9 +537,9 @@ export const SaisieRetours: React.FC = () => {
                 <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Total Invendus</div>
               </div>
 
-              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-2xl p-4 shadow-card hover:shadow-elevated transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-success-100 rounded-lg flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center shrink-0">
                     <Icon icon="mdi:chart-line" className="text-lg sm:text-xl text-success-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
@@ -561,7 +561,7 @@ export const SaisieRetours: React.FC = () => {
                 <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-sand-100">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className={`w-8 h-8 ${clientARetoursCompletes(client.id!) ? 'bg-success-100' : 'bg-warning-100'} rounded-lg flex items-center justify-center shrink-0`}>
+                      <div className={`w-8 h-8 ${clientARetoursCompletes(client.id!) ? 'bg-success-100' : 'bg-warning-100'} rounded-full flex items-center justify-center shrink-0`}>
                         <Icon
                           icon={clientARetoursCompletes(client.id!) ? "mdi:check" : "mdi:account"}
                           className={`text-base sm:text-lg ${clientARetoursCompletes(client.id!) ? 'text-success-600' : 'text-warning-600'}`}

@@ -203,30 +203,30 @@ export const RapportJournalier: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-md transition-all group">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-success-50 rounded-2xl flex items-center justify-center text-success-600 group-hover:bg-success-600 group-hover:text-white transition-colors duration-300">
+                          <div className="w-12 h-12 bg-success-50 rounded-full flex items-center justify-center text-success-600 group-hover:bg-success-600 group-hover:text-white transition-colors duration-300">
                             <Icon icon="mdi:chart-arc" className="text-2xl" />
                           </div>
                           <span className="px-3 py-1 bg-success-50 text-success-700 rounded-full text-xs font-bold font-mono">
                             {indicateurs.tauxVenteBoutique.toFixed(1)}%
                           </span>
                         </div>
-                        <div className="text-2xl font-black text-sand-900 mb-1">{indicateurs.tauxVenteBoutique.toFixed(1)}%</div>
+                        <div className="font-display text-2xl font-semibold text-sand-900 tabular-nums mb-1">{indicateurs.tauxVenteBoutique.toFixed(1)}%</div>
                         <div className="text-xs font-bold text-sand-400 uppercase tracking-wider">Taux de Vente</div>
                       </div>
 
                       <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-md transition-all group">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-success-50 rounded-2xl flex items-center justify-center text-success-600 group-hover:bg-success-600 group-hover:text-white transition-colors duration-300">
+                          <div className="w-12 h-12 bg-success-50 rounded-full flex items-center justify-center text-success-600 group-hover:bg-success-600 group-hover:text-white transition-colors duration-300">
                             <Icon icon="mdi:cash-register" className="text-2xl" />
                           </div>
                         </div>
-                        <div className="text-2xl font-black text-sand-900 mb-1">{formatCurrency(indicateurs.valeurVenteBoutique)}</div>
+                        <div className="font-display text-2xl font-semibold text-sand-900 tabular-nums mb-1">{formatCurrency(indicateurs.valeurVenteBoutique)}</div>
                         <div className="text-xs font-bold text-sand-400 uppercase tracking-wider">Chiffre d'Affaires</div>
                       </div>
 
                       <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-md transition-all group">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-success-50 rounded-2xl flex items-center justify-center text-success-600 group-hover:bg-success-600 group-hover:text-white transition-colors duration-300">
+                          <div className="w-12 h-12 bg-success-50 rounded-full flex items-center justify-center text-success-600 group-hover:bg-success-600 group-hover:text-white transition-colors duration-300">
                             <Icon icon="mdi:package-variant" className="text-2xl" />
                           </div>
                           <div className="flex gap-1">
@@ -235,7 +235,7 @@ export const RapportJournalier: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex items-baseline gap-2 mb-1">
-                          <span className="text-2xl font-black text-sand-900">{indicateurs.pertesBoutique + indicateurs.restantsBoutique}</span>
+                          <span className="font-display text-2xl font-semibold text-sand-900 tabular-nums">{indicateurs.pertesBoutique + indicateurs.restantsBoutique}</span>
                           <span className="text-sand-400 text-sm font-medium">unités</span>
                         </div>
                         <div className="text-xs font-bold text-sand-400 uppercase tracking-wider">Invendus & Restants</div>
@@ -258,37 +258,37 @@ export const RapportJournalier: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-md transition-all group font-jakarta">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-info-50 rounded-2xl flex items-center justify-center text-info-600 group-hover:bg-info-600 group-hover:text-white transition-colors duration-300">
+                          <div className="w-12 h-12 bg-info-50 rounded-full flex items-center justify-center text-info-600 group-hover:bg-info-600 group-hover:text-white transition-colors duration-300">
                             <Icon icon="mdi:truck-delivery" className="text-2xl" />
                           </div>
                           <span className="px-3 py-1 bg-info-50 text-info-600 rounded-full text-xs font-bold font-mono">
                             {indicateurs.tauxVenteClients.toFixed(1)}%
                           </span>
                         </div>
-                        <div className="text-2xl font-black text-sand-900 mb-1">{indicateurs.tauxVenteClients.toFixed(1)}%</div>
+                        <div className="font-display text-2xl font-semibold text-sand-900 tabular-nums mb-1">{indicateurs.tauxVenteClients.toFixed(1)}%</div>
                         <div className="text-xs font-bold text-sand-400 uppercase tracking-wider">Taux de Vente</div>
                       </div>
 
                       <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-md transition-all group font-jakarta">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-info-50 rounded-2xl flex items-center justify-center text-info-600 group-hover:bg-info-600 group-hover:text-white transition-colors duration-300">
+                          <div className="w-12 h-12 bg-info-50 rounded-full flex items-center justify-center text-info-600 group-hover:bg-info-600 group-hover:text-white transition-colors duration-300">
                             <Icon icon="mdi:invoice-list" className="text-2xl" />
                           </div>
                         </div>
-                        <div className="text-2xl font-black text-sand-900 mb-1">{formatCurrency(indicateurs.valeurVenteClients)}</div>
+                        <div className="font-display text-2xl font-semibold text-sand-900 tabular-nums mb-1">{formatCurrency(indicateurs.valeurVenteClients)}</div>
                         <div className="text-xs font-bold text-sand-400 uppercase tracking-wider">Chiffre d'Affaires</div>
                       </div>
 
                       <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-md transition-all group font-jakarta">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-info-50 rounded-2xl flex items-center justify-center text-info-600 group-hover:bg-info-600 group-hover:text-white transition-colors duration-300">
+                          <div className="w-12 h-12 bg-info-50 rounded-full flex items-center justify-center text-info-600 group-hover:bg-info-600 group-hover:text-white transition-colors duration-300">
                             <Icon icon="mdi:account-arrow-left" className="text-2xl" />
                           </div>
                           <span className="px-3 py-1 bg-warning-50 text-warning-600 rounded-full text-xs font-bold font-mono">
                             {indicateurs.pertesClients} u.
                           </span>
                         </div>
-                        <div className="text-2xl font-black text-sand-900 mb-1">{indicateurs.pertesClients} unités</div>
+                        <div className="font-display text-2xl font-semibold text-sand-900 tabular-nums mb-1">{indicateurs.pertesClients} unités</div>
                         <div className="text-xs font-bold text-sand-400 uppercase tracking-wider">Retours Clients</div>
                       </div>
                     </div>

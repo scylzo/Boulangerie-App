@@ -43,17 +43,17 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   return (
     <div
-      className={`bg-white border border-sand-200 rounded-xl shadow-card hover:shadow-elevated transition-all duration-200 p-4 sm:p-5 overflow-hidden ${className}`}
+      className={`bg-white border border-sand-200 rounded-2xl shadow-card hover:shadow-elevated transition-all duration-200 p-5 overflow-hidden ${className}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-xs sm:text-sm font-medium text-sand-600 truncate">{label}</p>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-sand-500 truncate">{label}</p>
         {icon && (
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${toneClasses[tone]}`}>
-            <Icon icon={icon} className="text-lg" />
+          <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${toneClasses[tone]}`}>
+            <Icon icon={icon} className="text-xl" />
           </div>
         )}
       </div>
-      <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-sand-900 truncate">
+      <p className="font-display text-2xl sm:text-3xl font-semibold text-sand-900 truncate tabular-nums">
         {value}
       </p>
       {hasTrend && (
@@ -63,7 +63,7 @@ export const StatCard: React.FC<StatCardProps> = ({
               isUp ? 'text-success-600' : 'text-danger-600'
             }`}
           >
-            <Icon icon={isUp ? 'mdi:trending-up' : 'mdi:trending-down'} className="text-sm" />
+            <Icon icon={isUp ? 'mdi:arrow-up' : 'mdi:arrow-down'} className="text-sm" />
             {isUp ? '+' : ''}
             {trend}%
           </span>

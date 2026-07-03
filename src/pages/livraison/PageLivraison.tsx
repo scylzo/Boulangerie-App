@@ -288,7 +288,7 @@ export const PageLivraison: React.FC = () => {
         {/* Filtres modernes */}
         <div className="bg-white rounded-xl border border-sand-200 shadow-sm p-3 sm:p-4">
           <div className="flex items-center gap-3 mb-3 sm:mb-4">
-            <div className="w-8 h-8 bg-sand-100 rounded-lg flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 bg-sand-100 rounded-full flex items-center justify-center shrink-0">
               <Icon icon="mdi:filter" className="text-base sm:text-lg text-sand-600" />
             </div>
             <h2 className="text-base sm:text-lg font-semibold text-sand-900">Filtres</h2>
@@ -358,9 +358,9 @@ export const PageLivraison: React.FC = () => {
           <div className="space-y-6">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-2xl p-4 shadow-card hover:shadow-elevated transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-sand-100 rounded-lg flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-sand-100 rounded-full flex items-center justify-center shrink-0">
                     <Icon icon="mdi:account-group" className="text-lg sm:text-xl text-sand-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
@@ -373,9 +373,9 @@ export const PageLivraison: React.FC = () => {
                 <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Livreurs Actifs</div>
               </div>
 
-              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-2xl p-4 shadow-card hover:shadow-elevated transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-success-100 rounded-lg flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center shrink-0">
                     <Icon icon="mdi:package-variant" className="text-lg sm:text-xl text-success-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
@@ -388,9 +388,9 @@ export const PageLivraison: React.FC = () => {
                 <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Total Commandes</div>
               </div>
 
-              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-2xl p-4 shadow-card hover:shadow-elevated transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-warning-100 rounded-lg flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-warning-100 rounded-full flex items-center justify-center shrink-0">
                     <Icon icon="mdi:truck-delivery" className="text-lg sm:text-xl text-warning-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
@@ -403,9 +403,9 @@ export const PageLivraison: React.FC = () => {
                 <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Tournées Prévues</div>
               </div>
 
-              <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-white border border-sand-200 rounded-2xl p-4 shadow-card hover:shadow-elevated transition-all">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                  <div className="w-10 h-10 bg-info-100 rounded-lg flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-info-100 rounded-full flex items-center justify-center shrink-0">
                     <Icon icon="mdi:map-marker" className="text-lg sm:text-xl text-info-600" />
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">

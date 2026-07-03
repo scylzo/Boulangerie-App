@@ -520,21 +520,21 @@ export const GestionFactures: React.FC = () => {
 
       {/* Client Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-sand-200">
+        <div className="bg-white p-5 rounded-2xl shadow-card border border-sand-200">
           <h4 className="text-sand-500 text-xs sm:text-sm font-medium mb-1 truncate">Montant Total</h4>
           <p className="font-display text-lg sm:text-2xl font-semibold text-sand-900 truncate">{formatCurrency(clientStats.montantTotal)}</p>
         </div>
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-sand-200">
+        <div className="bg-white p-5 rounded-2xl shadow-card border border-sand-200">
           <h4 className="text-sand-500 text-xs sm:text-sm font-medium mb-1 truncate">Reste à payer</h4>
           <p className={`font-display text-lg sm:text-2xl font-semibold truncate ${clientStats.montantImpaye > 0 ? 'text-danger-600' : 'text-success-600'}`}>
             {formatCurrency(clientStats.montantImpaye)}
           </p>
         </div>
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-sand-200">
+        <div className="bg-white p-5 rounded-2xl shadow-card border border-sand-200">
           <h4 className="text-sand-500 text-xs sm:text-sm font-medium mb-1 truncate">Produits Livrés</h4>
           <p className="font-display text-lg sm:text-2xl font-semibold text-info-600 truncate">{clientStats.totalLivres}</p>
         </div>
-        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-sand-200">
+        <div className="bg-white p-5 rounded-2xl shadow-card border border-sand-200">
           <h4 className="text-sand-500 text-xs sm:text-sm font-medium mb-1 truncate">Invendus</h4>
           <p className="font-display text-lg sm:text-2xl font-semibold text-warning-600 truncate">{clientStats.totalInvendus}</p>
         </div>
