@@ -5,6 +5,7 @@ import { useStockStore } from '../../store/stockStore';
 import { useDepenseStore } from '../../store/depenseStore';
 import { useFacturationStore } from '../../store/facturationStore';
 import { useBoutiqueStore } from '../../store/boutiqueStore';
+import { DonutChart } from '../../components/ui';
 import {
     TrendingUp,
     TrendingDown,
@@ -494,6 +495,37 @@ export const Comptabilite: React.FC = () => {
                             <PieChartIcon className="mr-2 text-sand-500" size={18} />
                             <span className="truncate">Répartition des Charges</span>
                         </h3>
+                        {(() => {
+                            const palette = ['text-sand-900', 'text-gold-500', 'text-sand-500', 'text-warning-500', 'text-sand-400', 'text-gold-600', 'text-sand-300'];
+                            let i = 0;
+                            const slices: { label: string; value: number; className: string }[] = [];
+                            if (stats.achatsMatieres > 0) slices.push({ label: 'Matières premières', value: stats.achatsMatieres, className: palette[i++ % palette.length] });
+                            Object.entries(stats.depensesParCategorie).forEach(([categ, montant]) => {
+                                if (categ === 'Intrants' || !montant) return;
+                                slices.push({ label: categ, value: montant as number, className: palette[i++ % palette.length] });
+                            });
+                            if (slices.length === 0) return null;
+                            return (
+                                <div className="flex flex-col sm:flex-row items-center gap-5 mb-6 pb-6 border-b border-sand-100">
+                                    <DonutChart
+                                        data={slices}
+                                        size={140}
+                                        stroke={20}
+                                        centerValue={<span className="text-sm">{Math.round(stats.totalCouts).toLocaleString('fr-FR')}</span>}
+                                        centerLabel="FCFA"
+                                    />
+                                    <div className="flex-1 w-full space-y-1.5">
+                                        {slices.map((s, idx) => (
+                                            <div key={idx} className="flex items-center gap-2 text-xs">
+                                                <span className={`w-2.5 h-2.5 rounded-full bg-current ${s.className} shrink-0`}></span>
+                                                <span className="text-sand-600 truncate flex-1">{s.label}</span>
+                                                <span className="text-sand-900 font-medium tabular-nums shrink-0">{stats.totalCouts > 0 ? Math.round((s.value / stats.totalCouts) * 100) : 0}%</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                         <div className="space-y-4 sm:space-y-6">
                             {/* Détail des Matières Premières */}
                             {Object.keys(stats.detailMatieres).length > 0 ? (
