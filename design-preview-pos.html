@@ -8,87 +8,89 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/iconify-icon@2/dist/iconify-icon.min.js"></script>
   <style type="text/tailwindcss">
-    @theme {
+    @theme{
       --color-sand-50:#FAFAFA;--color-sand-100:#F4F4F5;--color-sand-200:#E4E4E7;--color-sand-300:#D4D4D8;--color-sand-400:#A1A1AA;--color-sand-500:#71717A;--color-sand-600:#52525B;--color-sand-700:#3F3F46;--color-sand-800:#27272A;--color-sand-900:#18181B;
-      --color-terracotta-50:#F4F4F5;--color-terracotta-300:#A1A1AA;--color-terracotta-500:#18181B;--color-terracotta-600:#09090B;
+      --color-gold-50:#EEF2FF;--color-gold-300:#A5B4FC;--color-gold-500:#6366F1;--color-gold-600:#4F46E5;
       --color-success-600:#16A34A;--color-danger-600:#DC2626;
       --font-sans:"Inter",system-ui,sans-serif;
-      --shadow-card:0 1px 2px 0 rgb(0 0 0 / .05),0 1px 3px 0 rgb(0 0 0 / .05);
-      --shadow-elevated:0 4px 12px -2px rgb(0 0 0 / .08),0 2px 4px -2px rgb(0 0 0 / .05);
+      --shadow-soft:0 1px 2px 0 rgb(0 0 0 /.04);--shadow-card:0 1px 2px 0 rgb(0 0 0 /.05),0 1px 3px 0 rgb(0 0 0 /.05);--shadow-elevated:0 4px 12px -2px rgb(0 0 0 /.08),0 2px 4px -2px rgb(0 0 0 /.05);
     }
-    body{font-family:var(--font-sans);background:#F4F4F5}
-    h1,h2{letter-spacing:-.02em}.tnums{font-variant-numeric:tabular-nums}.fd{font-family:var(--font-sans);letter-spacing:-.01em}
+    body{font-family:var(--font-sans);background:#F4F4F5}h1,h2{letter-spacing:-.02em}.tnums{font-variant-numeric:tabular-nums}
   </style>
 </head>
 <body class="p-4">
   <div class="flex gap-4" style="height:calc(100vh - 2rem)">
-    <!-- Produits -->
-    <div class="flex-1 min-w-0 flex flex-col">
-      <div class="flex items-center gap-2 mb-3">
-        <div class="flex items-center gap-1 bg-white border border-sand-200 rounded-xl p-1 shadow-sm">
-          <button class="px-3 py-1.5 rounded-lg text-sm font-medium bg-sand-900 text-white">Tous</button>
-          <button class="px-3 py-1.5 rounded-lg text-sm font-medium text-sand-600 hover:bg-sand-100">Boulangerie</button>
-          <button class="px-3 py-1.5 rounded-lg text-sm font-medium text-sand-600 hover:bg-sand-100">Viennoiserie</button>
+    <!-- PRODUITS -->
+    <div class="flex-1 min-w-0 flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-sand-200 text-sm font-medium text-sand-800 shadow-soft"><iconify-icon icon="mdi:calendar-blank-outline" class="text-lg text-gold-600"></iconify-icon>jeu. 4 juil. 2026</span>
+          <span class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-sand-200 text-sm font-medium text-sand-800 shadow-soft"><iconify-icon icon="mdi:clock-outline" class="text-lg text-gold-600"></iconify-icon>08:12</span>
         </div>
-        <div class="relative flex-1">
-          <iconify-icon icon="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-sand-400 text-lg"></iconify-icon>
-          <input placeholder="Rechercher un produit…" class="w-full pl-10 pr-3 py-2 border border-sand-300 rounded-xl bg-white text-sm">
-        </div>
+        <button class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-danger-600 hover:bg-red-50 text-sm font-medium"><iconify-icon icon="mdi:close-circle-outline" class="text-lg"></iconify-icon> Annuler la commande</button>
       </div>
-      <div class="flex-1 overflow-y-auto pr-1">
-        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3" id="grid"></div>
+      <!-- Catégories -->
+      <div class="flex gap-3 overflow-x-auto pb-1">
+        <button class="shrink-0 w-32 rounded-2xl border p-3 text-left bg-gold-50 border-gold-500 ring-1 ring-gold-500"><div class="w-10 h-10 rounded-full flex items-center justify-center mb-2 bg-gold-600 text-white"><iconify-icon icon="mdi:silverware-variant" class="text-xl"></iconify-icon></div><div class="font-semibold text-sand-900 text-sm">Tout le menu</div><div class="text-xs text-sand-500">24 articles</div></button>
+        <button class="shrink-0 w-32 rounded-2xl border p-3 text-left bg-white border-sand-200 shadow-soft"><div class="w-10 h-10 rounded-full flex items-center justify-center mb-2 bg-sand-100 text-sand-500"><iconify-icon icon="mdi:baguette" class="text-xl"></iconify-icon></div><div class="font-semibold text-sand-900 text-sm">Boulangerie</div><div class="text-xs text-sand-500">14 articles</div></button>
+        <button class="shrink-0 w-32 rounded-2xl border p-3 text-left bg-white border-sand-200 shadow-soft"><div class="w-10 h-10 rounded-full flex items-center justify-center mb-2 bg-sand-100 text-sand-500"><iconify-icon icon="mdi:croissant" class="text-xl"></iconify-icon></div><div class="font-semibold text-sand-900 text-sm">Viennoiserie</div><div class="text-xs text-sand-500">10 articles</div></button>
       </div>
+      <!-- Recherche -->
+      <div class="relative">
+        <input placeholder="Rechercher un produit…" class="w-full pl-4 pr-12 py-3 rounded-2xl bg-white border border-sand-200 text-sm shadow-soft">
+        <div class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-sand-100 flex items-center justify-center text-sand-500"><iconify-icon icon="mdi:magnify" class="text-lg"></iconify-icon></div>
+      </div>
+      <!-- Grille -->
+      <div class="flex-1 overflow-y-auto pr-1"><div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5" id="grid"></div></div>
     </div>
-    <!-- Ticket -->
-    <div class="w-[360px] shrink-0">
+
+    <!-- COMMANDE -->
+    <div class="w-[380px] shrink-0">
       <div class="bg-white border border-sand-200 rounded-2xl shadow-card flex flex-col h-full overflow-hidden">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-sand-200 bg-sand-50">
-          <div class="flex items-center gap-2"><iconify-icon icon="mdi:receipt-text-outline" class="text-lg text-terracotta-600"></iconify-icon><h2 class="font-semibold text-sand-900">Ticket</h2><span class="text-xs font-medium text-sand-500 bg-sand-100 px-2 py-0.5 rounded-full tnums">7</span></div>
-          <button class="text-sand-400 hover:text-danger-600 text-xs font-medium flex items-center gap-1"><iconify-icon icon="mdi:delete-outline"></iconify-icon> Vider</button>
+        <div class="flex items-center gap-3 px-4 py-4 border-b border-sand-200">
+          <div class="w-10 h-10 rounded-xl bg-gold-50 text-gold-600 flex items-center justify-center"><iconify-icon icon="mdi:receipt-text-outline" class="text-xl"></iconify-icon></div>
+          <div class="flex-1"><div class="font-semibold text-sand-900">Commande en cours</div><div class="text-xs text-sand-500">3 article(s) · À emporter</div></div>
+          <button class="w-9 h-9 rounded-lg text-sand-400 hover:bg-red-50 hover:text-danger-600 flex items-center justify-center"><iconify-icon icon="mdi:delete-outline" class="text-lg"></iconify-icon></button>
         </div>
+        <div class="px-4 py-3 border-b border-sand-200"><div class="grid grid-cols-3 gap-2">
+          <button class="py-2 rounded-lg text-xs font-medium bg-sand-100 text-sand-600">Sur place</button>
+          <button class="py-2 rounded-lg text-xs font-medium bg-sand-900 text-white">À emporter</button>
+          <button class="py-2 rounded-lg text-xs font-medium bg-sand-100 text-sand-600">Livraison</button>
+        </div></div>
         <div class="flex-1 overflow-y-auto divide-y divide-sand-100" id="lines"></div>
         <div class="border-t border-sand-200 p-4 space-y-3">
-          <div class="flex items-center justify-between"><span class="text-sm text-sand-500">Total</span><span class="text-2xl font-semibold text-sand-900 tnums" id="total">0 FCFA</span></div>
-          <button class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-semibold shadow-sm"><iconify-icon icon="mdi:cash-register" class="text-lg"></iconify-icon> Encaisser</button>
+          <div class="flex items-center justify-between text-sm"><span class="text-sand-500">Sous-total</span><span class="text-sand-700 tnums" id="st">0</span></div>
+          <div class="flex items-center justify-between border-t border-dashed border-sand-200 pt-3"><span class="font-semibold text-sand-900">TOTAL</span><span class="text-2xl font-semibold text-sand-900 tnums" id="tot">0</span></div>
+          <div class="relative"><input placeholder="Code promo / bon" class="w-full pl-3 pr-9 py-2 rounded-lg border border-sand-300 bg-sand-50 text-sm"><iconify-icon icon="mdi:ticket-percent-outline" class="absolute right-3 top-1/2 -translate-y-1/2 text-sand-400"></iconify-icon></div>
+          <button class="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gold-600 hover:bg-gold-500 text-white font-semibold shadow-soft"><iconify-icon icon="mdi:cash-register" class="text-lg"></iconify-icon> Encaisser · <span id="cta"></span></button>
         </div>
       </div>
     </div>
   </div>
-
   <script>
-    const prods = [
-      ['Baguette tradition',150,'mdi:baguette'],['Baguette',125,'mdi:baguette'],['Croissant beurre',300,'mdi:croissant'],
-      ['Pain au chocolat',350,'mdi:croissant'],['Pain de mie',1000,'mdi:bread-slice'],['Brioche',500,'mdi:muffin'],
-      ['Pain complet',400,'mdi:bread-slice'],['Pain aux raisins',400,'mdi:pretzel'],['Chausson pomme',350,'mdi:pie'],
-      ['Gâteau part',800,'mdi:cake'],['Sandwich',1500,'mdi:food'],['Cake',2500,'mdi:cake-variant'],
-    ];
-    const cart = {0:2,2:3,4:1,10:1};
-    const grid = document.getElementById('grid');
-    prods.forEach((p,i)=>{
-      const q = cart[i]||0;
-      grid.insertAdjacentHTML('beforeend', `
-        <button class="group relative bg-white border border-sand-200 rounded-2xl shadow-card hover:shadow-elevated hover:border-sand-300 transition-all overflow-hidden text-left flex flex-col">
-          <div class="aspect-[4/3] bg-sand-100 flex items-center justify-center text-sand-300 relative overflow-hidden">
-            <iconify-icon icon="${p[2]}" class="text-5xl transition-transform duration-300 group-hover:scale-110"></iconify-icon>
-            ${q?`<span class="absolute top-2 right-2 min-w-6 h-6 px-1.5 rounded-full bg-terracotta-500 text-white text-xs font-semibold flex items-center justify-center tnums ring-2 ring-white">${q}</span>`:''}
-          </div>
-          <div class="p-3"><div class="font-medium text-sand-900 text-sm leading-tight min-h-[2.5rem]">${p[0]}</div><div class="text-lg font-semibold text-sand-900 tnums mt-1">${p[1].toLocaleString('fr-FR')} <span class="text-xs text-sand-400 font-normal">F</span></div></div>
-        </button>`);
-    });
-    const lines = document.getElementById('lines'); let total=0;
-    Object.entries(cart).forEach(([i,q])=>{ const p=prods[i]; total+=p[1]*q;
-      lines.insertAdjacentHTML('beforeend',`
-        <div class="flex items-center gap-2 px-4 py-2.5">
-          <div class="min-w-0 flex-1"><div class="text-sm font-medium text-sand-900 truncate">${p[0]}</div><div class="text-xs text-sand-500 tnums">${p[1].toLocaleString('fr-FR')} F × ${q}</div></div>
-          <div class="flex items-center gap-1 shrink-0">
-            <button class="w-7 h-7 rounded-lg border border-sand-200 text-sand-600 flex items-center justify-center"><iconify-icon icon="mdi:minus"></iconify-icon></button>
-            <span class="w-6 text-center text-sm font-medium tnums">${q}</span>
-            <button class="w-7 h-7 rounded-lg border border-sand-200 text-sand-600 flex items-center justify-center"><iconify-icon icon="mdi:plus"></iconify-icon></button>
-          </div>
-          <div class="w-20 text-right font-semibold text-sand-900 text-sm tnums shrink-0">${(p[1]*q).toLocaleString('fr-FR')}</div>
-        </div>`);
-    });
-    document.getElementById('total').textContent = total.toLocaleString('fr-FR')+' FCFA';
+    const P=(n,p,c,i)=>({n,p,c,i});
+    const prods=[P('Baguette tradition',150,'Boulangerie','mdi:baguette'),P('Croissant beurre',300,'Viennoiserie','mdi:croissant'),P('Pain au chocolat',350,'Viennoiserie','mdi:croissant'),P('Cheesecake',375,'Viennoiserie','mdi:cake'),P('Pain de mie',1000,'Boulangerie','mdi:bread-slice'),P('Brioche',500,'Viennoiserie','mdi:muffin'),P('Pain complet',400,'Boulangerie','mdi:bread-slice'),P('Tarte pomme',350,'Viennoiserie','mdi:pie'),P('Sandwich thon',1500,'Boulangerie','mdi:food'),P('Baguette',125,'Boulangerie','mdi:baguette'),P('Pain aux raisins',400,'Viennoiserie','mdi:pretzel'),P('Éclair',450,'Viennoiserie','mdi:food-croissant')];
+    const cart={0:2,1:3,4:1};
+    const grid=document.getElementById('grid');
+    prods.forEach((p,idx)=>{const q=cart[idx]||0;grid.insertAdjacentHTML('beforeend',`
+      <button class="group relative bg-white border border-sand-200 rounded-2xl shadow-card hover:shadow-elevated hover:border-gold-300 transition-all p-3 text-left">
+        <div class="aspect-square bg-sand-50 rounded-xl overflow-hidden flex items-center justify-center mb-3 relative text-sand-300">
+          <iconify-icon icon="${p.i}" class="text-5xl transition-transform duration-300 group-hover:scale-105"></iconify-icon>
+          ${q?`<span class="absolute top-2 right-2 min-w-6 h-6 px-1.5 rounded-full bg-gold-600 text-white text-xs font-semibold flex items-center justify-center tnums ring-2 ring-white">${q}</span>`:''}
+        </div>
+        <div class="font-medium text-sand-900 text-sm truncate">${p.n}</div>
+        <div class="flex items-center justify-between mt-2 gap-2"><span class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-sand-100 text-sand-600">${p.c}</span><span class="font-semibold text-sand-900 tnums">${p.p.toLocaleString('fr-FR')} F</span></div>
+      </button>`);});
+    const lines=document.getElementById('lines');let tot=0;
+    Object.entries(cart).forEach(([idx,q])=>{const p=prods[idx];tot+=p.p*q;lines.insertAdjacentHTML('beforeend',`
+      <div class="flex items-center gap-3 px-4 py-3">
+        <div class="w-10 h-10 rounded-lg bg-sand-100 flex items-center justify-center text-sand-400"><iconify-icon icon="${p.i}" class="text-lg"></iconify-icon></div>
+        <div class="min-w-0 flex-1"><div class="text-sm font-medium text-sand-900 truncate">${p.n}</div><div class="text-xs text-sand-500 tnums">${p.p.toLocaleString('fr-FR')} F</div></div>
+        <div class="flex items-center gap-1"><button class="w-7 h-7 rounded-lg border border-sand-200 text-sand-600 flex items-center justify-center"><iconify-icon icon="mdi:minus"></iconify-icon></button><span class="w-6 text-center text-sm font-medium tnums">${q}</span><button class="w-7 h-7 rounded-lg border border-sand-200 text-sand-600 flex items-center justify-center"><iconify-icon icon="mdi:plus"></iconify-icon></button></div>
+      </div>`);});
+    document.getElementById('st').textContent=tot.toLocaleString('fr-FR')+' FCFA';
+    document.getElementById('tot').textContent=tot.toLocaleString('fr-FR')+' FCFA';
+    document.getElementById('cta').textContent=tot.toLocaleString('fr-FR')+' FCFA';
   </script>
 </body>
 </html>
