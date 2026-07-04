@@ -66,9 +66,11 @@ export const RapportJournalier: React.FC = () => {
     getTicketsPeriode(d, d).then(setPosTickets).catch(() => setPosTickets([]));
   }, [dateSelectionnee, getTicketsPeriode]);
 
-  const caPos = posTickets.reduce((s, t) => s + (t.total || 0), 0);
+  const caPos = posTickets.reduce((s, t) => s + (t.total || 0), 0); // net (ventes − retours)
   const nbArticlesPos = posTickets.reduce((s, t) => s + (t.nbArticles || 0), 0);
   const posParMode = (m: TicketPOS['modePaiement']) => posTickets.filter(t => t.modePaiement === m).reduce((s, t) => s + (t.total || 0), 0);
+  const retoursTickets = posTickets.filter(t => t.type === 'retour');
+  const retoursPos = retoursTickets.reduce((s, t) => s + Math.abs(t.total || 0), 0);
 
   const getTauxVenteBadgeColor = (taux: number) => {
     if (taux >= 90) return 'bg-success-100 text-success-700';
@@ -199,17 +201,21 @@ export const RapportJournalier: React.FC = () => {
             <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-sand-200 bg-sand-50">
               <Icon icon="mdi:cash-register" className="text-lg text-gold-600" />
               <h2 className="font-display text-base font-semibold text-sand-900">Ventes en caisse (POS)</h2>
-              <span className="ml-auto font-display font-semibold text-sand-900 tabular-nums">{formatCurrency(caPos)}</span>
+              <span className="ml-auto text-[11px] text-sand-500 uppercase tracking-wide font-semibold">CA net</span>
+              <span className="font-display font-semibold text-sand-900 tabular-nums">{formatCurrency(caPos)}</span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-y sm:divide-y-0 divide-sand-200 tabular-nums">
+            <div className="grid grid-cols-2 sm:grid-cols-6 divide-x divide-y sm:divide-y-0 divide-sand-200 tabular-nums">
               <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Tickets</div><div className="font-display text-lg font-semibold text-sand-900">{posTickets.length}</div></div>
               <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Articles</div><div className="font-display text-lg font-semibold text-sand-900">{nbArticlesPos}</div></div>
               <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Espèces</div><div className="font-display text-lg font-semibold text-success-600">{formatCurrency(posParMode('espece'))}</div></div>
               <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Orange Money</div><div className="font-display text-lg font-semibold text-gold-600">{formatCurrency(posParMode('om'))}</div></div>
               <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Wave</div><div className="font-display text-lg font-semibold text-info-600">{formatCurrency(posParMode('wave'))}</div></div>
+              <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Retours</div><div className="font-display text-lg font-semibold text-danger-600">{retoursPos > 0 ? `− ${formatCurrency(retoursPos)}` : '—'}</div></div>
             </div>
             <div className="px-5 py-3 border-t border-sand-200 flex items-center justify-between gap-3">
-              <span className="text-xs text-sand-500">Encaissements enregistrés à la caisse ce jour.</span>
+              <span className="text-xs text-sand-500">
+                Encaissements enregistrés à la caisse ce jour{retoursTickets.length > 0 ? ` · ${retoursTickets.length} retour(s)` : ''}.
+              </span>
               <Link to="/caisse/historique" className="text-xs font-semibold text-gold-700 hover:text-gold-600 inline-flex items-center gap-1">
                 Détail des tickets <Icon icon="mdi:arrow-right" className="text-sm" />
               </Link>

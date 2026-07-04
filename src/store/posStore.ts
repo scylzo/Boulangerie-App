@@ -4,6 +4,7 @@ import { db } from '../firebase/config';
 
 export type ModePaiement = 'espece' | 'om' | 'wave';
 export type TypeCommande = 'sur_place' | 'emporter' | 'livraison';
+export type TypeTicket = 'vente' | 'retour';
 
 export interface LigneTicket {
   produitId: string;
@@ -26,6 +27,11 @@ export interface TicketPOS {
   typeCommande: TypeCommande;
   montantRecu?: number;
   rendu?: number;
+  // Retours (avoir) — type 'retour' : montants négatifs, référence au ticket d'origine
+  type?: TypeTicket;              // 'vente' (défaut) ou 'retour'
+  ticketOrigineId?: string;      // doc id du ticket de vente retourné
+  ticketOrigineNumero?: number;  // n° du ticket d'origine (affichage)
+  motifRetour?: string;
 }
 
 interface PosStore {
@@ -37,6 +43,8 @@ interface PosStore {
   getTicketsPeriode: (debut: Date, fin: Date) => Promise<TicketPOS[]>;
   /** Somme des totaux des tickets POS sur une période. */
   getVentesPeriode: (debut: Date, fin: Date) => Promise<number>;
+  /** Retours (avoirs) déjà enregistrés pour un ticket de vente donné. */
+  getRetoursDeTicket: (ticketOrigineId: string) => Promise<TicketPOS[]>;
 }
 
 const jourKey = (d: Date) => d.toISOString().split('T')[0];
@@ -93,6 +101,18 @@ export const usePosStore = create<PosStore>((set, get) => ({
   getVentesPeriode: async (debut: Date, fin: Date) => {
     const tickets = await get().getTicketsPeriode(debut, fin);
     return tickets.reduce((s, t) => s + (t.total || 0), 0);
+  },
+
+  getRetoursDeTicket: async (ticketOrigineId: string) => {
+    try {
+      const q = query(collection(db, 'pos_tickets'), where('ticketOrigineId', '==', ticketOrigineId));
+      const snap = await getDocs(q);
+      return (snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as TicketPOS[])
+        .filter(t => t.type === 'retour');
+    } catch (err) {
+      console.error('Erreur chargement retours du ticket:', err);
+      return [];
+    }
   },
 
   enregistrerTicket: async (ticket) => {
