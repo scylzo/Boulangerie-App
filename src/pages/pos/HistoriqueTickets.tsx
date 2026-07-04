@@ -99,7 +99,7 @@ export const HistoriqueTickets: React.FC = () => {
     const dt = toDate(t.createdAt);
     const jour = dt.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
     const heure = dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket n°${t.numero}</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}.logo{display:block;margin:6px auto 2px;max-width:160px;max-height:64px;object-fit:contain}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><p class="sub">Ticket n°${t.numero} · ${jour} ${heure} · ${typeLabel[t.typeCommande]} (copie)</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/>${remiseRows}<div class="tot"><span>TOTAL</span><span>${t.total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel[t.modePaiement]}</span></div>${cashRows}<hr/><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="foot">${t.nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket n°${t.numero}</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}.logo{display:block;margin:6px auto 2px;max-width:160px;max-height:64px;object-fit:contain}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><p class="sub">Ticket n°${t.numero} · ${jour} ${heure} · ${typeLabel[t.typeCommande]} (copie)${t.vendeur ? `<br/>Vendeur : ${t.vendeur}` : ''}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/>${remiseRows}<div class="tot"><span>TOTAL</span><span>${t.total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel[t.modePaiement]}</span></div>${cashRows}<hr/><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="foot">${t.nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
     w.document.close(); w.focus();
   };
 
@@ -113,7 +113,7 @@ export const HistoriqueTickets: React.FC = () => {
     const jour = dt.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
     const heure = dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     const motifRow = r.motifRetour ? `<div class="row"><span>Motif</span><span>${r.motifRetour}</span></div>` : '';
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Retour n°${r.numero}</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}.logo{display:block;margin:6px auto 2px;max-width:160px;max-height:64px;object-fit:contain}.title{text-align:center;font-size:13px;font-weight:bold;margin:0 0 2px}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><p class="title">TICKET DE RETOUR</p><p class="sub">Retour n°${r.numero} · ${jour} ${heure}<br/>Réf. ticket vente n°${r.ticketOrigineNumero ?? '—'}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/><div class="tot"><span>REMBOURSÉ</span><span>${montant.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Mode</span><span>${modeLabel[r.modePaiement]}</span></div>${motifRow}<hr/><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="foot">${Math.abs(r.nbArticles)} article(s) retourné(s)</p></body></html>`);
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Retour n°${r.numero}</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}.logo{display:block;margin:6px auto 2px;max-width:160px;max-height:64px;object-fit:contain}.title{text-align:center;font-size:13px;font-weight:bold;margin:0 0 2px}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><p class="title">TICKET DE RETOUR</p><p class="sub">Retour n°${r.numero} · ${jour} ${heure}<br/>Réf. ticket vente n°${r.ticketOrigineNumero ?? '—'}${r.vendeur ? ` · ${r.vendeur}` : ''}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/><div class="tot"><span>REMBOURSÉ</span><span>${montant.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Mode</span><span>${modeLabel[r.modePaiement]}</span></div>${motifRow}<hr/><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="foot">${Math.abs(r.nbArticles)} article(s) retourné(s)</p></body></html>`);
     w.document.close(); w.focus();
   };
 
@@ -133,6 +133,7 @@ export const HistoriqueTickets: React.FC = () => {
         modePaiement: retourMode,
         typeCommande: retourTicket.typeCommande,
         ...(motif.trim() ? { motifRetour: motif.trim() } : {}),
+        ...((localStorage.getItem('cm.pos.vendeur') || '').trim() ? { vendeur: (localStorage.getItem('cm.pos.vendeur') || '').trim() } : {}),
       };
       const numero = await enregistrerTicket(payload);
       imprimerRetour({ ...payload, numero, createdAt: new Date() } as TicketPOS);
@@ -228,6 +229,7 @@ export const HistoriqueTickets: React.FC = () => {
                   <tr className="text-left text-[11px] uppercase tracking-wide text-sand-500 border-b border-sand-200 bg-sand-50">
                     <th className="font-semibold px-4 py-3">Ticket</th>
                     <th className="font-semibold px-4 py-3">Heure</th>
+                    <th className="font-semibold px-4 py-3">Vendeur</th>
                     <th className="font-semibold px-4 py-3">Type</th>
                     <th className="font-semibold px-4 py-3">Paiement</th>
                     <th className="font-semibold px-4 py-3 text-right">Articles</th>
@@ -254,6 +256,11 @@ export const HistoriqueTickets: React.FC = () => {
                         )}
                       </td>
                       <td className="px-4 py-3 text-sand-600">{heureDe(t)}</td>
+                      <td className="px-4 py-3 text-sand-600">
+                        {t.vendeur ? (
+                          <span className="inline-flex items-center gap-1.5"><Icon icon="mdi:account-circle-outline" className="text-base text-sand-400" />{t.vendeur}</span>
+                        ) : <span className="text-sand-400">—</span>}
+                      </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-sand-100 text-sand-600 ring-1 ring-inset ring-sand-200">
                           {typeLabel[t.typeCommande]}

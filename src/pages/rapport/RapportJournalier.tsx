@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import { useRapportStore } from '../../store';
-import { usePosStore, type TicketPOS } from '../../store/posStore';
+import { usePosStore, periodeTicket, HEURE_BASCULE_MATIN_SOIR, type TicketPOS } from '../../store/posStore';
 import { downloadRapportJournalierPDF } from '../../utils/pdfGenerator';
 import { formatCurrency } from '../../utils/currency';
 import { StatCard } from '../../components/ui';
@@ -69,8 +69,18 @@ export const RapportJournalier: React.FC = () => {
   const caPos = posTickets.reduce((s, t) => s + (t.total || 0), 0); // net (ventes − retours)
   const nbArticlesPos = posTickets.reduce((s, t) => s + (t.nbArticles || 0), 0);
   const posParMode = (m: TicketPOS['modePaiement']) => posTickets.filter(t => t.modePaiement === m).reduce((s, t) => s + (t.total || 0), 0);
+  const posParPeriode = (p: 'matin' | 'soir') => posTickets.filter(t => periodeTicket(t) === p).reduce((s, t) => s + (t.total || 0), 0);
+  const caMatin = posParPeriode('matin');
+  const caSoir = posParPeriode('soir');
   const retoursTickets = posTickets.filter(t => t.type === 'retour');
   const retoursPos = retoursTickets.reduce((s, t) => s + Math.abs(t.total || 0), 0);
+  // Ventilation par vendeur (net)
+  const caParVendeur = posTickets.reduce((acc, t) => {
+    const v = t.vendeur?.trim() || 'Non déclaré';
+    acc[v] = (acc[v] || 0) + (t.total || 0);
+    return acc;
+  }, {} as Record<string, number>);
+  const vendeurs = Object.entries(caParVendeur).sort((a, b) => b[1] - a[1]);
 
   const getTauxVenteBadgeColor = (taux: number) => {
     if (taux >= 90) return 'bg-success-100 text-success-700';
@@ -200,10 +210,22 @@ export const RapportJournalier: React.FC = () => {
           <div className="bg-white border border-sand-200 rounded-2xl shadow-card overflow-hidden">
             <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-sand-200 bg-sand-50">
               <Icon icon="mdi:cash-register" className="text-lg text-gold-600" />
-              <h2 className="font-display text-base font-semibold text-sand-900">Ventes en caisse (POS)</h2>
+              <h2 className="font-display text-base font-semibold text-sand-900">Encaissements caisse (POS)</h2>
               <span className="ml-auto text-[11px] text-sand-500 uppercase tracking-wide font-semibold">CA net</span>
               <span className="font-display font-semibold text-sand-900 tabular-nums">{formatCurrency(caPos)}</span>
             </div>
+            {/* Matin / Soir */}
+            <div className="grid grid-cols-2 divide-x divide-sand-200 border-b border-sand-200 tabular-nums">
+              <div className="px-5 py-3 flex items-center gap-2">
+                <Icon icon="mdi:weather-sunny" className="text-lg text-warning-500" />
+                <div><div className="text-[11px] text-sand-500">Matin (avant {HEURE_BASCULE_MATIN_SOIR}h)</div><div className="font-display text-lg font-semibold text-sand-900">{formatCurrency(caMatin)}</div></div>
+              </div>
+              <div className="px-5 py-3 flex items-center gap-2">
+                <Icon icon="mdi:weather-night" className="text-lg text-info-500" />
+                <div><div className="text-[11px] text-sand-500">Soir (dès {HEURE_BASCULE_MATIN_SOIR}h)</div><div className="font-display text-lg font-semibold text-sand-900">{formatCurrency(caSoir)}</div></div>
+              </div>
+            </div>
+            {/* Détails */}
             <div className="grid grid-cols-2 sm:grid-cols-6 divide-x divide-y sm:divide-y-0 divide-sand-200 tabular-nums">
               <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Tickets</div><div className="font-display text-lg font-semibold text-sand-900">{posTickets.length}</div></div>
               <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Articles</div><div className="font-display text-lg font-semibold text-sand-900">{nbArticlesPos}</div></div>
@@ -212,6 +234,18 @@ export const RapportJournalier: React.FC = () => {
               <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Wave</div><div className="font-display text-lg font-semibold text-info-600">{formatCurrency(posParMode('wave'))}</div></div>
               <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Retours</div><div className="font-display text-lg font-semibold text-danger-600">{retoursPos > 0 ? `− ${formatCurrency(retoursPos)}` : '—'}</div></div>
             </div>
+            {/* Par vendeur */}
+            {vendeurs.length > 0 && (
+              <div className="px-5 py-3 border-t border-sand-200 flex flex-wrap items-center gap-2">
+                <span className="text-[11px] text-sand-500 uppercase tracking-wide font-semibold mr-1">Par vendeur</span>
+                {vendeurs.map(([nom, ca]) => (
+                  <span key={nom} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sand-100 text-sand-700 text-xs font-medium tabular-nums">
+                    <Icon icon="mdi:account-circle-outline" className="text-sm text-sand-500" />
+                    {nom} · {formatCurrency(ca)}
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="px-5 py-3 border-t border-sand-200 flex items-center justify-between gap-3">
               <span className="text-xs text-sand-500">
                 Encaissements enregistrés à la caisse ce jour{retoursTickets.length > 0 ? ` · ${retoursTickets.length} retour(s)` : ''}.

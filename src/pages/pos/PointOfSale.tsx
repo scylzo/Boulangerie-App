@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Modal } from '../../components/ui/Modal';
 import { useReferentielStore } from '../../store/referentielStore';
 import { usePosStore } from '../../store/posStore';
+import { useAuthStore } from '../../store/authStore';
 import { formatCurrency } from '../../utils/currency';
 import type { Produit } from '../../types';
 import omLogo from '../../assets/om.svg';
@@ -38,6 +39,7 @@ const catLabel = (c?: string) => c === 'viennoiserie' ? 'Viennoiserie' : c === '
 export const PointOfSale: React.FC = () => {
   const { produits, chargerProduits } = useReferentielStore();
   const { enregistrerTicket, isSaving } = usePosStore();
+  const { user } = useAuthStore();
 
   const [cart, setCart] = useState<Record<string, number>>({});
   const [categorie, setCategorie] = useState<CategorieFiltre>('tous');
@@ -49,7 +51,29 @@ export const PointOfSale: React.FC = () => {
   const [remiseVal, setRemiseVal] = useState('');
   const [remiseType, setRemiseType] = useState<'montant' | 'pourcent'>('montant');
 
+  // Session vendeur (déclaré à l'ouverture de la caisse, mémorisé localement)
+  const [vendeur, setVendeur] = useState(() => localStorage.getItem('cm.pos.vendeur') || '');
+  const [showVendeur, setShowVendeur] = useState(false);
+  const [vendeurInput, setVendeurInput] = useState('');
+
   useEffect(() => { chargerProduits(); }, [chargerProduits]);
+
+  // À l'ouverture, si aucun vendeur déclaré, proposer de le déclarer (pré-rempli avec l'utilisateur connecté)
+  useEffect(() => {
+    if (!vendeur) {
+      setVendeurInput(user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : '');
+      setShowVendeur(true);
+    }
+  }, [vendeur, user]);
+
+  const declarerVendeur = () => {
+    const nom = vendeurInput.trim();
+    if (!nom) { toast.error('Indiquez le nom du vendeur'); return; }
+    localStorage.setItem('cm.pos.vendeur', nom);
+    setVendeur(nom);
+    setShowVendeur(false);
+  };
+  const ouvrirVendeur = () => { setVendeurInput(vendeur); setShowVendeur(true); };
 
   const actifs = useMemo(() => produits.filter(p => p.active), [produits]);
   const count = (c: CategorieFiltre) => c === 'tous' ? actifs.length : actifs.filter(p => p.categorie === c).length;
@@ -93,7 +117,7 @@ export const PointOfSale: React.FC = () => {
     const cashRows = paiement === 'espece' ? `<div class="row"><span>Reçu</span><span>${recuNum.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Rendu</span><span>${rendu.toLocaleString('fr-FR')} F</span></div>` : '';
     const remiseRows = montantRemise > 0 ? `<div class="row"><span>Sous-total</span><span>${sousTotal.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Remise${remiseType === 'pourcent' ? ` (${remiseNum}%)` : ''}</span><span>- ${montantRemise.toLocaleString('fr-FR')} F</span></div>` : '';
     const logoUrl = new URL(logo, window.location.origin).href;
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}.logo{display:block;margin:6px auto 2px;max-width:160px;max-height:64px;object-fit:contain}h1{font-size:16px;text-align:center;margin:0 0 2px}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><p class="sub">Ticket n°${numero} · ${jour} ${heure} · ${typeLabel[typeCommande]}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/>${remiseRows}<div class="tot"><span>TOTAL</span><span>${total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel}</span></div>${cashRows}<hr/><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="foot">${nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}.logo{display:block;margin:6px auto 2px;max-width:160px;max-height:64px;object-fit:contain}h1{font-size:16px;text-align:center;margin:0 0 2px}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><p class="sub">Ticket n°${numero} · ${jour} ${heure} · ${typeLabel[typeCommande]}${vendeur.trim() ? `<br/>Vendeur : ${vendeur.trim()}` : ''}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/>${remiseRows}<div class="tot"><span>TOTAL</span><span>${total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel}</span></div>${cashRows}<hr/><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="foot">${nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
     w.document.close(); w.focus();
   };
 
@@ -109,6 +133,7 @@ export const PointOfSale: React.FC = () => {
         modePaiement: paiement,
         typeCommande,
         ...(montantRemise > 0 ? { remise: montantRemise } : {}),
+        ...(vendeur.trim() ? { vendeur: vendeur.trim() } : {}),
       };
       const payload = paiement === 'espece' ? { ...base, montantRecu: recuNum, rendu } : base;
       const numero = await enregistrerTicket(payload);
@@ -136,6 +161,15 @@ export const PointOfSale: React.FC = () => {
             <span className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-sand-200 text-sm font-medium text-sand-800 shadow-soft">
               <Icon icon="mdi:clock-outline" className="text-lg text-gold-600" />{heure}
             </span>
+            <button
+              onClick={ouvrirVendeur}
+              title="Changer le vendeur"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-sand-200 text-sm font-medium text-sand-800 shadow-soft hover:bg-sand-50"
+            >
+              <Icon icon="mdi:account-circle-outline" className="text-lg text-gold-600" />
+              <span className="max-w-[120px] truncate">{vendeur || 'Vendeur ?'}</span>
+              <Icon icon="mdi:pencil-outline" className="text-sm text-sand-400" />
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <Link to="/caisse/historique" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-sand-200 text-sand-700 hover:bg-sand-50 text-sm font-medium shadow-soft">
@@ -400,6 +434,36 @@ export const PointOfSale: React.FC = () => {
           <button onClick={validerPaiement} disabled={isSaving} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gold-600 hover:bg-gold-500 text-white font-semibold shadow-soft transition-all disabled:opacity-60 disabled:cursor-not-allowed">
             <Icon icon={isSaving ? 'mdi:loading' : 'mdi:check-circle-outline'} className={`text-lg ${isSaving ? 'animate-spin' : ''}`} />
             {isSaving ? 'Enregistrement…' : 'Valider & imprimer le ticket'}
+          </button>
+        </div>
+      </Modal>
+
+      {/* Modal déclaration du vendeur */}
+      <Modal isOpen={showVendeur} onClose={() => { if (vendeur) setShowVendeur(false); }} title="Vendeur en caisse" size="sm" position="center">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gold-50 text-gold-600 flex items-center justify-center shrink-0">
+              <Icon icon="mdi:account-circle-outline" className="text-xl" />
+            </div>
+            <p className="text-sm text-sand-500">Déclarez le vendeur qui tient la caisse. Son nom sera associé à chaque ticket.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-sand-700 mb-1.5">Nom du vendeur</label>
+            <input
+              value={vendeurInput}
+              onChange={(e) => setVendeurInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') declarerVendeur(); }}
+              placeholder="Ex. Awa Diop"
+              autoFocus
+              className="w-full px-3 py-2.5 border border-sand-300 rounded-lg text-sm focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+            />
+          </div>
+          <button
+            onClick={declarerVendeur}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gold-600 hover:bg-gold-500 text-white font-semibold shadow-soft transition-all"
+          >
+            <Icon icon="mdi:check-circle-outline" className="text-lg" />
+            Démarrer la caisse
           </button>
         </div>
       </Modal>
