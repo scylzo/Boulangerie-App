@@ -281,8 +281,7 @@ export const Comptabilite: React.FC = () => {
         doc.text("2. Détail des Recettes", 14, finalY);
 
         const recetteData = [
-            ['Ventes Boutique', formatPdfCurrency(stats.caBoutique)],
-            ['Ventes Caisse (POS)', formatPdfCurrency(stats.caPos)],
+            ['Ventes Boutique (dont caisse)', formatPdfCurrency(stats.caBoutique + stats.caPos)],
             ['Livraisons (Facturées)', formatPdfCurrency(stats.caLivraison)],
             ['TOTAL RECETTES', formatPdfCurrency(totalRecettes)] // Ajout ligne total
         ];
@@ -432,14 +431,10 @@ export const Comptabilite: React.FC = () => {
                         </div>
                         <div className="space-y-2 relative z-10">
                             <h3 className="font-display text-2xl sm:text-3xl font-semibold tabular-nums text-sand-900 truncate">{formatCurrency(totalRecettes)}</h3>
-                            <div className="grid grid-cols-3 gap-2 text-xs sm:text-sm pt-2">
+                            <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm pt-2">
                                 <div className="bg-success-50/50 p-2 rounded">
-                                    <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Boutique</p>
-                                    <p className="font-medium text-success-700 truncate">{formatCurrency(stats.caBoutique)}</p>
-                                </div>
-                                <div className="bg-success-50/50 p-2 rounded">
-                                    <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Caisse</p>
-                                    <p className="font-medium text-success-700 truncate">{formatCurrency(stats.caPos)}</p>
+                                    <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Boutique (caisse)</p>
+                                    <p className="font-medium text-success-700 truncate">{formatCurrency(stats.caBoutique + stats.caPos)}</p>
                                 </div>
                                 <div className="bg-success-50/50 p-2 rounded">
                                     <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Livraisons</p>
@@ -594,23 +589,13 @@ export const Comptabilite: React.FC = () => {
                         <div className="space-y-4 sm:space-y-6">
                             <div>
                                 <div className="flex justify-between text-xs sm:text-sm mb-2">
-                                    <span className="text-sand-600 truncate">Ventes Boutique</span>
-                                    <span className="font-semibold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round((stats.caBoutique / totalRecettes) * 100) : 0}%</span>
+                                    <span className="text-sand-600 truncate">Ventes Boutique (caisse)</span>
+                                    <span className="font-semibold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round(((stats.caBoutique + stats.caPos) / totalRecettes) * 100) : 0}%</span>
                                 </div>
                                 <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
-                                    <div className="bg-info-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caBoutique / totalRecettes) * 100 : 0}%` }}></div>
+                                    <div className="bg-info-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? ((stats.caBoutique + stats.caPos) / totalRecettes) * 100 : 0}%` }}></div>
                                 </div>
-                                <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(stats.caBoutique)}</p>
-                            </div>
-                            <div>
-                                <div className="flex justify-between text-xs sm:text-sm mb-2">
-                                    <span className="text-sand-600 truncate">Caisse (POS)</span>
-                                    <span className="font-semibold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round((stats.caPos / totalRecettes) * 100) : 0}%</span>
-                                </div>
-                                <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
-                                    <div className="bg-gold-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caPos / totalRecettes) * 100 : 0}%` }}></div>
-                                </div>
-                                <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(stats.caPos)}</p>
+                                <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(stats.caBoutique + stats.caPos)}</p>
                             </div>
                             <div>
                                 <div className="flex justify-between text-xs sm:text-sm mb-2">

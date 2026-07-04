@@ -27,12 +27,25 @@ export interface TicketPOS {
   typeCommande: TypeCommande;
   montantRecu?: number;
   rendu?: number;
+  vendeur?: string;              // vendeur ayant réalisé l'encaissement
   // Retours (avoir) — type 'retour' : montants négatifs, référence au ticket d'origine
   type?: TypeTicket;              // 'vente' (défaut) ou 'retour'
   ticketOrigineId?: string;      // doc id du ticket de vente retourné
   ticketOrigineNumero?: number;  // n° du ticket d'origine (affichage)
   motifRetour?: string;
 }
+
+// Heure de bascule matin → soir pour la ventilation des ventes caisse
+export const HEURE_BASCULE_MATIN_SOIR = 14;
+
+const dateDeTicket = (t: TicketPOS): Date => {
+  const v: any = t.createdAt;
+  return v && typeof v.toDate === 'function' ? v.toDate() : new Date(v);
+};
+
+/** Période (matin/soir) d'un ticket selon son heure. */
+export const periodeTicket = (t: TicketPOS): 'matin' | 'soir' =>
+  dateDeTicket(t).getHours() < HEURE_BASCULE_MATIN_SOIR ? 'matin' : 'soir';
 
 interface PosStore {
   isSaving: boolean;
@@ -45,6 +58,10 @@ interface PosStore {
   getVentesPeriode: (debut: Date, fin: Date) => Promise<number>;
   /** Retours (avoirs) déjà enregistrés pour un ticket de vente donné. */
   getRetoursDeTicket: (ticketOrigineId: string) => Promise<TicketPOS[]>;
+  /** Quantités nettes vendues par produit (ventes − retours) pour un jour. */
+  getQuantitesJour: (date: Date) => Promise<Record<string, number>>;
+  /** Quantités nettes vendues par produit, ventilées matin/soir, pour un jour. */
+  getQuantitesJourParPeriode: (date: Date) => Promise<Record<string, { matin: number; soir: number; total: number }>>;
 }
 
 const jourKey = (d: Date) => d.toISOString().split('T')[0];
@@ -101,6 +118,29 @@ export const usePosStore = create<PosStore>((set, get) => ({
   getVentesPeriode: async (debut: Date, fin: Date) => {
     const tickets = await get().getTicketsPeriode(debut, fin);
     return tickets.reduce((s, t) => s + (t.total || 0), 0);
+  },
+
+  getQuantitesJour: async (date: Date) => {
+    const tickets = await get().getTicketsPeriode(date, date);
+    const map: Record<string, number> = {};
+    tickets.forEach(t => t.lignes.forEach(l => {
+      map[l.produitId] = (map[l.produitId] || 0) + l.quantite; // retours = quantités négatives → net
+    }));
+    return map;
+  },
+
+  getQuantitesJourParPeriode: async (date: Date) => {
+    const tickets = await get().getTicketsPeriode(date, date);
+    const map: Record<string, { matin: number; soir: number; total: number }> = {};
+    tickets.forEach(t => {
+      const periode = periodeTicket(t);
+      t.lignes.forEach(l => {
+        if (!map[l.produitId]) map[l.produitId] = { matin: 0, soir: 0, total: 0 };
+        map[l.produitId][periode] += l.quantite;
+        map[l.produitId].total += l.quantite;
+      });
+    });
+    return map;
   },
 
   getRetoursDeTicket: async (ticketOrigineId: string) => {
