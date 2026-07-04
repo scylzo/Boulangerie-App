@@ -247,12 +247,12 @@ export const PageLivraison: React.FC = () => {
       <div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-terracotta-500 rounded-xl flex items-center justify-center shrink-0">
-              <Icon icon="mdi:truck-delivery" className="text-xl text-white" />
+            <div className="w-10 h-10 bg-terracotta-50 rounded-xl flex items-center justify-center shrink-0">
+              <Icon icon="mdi:truck-delivery-outline" className="text-xl text-terracotta-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-xl font-semibold text-sand-900 truncate">
-                Programme de Livraison
+              <h1 className="font-display text-lg sm:text-2xl font-semibold text-sand-900 truncate">
+                Livraisons
               </h1>
               <p className="text-xs sm:text-sm text-sand-500 truncate">
                 <span className="hidden sm:inline">Vue détaillée par livreur et par car de livraison</span>
@@ -286,10 +286,10 @@ export const PageLivraison: React.FC = () => {
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
         {/* Filtres modernes */}
-        <div className="bg-white rounded-xl border border-sand-200 shadow-sm p-3 sm:p-4">
+        <div className="bg-white rounded-2xl border border-sand-200 shadow-card p-4">
           <div className="flex items-center gap-3 mb-3 sm:mb-4">
             <div className="w-8 h-8 bg-sand-100 rounded-full flex items-center justify-center shrink-0">
-              <Icon icon="mdi:filter" className="text-base sm:text-lg text-sand-600" />
+              <Icon icon="mdi:filter-variant" className="text-base sm:text-lg text-sand-600" />
             </div>
             <h2 className="text-base sm:text-lg font-semibold text-sand-900">Filtres</h2>
           </div>
@@ -427,7 +427,7 @@ export const PageLivraison: React.FC = () => {
               {commandesOrganisees.map(([livreurId, data]: [string, any]) => (
                 <div
                   key={livreurId}
-                  className={`bg-white rounded-xl border border-sand-200 shadow-sm hover:shadow-elevated transition-all duration-200 overflow-hidden ${!data.livreur ? 'border-warning-100 bg-warning-50' : ''
+                  className={`bg-white rounded-2xl border border-sand-200 shadow-card hover:shadow-elevated transition-all duration-200 overflow-hidden ${!data.livreur ? 'border-warning-200' : ''
                     }`}
                 >
                   {/* En-tête Livreur Compact */}
