@@ -34,7 +34,6 @@ const getProductIcon = (nom: string): string => {
   return 'mdi:food-variant';
 };
 const prixDe = (p: Produit) => p.prixBoutique || p.prixClient || 0;
-const catLabel = (c?: string) => c === 'viennoiserie' ? 'Viennoiserie' : c === 'boulangerie' ? 'Boulangerie' : 'Produit';
 
 export const PointOfSale: React.FC = () => {
   const { produits, chargerProduits } = useReferentielStore();
@@ -149,70 +148,63 @@ export const PointOfSale: React.FC = () => {
   const montantsRapides = [1000, 2000, 5000, 10000];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-7rem)]">
+    <div className="flex flex-col lg:flex-row gap-3 h-[calc(100vh-6rem)]">
       {/* ============ PANNEAU PRODUITS ============ */}
-      <div className="flex-1 min-w-0 flex flex-col gap-4">
-        {/* Barre date / heure / actions */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-sand-200 text-sm font-medium text-sand-800 shadow-soft">
-              <Icon icon="mdi:calendar-blank-outline" className="text-lg text-gold-600" />{jour}
-            </span>
-            <span className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-sand-200 text-sm font-medium text-sand-800 shadow-soft">
-              <Icon icon="mdi:clock-outline" className="text-lg text-gold-600" />{heure}
-            </span>
+      <div className="flex-1 min-w-0 flex flex-col gap-2.5">
+        {/* Barre compacte : vendeur / heure / actions */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={ouvrirVendeur}
               title="Changer le vendeur"
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-sand-200 text-sm font-medium text-sand-800 shadow-soft hover:bg-sand-50"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-sand-200 text-sm font-medium text-sand-800 shadow-soft hover:bg-sand-50"
             >
-              <Icon icon="mdi:account-circle-outline" className="text-lg text-gold-600" />
-              <span className="max-w-[120px] truncate">{vendeur || 'Vendeur ?'}</span>
-              <Icon icon="mdi:pencil-outline" className="text-sm text-sand-400" />
+              <Icon icon="mdi:account-circle-outline" className="text-base text-gold-600" />
+              <span className="max-w-[110px] truncate">{vendeur || 'Vendeur ?'}</span>
+              <Icon icon="mdi:pencil-outline" className="text-xs text-sand-400" />
             </button>
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-sand-200 text-xs font-medium text-sand-500 shadow-soft">
+              <Icon icon="mdi:clock-outline" className="text-sm text-gold-600" />{heure}
+            </span>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/caisse/historique" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-sand-200 text-sand-700 hover:bg-sand-50 text-sm font-medium shadow-soft">
-              <Icon icon="mdi:receipt-text-clock-outline" className="text-lg text-gold-600" /> <span className="hidden sm:inline">Historique</span>
-            </Link>
             {nbArticles > 0 && (
-              <button onClick={clearAll} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-danger-600 hover:bg-danger-50 text-sm font-medium">
-                <Icon icon="mdi:close-circle-outline" className="text-lg" /> <span className="hidden sm:inline">Annuler la commande</span>
+              <button onClick={clearAll} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-danger-600 hover:bg-danger-50 text-sm font-medium">
+                <Icon icon="mdi:close-circle-outline" className="text-base" /> <span className="hidden sm:inline">Annuler</span>
               </button>
             )}
+            <Link to="/caisse/historique" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-sand-200 text-sand-700 hover:bg-sand-50 text-sm font-medium shadow-soft">
+              <Icon icon="mdi:receipt-text-clock-outline" className="text-base text-gold-600" /> <span className="hidden sm:inline">Historique</span>
+            </Link>
           </div>
         </div>
 
-        {/* Cartes catégories */}
-        <div className="flex gap-3 overflow-x-auto pb-1">
-          {CATS.map(c => {
-            const actif = categorie === c.val;
-            return (
-              <button
-                key={c.val}
-                onClick={() => setCategorie(c.val)}
-                className={`shrink-0 w-32 rounded-2xl border p-3 text-left transition-all ${actif ? 'bg-gold-50 border-gold-500 ring-1 ring-gold-500' : 'bg-white border-sand-200 hover:border-sand-300 shadow-soft'}`}
-              >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${actif ? 'bg-gold-600 text-white' : 'bg-sand-100 text-sand-500'}`}>
-                  <Icon icon={c.icon} className="text-xl" />
-                </div>
-                <div className="font-semibold text-sand-900 text-sm truncate">{c.label}</div>
-                <div className="text-xs text-sand-500">{count(c.val)} article{count(c.val) > 1 ? 's' : ''}</div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Recherche */}
-        <div className="relative">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher un produit…"
-            className="w-full pl-4 pr-12 py-3 rounded-2xl bg-white border border-sand-200 text-sm text-sand-900 shadow-soft focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-          />
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-sand-100 flex items-center justify-center text-sand-500">
-            <Icon icon="mdi:magnify" className="text-lg" />
+        {/* Catégories (pills compactes) + recherche sur une seule ligne */}
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide flex-1 min-w-0">
+            {CATS.map(c => {
+              const actif = categorie === c.val;
+              return (
+                <button
+                  key={c.val}
+                  onClick={() => setCategorie(c.val)}
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${actif ? 'bg-gold-600 border-gold-600 text-white shadow-soft' : 'bg-white border-sand-200 text-sand-700 hover:border-sand-300'}`}
+                >
+                  <Icon icon={c.icon} className="text-base" />
+                  <span>{c.label}</span>
+                  <span className={`text-xs tabular-nums ${actif ? 'text-white/80' : 'text-sand-400'}`}>{count(c.val)}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="relative w-36 sm:w-56 shrink-0">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher…"
+              className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border border-sand-200 text-sm text-sand-900 shadow-soft focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+            />
+            <Icon icon="mdi:magnify" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sand-400 text-lg" />
           </div>
         </div>
 
@@ -224,30 +216,27 @@ export const PointOfSale: React.FC = () => {
               <p>Aucun produit disponible</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5">
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-2.5">
               {produitsFiltres.map(p => (
                 <button
                   key={p.id}
                   onClick={() => add(p.id)}
-                  className="group relative bg-white border border-sand-200 rounded-2xl shadow-card hover:shadow-elevated hover:border-gold-300 transition-all p-3 text-left active:scale-[0.98]"
+                  className={`group relative bg-white border rounded-xl shadow-soft hover:shadow-elevated transition-all p-2 text-left active:scale-[0.97] ${cart[p.id] > 0 ? 'border-gold-500 ring-1 ring-gold-500' : 'border-sand-200 hover:border-gold-300'}`}
                 >
-                  <div className="aspect-square bg-sand-50 rounded-xl overflow-hidden flex items-center justify-center mb-3 relative">
+                  <div className="aspect-square bg-sand-50 rounded-lg overflow-hidden flex items-center justify-center mb-2 relative">
                     {p.imageUrl ? (
                       <img src={p.imageUrl} alt={p.nom} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     ) : (
-                      <Icon icon={getProductIcon(p.nom)} className="text-5xl text-sand-300" />
+                      <Icon icon={getProductIcon(p.nom)} className="text-4xl text-sand-300" />
                     )}
                     {cart[p.id] > 0 && (
-                      <span className="absolute top-2 right-2 min-w-6 h-6 px-1.5 rounded-full bg-gold-600 text-white text-xs font-semibold flex items-center justify-center tabular-nums ring-2 ring-white">
+                      <span className="absolute top-1.5 right-1.5 min-w-6 h-6 px-1.5 rounded-full bg-gold-600 text-white text-xs font-semibold flex items-center justify-center tabular-nums ring-2 ring-white">
                         {cart[p.id]}
                       </span>
                     )}
                   </div>
-                  <div className="font-medium text-sand-900 text-sm leading-tight truncate">{p.nom}</div>
-                  <div className="flex items-center justify-between mt-2 gap-2">
-                    <span className="inline-flex px-2 py-0.5 rounded-md text-[11px] font-medium bg-sand-100 text-sand-600">{catLabel(p.categorie)}</span>
-                    <span className="font-display font-semibold text-sand-900 tabular-nums shrink-0">{prixDe(p).toLocaleString('fr-FR')} F</span>
-                  </div>
+                  <div className="font-medium text-sand-900 text-xs leading-tight line-clamp-2 min-h-[2rem] uppercase">{p.nom}</div>
+                  <div className="mt-1 font-display font-semibold text-sand-900 text-sm tabular-nums">{prixDe(p).toLocaleString('fr-FR')} F</div>
                 </button>
               ))}
             </div>
@@ -256,7 +245,7 @@ export const PointOfSale: React.FC = () => {
       </div>
 
       {/* ============ PANNEAU COMMANDE ============ */}
-      <div className="w-full lg:w-[380px] shrink-0">
+      <div className="w-full lg:w-[340px] shrink-0">
         <div className="bg-white border border-sand-200 rounded-2xl shadow-card flex flex-col h-full overflow-hidden">
           {/* En-tête commande */}
           <div className="flex items-center gap-3 px-4 py-4 border-b border-sand-200">
@@ -304,7 +293,7 @@ export const PointOfSale: React.FC = () => {
                       {produit!.imageUrl ? <img src={produit!.imageUrl} alt="" className="w-full h-full object-cover" /> : <Icon icon={getProductIcon(produit!.nom)} className="text-lg text-sand-400" />}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-sand-900 truncate">{produit!.nom}</div>
+                      <div className="text-sm font-medium text-sand-900 truncate uppercase">{produit!.nom}</div>
                       <div className="text-xs text-sand-500 tabular-nums">{prixDe(produit!).toLocaleString('fr-FR')} F</div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
