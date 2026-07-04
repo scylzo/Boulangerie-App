@@ -33,6 +33,10 @@ interface PosStore {
   ticketsDuJour: TicketPOS[];
   chargerTicketsDuJour: (date: Date) => Promise<void>;
   enregistrerTicket: (ticket: Omit<TicketPOS, 'id' | 'createdAt' | 'numero'>) => Promise<number>;
+  /** Récupère les tickets POS sur une période (bornes incluses). */
+  getTicketsPeriode: (debut: Date, fin: Date) => Promise<TicketPOS[]>;
+  /** Somme des totaux des tickets POS sur une période. */
+  getVentesPeriode: (debut: Date, fin: Date) => Promise<number>;
 }
 
 const jourKey = (d: Date) => d.toISOString().split('T')[0];
@@ -60,6 +64,35 @@ export const usePosStore = create<PosStore>((set, get) => ({
         console.error('Erreur chargement tickets POS:', err);
       }
     }
+  },
+
+  getTicketsPeriode: async (debut: Date, fin: Date) => {
+    const debutKey = jourKey(debut);
+    const finKey = jourKey(fin);
+    try {
+      const q = query(
+        collection(db, 'pos_tickets'),
+        where('date', '>=', debutKey),
+        where('date', '<=', finKey)
+      );
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as TicketPOS[];
+    } catch (e) {
+      // Repli : on charge tout et on filtre côté client
+      try {
+        const snap = await getDocs(collection(db, 'pos_tickets'));
+        return (snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as TicketPOS[])
+          .filter(t => t.date >= debutKey && t.date <= finKey);
+      } catch (err) {
+        console.error('Erreur chargement tickets POS période:', err);
+        return [];
+      }
+    }
+  },
+
+  getVentesPeriode: async (debut: Date, fin: Date) => {
+    const tickets = await get().getTicketsPeriode(debut, fin);
+    return tickets.reduce((s, t) => s + (t.total || 0), 0);
   },
 
   enregistrerTicket: async (ticket) => {

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
+import { Link } from 'react-router-dom';
 import { useRapportStore } from '../../store';
+import { usePosStore, type TicketPOS } from '../../store/posStore';
 import { downloadRapportJournalierPDF } from '../../utils/pdfGenerator';
 import { formatCurrency } from '../../utils/currency';
 import { StatCard } from '../../components/ui';
@@ -21,6 +23,9 @@ export const RapportJournalier: React.FC = () => {
     new Date().toISOString().split('T')[0]
   );
   const [modeAffichage, setModeAffichage] = useState<'jour' | 'historique'>('jour');
+
+  const { getTicketsPeriode } = usePosStore();
+  const [posTickets, setPosTickets] = useState<TicketPOS[]>([]);
 
   const handleGenererRapport = async () => {
     try {
@@ -54,6 +59,16 @@ export const RapportJournalier: React.FC = () => {
     // Charger le rapport existant si disponible
     chargerRapport(new Date(dateSelectionnee));
   }, [dateSelectionnee, chargerRapport]);
+
+  // Charger les ventes caisse (POS) du jour sélectionné
+  useEffect(() => {
+    const d = new Date(dateSelectionnee + 'T12:00:00');
+    getTicketsPeriode(d, d).then(setPosTickets).catch(() => setPosTickets([]));
+  }, [dateSelectionnee, getTicketsPeriode]);
+
+  const caPos = posTickets.reduce((s, t) => s + (t.total || 0), 0);
+  const nbArticlesPos = posTickets.reduce((s, t) => s + (t.nbArticles || 0), 0);
+  const posParMode = (m: TicketPOS['modePaiement']) => posTickets.filter(t => t.modePaiement === m).reduce((s, t) => s + (t.total || 0), 0);
 
   const getTauxVenteBadgeColor = (taux: number) => {
     if (taux >= 90) return 'bg-success-100 text-success-700';
@@ -174,6 +189,30 @@ export const RapportJournalier: React.FC = () => {
               <span className="text-xs text-sand-400 italic">
                 {rapportJour ? `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-FR')}` : "Aucune donnée chargée"}
               </span>
+            </div>
+          </div>
+        )}
+
+        {/* Bloc Caisse (POS) du jour */}
+        {modeAffichage === 'jour' && posTickets.length > 0 && (
+          <div className="bg-white border border-sand-200 rounded-2xl shadow-card overflow-hidden">
+            <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-sand-200 bg-sand-50">
+              <Icon icon="mdi:cash-register" className="text-lg text-gold-600" />
+              <h2 className="font-display text-base font-semibold text-sand-900">Ventes en caisse (POS)</h2>
+              <span className="ml-auto font-display font-semibold text-sand-900 tabular-nums">{formatCurrency(caPos)}</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-y sm:divide-y-0 divide-sand-200 tabular-nums">
+              <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Tickets</div><div className="font-display text-lg font-semibold text-sand-900">{posTickets.length}</div></div>
+              <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Articles</div><div className="font-display text-lg font-semibold text-sand-900">{nbArticlesPos}</div></div>
+              <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Espèces</div><div className="font-display text-lg font-semibold text-success-600">{formatCurrency(posParMode('espece'))}</div></div>
+              <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Orange Money</div><div className="font-display text-lg font-semibold text-gold-600">{formatCurrency(posParMode('om'))}</div></div>
+              <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Wave</div><div className="font-display text-lg font-semibold text-info-600">{formatCurrency(posParMode('wave'))}</div></div>
+            </div>
+            <div className="px-5 py-3 border-t border-sand-200 flex items-center justify-between gap-3">
+              <span className="text-xs text-sand-500">Encaissements enregistrés à la caisse ce jour.</span>
+              <Link to="/caisse/historique" className="text-xs font-semibold text-gold-700 hover:text-gold-600 inline-flex items-center gap-1">
+                Détail des tickets <Icon icon="mdi:arrow-right" className="text-sm" />
+              </Link>
             </div>
           </div>
         )}

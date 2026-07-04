@@ -5,6 +5,7 @@ import { useStockStore } from '../../store/stockStore';
 import { useDepenseStore } from '../../store/depenseStore';
 import { useFacturationStore } from '../../store/facturationStore';
 import { useBoutiqueStore } from '../../store/boutiqueStore';
+import { usePosStore } from '../../store/posStore';
 import { DonutChart } from '../../components/ui';
 import {
     TrendingUp,
@@ -30,6 +31,7 @@ export const Comptabilite: React.FC = () => {
 
     const [stats, setStats] = useState({
         caBoutique: 0,
+        caPos: 0,
         caLivraison: 0,
         achatsMatieres: 0,
         autresCharges: 0,
@@ -42,6 +44,7 @@ export const Comptabilite: React.FC = () => {
     const { chargerDepenses, getDepensesProRata, depenses } = useDepenseStore();
     const { chargerFactures, factures } = useFacturationStore();
     const { getVentesPeriode } = useBoutiqueStore();
+    const { getVentesPeriode: getVentesPos } = usePosStore();
     const { chargerDonnees: chargerStock, mouvements, matieres } = useStockStore();
 
     // Charger les données au montage et quand la période change
@@ -57,7 +60,7 @@ export const Comptabilite: React.FC = () => {
     }, [factures, depenses, mouvements, matieres, periode.debut, periode.fin]);
 
     // Calculs dérivés pour l'affichage (garantit la cohérence)
-    const totalRecettes = stats.caBoutique + stats.caLivraison;
+    const totalRecettes = stats.caBoutique + stats.caPos + stats.caLivraison;
     const resultat = totalRecettes - stats.totalCouts;
     const marge = totalRecettes > 0 ? (resultat / totalRecettes) * 100 : 0;
 
@@ -73,14 +76,15 @@ export const Comptabilite: React.FC = () => {
         try {
             console.log("Calcul comptabilité pour la période:", debut.toLocaleString(), "au", fin.toLocaleString());
 
-            const [caBoutique] = await Promise.all([
+            const [caBoutique, , , , caPos] = await Promise.all([
                 getVentesPeriode(debut, fin),
                 chargerFactures(debut, fin),
                 chargerDepenses(debut, fin),
-                chargerStock()
+                chargerStock(),
+                getVentesPos(debut, fin)
             ]);
 
-            setStats(prev => ({ ...prev, loading: false, caBoutique }));
+            setStats(prev => ({ ...prev, loading: false, caBoutique, caPos }));
         } catch (e) {
             console.error("Erreur calcul compta:", e);
             setStats(prev => ({ ...prev, loading: false }));
@@ -278,6 +282,7 @@ export const Comptabilite: React.FC = () => {
 
         const recetteData = [
             ['Ventes Boutique', formatPdfCurrency(stats.caBoutique)],
+            ['Ventes Caisse (POS)', formatPdfCurrency(stats.caPos)],
             ['Livraisons (Facturées)', formatPdfCurrency(stats.caLivraison)],
             ['TOTAL RECETTES', formatPdfCurrency(totalRecettes)] // Ajout ligne total
         ];
@@ -293,7 +298,7 @@ export const Comptabilite: React.FC = () => {
                 1: { halign: 'right' }
             },
             didParseCell: function (data) {
-                if (data.row.index === 2 && data.section === 'body') {
+                if (data.row.index === recetteData.length - 1 && data.section === 'body') {
                     data.cell.styles.fontStyle = 'bold';
                 }
             }
@@ -427,10 +432,14 @@ export const Comptabilite: React.FC = () => {
                         </div>
                         <div className="space-y-2 relative z-10">
                             <h3 className="font-display text-2xl sm:text-3xl font-semibold tabular-nums text-sand-900 truncate">{formatCurrency(totalRecettes)}</h3>
-                            <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm pt-2">
+                            <div className="grid grid-cols-3 gap-2 text-xs sm:text-sm pt-2">
                                 <div className="bg-success-50/50 p-2 rounded">
                                     <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Boutique</p>
                                     <p className="font-medium text-success-700 truncate">{formatCurrency(stats.caBoutique)}</p>
+                                </div>
+                                <div className="bg-success-50/50 p-2 rounded">
+                                    <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Caisse</p>
+                                    <p className="font-medium text-success-700 truncate">{formatCurrency(stats.caPos)}</p>
                                 </div>
                                 <div className="bg-success-50/50 p-2 rounded">
                                     <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Livraisons</p>
@@ -592,6 +601,16 @@ export const Comptabilite: React.FC = () => {
                                     <div className="bg-info-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caBoutique / totalRecettes) * 100 : 0}%` }}></div>
                                 </div>
                                 <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(stats.caBoutique)}</p>
+                            </div>
+                            <div>
+                                <div className="flex justify-between text-xs sm:text-sm mb-2">
+                                    <span className="text-sand-600 truncate">Caisse (POS)</span>
+                                    <span className="font-semibold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round((stats.caPos / totalRecettes) * 100) : 0}%</span>
+                                </div>
+                                <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
+                                    <div className="bg-gold-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caPos / totalRecettes) * 100 : 0}%` }}></div>
+                                </div>
+                                <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(stats.caPos)}</p>
                             </div>
                             <div>
                                 <div className="flex justify-between text-xs sm:text-sm mb-2">
