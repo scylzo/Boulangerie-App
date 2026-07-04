@@ -3,6 +3,7 @@ import { collection, query, where, getDocs, doc, setDoc, getDoc } from 'firebase
 import { db } from '../firebase/config';
 import { dateToTimestamp } from '../firebase/collections';
 import type { StockBoutique, EquipeBoutique, VentesBoutique, Produit } from '../types';
+import { usePosStore } from './posStore';
 
 interface BoutiqueStore {
   // État
@@ -23,6 +24,8 @@ interface BoutiqueStore {
   supprimerProduitStock: (date: Date, produitId: string) => Promise<void>;
   toggleModeJourneeContinue: () => Promise<void>;
   validerVenteDirecte: (date: Date, ventes: Record<string, number>) => Promise<void>;
+  /** Injecte le vendu depuis la caisse (POS) dans les équipes en cours (matin/soir). */
+  synchroniserVentesPOS: (date: Date) => Promise<void>;
   chargerProduits: () => Promise<void>;
 
   // Actions Équipes
@@ -480,6 +483,48 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     } catch (e) {
       set({ isLoading: false });
       console.error("Erreur vente directe:", e);
+    }
+  },
+
+  synchroniserVentesPOS: async (date: Date) => {
+    const { stockJour, equipeMatin, equipeSoir } = get();
+    if (!stockJour) return;
+
+    // Quantités nettes vendues en caisse, ventilées matin/soir
+    const parPeriode = await usePosStore.getState().getQuantitesJourParPeriode(date);
+    const qteMatin = (id: string) => Math.max(0, parPeriode[id]?.matin || 0);
+    const qteSoir = (id: string) => Math.max(0, parPeriode[id]?.soir || 0);
+    const qteTotal = (id: string) => Math.max(0, parPeriode[id]?.total || 0);
+
+    let touched = false;
+
+    // Équipe matin (ou journée continue) — on ne touche pas une équipe déjà clôturée
+    if (equipeMatin && equipeMatin.statut !== 'termine') {
+      // En journée continue OU tant que l'équipe soir n'existe pas, on affecte le total du jour au matin
+      const useTotal = stockJour.isJourneeContinue || !equipeSoir;
+      const produits = equipeMatin.produits.map(p => {
+        const vendu = useTotal ? qteTotal(p.produitId) : qteMatin(p.produitId);
+        return { ...p, vendu, reste: p.stockDebut - vendu };
+      });
+      set({ equipeMatin: { ...equipeMatin, produits, updatedAt: new Date() } });
+      await get().sauvegarderEquipe('matin');
+      touched = true;
+    }
+
+    // Équipe soir (mode normal uniquement)
+    if (equipeSoir && equipeSoir.statut !== 'termine' && !stockJour.isJourneeContinue) {
+      const produits = equipeSoir.produits.map(p => {
+        const vendu = qteSoir(p.produitId);
+        return { ...p, vendu, reste: p.stockDebut - vendu };
+      });
+      set({ equipeSoir: { ...equipeSoir, produits, updatedAt: new Date() } });
+      await get().sauvegarderEquipe('soir');
+      touched = true;
+    }
+
+    if (touched) {
+      get().calculerVentesBoutique();
+      await get().sauvegarderVentes();
     }
   },
 
