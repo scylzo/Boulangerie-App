@@ -8,6 +8,7 @@ import { formatCurrency } from '../../utils/currency';
 import type { Produit } from '../../types';
 import omLogo from '../../assets/om.svg';
 import waveLogo from '../../assets/wave.svg';
+import logo from '../../assets/logo.png';
 
 type CategorieFiltre = 'tous' | 'boulangerie' | 'viennoiserie';
 type ModePaiement = 'espece' | 'om' | 'wave';
@@ -83,8 +84,9 @@ export const PointOfSale: React.FC = () => {
     const modeLabel = paiement === 'espece' ? 'Espèces' : paiement === 'om' ? 'Orange Money' : 'Wave';
     const rows = lignes.map(l => `<tr><td>${l.produit!.nom}</td><td class="c">${l.qty}</td><td class="r">${(prixDe(l.produit!) * l.qty).toLocaleString('fr-FR')}</td></tr>`).join('');
     const cashRows = paiement === 'espece' ? `<div class="row"><span>Reçu</span><span>${recuNum.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Rendu</span><span>${rendu.toLocaleString('fr-FR')} F</span></div>` : '';
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}h1{font-size:16px;text-align:center;margin:0 0 2px}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body><h1>CHEZ MINA NOFLAYE</h1><p class="sub">Ticket n°${numero} · ${jour} ${heure} · ${typeLabel[typeCommande]}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/><div class="tot"><span>TOTAL</span><span>${total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel}</span></div>${cashRows}<hr/><p class="foot">${nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
-    w.document.close(); w.focus(); setTimeout(() => w.print(), 200);
+    const logoUrl = new URL(logo, window.location.origin).href;
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}.logo{display:block;margin:0 auto 6px;max-width:160px;max-height:64px;object-fit:contain}h1{font-size:16px;text-align:center;margin:0 0 2px}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="sub">Ticket n°${numero} · ${jour} ${heure} · ${typeLabel[typeCommande]}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/><div class="tot"><span>TOTAL</span><span>${total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel}</span></div>${cashRows}<hr/><p class="foot">${nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
+    w.document.close(); w.focus();
   };
 
   const validerPaiement = async () => {
