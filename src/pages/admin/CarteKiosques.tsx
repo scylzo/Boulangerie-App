@@ -281,14 +281,14 @@ export const CarteKiosques: React.FC = () => {
             <div className="bg-white border-b border-sand-200 px-6 py-4 shadow-sm z-20">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-sand-900 rounded-2xl flex items-center justify-center shadow-xl">
+                        <div className="w-12 h-12 bg-sand-900 rounded-2xl flex items-center justify-center shadow-elevated">
                             <Icon icon="mdi:map-marker-path" className="text-2xl text-white" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-black text-sand-900 uppercase tracking-tight">Supervision Géo-Performance</h1>
+                            <h1 className="text-xl font-semibold text-sand-900 uppercase tracking-tight">Supervision Géo-Performance</h1>
                             <div className="flex items-center gap-2">
                                 <span className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></span>
-                                <p className="text-[10px] font-bold text-sand-500 uppercase tracking-widest text-success-600">Système Live</p>
+                                <p className="text-[10px] font-semibold text-sand-500 uppercase tracking-widest text-success-600">Système Live</p>
                             </div>
                         </div>
                     </div>
@@ -297,8 +297,8 @@ export const CarteKiosques: React.FC = () => {
                         {/* Toggle Zones */}
                         <button
                             onClick={() => setAfficherZones(!afficherZones)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${afficherZones
-                                ? 'bg-terracotta-600 text-white shadow-lg shadow-terracotta-200'
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-widest transition-all ${afficherZones
+                                ? 'bg-terracotta-600 text-white shadow-card shadow-terracotta-200'
                                 : 'bg-sand-100 text-sand-400 border border-sand-200'
                                 }`}
                         >
@@ -308,9 +308,9 @@ export const CarteKiosques: React.FC = () => {
 
                         <button
                             onClick={localiserUtilisateur}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${userPosition
-                                ? 'bg-success-600 text-white shadow-lg shadow-success-100'
-                                : 'bg-sand-900 text-white shadow-lg'
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-widest transition-all ${userPosition
+                                ? 'bg-success-600 text-white shadow-card shadow-success-100'
+                                : 'bg-sand-900 text-white shadow-card'
                                 }`}
                         >
                             <Icon icon="mdi:crosshairs-gps" className="text-lg" />
@@ -321,21 +321,21 @@ export const CarteKiosques: React.FC = () => {
                         <div className="flex items-center gap-4 bg-sand-50 p-2 rounded-2xl border border-sand-100">
                             <div className="flex items-center gap-1">
                                 <div className="w-2.5 h-2.5 bg-[#10b981] rounded-full"></div>
-                                <span className="text-[9px] font-black uppercase text-sand-500">Elite</span>
+                                <span className="text-[9px] font-semibold uppercase text-sand-500">Elite</span>
                             </div>
                             <div className="flex items-center gap-1">
                                 <div className="w-2.5 h-2.5 bg-[#ef4444] rounded-full"></div>
-                                <span className="text-[9px] font-black uppercase text-sand-500">Alerte</span>
+                                <span className="text-[9px] font-semibold uppercase text-sand-500">Alerte</span>
                             </div>
                             <div className="mx-2 w-px h-6 bg-sand-200"></div>
                             <div className="flex items-center gap-3">
                                 <div className="text-center">
-                                    <div className="text-xs font-black text-sand-900">{counts.total}</div>
-                                    <div className="text-[7px] font-bold text-sand-400 uppercase leading-none">Total</div>
+                                    <div className="text-xs font-semibold text-sand-900">{counts.total}</div>
+                                    <div className="text-[7px] font-semibold text-sand-400 uppercase leading-none">Total</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-xs font-black text-info-600">{counts.mapped}</div>
-                                    <div className="text-[7px] font-bold text-sand-400 uppercase leading-none">Map</div>
+                                    <div className="text-xs font-semibold text-info-600">{counts.mapped}</div>
+                                    <div className="text-[7px] font-semibold text-sand-400 uppercase leading-none">Map</div>
                                 </div>
                             </div>
                         </div>
@@ -345,7 +345,7 @@ export const CarteKiosques: React.FC = () => {
 
             {/* Map Area */}
             <div className="flex-1 w-full bg-sand-100 p-4">
-                <div className="w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white" style={{ height: 'calc(100vh - 160px)', position: 'relative' }}>
+                <div className="w-full rounded-2xl overflow-hidden shadow-elevated border-4 border-white" style={{ height: 'calc(100vh - 160px)', position: 'relative' }}>
                     <MapContainer
                         center={mapCenter}
                         zoom={15}
@@ -372,9 +372,9 @@ export const CarteKiosques: React.FC = () => {
                                 >
                                     <Popup>
                                         <div className="p-2 text-center">
-                                            <div className="text-[10px] font-black text-sand-400 uppercase mb-1">Zone de livraison</div>
-                                            <div className="text-sm font-black text-sand-900">{zone.livreurNom}</div>
-                                            <div className="mt-1 text-xs text-info-600 font-bold">{zone.points.length} points de vente</div>
+                                            <div className="text-[10px] font-semibold text-sand-400 uppercase mb-1">Zone de livraison</div>
+                                            <div className="text-sm font-semibold text-sand-900">{zone.livreurNom}</div>
+                                            <div className="mt-1 text-xs text-info-600 font-semibold">{zone.points.length} points de vente</div>
                                         </div>
                                     </Popup>
                                 </Polygon>
@@ -395,20 +395,20 @@ export const CarteKiosques: React.FC = () => {
                                             {/* Header Rapport */}
                                             <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-sand-50">
                                                 <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="w-12 h-12 bg-sand-900 rounded-2xl flex items-center justify-center shadow-xl">
+                                                    <div className="w-12 h-12 bg-sand-900 rounded-2xl flex items-center justify-center shadow-elevated">
                                                         <Icon icon="mdi:store-check" className="text-white text-2xl" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="font-black text-sand-900 leading-tight mb-0.5 truncate uppercase text-sm">{kiosque.nom}</div>
+                                                        <div className="font-semibold text-sand-900 leading-tight mb-0.5 truncate uppercase text-sm">{kiosque.nom}</div>
                                                         <div className="flex flex-col gap-1">
                                                             <div className="flex items-center gap-1.5">
                                                                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: perf.color }}></span>
-                                                                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: perf.color }}>
+                                                                <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: perf.color }}>
                                                                     {perf.label}
                                                                 </span>
                                                             </div>
                                                             {userPosition && (
-                                                                <div className="flex items-center gap-1 text-[10px] font-bold text-terracotta-600 uppercase italic">
+                                                                <div className="flex items-center gap-1 text-[10px] font-semibold text-terracotta-600 uppercase italic">
                                                                     <Icon icon="mdi:map-marker-distance" />
                                                                     À {calculateDistance(userPosition[0], userPosition[1], kiosque.latitude!, kiosque.longitude!).toFixed(2)} km
                                                                 </div>
@@ -433,12 +433,12 @@ export const CarteKiosques: React.FC = () => {
                                                 <div className="space-y-4 mb-6">
                                                     <div className="flex justify-between items-end">
                                                         <div>
-                                                            <div className="text-[10px] font-black text-sand-400 uppercase mb-1">Progression Ventes</div>
-                                                            <div className="text-2xl font-black text-sand-900">{perf.taux.toFixed(1)}%</div>
+                                                            <div className="text-[10px] font-semibold text-sand-400 uppercase mb-1">Progression Ventes</div>
+                                                            <div className="text-2xl font-semibold text-sand-900">{perf.taux.toFixed(1)}%</div>
                                                         </div>
                                                         <div className="text-right">
-                                                            <div className="text-[10px] font-black text-sand-400 uppercase mb-1 text-right">Revenue</div>
-                                                            <div className="text-base font-black text-success-600">{formatCurrency(perf.montant!)}</div>
+                                                            <div className="text-[10px] font-semibold text-sand-400 uppercase mb-1 text-right">Revenue</div>
+                                                            <div className="text-base font-semibold text-success-600">{formatCurrency(perf.montant!)}</div>
                                                         </div>
                                                     </div>
                                                     {/* Barre de progression visuelle */}
@@ -451,7 +451,7 @@ export const CarteKiosques: React.FC = () => {
                                                 </div>
                                             ) : (
                                                 <div className="bg-warning-50 p-4 rounded-2xl border border-warning-100 mb-6">
-                                                    <p className="text-[11px] text-warning-600 font-bold leading-relaxed">
+                                                    <p className="text-[11px] text-warning-600 font-semibold leading-relaxed">
                                                         <Icon icon="mdi:information" className="inline mr-2 text-lg" />
                                                         En attente de la saisie des retours pour analyser la performance.
                                                     </p>
@@ -466,7 +466,7 @@ export const CarteKiosques: React.FC = () => {
                                                 {kiosque.telephone && (
                                                     <div className="flex items-center gap-3 text-[11px] text-sand-600">
                                                         <Icon icon="mdi:phone" className="text-sand-400 text-lg shrink-0" />
-                                                        <span className="font-bold">{kiosque.telephone}</span>
+                                                        <span className="font-semibold">{kiosque.telephone}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -474,14 +474,14 @@ export const CarteKiosques: React.FC = () => {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleEditClient(kiosque)}
-                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-white text-sand-900 text-[10px] font-black rounded-xl border-2 border-sand-900 hover:bg-sand-50 transition-all uppercase tracking-widest"
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-white text-sand-900 text-[10px] font-semibold rounded-xl border-2 border-sand-900 hover:bg-sand-50 transition-all uppercase tracking-widest"
                                                 >
                                                     <Icon icon="mdi:pencil" className="text-base" />
                                                     Corriger
                                                 </button>
                                                 <button
                                                     onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${kiosque.latitude},${kiosque.longitude}`, '_blank')}
-                                                    className="flex-1 flex items-center justify-center gap-2 py-4 bg-sand-900 text-white text-[10px] font-black rounded-xl hover:bg-black transition-all shadow-2xl uppercase tracking-[0.2em]"
+                                                    className="flex-1 flex items-center justify-center gap-2 py-4 bg-sand-900 text-white text-[10px] font-semibold rounded-xl hover:bg-black transition-all shadow-elevated uppercase tracking-[0.2em]"
                                                 >
                                                     <Icon icon="mdi:navigation" className="text-lg text-success-500" />
                                                     GPS
@@ -497,11 +497,11 @@ export const CarteKiosques: React.FC = () => {
                             <Marker position={userPosition} icon={icons.boulangerie}>
                                 <Popup>
                                     <div className="p-3 text-center min-w-[150px]">
-                                        <div className="w-12 h-12 bg-sand-900 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg">
+                                        <div className="w-12 h-12 bg-sand-900 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-card">
                                             <span className="text-2xl">🥖</span>
                                         </div>
-                                        <div className="font-black text-sand-900 uppercase text-xs tracking-widest">Ma Boulangerie</div>
-                                        <div className="text-[9px] font-bold text-sand-400 mt-1 uppercase">Point de référence distance</div>
+                                        <div className="font-semibold text-sand-900 uppercase text-xs tracking-widest">Ma Boulangerie</div>
+                                        <div className="text-[9px] font-semibold text-sand-400 mt-1 uppercase">Point de référence distance</div>
                                         <div className="mt-3 text-[10px] text-sand-500 font-medium italic">
                                             {userPosition[0].toFixed(6)}, {userPosition[1].toFixed(6)}
                                         </div>

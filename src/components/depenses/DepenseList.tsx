@@ -121,7 +121,7 @@ export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, onDeleteStock,
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-sand-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-sand-900">
                     {depense.montant.toLocaleString()} FCFA
                   </td>
                   {!readOnly && (

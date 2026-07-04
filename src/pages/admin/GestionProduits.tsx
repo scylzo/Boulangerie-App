@@ -186,16 +186,16 @@ export const GestionProduits: React.FC = () => {
                 {produits.map((produit) => (
                   <div
                     key={produit.id}
-                    className="bg-white border border-sand-200 rounded-2xl p-4 sm:p-6 hover:border-warning-100 hover:shadow-lg transition-all duration-300 group"
+                    className="bg-white border border-sand-200 rounded-2xl p-4 sm:p-6 hover:border-warning-100 hover:shadow-card transition-all duration-300 group"
                   >
                     {/* Header du produit */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-warning-600 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-warning-600 rounded-2xl flex items-center justify-center shadow-sm transition-transform">
                           <Icon icon={getProductIcon(produit.nom)} className="text-2xl text-white" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-sm sm:text-lg text-sand-900 mb-1 line-clamp-2 min-h-[2.5rem] sm:min-h-[3.5rem] flex items-center">
+                          <h3 className="font-semibold text-sm sm:text-lg text-sand-900 mb-1 line-clamp-2 min-h-[2.5rem] sm:min-h-[3.5rem] flex items-center">
                             {produit.nom}
                           </h3>
                           <div className="flex flex-wrap items-center gap-2">
@@ -207,7 +207,7 @@ export const GestionProduits: React.FC = () => {
                               {produit.active ? 'Actif' : 'Inactif'}
                             </span>
                             {produit.categorie && (
-                              <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold uppercase tracking-wider rounded-full border ${produit.categorie === 'boulangerie'
+                              <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold uppercase tracking-wider rounded-full border ${produit.categorie === 'boulangerie'
                                 ? 'bg-warning-100 text-warning-600 border-warning-100'
                                 : 'bg-danger-100 text-danger-700 border-danger-100'
                                 }`}>
@@ -233,7 +233,7 @@ export const GestionProduits: React.FC = () => {
                             <Icon icon="mdi:account-group" className="text-info-500 text-xs sm:text-sm" />
                             <span className="text-[10px] sm:text-xs font-medium text-info-600">Prix Client</span>
                           </div>
-                          <div className="text-base sm:text-xl font-bold text-info-600">
+                          <div className="text-base sm:text-xl font-semibold text-info-600">
                             {produit.prixClient ? `${produit.prixClient.toLocaleString('fr-FR')} F` : 'Non défini'}
                           </div>
                         </div>
@@ -243,7 +243,7 @@ export const GestionProduits: React.FC = () => {
                             <Icon icon="mdi:storefront" className="text-terracotta-500 text-xs sm:text-sm" />
                             <span className="text-[10px] sm:text-xs font-medium text-terracotta-700">Prix Boutique</span>
                           </div>
-                          <div className="text-base sm:text-xl font-bold text-terracotta-800">
+                          <div className="text-base sm:text-xl font-semibold text-terracotta-800">
                             {produit.prixBoutique ? `${produit.prixBoutique.toLocaleString('fr-FR')} F` : 'Non défini'}
                           </div>
                         </div>
@@ -257,7 +257,7 @@ export const GestionProduits: React.FC = () => {
                       <button
                         onClick={() => handleEditer(produit)}
                         disabled={showForm}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-warning-600 hover:text-warning-600 bg-warning-50 hover:bg-warning-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-warning-600 hover:text-warning-600 bg-warning-50 hover:bg-warning-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-elevated disabled:opacity-50"
                       >
                         <Icon icon="mdi:pencil" className="text-base sm:text-lg" />
                         <span className="hidden sm:inline">Modifier</span>
@@ -265,7 +265,7 @@ export const GestionProduits: React.FC = () => {
                       <button
                         onClick={() => handleSupprimer(produit)}
                         disabled={isLoadingProduits}
-                        className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-danger-600 hover:text-danger-700 bg-danger-50 hover:bg-danger-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-danger-600 hover:text-danger-700 bg-danger-50 hover:bg-danger-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-elevated disabled:opacity-50"
                       >
                         <Icon icon="mdi:delete-outline" className="text-base sm:text-lg" />
                       </button>

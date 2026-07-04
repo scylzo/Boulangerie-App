@@ -88,7 +88,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Paiement Multi-modes - ${facture.numeroFacture}`} size="lg">
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="bg-gradient-to-br from-terracotta-50 to-white p-5 rounded-2xl border border-terracotta-100 shadow-sm space-y-3">
+                <div className="bg-terracotta-50 p-5 rounded-2xl border border-terracotta-100 shadow-sm space-y-3">
                     <div className="flex justify-between items-center text-sm">
                         <span className="text-terracotta-600 font-medium">Récapitulatif Facture :</span>
                         <span className="text-sand-400 font-mono text-xs">{facture.numeroFacture}</span>
@@ -103,7 +103,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                 <Icon icon="mdi:wallet-outline" />
                                 Avoir utilisé :
                             </span>
-                            <span className="font-bold">- {formatCurrency(facture.soldeUtilise)}</span>
+                            <span className="font-semibold">- {formatCurrency(facture.soldeUtilise)}</span>
                         </div>
                     ) : null}
                     {dejaPaye > 0 ? (
@@ -112,25 +112,25 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                 <Icon icon="mdi:history" />
                                 Déjà réglé :
                             </span>
-                            <span className="font-bold">{formatCurrency(dejaPaye)}</span>
+                            <span className="font-semibold">{formatCurrency(dejaPaye)}</span>
                         </div>
                     ) : null}
                     <div className="flex justify-between items-center border-t border-terracotta-100 pt-3">
-                        <span className="font-bold text-sand-900">Reste à encaisser :</span>
-                        <span className="text-2xl font-black text-terracotta-700">{formatCurrency(netARester)}</span>
+                        <span className="font-semibold text-sand-900">Reste à encaisser :</span>
+                        <span className="text-2xl font-semibold text-terracotta-700">{formatCurrency(netARester)}</span>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-bold text-sand-700 uppercase tracking-widest flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-sand-700 uppercase tracking-widest flex items-center gap-2">
                             <Icon icon="mdi:cash-multiple" className="text-terracotta-500 text-lg" />
                             Détail des versements
                         </h4>
                         <button
                             type="button"
                             onClick={handleAddReglement}
-                            className="flex items-center gap-2 text-xs font-bold text-white bg-terracotta-600 hover:bg-terracotta-700 px-4 py-2 rounded-full transition-all shadow-md hover:shadow-terracotta-200 active:scale-95"
+                            className="flex items-center gap-2 text-xs font-semibold text-white bg-terracotta-600 hover:bg-terracotta-700 px-4 py-2 rounded-full transition-all shadow-md hover:shadow-terracotta-200 active:scale-95"
                         >
                             <Icon icon="mdi:plus-circle" className="text-sm" />
                             Ajouter un mode
@@ -142,24 +142,24 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             <div key={reg.id} className="relative bg-white p-4 rounded-2xl border border-sand-200 shadow-sm hover:border-terracotta-200 transition-all group animate-in slide-in-from-bottom-4 duration-300">
                                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
                                     <div className="sm:col-span-5">
-                                        <label className="block text-[10px] font-bold text-sand-400 uppercase mb-1.5 ml-1">Montant du versement</label>
+                                        <label className="block text-[10px] font-semibold text-sand-400 uppercase mb-1.5 ml-1">Montant du versement</label>
                                         <div className="relative group/input">
                                             <input
                                                 type="number"
                                                 value={reg.montant}
                                                 onChange={(e) => handleUpdateReglement(reg.id, 'montant', e.target.value)}
-                                                className="w-full pl-4 pr-12 py-3 bg-sand-50 border border-sand-200 rounded-xl focus:ring-4 focus:ring-terracotta-500/10 focus:border-terracotta-500 outline-none font-bold text-sand-900 text-lg transition-all"
+                                                className="w-full pl-4 pr-12 py-3 bg-sand-50 border border-sand-200 rounded-xl focus:ring-4 focus:ring-terracotta-500/10 focus:border-terracotta-500 outline-none font-semibold text-sand-900 text-lg transition-all"
                                                 placeholder="0"
                                                 min="0"
                                                 required
                                                 autoFocus={index === reglements.length - 1}
                                             />
-                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-sand-400 group-focus-within/input:text-terracotta-500">FCFA</span>
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-sand-400 group-focus-within/input:text-terracotta-500">FCFA</span>
                                         </div>
                                     </div>
 
                                     <div className="sm:col-span-6">
-                                        <label className="block text-[10px] font-bold text-sand-400 uppercase mb-1.5 ml-1">Moyen de paiement</label>
+                                        <label className="block text-[10px] font-semibold text-sand-400 uppercase mb-1.5 ml-1">Moyen de paiement</label>
                                         <div className="grid grid-cols-3 gap-2 p-1 bg-sand-100 rounded-xl">
                                             {(['espece', 'om', 'wave'] as const).map(m => (
                                                 <button
@@ -180,7 +180,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                                             className="w-6 h-6 object-contain mb-0.5"
                                                         />
                                                     )}
-                                                    <span className="text-[9px] font-black uppercase tracking-tighter">
+                                                    <span className="text-[9px] font-semibold uppercase tracking-tighter">
                                                         {m === 'espece' ? 'Espèce' : m === 'om' ? 'Orange' : 'Wave'}
                                                     </span>
                                                 </button>
@@ -218,15 +218,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             <Icon icon="mdi:calculator-variant" />
                             Total encaissé :
                         </span>
-                        <span className="font-bold">{formatCurrency(totalSaisi)}</span>
+                        <span className="font-semibold">{formatCurrency(totalSaisi)}</span>
                     </div>
                     
-                    <div className="h-px bg-gradient-to-r from-transparent via-sand-200 to-transparent"></div>
+                    <div className="h-px bg-transparent"></div>
 
                     <div className="flex justify-between items-center">
                         <div className="space-y-0.5">
-                            <span className="text-xs font-bold text-sand-400 uppercase tracking-widest">Reste à percevoir</span>
-                            <p className={`text-2xl font-black transition-colors ${resteAPayer === 0 ? 'text-success-600' : 'text-sand-900'}`}>
+                            <span className="text-xs font-semibold text-sand-400 uppercase tracking-widest">Reste à percevoir</span>
+                            <p className={`text-2xl font-semibold transition-colors ${resteAPayer === 0 ? 'text-success-600' : 'text-sand-900'}`}>
                                 {formatCurrency(resteAPayer)}
                             </p>
                         </div>
@@ -239,15 +239,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 </div>
 
                 {isOverpayment && (
-                    <div className="bg-gradient-to-br from-warning-50 to-warning-50 border border-warning-100 text-warning-600 p-5 rounded-2xl flex gap-4 shadow-sm animate-in zoom-in duration-300">
+                    <div className="bg-warning-50 border border-warning-100 text-warning-600 p-5 rounded-2xl flex gap-4 shadow-sm animate-in zoom-in duration-300">
                         <div className="bg-warning-100 p-3 rounded-full h-fit">
                             <Icon icon="mdi:alert-decagram" className="text-2xl text-warning-600" />
                         </div>
                         <div className="text-sm">
-                            <p className="font-black text-warning-600 uppercase tracking-tight mb-1">Montant supérieur au net !</p>
+                            <p className="font-semibold text-warning-600 uppercase tracking-tight mb-1">Montant supérieur au net !</p>
                             <p className="text-warning-600 leading-relaxed">
-                                Le montant total saisi est de <span className="font-bold">{formatCurrency(totalSaisi)}</span>. 
-                                Un avoir de <span className="bg-white px-2 py-0.5 rounded-lg font-black text-warning-600 shadow-sm">{formatCurrency(totalSaisi - netARester)}</span> sera automatiquement ajouté au solde du client.
+                                Le montant total saisi est de <span className="font-semibold">{formatCurrency(totalSaisi)}</span>. 
+                                Un avoir de <span className="bg-white px-2 py-0.5 rounded-lg font-semibold text-warning-600 shadow-sm">{formatCurrency(totalSaisi - netARester)}</span> sera automatiquement ajouté au solde du client.
                             </p>
                         </div>
                     </div>
@@ -258,7 +258,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         type="button"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="px-6 py-3 text-sm font-bold text-sand-400 hover:text-sand-600 transition-all"
+                        className="px-6 py-3 text-sm font-semibold text-sand-400 hover:text-sand-600 transition-all"
                     >
                         Annuler
                     </button>
@@ -266,7 +266,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         type="submit"
                         isLoading={isLoading}
                         disabled={totalSaisi <= 0}
-                        className="bg-sand-900 hover:bg-black text-white py-4 px-10 rounded-2xl shadow-xl shadow-sand-200 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                        className="bg-sand-900 hover:bg-black text-white py-4 px-10 rounded-2xl shadow-elevated shadow-sand-200 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
                     >
                         <Icon icon="mdi:check-circle" className="text-xl" />
                         <span>Enregistrer le paiement</span>

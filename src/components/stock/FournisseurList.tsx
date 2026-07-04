@@ -228,10 +228,10 @@ export const FournisseurList: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {fournisseurs.map((fournisseur) => (
-          <div key={fournisseur.id} className="bg-white rounded-xl shadow-sm border border-sand-100 p-5 hover:shadow-md transition-shadow">
+          <div key={fournisseur.id} className="bg-white rounded-xl shadow-sm border border-sand-100 p-5 hover:shadow-elevated transition-shadow">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h4 className="font-bold text-lg text-sand-800">{fournisseur.nom}</h4>
+                <h4 className="font-semibold text-lg text-sand-800">{fournisseur.nom}</h4>
                 <div className="flex items-center text-sand-500 text-sm mt-1">
                   <User size={14} className="mr-1" />
                   {fournisseur.contact}

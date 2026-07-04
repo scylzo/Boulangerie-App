@@ -320,7 +320,7 @@ export const StockDeclaration: React.FC = () => {
                                                 onChange={(e) => handleQteChange(ligne.matiereId, e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                                 className={`
-                                                block w-32 ml-auto rounded-md shadow-sm border-sand-300 focus:border-terracotta-500 focus:ring-terracotta-500 sm:text-sm text-center font-bold h-10
+                                                block w-32 ml-auto rounded-md shadow-sm border-sand-300 focus:border-terracotta-500 focus:ring-terracotta-500 sm:text-sm text-center font-semibold h-10
                                                 ${ligne.qteSaisie ? 'border-terracotta-300 bg-white text-terracotta-700' : 'bg-sand-50'}
                                             `}
                                             />
@@ -379,7 +379,7 @@ export const StockDeclaration: React.FC = () => {
                             flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-lg shadow-md transition-all
                             ${isSubmitting || totalArticlesSaisis === 0
                                 ? 'bg-sand-300 cursor-not-allowed text-sand-500'
-                                : 'bg-terracotta-600 hover:bg-terracotta-700 text-white hover:shadow-lg transform hover:-translate-y-0.5'
+                                : 'bg-terracotta-600 hover:bg-terracotta-700 text-white hover:shadow-card transform hover:-translate-y-0.5'
                             }
                         `}
                     >

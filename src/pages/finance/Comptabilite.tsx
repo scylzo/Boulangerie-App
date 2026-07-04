@@ -479,7 +479,7 @@ export const Comptabilite: React.FC = () => {
                             </h3>
                             <div className="flex items-center justify-between pt-2">
                                 <p className="text-xs sm:text-sm text-sand-500">Marge Nette</p>
-                                <p className={`text-base sm:text-lg font-bold ${marge >= 0 ? 'text-info-600' : 'text-warning-600'}`}>
+                                <p className={`text-base sm:text-lg font-semibold ${marge >= 0 ? 'text-info-600' : 'text-warning-600'}`}>
                                     {marge.toFixed(1)}%
                                 </p>
                             </div>
@@ -538,7 +538,7 @@ export const Comptabilite: React.FC = () => {
                                                     <span className="text-sand-600 truncate">{nom}</span>
                                                     <span className="text-[10px] bg-warning-50 text-warning-600 px-1.5 py-0.5 rounded-full font-medium border border-warning-100 shrink-0">Intrant</span>
                                                 </div>
-                                                <span className="font-bold text-sand-900 shrink-0 ml-2">{stats.totalCouts > 0 ? Math.round((montant / stats.totalCouts) * 100) : 0}%</span>
+                                                <span className="font-semibold text-sand-900 shrink-0 ml-2">{stats.totalCouts > 0 ? Math.round((montant / stats.totalCouts) * 100) : 0}%</span>
                                             </div>
                                             <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
                                                 <div className="bg-warning-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? (montant / stats.totalCouts) * 100 : 0}%` }}></div>
@@ -550,7 +550,7 @@ export const Comptabilite: React.FC = () => {
                                 <div>
                                     <div className="flex justify-between text-xs sm:text-sm mb-2">
                                         <span className="text-sand-600 truncate">Matières Premières</span>
-                                        <span className="font-bold text-sand-900 shrink-0">{stats.totalCouts > 0 ? Math.round((stats.achatsMatieres / stats.totalCouts) * 100) : 0}%</span>
+                                        <span className="font-semibold text-sand-900 shrink-0">{stats.totalCouts > 0 ? Math.round((stats.achatsMatieres / stats.totalCouts) * 100) : 0}%</span>
                                     </div>
                                     <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
                                         <div className="bg-warning-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? (stats.achatsMatieres / stats.totalCouts) * 100 : 0}%` }}></div>
@@ -564,7 +564,7 @@ export const Comptabilite: React.FC = () => {
                                     <div key={categ}>
                                         <div className="flex justify-between text-xs sm:text-sm mb-2">
                                             <span className="text-sand-600 truncate">{categ}</span>
-                                            <span className="font-bold text-sand-900 shrink-0">{stats.totalCouts > 0 ? Math.round(((montant as number) / stats.totalCouts) * 100) : 0}%</span>
+                                            <span className="font-semibold text-sand-900 shrink-0">{stats.totalCouts > 0 ? Math.round(((montant as number) / stats.totalCouts) * 100) : 0}%</span>
                                         </div>
                                         <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
                                             <div className="bg-sand-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? ((montant as number) / stats.totalCouts) * 100 : 0}%` }}></div>
@@ -586,7 +586,7 @@ export const Comptabilite: React.FC = () => {
                             <div>
                                 <div className="flex justify-between text-xs sm:text-sm mb-2">
                                     <span className="text-sand-600 truncate">Ventes Boutique</span>
-                                    <span className="font-bold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round((stats.caBoutique / totalRecettes) * 100) : 0}%</span>
+                                    <span className="font-semibold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round((stats.caBoutique / totalRecettes) * 100) : 0}%</span>
                                 </div>
                                 <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
                                     <div className="bg-info-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caBoutique / totalRecettes) * 100 : 0}%` }}></div>
@@ -596,7 +596,7 @@ export const Comptabilite: React.FC = () => {
                             <div>
                                 <div className="flex justify-between text-xs sm:text-sm mb-2">
                                     <span className="text-sand-600 truncate">Livraisons (Facturées)</span>
-                                    <span className="font-bold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round((stats.caLivraison / totalRecettes) * 100) : 0}%</span>
+                                    <span className="font-semibold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round((stats.caLivraison / totalRecettes) * 100) : 0}%</span>
                                 </div>
                                 <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
                                     <div className="bg-terracotta-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caLivraison / totalRecettes) * 100 : 0}%` }}></div>

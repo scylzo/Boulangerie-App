@@ -104,7 +104,7 @@ export const FicheProduit: React.FC = () => {
             <div className="bg-white border-b border-sand-200 px-6 py-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-warning-600 rounded-xl flex items-center justify-center shadow-lg shadow-warning-100">
+                        <div className="w-12 h-12 bg-warning-600 rounded-xl flex items-center justify-center shadow-card shadow-warning-100">
                             <Icon icon="mdi:file-certificate" className="text-2xl text-white" />
                         </div>
                         <div>
@@ -116,14 +116,14 @@ export const FicheProduit: React.FC = () => {
                     <div className="flex items-center gap-3 w-full sm:w-auto">
                         <button
                             onClick={handleToggleAll}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-sand-100 hover:bg-sand-200 text-sand-700 rounded-xl font-bold transition-all"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-sand-100 hover:bg-sand-200 text-sand-700 rounded-xl font-semibold transition-all"
                         >
                             <Icon icon={Object.values(selectedItems).every(item => item.active) ? "mdi:checkbox-multiple-marked" : "mdi:checkbox-multiple-blank-outline"} className="text-xl" />
                             {Object.values(selectedItems).every(item => item.active) ? "Tout désélectionner" : "Tout sélectionner"}
                         </button>
                         <button
                             onClick={handleGeneratePDF}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-warning-600 hover:bg-warning-600 text-white rounded-xl font-bold transition-all shadow-lg shadow-warning-100 hover:scale-105 active:scale-95"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-warning-600 hover:bg-warning-600 text-white rounded-xl font-semibold transition-all shadow-card shadow-warning-100 active:scale-95"
                         >
                             <Icon icon="mdi:pdf-box" className="text-xl" />
                             Générer la Fiche (PDF)
@@ -139,7 +139,7 @@ export const FicheProduit: React.FC = () => {
                         <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
                             <Icon icon="mdi:account" className="text-info-600" />
                         </div>
-                        <h2 className="text-lg font-bold text-sand-900">Informations Client</h2>
+                        <h2 className="text-lg font-semibold text-sand-900">Informations Client</h2>
                     </div>
                     <div className="max-w-md">
                         <label className="block text-sm font-semibold text-sand-700 mb-2">Nom du Client / Prospect</label>
@@ -160,7 +160,7 @@ export const FicheProduit: React.FC = () => {
                             <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
                                 <Icon icon="mdi:bread-slice" className="text-warning-600" />
                             </div>
-                            <h2 className="text-lg font-bold text-sand-900">Sélection des Produits</h2>
+                            <h2 className="text-lg font-semibold text-sand-900">Sélection des Produits</h2>
                         </div>
                         <div className="text-sm font-medium text-sand-500">
                             {Object.values(selectedItems).filter(item => item.active).length} produit(s) sélectionné(s)
@@ -171,7 +171,7 @@ export const FicheProduit: React.FC = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-sand-50/50">
-                                    <th className="px-6 py-4 text-xs font-bold text-sand-500 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">
                                         <div className="flex items-center gap-2 cursor-pointer" onClick={handleToggleAll}>
                                             <button
                                                 className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
@@ -185,9 +185,9 @@ export const FicheProduit: React.FC = () => {
                                             <span className="hover:text-warning-600 transition-colors">Tout</span>
                                         </div>
                                     </th>
-                                    <th className="px-6 py-4 text-xs font-bold text-sand-500 uppercase tracking-wider">Produit & Prix Revendeur</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-sand-500 uppercase tracking-wider">Prix Boutique</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-sand-500 uppercase tracking-wider">Marge</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Produit & Prix Revendeur</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Prix Boutique</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Marge</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-sand-100">
@@ -214,7 +214,7 @@ export const FicheProduit: React.FC = () => {
                                                 </button>
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                <div className="font-bold text-sand-900">{produit.nom}</div>
+                                                <div className="font-semibold text-sand-900">{produit.nom}</div>
                                                 <div className="text-xs text-sand-500 font-medium">Revendeur: {formatCurrencyCompact(produit.prixClient || produit.prixBoutique || 0)}</div>
                                             </td>
                                             <td className="px-6 py-4">

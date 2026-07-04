@@ -378,12 +378,12 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-info-600">
               <Icon icon="mdi:map-marker-radius" className="text-xl shrink-0" />
-              <span className="text-sm font-bold uppercase tracking-wider leading-tight">Géolocalisation du Kiosque</span>
+              <span className="text-sm font-semibold uppercase tracking-wider leading-tight">Géolocalisation du Kiosque</span>
             </div>
             <button
               type="button"
               onClick={getGeolocation}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-info-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-info-600 transition-all shadow-md active:scale-95 w-full sm:w-auto"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-info-600 text-white text-xs font-semibold uppercase tracking-widest rounded-xl hover:bg-info-600 transition-all shadow-md active:scale-95 w-full sm:w-auto"
             >
               <Icon icon="mdi:crosshairs-gps" className="text-lg" />
               Ma position actuelle
@@ -392,7 +392,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-info-600 uppercase ml-1">Latitude</label>
+              <label className="text-[10px] font-semibold text-info-600 uppercase ml-1">Latitude</label>
               <Input
                 type="number"
                 step="any"
@@ -402,7 +402,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-info-600 uppercase ml-1">Longitude</label>
+              <label className="text-[10px] font-semibold text-info-600 uppercase ml-1">Longitude</label>
               <Input
                 type="number"
                 step="any"

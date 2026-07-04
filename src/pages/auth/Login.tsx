@@ -27,25 +27,25 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-warning-50 via-warning-50 to-warning-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-warning-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-4">
         {/* Logo et titre - Version moderne Odoo */}
         <div className="text-center">
-          <div className="mx-auto w-50 h-50 flex items-center justify-center transform hover:scale-105 transition-transform -mb-8">
+          <div className="mx-auto w-50 h-50 flex items-center justify-center transform transition-transform -mb-8">
             <img
               src={logo}
               alt="Logo Boulangerie"
               className="w-full h-full object-contain"
             />
           </div>
-          <div className="w-32 h-1 bg-linear-to-r from-warning-600 to-warning-600 mx-auto rounded-full"></div>
+          <div className="w-32 h-1 bg-warning-600 mx-auto rounded-full"></div>
         </div>
 
         {/* Formulaire de connexion - Design moderne */}
-        <div className="bg-white shadow-2xl rounded-3xl p-8 border border-sand-100 backdrop-blur-sm">
+        <div className="bg-white shadow-elevated rounded-2xl p-8 border border-sand-100 backdrop-blur-sm">
           <div className="mb-8">
             <div className="flex items-center gap-3 justify-center mb-4">
-              <div className="w-8 h-8 bg-linear-to-r from-warning-600 to-warning-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-warning-600 rounded-lg flex items-center justify-center">
                 <Icon icon="mdi:account-circle" className="text-white text-lg" />
               </div>
               <h2 className="text-xl font-semibold text-sand-900">
@@ -108,7 +108,7 @@ export const Login: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-linear-to-r from-warning-600 to-warning-600 hover:from-warning-600 hover:to-warning-600 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transform transition-all hover:scale-105 focus:ring-2 focus:ring-warning-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-warning-600 hover:from-warning-600 hover:to-warning-600 text-white font-semibold py-4 px-6 rounded-xl shadow-card transform transition-all focus:ring-2 focus:ring-warning-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               <div className="flex items-center justify-center gap-2">
                 {isLoading ? (

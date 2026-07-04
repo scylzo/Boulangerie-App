@@ -384,7 +384,7 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                                                 {row.client}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right text-sand-500">{row.volumeProduits}</td>
-                                            <td className="px-4 py-3 text-sm text-right font-bold text-success-600">
+                                            <td className="px-4 py-3 text-sm text-right font-semibold text-success-600">
                                                 {formatCurrency(row.totalRistourne)}
                                             </td>
                                             <td className="px-4 py-3 text-center">
@@ -466,8 +466,8 @@ export const CalculateurRistourneModal: React.FC<Props> = ({ isOpen, onClose }) 
                             </tbody>
                             <tfoot className="bg-sand-50">
                                 <tr>
-                                    <td colSpan={2} className="px-4 py-3 text-sm font-bold text-sand-900 text-right">TOTAL</td>
-                                    <td className="px-4 py-3 text-sm font-bold text-success-700 text-right">
+                                    <td colSpan={2} className="px-4 py-3 text-sm font-semibold text-sand-900 text-right">TOTAL</td>
+                                    <td className="px-4 py-3 text-sm font-semibold text-success-700 text-right">
                                         {formatCurrency(resultats.reduce((acc, curr) => acc + curr.totalRistourne, 0))}
                                     </td>
                                     <td></td>

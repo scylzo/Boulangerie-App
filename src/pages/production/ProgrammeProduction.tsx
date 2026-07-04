@@ -1547,11 +1547,11 @@ export const ProgrammeProduction: React.FC = () => {
       <button
         onClick={() => setShowQuantiteBoutiqueForm(true)}
         disabled={showQuantiteBoutiqueForm}
-        className="fixed bottom-6 right-6 w-16 h-16 bg-info-600 hover:bg-info-600 text-white rounded-full shadow-card hover:shadow-elevated transition-all duration-300 hover:scale-110 disabled:opacity-50 z-50 flex items-center justify-center group"
+        className="fixed bottom-6 right-6 w-16 h-16 bg-info-600 hover:bg-info-600 text-white rounded-full shadow-card hover:shadow-elevated transition-all duration-300 disabled:opacity-50 z-50 flex items-center justify-center group"
         title="Ajouter un produit boutique"
       >
         <div className="relative">
-          <Icon icon="mdi:storefront-plus" className="text-2xl transition-transform group-hover:scale-110" />
+          <Icon icon="mdi:storefront-plus" className="text-2xl transition-transform" />
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-success-500 rounded-full animate-pulse"></div>
         </div>
       </button>

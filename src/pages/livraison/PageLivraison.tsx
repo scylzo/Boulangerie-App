@@ -427,7 +427,7 @@ export const PageLivraison: React.FC = () => {
               {commandesOrganisees.map(([livreurId, data]: [string, any]) => (
                 <div
                   key={livreurId}
-                  className={`bg-white rounded-xl border border-sand-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden ${!data.livreur ? 'border-warning-100 bg-warning-50' : ''
+                  className={`bg-white rounded-xl border border-sand-200 shadow-sm hover:shadow-elevated transition-all duration-200 overflow-hidden ${!data.livreur ? 'border-warning-100 bg-warning-50' : ''
                     }`}
                 >
                   {/* En-tête Livreur Compact */}
@@ -442,7 +442,7 @@ export const PageLivraison: React.FC = () => {
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h2 className="text-sm sm:text-base font-bold text-sand-900 truncate">
+                          <h2 className="text-sm sm:text-base font-semibold text-sand-900 truncate">
                             {data.livreur ? (
                               `${data.livreur.nom} ${data.livreur.vehicule ? `(${data.livreur.vehicule})` : ''}`
                             ) : (
@@ -516,7 +516,7 @@ export const PageLivraison: React.FC = () => {
                         .map(([car, livraisons]) => {
                           const colors = getCarColors();
                           return (
-                            <div key={car} className={`relative bg-white border ${colors.border} rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200`}>
+                            <div key={car} className={`relative bg-white border ${colors.border} rounded-xl overflow-hidden shadow-sm hover:shadow-elevated transition-all duration-200`}>
                               {/* Barre de couleur sur le côté gauche */}
                               <div className={`absolute left-0 top-0 bottom-0 w-1 ${colors.accent}`}></div>
 
@@ -573,7 +573,7 @@ export const PageLivraison: React.FC = () => {
                                             <div className="font-semibold text-sand-800 text-sm truncate pr-2" title={clientData.client?.nom}>
                                               {clientData.client?.nom || 'Client Inconnu'}
                                             </div>
-                                            <div className="bg-white px-2 py-0.5 rounded text-xs font-bold text-sand-600 border border-sand-200 shadow-sm shrink-0">
+                                            <div className="bg-white px-2 py-0.5 rounded text-xs font-semibold text-sand-600 border border-sand-200 shadow-sm shrink-0">
                                               {clientData.produits.reduce((acc, p) => acc + p.quantite, 0)} pc
                                             </div>
                                           </div>
@@ -618,7 +618,7 @@ export const PageLivraison: React.FC = () => {
                                             className="text-sand-600 text-sm"
                                           />
                                           <span className="text-sm font-medium text-sand-900">{produit}</span>
-                                          <span className="text-sm font-bold text-sand-900 bg-sand-100 px-2 py-1 rounded-full">
+                                          <span className="text-sm font-semibold text-sand-900 bg-sand-100 px-2 py-1 rounded-full">
                                             {total}
                                           </span>
                                         </div>

@@ -91,9 +91,9 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded-2xl shadow-elevated max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-warning-500 to-danger-500 px-6 py-4 text-white">
+                <div className="bg-warning-500 px-6 py-4 text-white">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <Icon icon="mdi:alert-circle" className="text-3xl" />

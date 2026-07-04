@@ -83,9 +83,9 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                 <div className="fixed inset-0 bg-transparent" onClick={onClose} />
 
                 {/* Modal */}
-                <div className="relative bg-sand-100 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-sand-200 animate-in zoom-in-95 fade-in duration-300">
+                <div className="relative bg-sand-100 rounded-xl shadow-elevated max-w-3xl w-full max-h-[90vh] overflow-hidden border border-sand-200 animate-in zoom-in-95 fade-in duration-300">
                     {/* Header moderne */}
-                    <div className="bg-gradient-to-r from-sand-50 to-white px-6 py-4 border-b border-sand-200">
+                    <div className="bg-sand-50 px-6 py-4 border-b border-sand-200">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-terracotta-100 rounded-lg flex items-center justify-center">
@@ -93,7 +93,7 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                                 </div>
                                 <div>
                                     <h2 className="font-display text-xl font-semibold text-sand-900 flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-gradient-to-r from-terracotta-600 to-info-600 rounded-full"></div>
+                                        <div className="w-2 h-2 bg-terracotta-600 rounded-full"></div>
                                         Clôture de Journée
                                     </h2>
                                     <p className="text-sm text-sand-500">Répartition des invendus</p>
@@ -101,7 +101,7 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                             </div>
                             <button
                                 onClick={onClose}
-                                className="rounded-lg p-2 hover:bg-sand-100 hover:scale-105 transition-all duration-200 group"
+                                className="rounded-lg p-2 hover:bg-sand-100 transition-all duration-200 group"
                                 title="Fermer"
                             >
                                 <Icon icon="mdi:close" className="text-sand-500 group-hover:text-sand-700 text-xl transition-colors" />

@@ -425,7 +425,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
               <div className="p-4 bg-danger-50 border border-danger-100 rounded-lg flex items-start gap-3 animate-pulse">
                 <Icon icon="mdi:alert" className="text-danger-600 text-xl mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-danger-700">Attention : Repos le Dimanche</h4>
+                  <h4 className="text-sm font-semibold text-danger-700">Attention : Repos le Dimanche</h4>
                   <p className="text-sm text-danger-700">
                     Ce client ne travaille habituellement pas le dimanche. Vérifiez bien qu'il a passé commande pour cette date.
                   </p>
@@ -517,7 +517,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                         {/* Quantité totale calculée */}
                         <div>
                           <label className="block text-xs font-medium text-sand-700 mb-1">Quantité totale</label>
-                          <div className="px-3 py-2 bg-sand-50 border border-sand-300 rounded-md text-sm font-bold text-sand-900">
+                          <div className="px-3 py-2 bg-sand-50 border border-sand-300 rounded-md text-sm font-semibold text-sand-900">
                             {repartitionTotal || 0} pièce(s)
                           </div>
                           <p className="text-xs text-sand-500 mt-1">Calculé automatiquement</p>
@@ -568,7 +568,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                             onChange={(e) => {
                               modifierRepartition(index, 'car1_matin', e.target.value);
                             }}
-                            className="text-center font-bold text-warning-600"
+                            className="text-center font-semibold text-warning-600"
                           />
                         </div>
 
@@ -585,7 +585,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                             onChange={(e) => {
                               modifierRepartition(index, 'car2_matin', e.target.value);
                             }}
-                            className="text-center font-bold text-info-600"
+                            className="text-center font-semibold text-info-600"
                           />
                         </div>
 
@@ -602,7 +602,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                             onChange={(e) => {
                               modifierRepartition(index, 'car_soir', e.target.value);
                             }}
-                            className="text-center font-bold text-terracotta-700"
+                            className="text-center font-semibold text-terracotta-700"
                           />
                         </div>
                       </div>
@@ -638,7 +638,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
               {/* Total et aide */}
               <div className="pt-4 border-t border-sand-200">
                 <div className="flex justify-between items-center">
-                  <div className="text-lg font-bold text-sand-900">
+                  <div className="text-lg font-semibold text-sand-900">
                     Total: {calculerTotal().toLocaleString('fr-FR')} FCFA
                   </div>
                 </div>
@@ -679,7 +679,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
               <button
                 type="button"
                 onClick={handleSauvegarderType}
-                className="flex items-center gap-2 px-4 py-2 bg-info-600 hover:bg-info-600 text-white rounded-lg transition-all shadow-sm hover:shadow-md text-sm font-medium"
+                className="flex items-center gap-2 px-4 py-2 bg-info-600 hover:bg-info-600 text-white rounded-lg transition-all shadow-sm hover:shadow-elevated text-sm font-medium"
               >
                 <Icon icon="mdi:content-save-settings" className="text-lg" />
                 Définir comme commande type

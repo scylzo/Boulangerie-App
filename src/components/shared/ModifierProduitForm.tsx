@@ -133,7 +133,7 @@ export const ModifierProduitForm: React.FC<ModifierProduitFormProps> = ({
           <div className="flex items-center justify-between p-3 bg-sand-50 rounded-lg">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-sand-700">Total distribué:</span>
-              <span className="text-sm font-bold text-success-600">
+              <span className="text-sm font-semibold text-success-600">
                 {quantiteCommandee}
               </span>
             </div>

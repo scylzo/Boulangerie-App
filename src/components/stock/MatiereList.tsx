@@ -128,7 +128,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <h2 className="text-base sm:text-lg font-bold text-sand-800">Matières Premières</h2>
+        <h2 className="text-base sm:text-lg font-semibold text-sand-800">Matières Premières</h2>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <button
             onClick={() => useStockStore.getState().reparerHistoriqueStock()}
@@ -209,7 +209,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
             <div className="col-span-1 md:col-span-2 bg-warning-50/50 p-4 rounded-xl flex items-start space-x-3 border border-warning-100">
               <div className="text-warning-600 mt-0.5"><AlertTriangle size={18} /></div>
               <div className="text-sm text-warning-600 leading-relaxed">
-                <span className="font-bold">Note :</span> Créez d'abord la matière avec son unité de base.
+                <span className="font-semibold">Note :</span> Créez d'abord la matière avec son unité de base.
                 Vous pourrez ensuite ajouter du stock via le bouton <b>Mouvements</b> <ArrowRightLeft className="inline mx-1" size={14} /> dans la liste.
               </div>
             </div>
@@ -224,7 +224,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
             </button>
             <button
               type="submit"
-              className="flex-1 px-5 py-3 text-sm font-bold text-white bg-warning-600 hover:bg-warning-600 rounded-xl shadow-sm hover:shadow-md transition-all"
+              className="flex-1 px-5 py-3 text-sm font-semibold text-white bg-warning-600 hover:bg-warning-600 rounded-xl shadow-sm hover:shadow-elevated transition-all"
             >
               {isEditing ? 'Mettre à jour' : 'Créer la matière'}
             </button>
@@ -234,9 +234,9 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
 
       {conversionState.isOpen && conversionState.matiere && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-xl shadow-elevated w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="px-6 py-4 border-b border-sand-100 flex justify-between items-center bg-sand-50">
-              <h3 className="font-bold text-sand-800">
+              <h3 className="font-semibold text-sand-800">
                 Convertir l'unité : {conversionState.matiere.nom}
               </h3>
               <button
@@ -275,7 +275,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                   step="0.1"
                   value={conversionState.factor}
                   onChange={(e) => setConversionState({ ...conversionState, factor: e.target.value })}
-                  className="w-full p-2 border border-sand-200 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none font-bold"
+                  className="w-full p-2 border border-sand-200 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none font-semibold"
                   placeholder="Ex: 50"
                 />
                 <p className="text-xs text-sand-500 mt-1">

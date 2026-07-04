@@ -84,7 +84,7 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md my-8 flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-xl shadow-elevated w-full max-w-md my-8 flex flex-col max-h-[90vh]">
         <div className="px-6 py-4 border-b border-sand-100 flex justify-between items-center bg-sand-50 flex-shrink-0">
           <h3 className="font-display text-xl font-semibold">{initialData ? 'Modifier la Dépense' : 'Nouvelle Dépense'}</h3>
           <button onClick={onDesc} className="text-sand-400 hover:text-sand-600">
@@ -120,7 +120,7 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
           {/* Champs Période d'usage (Conditionnel) */}
           {['Carburant Four', 'Loyer', 'Électricité', 'Eau', 'Intrants'].includes(formData.categorie) && (
             <div className="bg-warning-50 p-4 rounded-lg border border-warning-100">
-              <h4 className="text-sm font-bold text-warning-600 mb-2">Période de consommation (Optionnel)</h4>
+              <h4 className="text-sm font-semibold text-warning-600 mb-2">Période de consommation (Optionnel)</h4>
               <div className="bg-white/50 p-2 rounded mb-3 text-xs text-warning-600 border border-warning-100">
                 <p>Le calcul se fait sur la base du proratadans.</p>
               </div>

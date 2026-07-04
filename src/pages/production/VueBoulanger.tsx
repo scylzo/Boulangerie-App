@@ -374,14 +374,14 @@ export const VueBoulanger: React.FC = () => {
 
             {/* Carte d'information de production à droite */}
             {programmeActuel && (
-              <div className="bg-gradient-to-l from-info-50 to-terracotta-50 border border-info-100 rounded-xl p-3 sm:p-4 shadow-sm w-full lg:w-auto lg:min-w-[320px]">
+              <div className="bg-info-50 border border-info-100 rounded-xl p-3 sm:p-4 shadow-sm w-full lg:w-auto lg:min-w-[320px]">
                 <div className="flex items-center gap-3">
                   <div className="flex-1 text-left sm:text-right min-w-0">
                     <div className="flex items-center justify-start sm:justify-end gap-2 mb-1">
                       <span className="text-xs sm:text-sm font-medium text-info-600 truncate">Production programmée</span>
                       <Icon icon="mdi:calendar-check" className="text-info-600 shrink-0" />
                     </div>
-                    <div className="text-base sm:text-lg font-bold text-sand-900 truncate">
+                    <div className="text-base sm:text-lg font-semibold text-sand-900 truncate">
                       {(() => {
                         const dateProduction = programmeActuel.dateProduction;
                         // Nouvelle logique, afficher dateProduction telle quelle
@@ -399,7 +399,7 @@ export const VueBoulanger: React.FC = () => {
                       <Icon icon="mdi:clock-outline" className="text-sand-400 shrink-0" />
                     </div>
                   </div>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-900 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-900 rounded-xl flex items-center justify-center shadow-card shrink-0">
                     <Icon icon="mdi:factory" className="text-xl sm:text-2xl text-white" />
                   </div>
                 </div>
@@ -445,7 +445,7 @@ export const VueBoulanger: React.FC = () => {
                       <Icon icon="mdi:sigma" className="text-lg sm:text-xl" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h2 className="text-base sm:text-lg font-bold print:text-lg truncate">TOTAL GÉNÉRAL</h2>
+                      <h2 className="text-base sm:text-lg font-semibold print:text-lg truncate">TOTAL GÉNÉRAL</h2>
                       <p className="text-sand-400 text-xs sm:text-sm print:text-black print:text-sm truncate">Production(Clients + Boutique)</p>
                     </div>
                   </div>
@@ -514,7 +514,7 @@ export const VueBoulanger: React.FC = () => {
                     <Icon icon="mdi:checkbox-marked-circle-plus-outline" className="text-xl text-terracotta-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sand-900">Ajustement Production Réelle</h3>
+                    <h3 className="font-semibold text-sand-900">Ajustement Production Réelle</h3>
                     <p className="text-xs text-sand-500">Saisissez les quantités si elles diffèrent du prévu</p>
                   </div>
                 </div>
@@ -530,7 +530,7 @@ export const VueBoulanger: React.FC = () => {
                         <input
                           type="number"
                           min="0"
-                          className="w-20 px-2 py-1 text-right text-sm font-bold border border-sand-300 rounded focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
+                          className="w-20 px-2 py-1 text-right text-sm font-semibold border border-sand-300 rounded focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500"
                           placeholder={String(item.totalGlobal)}
                           value={item.quantiteProduiteReelle ?? ''}
                           onChange={(e) => {
@@ -587,15 +587,15 @@ export const VueBoulanger: React.FC = () => {
                         const total = car1 + car2;
 
                         return (
-                          <div key={`matin-${produitId}`} className="relative bg-white border border-sand-200 border-t-4 border-t-sand-600 rounded-xl p-4 hover:border-sand-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid flex flex-col h-full">
-                            <div className="absolute top-3 right-4 text-xs font-bold text-sand-400 uppercase tracking-widest">Matin</div>
+                          <div key={`matin-${produitId}`} className="relative bg-white border border-sand-200 border-t-4 border-t-sand-600 rounded-xl p-4 hover:border-sand-300 hover:shadow-elevated transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid flex flex-col h-full">
+                            <div className="absolute top-3 right-4 text-xs font-semibold text-sand-400 uppercase tracking-widest">Matin</div>
 
                             {/* En-tête Produit */}
                             <div className="flex items-center gap-3 mb-4 pt-2">
                               <div className="w-12 h-12 bg-sand-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                                 <Icon icon={getProductIcon(produit?.nom || '')} className="text-xl text-white" />
                               </div>
-                              <h3 className="text-lg font-bold text-sand-900 leading-tight">
+                              <h3 className="text-lg font-semibold text-sand-900 leading-tight">
                                 {produit?.nom || 'Produit'}
                               </h3>
                             </div>
@@ -605,14 +605,14 @@ export const VueBoulanger: React.FC = () => {
                               <div className="space-y-2 mb-3">
                                 {car1 > 0 && (
                                   <div className="bg-sand-50 rounded-lg p-2 text-center border border-sand-100">
-                                    <div className="text-xs font-bold text-sand-500 uppercase mb-0.5">Car 1 Matin</div>
+                                    <div className="text-xs font-semibold text-sand-500 uppercase mb-0.5">Car 1 Matin</div>
                                     <div className="font-display text-2xl font-semibold text-sand-700">{car1}</div>
                                     <div className="text-xs text-sand-500">pièces</div>
                                   </div>
                                 )}
                                 {car2 > 0 && (
                                   <div className="bg-sand-50 rounded-lg p-2 text-center border border-sand-100">
-                                    <div className="text-xs font-bold text-sand-500 uppercase mb-0.5">Car 2 Matin</div>
+                                    <div className="text-xs font-semibold text-sand-500 uppercase mb-0.5">Car 2 Matin</div>
                                     <div className="font-display text-2xl font-semibold text-sand-700">{car2}</div>
                                     <div className="text-xs text-sand-500">pièces</div>
                                   </div>
@@ -653,19 +653,19 @@ export const VueBoulanger: React.FC = () => {
                       const total = repartition.carSoir;
 
                       return (
-                        <div key={`soir-${produitId}`} className="relative bg-white border border-sand-200 border-t-4 border-t-sand-300 rounded-xl p-4 hover:border-sand-300 hover:shadow-md transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
-                          <div className="absolute top-3 right-4 text-xs font-bold text-sand-400 uppercase tracking-widest">Soir</div>
+                        <div key={`soir-${produitId}`} className="relative bg-white border border-sand-200 border-t-4 border-t-sand-300 rounded-xl p-4 hover:border-sand-300 hover:shadow-elevated transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
+                          <div className="absolute top-3 right-4 text-xs font-semibold text-sand-400 uppercase tracking-widest">Soir</div>
                           <div className="flex items-center gap-3 mb-6 pt-2">
                             <div className="w-14 h-14 bg-sand-400 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                               <Icon icon={getProductIcon(produit?.nom || '')} className="text-2xl text-white" />
                             </div>
-                            <h3 className="text-lg font-bold text-sand-900 leading-tight">
+                            <h3 className="text-lg font-semibold text-sand-900 leading-tight">
                               {produit?.nom || 'Produit'}
                             </h3>
                           </div>
 
                           <div className="text-center mb-2">
-                            <div className="text-6xl font-bold text-sand-800 tracking-tight leading-none">{total}</div>
+                            <div className="text-6xl font-semibold text-sand-800 tracking-tight leading-none">{total}</div>
                             <div className="text-base text-sand-500 font-medium mt-1">pièces clients</div>
                           </div>
                         </div>
@@ -691,22 +691,22 @@ export const VueBoulanger: React.FC = () => {
                     const repartition = quantite.repartitionCars;
 
                     return (
-                      <div key={`boutique-${quantite.produitId}`} className="relative bg-white border-2 border-info-100 rounded-xl p-4 hover:shadow-lg transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
-                        <div className="absolute top-3 right-4 text-xs font-bold text-info-500 uppercase tracking-widest">Boutique</div>
+                      <div key={`boutique-${quantite.produitId}`} className="relative bg-white border-2 border-info-100 rounded-xl p-4 hover:shadow-card transition-all print:border-black print:shadow-none print:rounded-none print:p-4 print:break-inside-avoid">
+                        <div className="absolute top-3 right-4 text-xs font-semibold text-info-500 uppercase tracking-widest">Boutique</div>
 
                         {/* En-tête Produit */}
                         <div className="flex items-center gap-3 mb-4 pt-2">
                           <div className="w-12 h-12 bg-info-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                             <Icon icon={getProductIcon(produit?.nom || '')} className="text-xl text-white" />
                           </div>
-                          <h3 className="text-lg font-bold text-sand-900 leading-tight">
+                          <h3 className="text-lg font-semibold text-sand-900 leading-tight">
                             {produit?.nom || 'Produit'}
                           </h3>
                         </div>
 
                         {/* Total Boutique */}
                         <div className="bg-info-50 rounded-lg p-3 mb-3 text-center">
-                          <div className="text-xs font-bold text-info-600 uppercase mb-0.5">Total Boutique</div>
+                          <div className="text-xs font-semibold text-info-600 uppercase mb-0.5">Total Boutique</div>
                           <div className="font-display text-3xl font-semibold text-info-600">{quantite.quantite}</div>
                           <div className="text-xs text-info-600">pièces</div>
                         </div>
@@ -721,21 +721,21 @@ export const VueBoulanger: React.FC = () => {
                             {repartition.car1_matin > 0 && (
                               <div className="flex justify-between items-center py-2 px-3 bg-sand-50 rounded-lg">
                                 <span className="text-sm font-medium text-sand-700">Car 1 Matin</span>
-                                <span className="font-bold text-sand-800">{repartition.car1_matin}</span>
+                                <span className="font-semibold text-sand-800">{repartition.car1_matin}</span>
                               </div>
                             )}
 
                             {repartition.car2_matin > 0 && (
                               <div className="flex justify-between items-center py-2 px-3 bg-sand-50 rounded-lg">
                                 <span className="text-sm font-medium text-sand-700">Car 2 Matin</span>
-                                <span className="font-bold text-sand-800">{repartition.car2_matin}</span>
+                                <span className="font-semibold text-sand-800">{repartition.car2_matin}</span>
                               </div>
                             )}
 
                             {repartition.car_soir > 0 && (
                               <div className="flex justify-between items-center py-2 px-3 bg-sand-50 rounded-lg">
                                 <span className="text-sm font-medium text-sand-700">Car Soir</span>
-                                <span className="font-bold text-sand-800">{repartition.car_soir}</span>
+                                <span className="font-semibold text-sand-800">{repartition.car_soir}</span>
                               </div>
                             )}
                           </div>
@@ -795,7 +795,7 @@ export const VueBoulanger: React.FC = () => {
                   return (
                     <div key={carKey} className={`bg-white border-t-4 ${carColor} rounded-xl shadow-sm overflow-hidden print:border print:border-black print:shadow-none print:rounded-none h-full`}>
                       <div className={`${carBg} p-3 border-b border-sand-100 print:bg-sand-100 print:border-black`}>
-                        <h3 className="text-lg font-bold text-sand-900 text-center uppercase tracking-wide">{carLabel}</h3>
+                        <h3 className="text-lg font-semibold text-sand-900 text-center uppercase tracking-wide">{carLabel}</h3>
                         <div className="text-center text-xs text-sand-500 font-medium print:text-black mt-1">
                           Clients + Boutique
                         </div>
@@ -822,15 +822,15 @@ export const VueBoulanger: React.FC = () => {
                                   <td className="px-4 py-2.5 text-sand-800 font-medium">
                                     {produit?.nom || 'Inconnu'}
                                   </td>
-                                  <td className="px-4 py-2.5 text-right font-bold text-sand-900 text-base">
+                                  <td className="px-4 py-2.5 text-right font-semibold text-sand-900 text-base">
                                     {total}
                                   </td>
                                 </tr>
                               );
                             })}
                             <tr className="bg-sand-50 border-t-2 border-sand-100 print:border-black print:bg-sand-100">
-                              <td className="px-4 py-3 text-left font-bold text-sand-900 uppercase text-xs">Total Général</td>
-                              <td className="px-4 py-3 text-right font-black text-sand-900 text-lg">
+                              <td className="px-4 py-3 text-left font-semibold text-sand-900 uppercase text-xs">Total Général</td>
+                              <td className="px-4 py-3 text-right font-semibold text-sand-900 text-lg">
                                 {produitsDuCar.reduce((acc, [, t]) => acc + t, 0)}
                               </td>
                             </tr>
@@ -854,21 +854,21 @@ export const VueBoulanger: React.FC = () => {
             {/* Résumé pour impression uniquement */}
             <div className="hidden print:block print:mt-8">
               <div className="border-t-2 border-black pt-4">
-                <h3 className="text-lg font-bold mb-4">📋 RÉSUMÉ DE PRODUCTION</h3>
+                <h3 className="text-lg font-semibold mb-4">📋 RÉSUMÉ DE PRODUCTION</h3>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div className="border border-black p-3">
-                    <div className="font-bold mb-2">👥 PRODUCTION CLIENTS</div>
+                    <div className="font-semibold mb-2">👥 PRODUCTION CLIENTS</div>
                     <div>Matin: {Array.from(repartitionsClients.entries()).reduce((acc, [_, repartition]) => acc + repartition.car1Matin + repartition.car2Matin, 0)} pièces</div>
                     <div>Soir: {Array.from(repartitionsClients.entries()).reduce((acc, [_, repartition]) => acc + repartition.carSoir, 0)} pièces</div>
-                    <div className="font-bold">Total: {totauxParProduit.reduce((acc, p) => acc + (p.totalClient || 0), 0)} pièces</div>
+                    <div className="font-semibold">Total: {totauxParProduit.reduce((acc, p) => acc + (p.totalClient || 0), 0)} pièces</div>
                   </div>
                   <div className="border border-black p-3">
-                    <div className="font-bold mb-2">🏪 PRODUCTION BOUTIQUE</div>
+                    <div className="font-semibold mb-2">🏪 PRODUCTION BOUTIQUE</div>
                     <div>Total: {totauxParProduit.reduce((acc, p) => acc + p.totalBoutique, 0)} pièces</div>
                     <div>Produits: {totauxParProduit.filter(p => p.totalBoutique > 0).length}</div>
                   </div>
                   <div className="border border-black p-3">
-                    <div className="font-bold mb-2">📊 TOTAL GÉNÉRAL</div>
+                    <div className="font-semibold mb-2">📊 TOTAL GÉNÉRAL</div>
                     <div className="font-display text-xl font-semibold">
                       {totauxParProduit.reduce((acc, p) => acc + p.totalGlobal, 0)} pièces
                     </div>
@@ -894,7 +894,7 @@ export const VueBoulanger: React.FC = () => {
               productionSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
           }}
-          className="fixed bottom-6 right-6 z-10 bg-sand-800 text-white rounded-full p-4 shadow-lg hover:bg-sand-700 transition-all duration-300 hover:scale-105 print:hidden"
+          className="fixed bottom-6 right-6 z-10 bg-sand-800 text-white rounded-full p-4 shadow-card hover:bg-sand-700 transition-all duration-300 print:hidden"
           title="Aller à la section Production"
         >
           <Icon icon="mdi:arrow-down-bold" className="text-xl" />

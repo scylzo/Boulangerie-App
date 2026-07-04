@@ -235,11 +235,11 @@ export const GestionUtilisateurs: React.FC = () => {
             {users.map((user) => {
               const roleStyle = getRoleStyle(user.role);
               return (
-                <div key={user.id} className="bg-white border border-sand-200 rounded-xl p-4 sm:p-5 hover:border-terracotta-300 hover:shadow-md transition-all duration-200 group flex flex-col">
+                <div key={user.id} className="bg-white border border-sand-200 rounded-xl p-4 sm:p-5 hover:border-terracotta-300 hover:shadow-elevated transition-all duration-200 group flex flex-col">
                   {/* Header Card */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3 w-full overflow-hidden">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-100 rounded-full flex items-center justify-center shrink-0 border border-sand-200 text-sand-600 font-bold text-sm sm:text-base">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-100 rounded-full flex items-center justify-center shrink-0 border border-sand-200 text-sand-600 font-semibold text-sm sm:text-base">
                         {getInitials(user.nom, user.prenom)}
                       </div>
                       <div className="min-w-0">
@@ -383,13 +383,13 @@ export const GestionUtilisateurs: React.FC = () => {
           <div className="space-y-3 pt-2">
             <div className="flex items-center gap-2 pb-1 border-b border-sand-100">
               <Icon icon="mdi:shield-lock-outline" className="text-terracotta-600" />
-              <label className="text-sm font-bold text-sand-700 uppercase tracking-wider">Modules accessibles</label>
+              <label className="text-sm font-semibold text-sand-700 uppercase tracking-wider">Modules accessibles</label>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 bg-sand-50 p-4 rounded-xl border border-sand-100 max-h-60 overflow-y-auto">
               {newUser.role === 'admin' ? (
                 <div className="col-span-full py-4 text-center">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-100 text-terracotta-700 rounded-lg text-sm font-bold">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-100 text-terracotta-700 rounded-lg text-sm font-semibold">
                     <Icon icon="mdi:shield-check" className="text-lg" />
                     L'administrateur a accès à TOUS les modules par défaut
                   </div>
@@ -412,7 +412,7 @@ export const GestionUtilisateurs: React.FC = () => {
                       className="w-5 h-5 text-terracotta-600 border-sand-300 rounded focus:ring-terracotta-500 transition-all cursor-pointer"
                     />
                     <div className="flex items-center gap-2">
-                      <Icon icon={module.icon} className={`text-lg ${newUser.permissions.includes(module.id) ? 'text-terracotta-600' : 'text-sand-400'} group-hover:scale-110 transition-transform`} />
+                      <Icon icon={module.icon} className={`text-lg ${newUser.permissions.includes(module.id) ? 'text-terracotta-600' : 'text-sand-400'} transition-transform`} />
                       <span className={`text-sm font-medium ${newUser.permissions.includes(module.id) ? 'text-sand-900' : 'text-sand-500'}`}>
                         {module.name}
                       </span>

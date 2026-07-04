@@ -107,7 +107,7 @@ export const GestionClients: React.FC = () => {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <a
               href="/admin/carte"
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-success-50 text-success-700 hover:bg-success-100 border border-success-100 rounded-lg transition-all shadow-sm text-xs sm:text-sm font-bold flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-success-50 text-success-700 hover:bg-success-100 border border-success-100 rounded-lg transition-all shadow-sm text-xs sm:text-sm font-semibold flex-1 sm:flex-none"
             >
               <Icon icon="mdi:map-marker-radius" className="text-base sm:text-lg" />
               <span>Carte des Kiosques</span>
@@ -207,16 +207,16 @@ export const GestionClients: React.FC = () => {
                   return (
                     <div
                       key={client.id}
-                      className="bg-white border border-sand-200 rounded-2xl p-4 sm:p-6 hover:border-info-100 hover:shadow-lg transition-all duration-300 group"
+                      className="bg-white border border-sand-200 rounded-2xl p-4 sm:p-6 hover:border-info-100 hover:shadow-card transition-all duration-300 group"
                     >
                       {/* Header du client */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-info-600 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-info-600 rounded-2xl flex items-center justify-center shadow-sm transition-transform">
                             <Icon icon="mdi:account" className="text-2xl text-white" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-sm sm:text-lg text-sand-900 mb-1 line-clamp-2">
+                            <h3 className="font-semibold text-sm sm:text-lg text-sand-900 mb-1 line-clamp-2">
                               {client.prenom ? `${client.prenom} ${client.nom}` : client.nom}
                             </h3>
                             <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export const GestionClients: React.FC = () => {
                         {(client.latitude && client.longitude) && (
                           <div className="flex items-center gap-2">
                             <Icon icon="mdi:crosshairs-gps" className="text-info-500" />
-                            <span className="text-xs font-bold text-info-600 bg-info-50 px-2 py-0.5 rounded">
+                            <span className="text-xs font-semibold text-info-600 bg-info-50 px-2 py-0.5 rounded">
                               {client.latitude.toFixed(4)}, {client.longitude.toFixed(4)}
                             </span>
                           </div>
@@ -365,7 +365,7 @@ export const GestionClients: React.FC = () => {
                         <button
                           onClick={() => handleEditer(client)}
                           disabled={showForm}
-                          className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-info-600 hover:text-info-600 bg-info-50 hover:bg-info-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
+                          className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-info-600 hover:text-info-600 bg-info-50 hover:bg-info-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-elevated disabled:opacity-50"
                         >
                           <Icon icon="mdi:pencil" className="text-base sm:text-lg" />
                           <span className="hidden sm:inline">Modifier</span>
@@ -373,7 +373,7 @@ export const GestionClients: React.FC = () => {
                         <button
                           onClick={() => handleSupprimer(client)}
                           disabled={isLoadingClients}
-                          className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-danger-600 hover:text-danger-700 bg-danger-50 hover:bg-danger-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-md disabled:opacity-50"
+                          className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-danger-600 hover:text-danger-700 bg-danger-50 hover:bg-danger-100 rounded-xl transition-all text-xs sm:text-sm font-medium shadow-sm hover:shadow-elevated disabled:opacity-50"
                         >
                           <Icon icon="mdi:delete-outline" className="text-base sm:text-lg" />
                         </button>

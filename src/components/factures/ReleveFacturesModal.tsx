@@ -75,11 +75,11 @@ export const ReleveFacturesModal: React.FC<ReleveFacturesModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
+      <div className="bg-white rounded-xl shadow-elevated w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
         <div className="p-4 border-b border-sand-100 flex justify-between items-center bg-sand-50">
           <div className="flex items-center gap-2">
             <Icon icon="mdi:file-document-outline" className={`text-xl ${isImpayes ? 'text-sand-700' : 'text-success-600'}`} />
-            <h3 className="font-bold text-sand-800">
+            <h3 className="font-semibold text-sand-800">
               {isImpayes ? 'Relevé des Impayés' : 'Relevé des Factures Payées'}
             </h3>
           </div>

@@ -9,7 +9,7 @@ export const AssignationLivreurs: React.FC = () => {
       <div className="bg-white border-b border-sand-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-info-600 to-terracotta-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-info-600 rounded-lg flex items-center justify-center">
               <Icon icon="mdi:truck-fast" className="text-2xl text-white" />
             </div>
             <div>

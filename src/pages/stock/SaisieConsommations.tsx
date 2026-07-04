@@ -457,8 +457,8 @@ export const SaisieConsommations: React.FC = () => {
                         </button>
 
                         <div className="flex flex-col items-end text-sm border-l border-sand-200 pl-3">
-                            <span className="text-sand-500 uppercase text-[10px] font-bold tracking-wider">Valorisation Totale</span>
-                            <span className="text-lg font-black text-success-600 leading-none">
+                            <span className="text-sand-500 uppercase text-[10px] font-semibold tracking-wider">Valorisation Totale</span>
+                            <span className="text-lg font-semibold text-success-600 leading-none">
                                 {formatCurrency(valorisationTotale)}
                             </span>
                         </div>
@@ -510,9 +510,9 @@ export const SaisieConsommations: React.FC = () => {
                             </div>
                             
                             <div className="w-full md:w-56 bg-white p-3 rounded-lg border border-warning-100 shadow-sm text-center">
-                                <div className="text-[10px] text-sand-500 font-bold uppercase tracking-wider mb-1">Farine nécessaire estimée</div>
-                                <div className="text-2xl font-black text-warning-600">
-                                    {calculateFarineSacs() > 0 ? calculateFarineSacs().toFixed(2) : '0.00'} <span className="text-xs font-bold text-sand-500">sacs</span>
+                                <div className="text-[10px] text-sand-500 font-semibold uppercase tracking-wider mb-1">Farine nécessaire estimée</div>
+                                <div className="text-2xl font-semibold text-warning-600">
+                                    {calculateFarineSacs() > 0 ? calculateFarineSacs().toFixed(2) : '0.00'} <span className="text-xs font-semibold text-sand-500">sacs</span>
                                 </div>
                                 <div className="text-xs text-sand-400 mt-0.5">
                                     ~ {calculateFarineKgs() > 0 ? calculateFarineKgs().toFixed(1) : '0'} kg au total
@@ -537,7 +537,7 @@ export const SaisieConsommations: React.FC = () => {
                                             toast.success("Quantité suggérée appliquée à la farine !");
                                             setShowCalculator(false);
                                         }}
-                                        className="mt-3 w-full bg-warning-100 hover:bg-warning-100 text-warning-600 font-bold py-1.5 px-2 rounded text-[11px] transition-colors uppercase tracking-wide flex items-center justify-center"
+                                        className="mt-3 w-full bg-warning-100 hover:bg-warning-100 text-warning-600 font-semibold py-1.5 px-2 rounded text-[11px] transition-colors uppercase tracking-wide flex items-center justify-center"
                                     >
                                         <Save className="w-3 h-3 mr-1" />
                                         Appliquer au tableau
@@ -596,7 +596,7 @@ export const SaisieConsommations: React.FC = () => {
                                                     <div className="flex items-center gap-2">
                                                         <div className="text-sm font-medium text-sand-900">{ligne.nom}</div>
                                                         {isAlreadyEntered && (
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-terracotta-100 text-terracotta-800 border border-terracotta-200 uppercase tracking-tighter">
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-terracotta-100 text-terracotta-800 border border-terracotta-200 uppercase tracking-tighter">
                                                                 <Pencil className="w-3 h-3 mr-1" />
                                                                 Saisie enregistrée (Modifiable)
                                                             </span>
@@ -625,7 +625,7 @@ export const SaisieConsommations: React.FC = () => {
                                                 onChange={(e) => handleQteChange(ligne.matiereId, e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                                 className={`
-                                                block w-32 ml-auto rounded-md shadow-sm border-sand-300 focus:border-terracotta-500 focus:ring-terracotta-500 sm:text-sm text-center font-bold h-10
+                                                block w-32 ml-auto rounded-md shadow-sm border-sand-300 focus:border-terracotta-500 focus:ring-terracotta-500 sm:text-sm text-center font-semibold h-10
                                                 ${ligne.qteSaisie ? 'border-terracotta-300 bg-white text-terracotta-700' : 'bg-sand-50'}
                                                 ${isAlreadyEntered ? 'opacity-50 cursor-not-allowed bg-sand-100' : ''}
                                             `}
@@ -674,7 +674,7 @@ export const SaisieConsommations: React.FC = () => {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-xs font-black text-sand-900">
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-xs font-semibold text-sand-900">
                                             {ligne.qteSaisie && parseFloat(ligne.qteSaisie) > 0 ? (
                                                 formatCurrency(parseFloat(ligne.qteSaisie) * effectiveFactor * ligne.prixUnitaireMoyen)
                                             ) : (
@@ -704,7 +704,7 @@ export const SaisieConsommations: React.FC = () => {
                             flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-lg shadow-md transition-all
                             ${isSubmitting || totalArticlesSaisis === 0
                                 ? 'bg-sand-300 cursor-not-allowed text-sand-500'
-                                : 'bg-terracotta-600 hover:bg-terracotta-700 text-white hover:shadow-lg transform hover:-translate-y-0.5'
+                                : 'bg-terracotta-600 hover:bg-terracotta-700 text-white hover:shadow-card transform hover:-translate-y-0.5'
                             }
                         `}
                     >

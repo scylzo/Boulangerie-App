@@ -350,7 +350,7 @@ export const GestionDepenses: React.FC = () => {
               {Object.entries(parCategorie).map(([cat, montant]) => (
                 <div key={cat} className="flex items-center space-x-2 bg-sand-50 px-3 py-1.5 rounded-lg border border-sand-100">
                   <span className="text-xs font-medium text-sand-500">{cat}</span>
-                  <span className="text-sm font-bold text-sand-900">{montant.toLocaleString()} FCFA</span>
+                  <span className="text-sm font-semibold text-sand-900">{montant.toLocaleString()} FCFA</span>
                 </div>
               ))}
               {Object.keys(parCategorie).length === 0 && (

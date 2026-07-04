@@ -409,14 +409,14 @@ export const GestionFactures: React.FC = () => {
           return (
             <div
               key={client.id}
-              className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-sand-200 hover:shadow-md hover:border-sand-300 transition-all group relative overflow-hidden"
+              className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-sand-200 hover:shadow-elevated hover:border-sand-300 transition-all group relative overflow-hidden"
             >
               <div
                 onClick={() => handleSelectClient(client)}
                 className="cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-3 sm:mb-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-100 text-sand-900 rounded-full flex items-center justify-center font-bold text-base sm:text-xl group-hover:bg-sand-900 group-hover:text-white transition-colors shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-100 text-sand-900 rounded-full flex items-center justify-center font-semibold text-base sm:text-xl group-hover:bg-sand-900 group-hover:text-white transition-colors shrink-0">
                     {client.nom.charAt(0).toUpperCase()}
                   </div>
                   <Icon icon="mdi:chevron-right" className="text-sand-300 group-hover:text-sand-900 text-xl sm:text-2xl" />
@@ -558,7 +558,7 @@ export const GestionFactures: React.FC = () => {
                 <div className="bg-sand-100 border border-sand-200 px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 sm:gap-3 animate-in fade-in zoom-in duration-200 w-full sm:w-auto">
                   <span className="text-sand-700 font-medium text-xs sm:text-sm truncate">{selectedInvoiceIds.length} sélectionnée(s)</span>
                   <div className="h-4 w-px bg-sand-300"></div>
-                  <span className="text-sand-900 font-bold text-sm sm:text-base truncate">Total: {formatCurrency(totalSelectedAmount)}</span>
+                  <span className="text-sand-900 font-semibold text-sm sm:text-base truncate">Total: {formatCurrency(totalSelectedAmount)}</span>
                 </div>
               )}
             </div>
@@ -662,7 +662,7 @@ export const GestionFactures: React.FC = () => {
                     return (
                       <tr key={`day-${day}`} className={`border-b border-sand-100 ${isWeekend ? 'bg-sand-50/80' : 'bg-sand-50'}`}>
                         <td className="px-6 py-4"></td>
-                        <td className="px-6 py-4 text-center font-bold text-sand-300">{day}</td>
+                        <td className="px-6 py-4 text-center font-semibold text-sand-300">{day}</td>
                         <td className="px-6 py-4 text-sm text-sand-400">
                           {dateOfDay.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
                         </td>
@@ -689,7 +689,7 @@ export const GestionFactures: React.FC = () => {
                           onChange={() => toggleSelectInvoice(invoice.id)}
                         />
                       </td>
-                      <td className="px-6 py-4 text-center font-bold text-sand-700">{day}</td>
+                      <td className="px-6 py-4 text-center font-semibold text-sand-700">{day}</td>
                       <td className="px-6 py-4 text-sm font-medium text-sand-900">
                         {new Date(invoice.dateLivraison).toLocaleDateString('fr-FR')}
                       </td>
@@ -710,7 +710,7 @@ export const GestionFactures: React.FC = () => {
                           <span className="text-sand-300">-</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right text-sm font-bold text-sand-900">
+                      <td className="px-6 py-4 text-right text-sm font-semibold text-sand-900">
                         {formatCurrency(invoice.totalTTC)}
                       </td>
                       <td className="px-6 py-4">
@@ -874,9 +874,9 @@ export const GestionFactures: React.FC = () => {
 
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
+        <div className="bg-white rounded-xl shadow-elevated w-full max-w-lg overflow-hidden">
           <div className="p-4 border-b border-sand-100 flex justify-between items-center bg-sand-50">
-            <h3 className="font-bold text-sand-800">Saisie Retours - {facturePourRetour.client?.nom}</h3>
+            <h3 className="font-semibold text-sand-800">Saisie Retours - {facturePourRetour.client?.nom}</h3>
             <button onClick={() => setShowRetourModal(false)} className="text-sand-400 hover:text-sand-600">
               <Icon icon="mdi:close" className="text-xl" />
             </button>
@@ -890,7 +890,7 @@ export const GestionFactures: React.FC = () => {
                   <p className="text-xs text-sand-500">Livré : {ligne.quantiteLivree}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-sand-500 uppercase font-bold">Retour :</span>
+                  <span className="text-xs text-sand-500 uppercase font-semibold">Retour :</span>
                   <input
                     type="number"
                     min="0"
@@ -901,7 +901,7 @@ export const GestionFactures: React.FC = () => {
                     })()}
                     onChange={e => setValeursRetours({ ...valeursRetours, [ligne.produitId]: parseInt(e.target.value) || 0 })}
                     onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
-                    className="w-20 p-2 border rounded text-center font-bold text-warning-600 focus:ring-2 focus:ring-terracotta-500 outline-none"
+                    className="w-20 p-2 border rounded text-center font-semibold text-warning-600 focus:ring-2 focus:ring-terracotta-500 outline-none"
                     placeholder="0"
                   />
                 </div>
@@ -983,9 +983,9 @@ export const GestionFactures: React.FC = () => {
 
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
+        <div className="bg-white rounded-xl shadow-elevated w-full max-w-sm overflow-hidden">
           <div className="p-4 border-b border-sand-100 flex justify-between items-center bg-sand-50">
-            <h3 className="font-bold text-sand-800">Gestion de l'Avoir</h3>
+            <h3 className="font-semibold text-sand-800">Gestion de l'Avoir</h3>
             <button onClick={() => setShowAvoirModal(false)} className="text-sand-400 hover:text-sand-600">
               <Icon icon="mdi:close" className="text-xl" />
             </button>
@@ -994,7 +994,7 @@ export const GestionFactures: React.FC = () => {
           <div className="p-6 space-y-6">
             <div className="bg-sand-50 p-3 rounded-lg flex justify-between items-center">
               <span className="text-sm text-sand-600">Déjà utilisé sur cette facture :</span>
-              <span className="font-bold text-sand-900">{formatCurrency(soldeUtilise)}</span>
+              <span className="font-semibold text-sand-900">{formatCurrency(soldeUtilise)}</span>
             </div>
 
             <div className="flex bg-sand-100 p-1 rounded-lg">

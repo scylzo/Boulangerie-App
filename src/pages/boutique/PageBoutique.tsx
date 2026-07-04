@@ -277,7 +277,7 @@ export const PageBoutique: React.FC = () => {
             {/* Modal Saisie Rapide (One Shot) */}
             {showFastSaleModal && stockJour && (
               <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl p-6 animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+                <div className="bg-white rounded-xl shadow-elevated w-full max-w-5xl p-6 animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <h3 className="font-display text-xl font-semibold text-sand-900 flex items-center gap-2">
@@ -306,7 +306,7 @@ export const PageBoutique: React.FC = () => {
                                 <Icon icon={getProductIcon(p.produit?.nom || '')} className="text-xl" />
                               </div>
                               <div className="flex-1 overflow-hidden">
-                                <p className="font-bold text-sand-900 truncate" title={p.produit?.nom}>{p.produit?.nom}</p>
+                                <p className="font-semibold text-sand-900 truncate" title={p.produit?.nom}>{p.produit?.nom}</p>
                                 <p className="text-xs text-sand-500">Stock: {p.stockDebut}</p>
                               </div>
                             </div>
@@ -314,7 +314,7 @@ export const PageBoutique: React.FC = () => {
                             <div className="space-y-3">
                               <div className="flex justify-between items-center">
                                 <span className="text-xs font-medium text-sand-500">Vendu</span>
-                                <span className="font-bold text-lg text-sand-900">{currentValue}</span>
+                                <span className="font-semibold text-lg text-sand-900">{currentValue}</span>
                               </div>
 
                               <input
@@ -366,7 +366,7 @@ export const PageBoutique: React.FC = () => {
                         </button>
                         <button
                           onClick={() => setShowStartFastSaleConfirm(true)}
-                          className="bg-sand-900 hover:bg-sand-800 text-white px-6 py-2 rounded-lg shadow-sm font-bold flex items-center gap-2 transition-all w-full md:w-auto justify-center"
+                          className="bg-sand-900 hover:bg-sand-800 text-white px-6 py-2 rounded-lg shadow-sm font-semibold flex items-center gap-2 transition-all w-full md:w-auto justify-center"
                         >
                           <Icon icon="mdi:check-all" className="text-xl" />
                           Valider et Clôturer
@@ -410,7 +410,7 @@ export const PageBoutique: React.FC = () => {
             {/* Modal d'ajout manuel */}
             {showAddProductModal && (
               <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
+                <div className="bg-white rounded-xl shadow-elevated w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
                   <h3 className="font-display text-xl font-semibold text-sand-900 mb-4 flex items-center gap-2">
                     <Icon icon="mdi:plus-box" className="text-info-600" />
                     Ajouter un produit au stock
@@ -578,7 +578,7 @@ export const PageBoutique: React.FC = () => {
                             </div>
                           </td>
                           <td className="text-center py-3 px-4">
-                            <span className="font-bold text-sand-900">{produit.stockDebut}</span>
+                            <span className="font-semibold text-sand-900">{produit.stockDebut}</span>
                           </td>
                           <td className="text-center py-3 px-4 text-sand-600">
                             {produit.repartitionCars?.car1_matin || '—'}
@@ -689,7 +689,7 @@ export const PageBoutique: React.FC = () => {
                     <div className="text-left sm:text-right w-full sm:w-auto">
                       <p className="text-xs sm:text-sm text-sand-600">Total vendu</p>
                       <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-0">
-                        <p className="text-base sm:text-lg font-bold text-sand-900">
+                        <p className="text-base sm:text-lg font-semibold text-sand-900">
                           {ventesJour.produits.reduce((total, p) => total + p.venduTotal, 0)} pièces
                         </p>
                         <p className="text-xs sm:text-sm font-semibold text-success-600">
@@ -776,7 +776,7 @@ export const PageBoutique: React.FC = () => {
                         <div className="text-right mr-4">
                           <p className="text-sm text-sand-600 font-medium">Total Journée</p>
                           <div className="flex flex-col items-end">
-                            <p className="text-lg font-bold text-sand-900">
+                            <p className="text-lg font-semibold text-sand-900">
                               {equipeMatin.produits.reduce((total, p) => total + (p.vendu || 0), 0)} pièces
                             </p>
                             <p className="text-sm font-semibold text-success-600">
@@ -840,7 +840,7 @@ export const PageBoutique: React.FC = () => {
                         {equipeMatin.produits.map((produit) => (
                           <div
                             key={produit.produitId}
-                            className="group relative bg-gradient-to-br from-terracotta-50 to-terracotta-50 border border-warning-100 rounded-xl p-4 hover:border-warning-100 hover:shadow-md transition-all"
+                            className="group relative bg-terracotta-50 border border-warning-100 rounded-xl p-4 hover:border-warning-100 hover:shadow-elevated transition-all"
                           >
                             {/* Bouton de suppression rapide */}
                             <button
@@ -857,7 +857,7 @@ export const PageBoutique: React.FC = () => {
                               <Icon icon="mdi:close-circle-outline" className="text-lg" />
                             </button>
                             <div className="flex items-center gap-3 mb-4">
-                              <div className="w-12 h-12 bg-gradient-to-br from-terracotta-500 to-terracotta-600 rounded-xl flex items-center justify-center shadow-md">
+                              <div className="w-12 h-12 bg-terracotta-500 rounded-xl flex items-center justify-center shadow-md">
                                 <Icon
                                   icon={getProductIcon(produit.produit?.nom || '')}
                                   className="text-xl text-white"
@@ -869,7 +869,7 @@ export const PageBoutique: React.FC = () => {
                                     {produit.produit?.nom || produit.produitId}
                                   </h4>
                                   {produit.produit?.categorie && (
-                                    <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${produit.produit.categorie === 'boulangerie'
+                                    <span className={`text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full border ${produit.produit.categorie === 'boulangerie'
                                       ? 'bg-warning-50 text-warning-600 border-warning-100'
                                       : 'bg-danger-50 text-danger-700 border-danger-100'
                                       }`}>
@@ -908,7 +908,7 @@ export const PageBoutique: React.FC = () => {
                                 <span className="text-sand-600">
                                   {stockJour.isJourneeContinue ? 'Invendu final: ' : 'Reste midi: '}
                                 </span>
-                                <span className="font-bold text-info-600">{produit.reste} pièces</span>
+                                <span className="font-semibold text-info-600">{produit.reste} pièces</span>
                               </div>
                             </div>
                           </div>
@@ -946,7 +946,7 @@ export const PageBoutique: React.FC = () => {
                       {equipeMatin.produits.map((produit) => (
                         <div key={produit.produitId} className="bg-white rounded-xl p-4 border border-info-100 shadow-sm">
                           <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 bg-gradient-to-br from-terracotta-500 to-terracotta-600 rounded-lg flex items-center justify-center">
+                            <div className="w-8 h-8 bg-terracotta-500 rounded-lg flex items-center justify-center">
                               <Icon
                                 icon={getProductIcon(produit.produit?.nom || '')}
                                 className="text-white text-sm"
@@ -958,7 +958,7 @@ export const PageBoutique: React.FC = () => {
                             </div>
                           </div>
                           <div className="text-center">
-                            <p className="text-lg font-bold text-info-600">{produit.reste}</p>
+                            <p className="text-lg font-semibold text-info-600">{produit.reste}</p>
                             <p className="text-xs text-sand-500">pièces</p>
                           </div>
                         </div>
@@ -1064,7 +1064,7 @@ export const PageBoutique: React.FC = () => {
                           {equipeSoir.produits.map((produit) => (
                             <div
                               key={produit.produitId}
-                              className="group relative bg-gradient-to-br from-terracotta-50 to-terracotta-50 border border-terracotta-100 rounded-xl p-4 hover:border-terracotta-100 hover:shadow-md transition-all"
+                              className="group relative bg-terracotta-50 border border-terracotta-100 rounded-xl p-4 hover:border-terracotta-100 hover:shadow-elevated transition-all"
                             >
                               {/* Bouton de suppression rapide */}
                               <button
@@ -1081,7 +1081,7 @@ export const PageBoutique: React.FC = () => {
                                 <Icon icon="mdi:close-circle-outline" className="text-lg" />
                               </button>
                               <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 bg-gradient-to-br from-terracotta-500 to-terracotta-600 rounded-xl flex items-center justify-center shadow-md">
+                                <div className="w-12 h-12 bg-terracotta-500 rounded-xl flex items-center justify-center shadow-md">
                                   <Icon
                                     icon={getProductIcon(produit.produit?.nom || '')}
                                     className="text-xl text-white"
@@ -1093,7 +1093,7 @@ export const PageBoutique: React.FC = () => {
                                       {produit.produit?.nom || produit.produitId}
                                     </h4>
                                     {produit.produit?.categorie && (
-                                      <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${produit.produit.categorie === 'boulangerie'
+                                      <span className={`text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full border ${produit.produit.categorie === 'boulangerie'
                                         ? 'bg-warning-50 text-warning-600 border-warning-100'
                                         : 'bg-danger-50 text-danger-700 border-danger-100'
                                         }`}>
@@ -1128,7 +1128,7 @@ export const PageBoutique: React.FC = () => {
                                 </div>
                                 <div className="text-sm">
                                   <span className="text-sand-600">Invendu: </span>
-                                  <span className="font-bold text-danger-600">{produit.reste} pièces</span>
+                                  <span className="font-semibold text-danger-600">{produit.reste} pièces</span>
                                 </div>
                               </div>
                             </div>
@@ -1163,7 +1163,7 @@ export const PageBoutique: React.FC = () => {
                   <div className="space-y-6">
                     {/* KPI Cards style dashboard */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                      <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+                      <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-elevated transition-all">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
                           <div className="w-10 h-10 bg-info-100 rounded-lg flex items-center justify-center shrink-0">
                             <Icon icon="mdi:package-variant" className="text-lg sm:text-xl text-info-600" />
@@ -1178,7 +1178,7 @@ export const PageBoutique: React.FC = () => {
                         <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Stock Initial</div>
                       </div>
 
-                      <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+                      <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-elevated transition-all">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
                           <div className="w-10 h-10 bg-success-100 rounded-lg flex items-center justify-center shrink-0">
                             <Icon icon="mdi:chart-line" className="text-lg sm:text-xl text-success-600" />
@@ -1193,7 +1193,7 @@ export const PageBoutique: React.FC = () => {
                         <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Total Vendu</div>
                       </div>
 
-                      <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+                      <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-elevated transition-all">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
                           <div className="w-10 h-10 bg-danger-100 rounded-lg flex items-center justify-center shrink-0">
                             <Icon icon="mdi:package-down" className="text-lg sm:text-xl text-danger-600" />
@@ -1208,7 +1208,7 @@ export const PageBoutique: React.FC = () => {
                         <div className="text-sm sm:text-base font-semibold text-sand-700 truncate">Invendus</div>
                       </div>
 
-                      <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all">
+                      <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-elevated transition-all">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
                           <div className="w-10 h-10 bg-terracotta-100 rounded-lg flex items-center justify-center shrink-0">
                             <Icon icon="mdi:percent" className="text-lg sm:text-xl text-terracotta-600" />
@@ -1227,7 +1227,7 @@ export const PageBoutique: React.FC = () => {
                     {/* Performance par vendeuse */}
                     <div className={`grid grid-cols-1 ${stockJour.isJourneeContinue ? '' : 'md:grid-cols-2'} gap-6`}>
                       {/* Vendeuse Matin / Unique */}
-                      <div className={`bg-gradient-to-br from-terracotta-50 to-terracotta-50 border border-warning-100 rounded-xl p-6 ${stockJour.isJourneeContinue ? 'max-w-2xl mx-auto w-full' : ''}`}>
+                      <div className={`bg-terracotta-50 border border-warning-100 rounded-xl p-6 ${stockJour.isJourneeContinue ? 'max-w-2xl mx-auto w-full' : ''}`}>
                         <h4 className="flex items-center gap-3 font-semibold text-warning-600 mb-4">
                           <div className="w-8 h-8 bg-terracotta-500 rounded-lg flex items-center justify-center">
                             <Icon icon={stockJour.isJourneeContinue ? "mdi:account-star" : "wi:sunrise"} className="text-white" />
@@ -1237,7 +1237,7 @@ export const PageBoutique: React.FC = () => {
                         <div className="space-y-3">
                           <div className="flex justify-between">
                             <span className="text-sm text-sand-600">Ventes totales :</span>
-                            <span className="font-bold text-warning-600">
+                            <span className="font-semibold text-warning-600">
                               {ventesJour.produits.reduce((total, p) => total + p.venduMatin, 0)} pcs
                             </span>
                           </div>
@@ -1269,7 +1269,7 @@ export const PageBoutique: React.FC = () => {
 
                       {/* Vendeuse Soir (Uniquement si mode normal) */}
                       {!stockJour.isJourneeContinue && (
-                        <div className="bg-gradient-to-br from-terracotta-50 to-terracotta-50 border border-terracotta-100 rounded-xl p-6">
+                        <div className="bg-terracotta-50 border border-terracotta-100 rounded-xl p-6">
                           <h4 className="flex items-center gap-3 font-semibold text-terracotta-700 mb-4">
                             <div className="w-8 h-8 bg-terracotta-500 rounded-lg flex items-center justify-center">
                               <Icon icon="wi:sunset" className="text-white" />
@@ -1279,7 +1279,7 @@ export const PageBoutique: React.FC = () => {
                           <div className="space-y-3">
                             <div className="flex justify-between">
                               <span className="text-sm text-sand-600">Ventes totales :</span>
-                              <span className="font-bold text-terracotta-700">
+                              <span className="font-semibold text-terracotta-700">
                                 {ventesJour.produits.reduce((total, p) => total + p.venduSoir, 0)} pcs
                               </span>
                             </div>
@@ -1310,12 +1310,12 @@ export const PageBoutique: React.FC = () => {
                         {ventesJour.produits.map((produit) => (
                           <div
                             key={produit.produitId}
-                            className="bg-white rounded-xl p-4 border border-sand-200 hover:shadow-md transition-all"
+                            className="bg-white rounded-xl p-4 border border-sand-200 hover:shadow-elevated transition-all"
                           >
                             <div className="grid grid-cols-2 md:grid-cols-10 gap-4 items-center">
                               <div className="md:col-span-2">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-gradient-to-br from-sand-800 to-sand-900 rounded-lg flex items-center justify-center">
+                                  <div className="w-8 h-8 bg-sand-800 rounded-lg flex items-center justify-center">
                                     <Icon
                                       icon={getProductIcon(produit.produit?.nom || produit.produitId)}
                                       className="text-white text-sm"
@@ -1326,7 +1326,7 @@ export const PageBoutique: React.FC = () => {
                                       {produit.produit?.nom || produit.produitId}
                                     </span>
                                     {produit.produit?.categorie && (
-                                      <span className={`text-[9px] uppercase font-bold tracking-wider w-fit px-1.5 py-0.5 rounded-full mt-1 border ${produit.produit.categorie === 'boulangerie'
+                                      <span className={`text-[9px] uppercase font-semibold tracking-wider w-fit px-1.5 py-0.5 rounded-full mt-1 border ${produit.produit.categorie === 'boulangerie'
                                         ? 'bg-warning-50 text-warning-600 border-warning-100'
                                         : 'bg-danger-50 text-danger-700 border-danger-100'
                                         }`}>
@@ -1343,11 +1343,11 @@ export const PageBoutique: React.FC = () => {
                                 </div>
                               </div>
                               <div className="text-center">
-                                <div className="text-lg font-bold text-sand-800">{produit.stockDebut}</div>
+                                <div className="text-lg font-semibold text-sand-800">{produit.stockDebut}</div>
                                 <div className="text-xs text-sand-500">Stock</div>
                               </div>
                               <div className="text-center">
-                                <div className="text-lg font-bold text-sand-900">{produit.venduMatin}</div>
+                                <div className="text-lg font-semibold text-sand-900">{produit.venduMatin}</div>
                                 <div className="text-xs text-terracotta-600 font-medium">
                                   {stockJour.isJourneeContinue ? 'Vendu' : `Matin (${equipeMatin?.vendeuse || '—'})`}
                                 </div>
@@ -1355,11 +1355,11 @@ export const PageBoutique: React.FC = () => {
                               {!stockJour.isJourneeContinue && (
                                 <>
                                   <div className="text-center">
-                                    <div className="text-lg font-bold text-info-600">{produit.resteMidi}</div>
+                                    <div className="text-lg font-semibold text-info-600">{produit.resteMidi}</div>
                                     <div className="text-xs text-sand-500">Transmis soir</div>
                                   </div>
                                   <div className="text-center">
-                                    <div className="text-lg font-bold text-sand-900">{produit.venduSoir}</div>
+                                    <div className="text-lg font-semibold text-sand-900">{produit.venduSoir}</div>
                                     <div className="text-xs text-terracotta-600 font-medium">
                                       Soir ({equipeSoir?.vendeuse || '—'})
                                     </div>
@@ -1367,15 +1367,15 @@ export const PageBoutique: React.FC = () => {
                                 </>
                               )}
                               <div className="text-center">
-                                <div className="text-lg font-bold text-success-600">{produit.restants || 0}</div>
+                                <div className="text-lg font-semibold text-success-600">{produit.restants || 0}</div>
                                 <div className="text-xs text-sand-500">Restants</div>
                               </div>
                               <div className="text-center">
-                                <div className="text-lg font-bold text-danger-600">{produit.pertes || 0}</div>
+                                <div className="text-lg font-semibold text-danger-600">{produit.pertes || 0}</div>
                                 <div className="text-xs text-sand-500">Invendus</div>
                               </div>
                               <div className="text-center">
-                                <div className="text-lg font-bold text-success-600">{produit.venduTotal}</div>
+                                <div className="text-lg font-semibold text-success-600">{produit.venduTotal}</div>
                                 <div className="text-xs text-sand-500">Total vendu</div>
                               </div>
                               <div className="flex justify-center gap-2">

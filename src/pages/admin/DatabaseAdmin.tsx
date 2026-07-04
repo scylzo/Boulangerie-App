@@ -36,7 +36,7 @@ export const DatabaseAdmin: React.FC = () => {
       <div className="bg-white border-b border-sand-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-danger-600 to-danger-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-danger-600 rounded-lg flex items-center justify-center">
               <Icon icon="mdi:database-cog" className="text-2xl text-white" />
             </div>
             <div>
@@ -67,9 +67,9 @@ export const DatabaseAdmin: React.FC = () => {
             </div>
           </div>
           <div className="p-6">
-            <div className="bg-gradient-to-br from-danger-50 to-danger-50 border border-danger-100 rounded-xl p-6">
+            <div className="bg-danger-50 border border-danger-100 rounded-xl p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-danger-500 to-danger-600 rounded-xl flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 bg-danger-500 rounded-xl flex items-center justify-center shadow-md">
                   <Icon icon="mdi:database-refresh" className="text-2xl text-white" />
                 </div>
                 <div>
@@ -111,7 +111,7 @@ export const DatabaseAdmin: React.FC = () => {
               <button
                 onClick={handleResetDatabase}
                 disabled={isResetting}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-danger-600 to-danger-600 text-white rounded-lg hover:from-danger-700 hover:to-danger-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                className="flex items-center gap-2 px-6 py-3 bg-danger-600 text-white rounded-lg hover:from-danger-700 hover:to-danger-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-card"
               >
                 <Icon icon={isResetting ? "mdi:loading" : "mdi:broom"} className={`text-lg ${isResetting ? 'animate-spin' : ''}`} />
                 <span className="font-medium">{isResetting ? 'Nettoyage en cours...' : 'Nettoyer et Réinitialiser'}</span>

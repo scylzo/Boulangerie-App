@@ -440,16 +440,16 @@ export const SaisieRetours: React.FC = () => {
             </div>
 
             {/* Affichage GROS de la date à droite */}
-            <div className="flex-1 max-w-lg bg-gradient-to-r from-danger-50 to-danger-50 border border-danger-100 rounded-xl p-4 shadow-sm">
+            <div className="flex-1 max-w-lg bg-danger-50 border border-danger-100 rounded-xl p-4 shadow-sm">
               <div className="flex items-center gap-4">
-                <div className="hidden sm:flex w-12 h-12 bg-gradient-to-br from-danger-500 to-danger-600 rounded-xl items-center justify-center text-white shadow-md transform rotate-3">
+                <div className="hidden sm:flex w-12 h-12 bg-danger-500 rounded-xl items-center justify-center text-white shadow-md transform rotate-3">
                   <Icon icon="mdi:calendar-check" className="text-2xl" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-danger-600 uppercase tracking-widest mb-1">
+                  <div className="text-xs font-semibold text-danger-600 uppercase tracking-widest mb-1">
                     Retours du
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-sand-800 capitalize leading-tight">
+                  <div className="text-xl sm:text-2xl font-semibold text-sand-800 capitalize leading-tight">
                     {new Date(dateSelectionnee).toLocaleDateString('fr-FR', {
                       weekday: 'long',
                       day: 'numeric',
@@ -477,7 +477,7 @@ export const SaisieRetours: React.FC = () => {
                 <p className="text-sand-500 mb-6">
                   Aucune commande client pour cette date
                 </p>
-                <button className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-info-600 to-terracotta-600 text-white rounded-lg hover:from-info-600 hover:to-terracotta-700 transition-all shadow-md">
+                <button className="inline-flex items-center gap-2 px-6 py-3 bg-info-600 text-white rounded-lg hover:from-info-600 hover:to-terracotta-700 transition-all shadow-md">
                   <Icon icon="mdi:plus" className="text-lg" />
                   <span className="font-medium">Créer une commande</span>
                 </button>
@@ -656,10 +656,10 @@ export const SaisieRetours: React.FC = () => {
                       {client.produits.map((produitLivraison) => (
                         <div
                           key={produitLivraison.produitId}
-                          className={`bg-linear-to-br ${produitLivraison.invendus > 0 ? 'from-danger-50 to-danger-50 border-danger-100' : 'from-success-50 to-success-50 border-success-100'} border rounded-xl p-4 hover:shadow-md transition-all`}
+                          className={`${produitLivraison.invendus > 0 ? 'bg-danger-50 border-danger-100' : 'bg-success-50 border-success-100'} border rounded-xl p-4 hover:shadow-elevated transition-all`}
                         >
                           <div className="flex items-center gap-3 mb-4">
-                            <div className={`w-12 h-12 bg-linear-to-br ${produitLivraison.invendus > 0 ? 'from-danger-500 to-danger-500' : 'from-success-500 to-success-500'} rounded-xl flex items-center justify-center shadow-md`}>
+                            <div className={`w-12 h-12 ${produitLivraison.invendus > 0 ? 'bg-danger-500' : 'bg-success-500'} rounded-xl flex items-center justify-center shadow-card`}>
                               <Icon
                                 icon={getProductIcon(produitLivraison.produit?.nom || '')}
                                 className="text-xl text-white"
@@ -670,7 +670,7 @@ export const SaisieRetours: React.FC = () => {
                                 {produitLivraison.produit?.nom || 'Produit inconnu'}
                               </h4>
                               <div className="text-sm text-sand-600">
-                                Livré: <span className="font-bold">{produitLivraison.quantiteLivree} pièces</span>
+                                Livré: <span className="font-semibold">{produitLivraison.quantiteLivree} pièces</span>
                               </div>
                             </div>
                           </div>
@@ -703,7 +703,7 @@ export const SaisieRetours: React.FC = () => {
                             <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3">
                               <div className="flex justify-between items-center">
                                 <span className="text-sm text-sand-600">Vendu final:</span>
-                                <span className={`text-lg font-bold ${produitLivraison.vendu > 0 ? 'text-success-600' : 'text-sand-600'}`}>
+                                <span className={`text-lg font-semibold ${produitLivraison.vendu > 0 ? 'text-success-600' : 'text-sand-600'}`}>
                                   {produitLivraison.vendu} pièces
                                 </span>
                               </div>

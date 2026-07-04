@@ -167,13 +167,13 @@ export const GestionLivreurs: React.FC = () => {
                 {livreurs.map((livreur) => (
                   <div
                     key={livreur.id}
-                    className="bg-white border border-sand-200 rounded-xl p-4 sm:p-5 hover:border-sand-300 hover:shadow-md transition-all duration-200 overflow-hidden"
+                    className="bg-white border border-sand-200 rounded-xl p-4 sm:p-5 hover:border-sand-300 hover:shadow-elevated transition-all duration-200 overflow-hidden"
                   >
                     {/* Header du livreur */}
                     <div className="flex items-start justify-between mb-3 sm:mb-4">
                       <div className="flex items-start gap-2 sm:gap-3 min-w-0 flex-1">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-900 rounded-lg flex items-center justify-center shrink-0">
-                          <span className="text-white font-bold text-base sm:text-lg">
+                          <span className="text-white font-semibold text-base sm:text-lg">
                             {livreur.nom.charAt(0).toUpperCase()}
                           </span>
                         </div>

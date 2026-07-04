@@ -64,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
           </button>
           <button className="relative w-10 h-10 rounded-xl text-sand-500 hover:bg-sand-100 flex items-center justify-center transition-colors" title="Notifications">
             <Icon icon="mdi:bell-outline" className="text-xl" />
-            <span className="absolute top-1.5 right-1.5 min-w-4 h-4 px-1 rounded-full bg-danger-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">5</span>
+            <span className="absolute top-1.5 right-1.5 min-w-4 h-4 px-1 rounded-full bg-danger-500 text-white text-[9px] font-semibold flex items-center justify-center ring-2 ring-white">5</span>
           </button>
           <button className="w-10 h-10 rounded-xl text-sand-500 hover:bg-sand-100 flex items-center justify-center transition-colors" title="Réglages">
             <Icon icon="mdi:cog-outline" className="text-xl" />

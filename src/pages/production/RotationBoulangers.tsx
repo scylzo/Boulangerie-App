@@ -218,7 +218,7 @@ export const RotationBoulangers: React.FC = () => {
                         <Icon icon="mdi:trash-can" className="text-xl" />
                     </button>
                 </div>
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-warning-100 text-warning-600 font-bold shrink-0">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-warning-100 text-warning-600 font-semibold shrink-0">
                     {index + 1}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full flex-1">

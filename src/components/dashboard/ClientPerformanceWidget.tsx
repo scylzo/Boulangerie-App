@@ -122,9 +122,9 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
     const totalRevenue = clientsPerformance.reduce((sum, c) => sum + c.totalAchats, 0);
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-sand-100 overflow-hidden flex flex-col hover:shadow-md transition-all duration-200">
+        <div className="bg-white rounded-xl shadow-sm border border-sand-100 overflow-hidden flex flex-col hover:shadow-elevated transition-all duration-200">
             {/* Header */}
-            <div className="px-4 py-3 sm:px-5 sm:py-4 md:px-6 md:py-4 border-b border-sand-100 bg-gradient-to-r from-info-50 to-terracotta-50">
+            <div className="px-4 py-3 sm:px-5 sm:py-4 md:px-6 md:py-4 border-b border-sand-100 bg-info-50">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                         <div className="w-8 h-8 sm:w-9 sm:h-9 bg-info-100 rounded-lg flex items-center justify-center shrink-0">
@@ -169,15 +169,15 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                 <div className="grid grid-cols-3 gap-2 mt-4">
                     <div className="bg-white rounded-lg p-2 border border-info-100">
                         <p className="text-[9px] text-sand-500 font-semibold uppercase tracking-wide">Total</p>
-                        <p className="text-sm font-bold text-sand-900">{formatCurrency(totalRevenue)}</p>
+                        <p className="text-sm font-semibold text-sand-900">{formatCurrency(totalRevenue)}</p>
                     </div>
                     <div className="bg-white rounded-lg p-2 border border-info-100">
                         <p className="text-[9px] text-sand-500 font-semibold uppercase tracking-wide">Clients actifs</p>
-                        <p className="text-sm font-bold text-sand-900">{clientsPerformance.length}</p>
+                        <p className="text-sm font-semibold text-sand-900">{clientsPerformance.length}</p>
                     </div>
                     <div className="bg-white rounded-lg p-2 border border-info-100">
                         <p className="text-[9px] text-sand-500 font-semibold uppercase tracking-wide">Moy./Client</p>
-                        <p className="text-sm font-bold text-sand-900">
+                        <p className="text-sm font-semibold text-sand-900">
                             {clientsPerformance.length > 0 ? formatCurrency(totalRevenue / clientsPerformance.length) : '0 F'}
                         </p>
                     </div>
@@ -191,7 +191,7 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                         <div className="w-16 h-16 bg-sand-50 rounded-full flex items-center justify-center mb-4 border border-sand-100">
                             <Icon icon="mdi:chart-line" className="text-3xl text-sand-400" />
                         </div>
-                        <p className="font-bold text-sand-900">Aucune donnée</p>
+                        <p className="font-semibold text-sand-900">Aucune donnée</p>
                         <p className="text-sm text-sand-400 mt-1">Aucune vente sur cette période</p>
                     </div>
                 ) : (
@@ -203,16 +203,16 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                             return (
                                 <div
                                     key={perf.client.id}
-                                    className={`relative p-3 sm:p-4 rounded-xl border transition-all hover:shadow-md ${isTop3
-                                        ? 'bg-gradient-to-r from-warning-50 to-warning-50 border-warning-100'
+                                    className={`relative p-3 sm:p-4 rounded-xl border transition-all hover:shadow-elevated ${isTop3
+                                        ? 'bg-warning-50 border-warning-100'
                                         : 'bg-sand-50 border-sand-200 hover:border-sand-300'
                                         }`}
                                 >
                                     {/* Rang */}
                                     <div className="absolute -left-2 -top-2">
-                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shadow-md ${index === 0 ? 'bg-gradient-to-br from-warning-500 to-warning-500 text-white' :
-                                            index === 1 ? 'bg-gradient-to-br from-sand-300 to-sand-400 text-white' :
-                                                index === 2 ? 'bg-gradient-to-br from-warning-500 to-warning-500 text-white' :
+                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center font-semibold text-xs shadow-md ${index === 0 ? 'bg-warning-500 text-white' :
+                                            index === 1 ? 'bg-sand-300 text-white' :
+                                                index === 2 ? 'bg-warning-500 text-white' :
                                                     'bg-sand-600 text-white'
                                             }`}>
                                             {index + 1}
@@ -223,7 +223,7 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                                         {/* Info client */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1 flex-wrap sm:flex-nowrap">
-                                                <h4 className="font-bold text-sand-900 text-sm truncate flex-shrink-1 min-w-[100px]">
+                                                <h4 className="font-semibold text-sand-900 text-sm truncate flex-shrink-1 min-w-[100px]">
                                                     {perf.client.nom}
                                                 </h4>
 
@@ -231,7 +231,7 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                                                     <Icon icon="mdi:store" className="text-info-600 text-sm shrink-0" />
                                                 )}
                                                 {/* Score de performance */}
-                                                <div className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${perf.scorePerformance >= 80 ? 'bg-success-100 text-success-700' :
+                                                <div className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${perf.scorePerformance >= 80 ? 'bg-success-100 text-success-700' :
                                                     perf.scorePerformance >= 60 ? 'bg-info-100 text-info-600' :
                                                         perf.scorePerformance >= 40 ? 'bg-warning-100 text-warning-600' :
                                                             'bg-danger-100 text-danger-700'
@@ -272,7 +272,7 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
                                                 </div>
                                                 <div className="h-1.5 w-full bg-sand-200 rounded-full overflow-hidden">
                                                     <div
-                                                        className={`h-full rounded-full transition-all duration-500 ${isTop3 ? 'bg-gradient-to-r from-warning-500 to-warning-500' : 'bg-info-500'
+                                                        className={`h-full rounded-full transition-all duration-500 ${isTop3 ? 'bg-warning-500' : 'bg-info-500'
                                                             }`}
                                                         style={{ width: `${Math.min(100, partRevenue * 2)}%` }}
                                                     />
@@ -282,7 +282,7 @@ export const ClientPerformanceWidget: React.FC<ClientPerformanceWidgetProps> = (
 
                                         {/* Total */}
                                         <div className="text-right shrink-0">
-                                            <p className="text-lg sm:text-xl font-black text-sand-900">
+                                            <p className="text-lg sm:text-xl font-semibold text-sand-900">
                                                 {formatCurrency(perf.totalAchats)}
                                             </p>
                                             {perf.dernierAchat && (

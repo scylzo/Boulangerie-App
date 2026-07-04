@@ -329,8 +329,8 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
                   <span className="text-sand-900">{formatCurrency(facture.montantTVA)}</span>
                 </div>
                 <div className="flex justify-between border-t border-sand-200 pt-2">
-                  <span className="font-bold text-sand-900">Total TTC :</span>
-                  <span className="font-bold text-lg text-sand-900">{formatCurrency(facture.totalTTC)}</span>
+                  <span className="font-semibold text-sand-900">Total TTC :</span>
+                  <span className="font-semibold text-lg text-sand-900">{formatCurrency(facture.totalTTC)}</span>
                 </div>
 
                 {facture.soldeUtilise ? (
@@ -342,8 +342,8 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
 
                 {(facture.soldeUtilise && facture.soldeUtilise > 0) && (
                   <div className="flex justify-between border-t border-sand-200 pt-2">
-                    <span className="font-bold text-sand-900">Net à payer :</span>
-                    <span className="font-bold text-lg text-terracotta-600">{formatCurrency(facture.netAPayer ?? 0)}</span>
+                    <span className="font-semibold text-sand-900">Net à payer :</span>
+                    <span className="font-semibold text-lg text-terracotta-600">{formatCurrency(facture.netAPayer ?? 0)}</span>
                   </div>
                 )}
 
@@ -355,8 +355,8 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
                     </div>
                     {facture.montantRegle < (facture.netAPayer ?? facture.totalTTC) && (
                       <div className="flex justify-between border-t border-terracotta-200 pt-2 text-terracotta-700 bg-terracotta-50 px-2 rounded mt-1">
-                        <span className="font-bold text-sm">Solde dû :</span>
-                        <span className="font-bold text-base">{formatCurrency((facture.netAPayer ?? facture.totalTTC) - facture.montantRegle)}</span>
+                        <span className="font-semibold text-sm">Solde dû :</span>
+                        <span className="font-semibold text-base">{formatCurrency((facture.netAPayer ?? facture.totalTTC) - facture.montantRegle)}</span>
                       </div>
                     )}
                   </>
@@ -365,7 +365,7 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
                 {/* Détail des règlements multi-modes */}
                 {facture.reglements && facture.reglements.length > 0 && (
                   <div className="mt-2 space-y-1 bg-sand-100 p-2 rounded-lg text-[10px] sm:text-xs">
-                    <p className="font-bold text-sand-400 uppercase tracking-wider mb-1">Détail des paiements</p>
+                    <p className="font-semibold text-sand-400 uppercase tracking-wider mb-1">Détail des paiements</p>
                     {facture.reglements.map((r, i) => (
                       <div key={i} className="flex justify-between text-sand-600">
                         <span className="capitalize">{r.mode === 'espece' ? 'Espèces' : r.mode.toUpperCase()} :</span>
