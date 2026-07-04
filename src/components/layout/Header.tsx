@@ -19,6 +19,17 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
   const chargerDonnees = useStockStore((s) => s.chargerDonnees);
   const [showAlerts, setShowAlerts] = useState(false);
 
+  // Thème clair / sombre
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const toggleTheme = () => {
+    setDark((prev) => {
+      const next = !prev;
+      document.documentElement.classList.toggle('dark', next);
+      localStorage.setItem('cm.theme', next ? 'dark' : 'light');
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (matieres.length === 0) chargerDonnees();
   }, [matieres.length, chargerDonnees]);
@@ -59,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-sand-200">
+    <header className="sticky top-0 z-10 bg-sand-50/95 backdrop-blur border-b border-sand-200">
       <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-4">
         {/* Gauche : toggles + titre */}
         <div className="flex items-center gap-1.5 min-w-0">
@@ -86,8 +97,12 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
             <Icon icon="mdi:magnify" className="text-lg" />
             <span>Recherche rapide…</span>
           </div>
-          <button className="w-10 h-10 rounded-xl text-sand-500 hover:bg-sand-100 flex items-center justify-center transition-colors" title="Mode sombre">
-            <Icon icon="mdi:weather-night" className="text-xl" />
+          <button
+            onClick={toggleTheme}
+            className="w-10 h-10 rounded-xl text-sand-500 hover:bg-sand-100 flex items-center justify-center transition-colors"
+            title={dark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+          >
+            <Icon icon={dark ? 'mdi:weather-sunny' : 'mdi:weather-night'} className="text-xl" />
           </button>
 
           {/* Alertes rupture de stock */}

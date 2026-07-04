@@ -91,6 +91,49 @@
   --shadow-overlay: 0 16px 40px -8px rgb(0 0 0 / 0.18), 0 4px 10px -4px rgb(0 0 0 / 0.10);
 }
 
+/* ── Mode sombre ──────────────────────────────────────────────────────
+   L'app est 100% tokenisée sur l'échelle « sand ». On inverse les neutres
+   (cartes/texte/bordures/inputs basculent d'un coup) puis on re-force les
+   accents foncés (bg-sand-900/950 à texte blanc) et la sidebar. */
+.dark {
+  color-scheme: dark;
+  --color-sand-50:  #09090B;
+  --color-sand-100: #18181B;
+  --color-sand-200: #27272A;
+  --color-sand-300: #3F3F46;
+  --color-sand-400: #52525B;
+  --color-sand-500: #71717A;
+  --color-sand-600: #A1A1AA;
+  --color-sand-700: #D4D4D8;
+  --color-sand-800: #E4E4E7;
+  --color-sand-900: #F4F4F5;
+  --color-sand-950: #FAFAFA;
+  --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.45);
+  --shadow-elevated: 0 6px 16px -4px rgb(0 0 0 / 0.55);
+  --shadow-overlay: 0 20px 48px -12px rgb(0 0 0 / 0.7);
+}
+
+/* Surfaces claires → surface sombre élevée */
+.dark .bg-white { background-color: #1e1e22; }
+
+/* Accents foncés (texte blanc) : rester foncés en mode sombre */
+.dark .bg-sand-950 { background-color: #000000; }
+.dark .bg-sand-900 { background-color: #101014; }
+.dark .bg-sand-800 { background-color: #1c1c21; }
+.dark .hover\:bg-sand-800:hover { background-color: #26262c; }
+.dark .hover\:bg-sand-700:hover { background-color: #303038; }
+
+/* Sidebar : conserve son habillage sombre d'origine (tokens re-figés) */
+.dark aside {
+  --color-sand-300: #D4D4D8;
+  --color-sand-400: #A1A1AA;
+  --color-sand-500: #71717A;
+  --color-sand-600: #52525B;
+  --color-sand-900: #18181B;
+  --color-sand-950: #09090B;
+}
+
 /* ── Base ───────────────────────────────────────────────────────────── */
 :root {
   font-family: var(--font-sans);
