@@ -46,6 +46,7 @@ export const GestionUtilisateurs: React.FC = () => {
     userNom: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -184,26 +185,38 @@ export const GestionUtilisateurs: React.FC = () => {
       <div className="bg-white border-b border-sand-200 px-3 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-terracotta-600 rounded-lg flex items-center justify-center shrink-0">
-              <Icon icon="mdi:account-group-outline" className="text-lg sm:text-2xl text-white" />
+            <div className="w-10 h-10 bg-terracotta-50 rounded-xl flex items-center justify-center shrink-0">
+              <Icon icon="mdi:account-key-outline" className="text-lg sm:text-2xl text-terracotta-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-xl font-semibold text-sand-900 truncate">
-                Gestion des Utilisateurs
+              <h1 className="font-display text-base sm:text-2xl font-semibold text-sand-900 truncate">
+                Utilisateurs
               </h1>
               <p className="text-xs sm:text-sm text-sand-500 truncate">
-                Gestion des accès utilisateurs
+                {users.length} compte(s) · rôles & permissions par module
               </p>
             </div>
           </div>
 
-          <button
-            onClick={() => handleOpenModal()}
-            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-terracotta-600 hover:bg-terracotta-700 text-white rounded-lg transition-all shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto"
-          >
-            <Icon icon="mdi:account-plus" className="text-base sm:text-lg" />
-            <span>Nouvel Utilisateur</span>
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-sand-400 text-lg" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher…"
+                className="w-full sm:w-48 pl-10 pr-3 py-2 border border-sand-300 rounded-lg bg-white text-sm text-sand-900 focus:ring-2 focus:ring-terracotta-500 focus:border-transparent"
+              />
+            </div>
+            <button
+              onClick={() => handleOpenModal()}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-lg transition-all shadow-soft text-sm font-medium whitespace-nowrap"
+            >
+              <Icon icon="mdi:account-plus" className="text-lg" />
+              <span className="hidden sm:inline">Nouvel utilisateur</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -231,56 +244,76 @@ export const GestionUtilisateurs: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {users.map((user) => {
-              const roleStyle = getRoleStyle(user.role);
-              return (
-                <div key={user.id} className="bg-white border border-sand-200 rounded-xl p-4 sm:p-5 hover:border-terracotta-300 hover:shadow-elevated transition-all duration-200 group flex flex-col">
-                  {/* Header Card */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3 w-full overflow-hidden">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-100 rounded-full flex items-center justify-center shrink-0 border border-sand-200 text-sand-600 font-semibold text-sm sm:text-base">
-                        {getInitials(user.nom, user.prenom)}
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-sm sm:text-base text-sand-900 truncate" title={`${user.nom} ${user.prenom}`}>
-                          {user.nom} {user.prenom}
-                        </h3>
-                        <p className="text-xs text-sand-500 truncate" title={user.email}>
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Role Badge */}
-                  <div className="mb-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${roleStyle.bg} ${roleStyle.text}`}>
-                      <Icon icon={roleStyle.icon} className="text-sm" />
-                      {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Utilisateur'}
-                    </span>
-                  </div>
-
-                  {/* Actions Footer */}
-                  <div className="mt-auto flex gap-2 pt-4 border-t border-sand-50">
-                    <button
-                      onClick={() => handleOpenModal(user)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-terracotta-600 hover:text-terracotta-700 bg-terracotta-50 hover:bg-terracotta-100 rounded-lg transition-all text-xs sm:text-sm font-medium"
-                    >
-                      <Icon icon="mdi:pencil" className="text-base" />
-                      <span>Modifier</span>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteUser(user.id, `${user.nom} ${user.prenom}`)}
-                      className="flex items-center justify-center px-3 py-2 text-danger-600 hover:text-danger-700 bg-danger-50 hover:bg-danger-100 rounded-lg transition-all"
-                      title="Supprimer"
-                    >
-                      <Icon icon="mdi:trash-can-outline" className="text-lg" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="bg-white rounded-2xl border border-sand-200 shadow-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[680px]">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-wide text-sand-500 border-b border-sand-200 bg-sand-50">
+                    <th className="font-semibold px-4 py-3">Utilisateur</th>
+                    <th className="font-semibold px-4 py-3">Email</th>
+                    <th className="font-semibold px-4 py-3">Rôle</th>
+                    <th className="font-semibold px-4 py-3">Permissions</th>
+                    <th className="font-semibold px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users
+                    .filter((u) => {
+                      const q = search.toLowerCase().trim();
+                      if (!q) return true;
+                      return `${u.nom || ''} ${u.prenom || ''}`.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.role?.toLowerCase().includes(q);
+                    })
+                    .map((user) => {
+                      const roleStyle = getRoleStyle(user.role);
+                      const nbPerms = user.role === 'admin' ? APP_MODULES.length : (user.permissions?.length || 0);
+                      return (
+                        <tr key={user.id} className="border-b border-sand-100 last:border-0 hover:bg-sand-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-9 h-9 bg-sand-900 text-white rounded-lg flex items-center justify-center font-semibold text-sm shrink-0">
+                                {getInitials(user.nom, user.prenom)}
+                              </div>
+                              <span className="font-medium text-sand-900 truncate">{user.nom} {user.prenom}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sand-600 truncate max-w-[220px]">{user.email}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium ${roleStyle.bg} ${roleStyle.text}`}>
+                              <Icon icon={roleStyle.icon} className="text-sm" />
+                              {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Utilisateur'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sand-600">
+                            {user.role === 'admin' ? (
+                              <span className="inline-flex items-center gap-1 text-terracotta-600"><Icon icon="mdi:shield-check" className="text-sm" />Tous les modules</span>
+                            ) : (
+                              <span>{nbPerms} module{nbPerms > 1 ? 's' : ''}</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => handleOpenModal(user)}
+                                className="w-8 h-8 rounded-lg text-sand-500 hover:bg-sand-100 hover:text-sand-900 flex items-center justify-center transition-colors"
+                                title="Modifier"
+                              >
+                                <Icon icon="mdi:pencil-outline" className="text-lg" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(user.id, `${user.nom} ${user.prenom}`)}
+                                className="w-8 h-8 rounded-lg text-sand-500 hover:bg-danger-50 hover:text-danger-600 flex items-center justify-center transition-colors"
+                                title="Supprimer"
+                              >
+                                <Icon icon="mdi:trash-can-outline" className="text-lg" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
