@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { Plus, Edit2, Trash2, AlertTriangle, ArrowRightLeft } from 'lucide-react';
+import { Plus, Edit2, Trash2, AlertTriangle, ArrowRightLeft, Scale } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
 import type { MatierePremiere, UniteMesure } from '../../types';
 import { formaterQuantite } from '../../utils/calculations';
+import { useAuthStore } from '../../store/authStore';
 
 interface MatiereListProps {
   onAddMouvement: (matiere: MatierePremiere) => void;
 }
 
 export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
-  const { matieres, addMatiere, updateMatiere, deleteMatiere } = useStockStore();
+  const { matieres, addMatiere, updateMatiere, deleteMatiere, addMouvement } = useStockStore();
+  const { user } = useAuthStore();
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; matiereId: string; matiereNom: string }>({
@@ -46,6 +49,46 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
     factor: '1',
     targetUnit: 'kg'
   });
+
+  // Correction de stock (inventaire)
+  const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+  const [correction, setCorrection] = useState<{ isOpen: boolean; matiere?: MatierePremiere; valeur: string }>({
+    isOpen: false,
+    valeur: ''
+  });
+  const [isCorrecting, setIsCorrecting] = useState(false);
+
+  const openCorrection = (matiere: MatierePremiere) => {
+    setCorrection({ isOpen: true, matiere, valeur: String(round2(Math.max(0, matiere.stockActuel))) });
+  };
+
+  const handleCorriger = async () => {
+    if (!correction.matiere) return;
+    const cible = round2(parseFloat(correction.valeur.replace(',', '.')) || 0);
+    const delta = round2(cible - correction.matiere.stockActuel);
+    if (delta === 0) {
+      setCorrection({ isOpen: false, valeur: '' });
+      return;
+    }
+    setIsCorrecting(true);
+    try {
+      await addMouvement({
+        date: new Date(),
+        matiereId: correction.matiere.id,
+        type: 'correction',
+        quantite: delta,
+        motif: 'Correction inventaire',
+        auteur: user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : '',
+        userId: user?.id || 'current-user-id',
+      });
+      toast.success(`Stock corrigé : ${formaterQuantite(cible, correction.matiere.unite)}`);
+      setCorrection({ isOpen: false, valeur: '' });
+    } catch {
+      toast.error('Erreur lors de la correction du stock');
+    } finally {
+      setIsCorrecting(false);
+    }
+  };
 
   const openConversion = (matiere: MatierePremiere) => {
     setConversionState({
@@ -366,10 +409,17 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                           <span className="sm:hidden">Conv.</span>
                         </button>
                       )}
-                      <button onClick={() => onAddMouvement(matiere)} className="p-1.5 sm:p-2 text-info-600 hover:bg-info-50 rounded-lg">
+                      <button onClick={() => onAddMouvement(matiere)} title="Mouvement de stock" className="p-1.5 sm:p-2 text-info-600 hover:bg-info-50 rounded-lg">
                         <ArrowRightLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
-                      <button onClick={() => startEdit(matiere)} className="p-1.5 sm:p-2 text-sand-600 hover:bg-sand-100 rounded-lg">
+                      <button
+                        onClick={() => openCorrection(matiere)}
+                        title="Corriger le stock (inventaire)"
+                        className={`p-1.5 sm:p-2 rounded-lg ${matiere.stockActuel < 0 ? 'text-warning-600 hover:bg-warning-50 ring-1 ring-warning-200' : 'text-sand-600 hover:bg-sand-100'}`}
+                      >
+                        <Scale size={16} className="sm:w-[18px] sm:h-[18px]" />
+                      </button>
+                      <button onClick={() => startEdit(matiere)} title="Modifier" className="p-1.5 sm:p-2 text-sand-600 hover:bg-sand-100 rounded-lg">
                         <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
                       <button onClick={() => handleDelete(matiere.id, matiere.nom)} className="p-1.5 sm:p-2 text-danger-600 hover:bg-danger-50 rounded-lg">
@@ -383,6 +433,77 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Correction de stock (inventaire) */}
+      {correction.isOpen && correction.matiere && (() => {
+        const m = correction.matiere;
+        const cible = round2(parseFloat(correction.valeur.replace(',', '.')) || 0);
+        const delta = round2(cible - m.stockActuel);
+        return (
+          <Modal
+            isOpen={correction.isOpen}
+            onClose={() => setCorrection({ isOpen: false, valeur: '' })}
+            title={`Corriger le stock — ${m.nom}`}
+            size="sm"
+            position="center"
+          >
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-terracotta-50 text-terracotta-600 flex items-center justify-center shrink-0">
+                  <Scale size={20} />
+                </div>
+                <p className="text-sm text-sand-500">
+                  Saisis le <b>stock réellement compté</b>. Un mouvement de correction sera enregistré pour aligner le système sur la réalité.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-sand-50 border border-sand-200 text-sm">
+                <span className="text-sand-500">Stock système actuel</span>
+                <span className={`font-semibold tabular-nums ${m.stockActuel < 0 ? 'text-danger-600' : 'text-sand-900'}`}>
+                  {formaterQuantite(m.stockActuel, m.unite)}
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-sand-700 mb-1.5">Stock réel constaté ({m.unite})</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  autoFocus
+                  value={correction.valeur}
+                  onChange={(e) => setCorrection((c) => ({ ...c, valeur: e.target.value }))}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleCorriger(); }}
+                  className="w-full px-3 py-2.5 border border-sand-300 rounded-lg text-right font-semibold text-sand-900 tabular-nums focus:ring-2 focus:ring-terracotta-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-sand-500">Ajustement</span>
+                <span className={`font-semibold tabular-nums ${delta === 0 ? 'text-sand-400' : delta > 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                  {delta > 0 ? '+' : ''}{formaterQuantite(delta, m.unite)}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  onClick={() => setCorrection({ isOpen: false, valeur: '' })}
+                  className="flex-1 py-2.5 rounded-xl border border-sand-300 text-sand-700 hover:bg-sand-50 font-medium"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleCorriger}
+                  disabled={isCorrecting || delta === 0}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-terracotta-600 hover:bg-terracotta-700 text-white font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCorrecting ? 'Correction…' : 'Valider la correction'}
+                </button>
+              </div>
+            </div>
+          </Modal>
+        );
+      })()}
 
       <ConfirmModal
         isOpen={deleteConfirm.isOpen}
