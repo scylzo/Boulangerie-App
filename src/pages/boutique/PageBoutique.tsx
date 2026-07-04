@@ -147,7 +147,7 @@ export const PageBoutique: React.FC = () => {
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
         {/* Widget de sélection de date moderne */}
-        <div className="bg-white rounded-xl border border-sand-200 shadow-sm p-4 sm:p-6 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-sand-200 shadow-card p-4 sm:p-6 overflow-hidden">
           <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div className="w-8 h-8 bg-sand-100 rounded-lg flex items-center justify-center shrink-0">
               <Icon icon="mdi:calendar" className="text-lg text-sand-600" />
@@ -174,7 +174,7 @@ export const PageBoutique: React.FC = () => {
 
         {/* État du chargement ou absence de stock */}
         {!stockJour && (
-          <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
+          <div className="bg-white rounded-2xl border border-sand-200 shadow-card">
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-sand-100">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center shrink-0">
@@ -221,7 +221,7 @@ export const PageBoutique: React.FC = () => {
 
         {/* Affichage du stock reçu */}
         {stockJour && (
-          <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
+          <div className="bg-white rounded-2xl border border-sand-200 shadow-card">
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-sand-100">
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
@@ -635,7 +635,7 @@ export const PageBoutique: React.FC = () => {
         {stockJour && (
           <div className="space-y-4 sm:space-y-6">
             {/* Indicateur de progression */}
-            <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
+            <div className="bg-white rounded-2xl border border-sand-200 shadow-card">
               <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-sand-100">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center shrink-0">
@@ -706,7 +706,7 @@ export const PageBoutique: React.FC = () => {
             </div>
 
             {/* Équipe Matin */}
-            <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
+            <div className="bg-white rounded-2xl border border-sand-200 shadow-card">
               <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-sand-100">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center shrink-0">
@@ -922,7 +922,7 @@ export const PageBoutique: React.FC = () => {
 
             {/* Passage de relais (Uniquement si mode normal et pas journée continue) */}
             {equipeMatin?.statut === 'termine' && !equipeSoir && !stockJour.isJourneeContinue && (
-              <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
+              <div className="bg-white rounded-2xl border border-sand-200 shadow-card">
                 <div className="px-6 py-4 border-b border-sand-100">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
@@ -971,7 +971,7 @@ export const PageBoutique: React.FC = () => {
 
             {/* Équipe Soir (Uniquement si mode normal et pas journée continue) */}
             {equipeMatin?.statut === 'termine' && !stockJour.isJourneeContinue && (
-              <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
+              <div className="bg-white rounded-2xl border border-sand-200 shadow-card">
                 <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-sand-100">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-terracotta-100 rounded-lg flex items-center justify-center shrink-0">
@@ -1143,7 +1143,7 @@ export const PageBoutique: React.FC = () => {
 
             {/* Récapitulatif des 2 équipes */}
             {ventesJour && (
-              <div className="bg-white rounded-xl border border-sand-200 shadow-sm">
+              <div className="bg-white rounded-2xl border border-sand-200 shadow-card">
                 <div className="px-6 py-4 border-b border-sand-100">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
