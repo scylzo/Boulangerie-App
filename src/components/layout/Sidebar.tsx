@@ -15,7 +15,7 @@ interface SidebarProps {
 // Regroupement des modules en sections (par id)
 const SECTIONS: { label: string; ids: string[] }[] = [
   { label: 'Principal', ids: ['dashboard', 'production', 'boulanger', 'rotation'] },
-  { label: 'Commercial', ids: ['facturation', 'livraison', 'retours', 'boutique'] },
+  { label: 'Commercial', ids: ['pos', 'facturation', 'livraison', 'retours', 'boutique'] },
   { label: 'Gestion', ids: ['stocks', 'depenses', 'comptabilite', 'rapport'] },
   { label: 'Administration', ids: ['fiche_produit', 'admin_produits', 'admin_clients', 'admin_livreurs', 'admin_users'] },
 ];
@@ -31,10 +31,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, collapsed, onClose
       return user.permissions.includes(module.id);
     }
     const rolePermissions: Record<string, string[]> = {
-      gestionnaire: ['dashboard', 'production', 'rotation', 'facturation', 'stocks', 'depenses', 'comptabilite', 'rapport', 'fiche_produit'],
+      gestionnaire: ['dashboard', 'pos', 'production', 'rotation', 'facturation', 'stocks', 'depenses', 'comptabilite', 'rapport', 'fiche_produit'],
       boulanger: ['boulanger'],
       livreur: ['livraison', 'retours'],
-      vendeuse: ['boutique']
+      vendeuse: ['pos', 'boutique']
     };
     return rolePermissions[user.role]?.includes(module.id) || false;
   });

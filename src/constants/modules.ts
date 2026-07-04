@@ -8,6 +8,7 @@ export interface Module {
 
 export const APP_MODULES: Module[] = [
   { id: 'dashboard', name: 'Tableau de bord', href: '/dashboard', icon: 'mdi:view-dashboard' },
+  { id: 'pos', name: 'Caisse', href: '/caisse', icon: 'mdi:cash-register' },
   { id: 'production', name: 'Programme Production', href: '/production', icon: 'mdi:clipboard-text' },
   { id: 'boulanger', name: 'Vue Boulanger', href: '/boulanger', icon: 'ph:chef-hat-bold' },
   { id: 'rotation', name: 'Rotation Boulangers', href: '/rotation-boulangers', icon: 'mdi:calendar-sync' },

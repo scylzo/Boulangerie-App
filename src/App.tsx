@@ -6,6 +6,7 @@ import { auth, db } from './firebase/config';
 import { Layout } from './components/layout/Layout';
 import { Login } from './pages/auth/Login';
 import { Dashboard } from './pages/Dashboard';
+import { PointOfSale } from './pages/pos/PointOfSale';
 import { ProgrammeProduction } from './pages/production/ProgrammeProduction';
 import { RotationBoulangers } from './pages/production/RotationBoulangers';
 import { VueBoulanger } from './pages/production/VueBoulanger';
@@ -107,6 +108,12 @@ function App() {
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/caisse" element={
+          <ProtectedRoute>
+            <PointOfSale />
           </ProtectedRoute>
         } />
 

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chez Mina — Caisse (POS)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/iconify-icon@2/dist/iconify-icon.min.js"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-sand-50:#FAFAFA;--color-sand-100:#F4F4F5;--color-sand-200:#E4E4E7;--color-sand-300:#D4D4D8;--color-sand-400:#A1A1AA;--color-sand-500:#71717A;--color-sand-600:#52525B;--color-sand-700:#3F3F46;--color-sand-800:#27272A;--color-sand-900:#18181B;
+      --color-terracotta-50:#F4F4F5;--color-terracotta-300:#A1A1AA;--color-terracotta-500:#18181B;--color-terracotta-600:#09090B;
+      --color-success-600:#16A34A;--color-danger-600:#DC2626;
+      --font-sans:"Inter",system-ui,sans-serif;
+      --shadow-card:0 1px 2px 0 rgb(0 0 0 / .05),0 1px 3px 0 rgb(0 0 0 / .05);
+      --shadow-elevated:0 4px 12px -2px rgb(0 0 0 / .08),0 2px 4px -2px rgb(0 0 0 / .05);
+    }
+    body{font-family:var(--font-sans);background:#F4F4F5}
+    h1,h2{letter-spacing:-.02em}.tnums{font-variant-numeric:tabular-nums}.fd{font-family:var(--font-sans);letter-spacing:-.01em}
+  </style>
+</head>
+<body class="p-4">
+  <div class="flex gap-4" style="height:calc(100vh - 2rem)">
+    <!-- Produits -->
+    <div class="flex-1 min-w-0 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="flex items-center gap-1 bg-white border border-sand-200 rounded-xl p-1 shadow-sm">
+          <button class="px-3 py-1.5 rounded-lg text-sm font-medium bg-sand-900 text-white">Tous</button>
+          <button class="px-3 py-1.5 rounded-lg text-sm font-medium text-sand-600 hover:bg-sand-100">Boulangerie</button>
+          <button class="px-3 py-1.5 rounded-lg text-sm font-medium text-sand-600 hover:bg-sand-100">Viennoiserie</button>
+        </div>
+        <div class="relative flex-1">
+          <iconify-icon icon="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-sand-400 text-lg"></iconify-icon>
+          <input placeholder="Rechercher un produit…" class="w-full pl-10 pr-3 py-2 border border-sand-300 rounded-xl bg-white text-sm">
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto pr-1">
+        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3" id="grid"></div>
+      </div>
+    </div>
+    <!-- Ticket -->
+    <div class="w-[360px] shrink-0">
+      <div class="bg-white border border-sand-200 rounded-2xl shadow-card flex flex-col h-full overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-sand-200 bg-sand-50">
+          <div class="flex items-center gap-2"><iconify-icon icon="mdi:receipt-text-outline" class="text-lg text-terracotta-600"></iconify-icon><h2 class="font-semibold text-sand-900">Ticket</h2><span class="text-xs font-medium text-sand-500 bg-sand-100 px-2 py-0.5 rounded-full tnums">7</span></div>
+          <button class="text-sand-400 hover:text-danger-600 text-xs font-medium flex items-center gap-1"><iconify-icon icon="mdi:delete-outline"></iconify-icon> Vider</button>
+        </div>
+        <div class="flex-1 overflow-y-auto divide-y divide-sand-100" id="lines"></div>
+        <div class="border-t border-sand-200 p-4 space-y-3">
+          <div class="flex items-center justify-between"><span class="text-sm text-sand-500">Total</span><span class="text-2xl font-semibold text-sand-900 tnums" id="total">0 FCFA</span></div>
+          <button class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-semibold shadow-sm"><iconify-icon icon="mdi:cash-register" class="text-lg"></iconify-icon> Encaisser</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const prods = [
+      ['Baguette tradition',150,'mdi:baguette'],['Baguette',125,'mdi:baguette'],['Croissant beurre',300,'mdi:croissant'],
+      ['Pain au chocolat',350,'mdi:croissant'],['Pain de mie',1000,'mdi:bread-slice'],['Brioche',500,'mdi:muffin'],
+      ['Pain complet',400,'mdi:bread-slice'],['Pain aux raisins',400,'mdi:pretzel'],['Chausson pomme',350,'mdi:pie'],
+      ['Gâteau part',800,'mdi:cake'],['Sandwich',1500,'mdi:food'],['Cake',2500,'mdi:cake-variant'],
+    ];
+    const cart = {0:2,2:3,4:1,10:1};
+    const grid = document.getElementById('grid');
+    prods.forEach((p,i)=>{
+      const q = cart[i]||0;
+      grid.insertAdjacentHTML('beforeend', `
+        <button class="group relative bg-white border border-sand-200 rounded-2xl shadow-card hover:shadow-elevated hover:border-sand-300 transition-all p-4 text-left flex flex-col gap-3">
+          <div class="w-11 h-11 rounded-xl bg-sand-100 text-sand-700 flex items-center justify-center group-hover:bg-terracotta-50 transition-colors"><iconify-icon icon="${p[2]}" class="text-2xl"></iconify-icon></div>
+          <div><div class="font-medium text-sand-900 text-sm leading-tight">${p[0]}</div><div class="text-lg font-semibold text-sand-900 tnums mt-1">${p[1].toLocaleString('fr-FR')} <span class="text-xs text-sand-400 font-normal">F</span></div></div>
+          ${q?`<span class="absolute top-2 right-2 w-6 h-6 rounded-full bg-terracotta-500 text-white text-xs font-semibold flex items-center justify-center tnums">${q}</span>`:''}
+        </button>`);
+    });
+    const lines = document.getElementById('lines'); let total=0;
+    Object.entries(cart).forEach(([i,q])=>{ const p=prods[i]; total+=p[1]*q;
+      lines.insertAdjacentHTML('beforeend',`
+        <div class="flex items-center gap-2 px-4 py-2.5">
+          <div class="min-w-0 flex-1"><div class="text-sm font-medium text-sand-900 truncate">${p[0]}</div><div class="text-xs text-sand-500 tnums">${p[1].toLocaleString('fr-FR')} F × ${q}</div></div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button class="w-7 h-7 rounded-lg border border-sand-200 text-sand-600 flex items-center justify-center"><iconify-icon icon="mdi:minus"></iconify-icon></button>
+            <span class="w-6 text-center text-sm font-medium tnums">${q}</span>
+            <button class="w-7 h-7 rounded-lg border border-sand-200 text-sand-600 flex items-center justify-center"><iconify-icon icon="mdi:plus"></iconify-icon></button>
+          </div>
+          <div class="w-20 text-right font-semibold text-sand-900 text-sm tnums shrink-0">${(p[1]*q).toLocaleString('fr-FR')}</div>
+        </div>`);
+    });
+    document.getElementById('total').textContent = total.toLocaleString('fr-FR')+' FCFA';
+  </script>
+</body>
+</html>
