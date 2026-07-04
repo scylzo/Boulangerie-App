@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { Modal } from '../../components/ui/Modal';
 import { useReferentielStore } from '../../store/referentielStore';
+import { usePosStore } from '../../store/posStore';
 import { formatCurrency } from '../../utils/currency';
 import type { Produit } from '../../types';
 import omLogo from '../../assets/om.svg';
@@ -34,6 +35,7 @@ const catLabel = (c?: string) => c === 'viennoiserie' ? 'Viennoiserie' : c === '
 
 export const PointOfSale: React.FC = () => {
   const { produits, chargerProduits } = useReferentielStore();
+  const { enregistrerTicket, isSaving } = usePosStore();
 
   const [cart, setCart] = useState<Record<string, number>>({});
   const [categorie, setCategorie] = useState<CategorieFiltre>('tous');
@@ -75,23 +77,36 @@ export const PointOfSale: React.FC = () => {
   const jour = new Date().toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
   const typeLabel: Record<TypeCommande, string> = { sur_place: 'Sur place', emporter: 'À emporter', livraison: 'Livraison' };
 
-  const imprimerTicket = () => {
+  const imprimerTicket = (numero: number) => {
     const w = window.open('', '_blank', 'width=340,height=640');
     if (!w) return;
     const modeLabel = paiement === 'espece' ? 'Espèces' : paiement === 'om' ? 'Orange Money' : 'Wave';
     const rows = lignes.map(l => `<tr><td>${l.produit!.nom}</td><td class="c">${l.qty}</td><td class="r">${(prixDe(l.produit!) * l.qty).toLocaleString('fr-FR')}</td></tr>`).join('');
     const cashRows = paiement === 'espece' ? `<div class="row"><span>Reçu</span><span>${recuNum.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Rendu</span><span>${rendu.toLocaleString('fr-FR')} F</span></div>` : '';
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}h1{font-size:16px;text-align:center;margin:0 0 2px}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body><h1>CHEZ MINA NOFLAYE</h1><p class="sub">${jour} ${heure} · ${typeLabel[typeCommande]}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/><div class="tot"><span>TOTAL</span><span>${total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel}</span></div>${cashRows}<hr/><p class="foot">${nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}h1{font-size:16px;text-align:center;margin:0 0 2px}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body><h1>CHEZ MINA NOFLAYE</h1><p class="sub">Ticket n°${numero} · ${jour} ${heure} · ${typeLabel[typeCommande]}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/><div class="tot"><span>TOTAL</span><span>${total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel}</span></div>${cashRows}<hr/><p class="foot">${nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
     w.document.close(); w.focus(); setTimeout(() => w.print(), 200);
   };
 
-  const validerPaiement = () => {
+  const validerPaiement = async () => {
     if (paiement === 'espece' && recuNum < total) { toast.error('Montant reçu insuffisant'); return; }
-    imprimerTicket();
-    // TODO (persistance): brancher la vente réelle, ex.
-    // await useBoutiqueStore.getState().validerVenteDirecte(new Date(), cart);
-    toast.success(`Commande encaissée · ${formatCurrency(total)}`);
-    clearAll(); setShowPayment(false);
+    try {
+      const base = {
+        date: new Date().toISOString().split('T')[0],
+        lignes: lignes.map(l => ({ produitId: l.produit!.id, nom: l.produit!.nom, prixUnitaire: prixDe(l.produit!), quantite: l.qty })),
+        total,
+        nbArticles,
+        modePaiement: paiement,
+        typeCommande,
+      };
+      const payload = paiement === 'espece' ? { ...base, montantRecu: recuNum, rendu } : base;
+      const numero = await enregistrerTicket(payload);
+      imprimerTicket(numero);
+      toast.success(`Ticket n°${numero} encaissé · ${formatCurrency(total)}`);
+      clearAll();
+      setShowPayment(false);
+    } catch {
+      toast.error("Erreur lors de l'enregistrement du ticket");
+    }
   };
 
   const montantsRapides = [1000, 2000, 5000, 10000];
@@ -340,9 +355,9 @@ export const PointOfSale: React.FC = () => {
               </div>
             </div>
           )}
-          <button onClick={validerPaiement} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gold-600 hover:bg-gold-500 text-white font-semibold shadow-soft transition-all">
-            <Icon icon="mdi:check-circle-outline" className="text-lg" />
-            Valider & imprimer le ticket
+          <button onClick={validerPaiement} disabled={isSaving} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gold-600 hover:bg-gold-500 text-white font-semibold shadow-soft transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+            <Icon icon={isSaving ? 'mdi:loading' : 'mdi:check-circle-outline'} className={`text-lg ${isSaving ? 'animate-spin' : ''}`} />
+            {isSaving ? 'Enregistrement…' : 'Valider & imprimer le ticket'}
           </button>
         </div>
       </Modal>
