@@ -1034,12 +1034,12 @@ export const ProgrammeProduction: React.FC = () => {
                           {commande.produits.map((item, index) => {
                             const produit = produits.find(p => p.id === item.produitId);
                             return (
-                              <div key={index} className="bg-white border border-sand-200 rounded-lg p-3 sm:p-4 hover:border-sand-300 hover:shadow-sm transition-all overflow-hidden">
+                              <div key={index} className="bg-sand-50 border border-sand-200 rounded-xl p-3 sm:p-4 hover:border-sand-300 hover:bg-white hover:shadow-soft transition-all overflow-hidden">
                                 <div className="flex items-start gap-2 sm:gap-3 mb-2">
-                                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-sand-900 rounded-lg flex items-center justify-center shrink-0">
+                                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-sand-100 text-sand-700 rounded-lg flex items-center justify-center shrink-0">
                                     <Icon
                                       icon={getProductIcon(produit?.nom || '')}
-                                      className="text-base sm:text-lg text-white"
+                                      className="text-base sm:text-lg"
                                     />
                                   </div>
                                   <div className="min-w-0 flex-1">
