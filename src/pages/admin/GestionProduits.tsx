@@ -201,7 +201,7 @@ export const GestionProduits: React.FC = () => {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-medium text-sand-900 truncate">{produit.nom}</div>
+                            <div className="font-medium text-sand-900 truncate uppercase">{produit.nom}</div>
                             {produit.reconduisible && (
                               <span className="inline-flex items-center gap-1 text-[11px] text-success-600 mt-0.5">
                                 <Icon icon="mdi:recycle" className="text-xs" /> Reconduisible

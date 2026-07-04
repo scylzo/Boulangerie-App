@@ -522,7 +522,7 @@ export const VueBoulanger: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {totauxParProduit.map((item) => (
                     <div key={item.produitId} className="flex items-center justify-between p-3 bg-sand-50 rounded-lg border border-sand-200">
-                      <span className="font-medium text-sand-700 text-sm truncate mr-2 flex-1" title={item.produit?.nom}>
+                      <span className="font-medium text-sand-700 text-sm truncate mr-2 flex-1 uppercase" title={item.produit?.nom}>
                         {item.produit?.nom}
                       </span>
                       <div className="flex items-center gap-2">
@@ -595,7 +595,7 @@ export const VueBoulanger: React.FC = () => {
                               <div className="w-12 h-12 bg-sand-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                                 <Icon icon={getProductIcon(produit?.nom || '')} className="text-xl text-white" />
                               </div>
-                              <h3 className="text-lg font-semibold text-sand-900 leading-tight">
+                              <h3 className="text-lg font-semibold text-sand-900 leading-tight uppercase">
                                 {produit?.nom || 'Produit'}
                               </h3>
                             </div>
@@ -659,7 +659,7 @@ export const VueBoulanger: React.FC = () => {
                             <div className="w-14 h-14 bg-sand-400 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                               <Icon icon={getProductIcon(produit?.nom || '')} className="text-2xl text-white" />
                             </div>
-                            <h3 className="text-lg font-semibold text-sand-900 leading-tight">
+                            <h3 className="text-lg font-semibold text-sand-900 leading-tight uppercase">
                               {produit?.nom || 'Produit'}
                             </h3>
                           </div>
@@ -699,7 +699,7 @@ export const VueBoulanger: React.FC = () => {
                           <div className="w-12 h-12 bg-info-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
                             <Icon icon={getProductIcon(produit?.nom || '')} className="text-xl text-white" />
                           </div>
-                          <h3 className="text-lg font-semibold text-sand-900 leading-tight">
+                          <h3 className="text-lg font-semibold text-sand-900 leading-tight uppercase">
                             {produit?.nom || 'Produit'}
                           </h3>
                         </div>
@@ -819,7 +819,7 @@ export const VueBoulanger: React.FC = () => {
 
                               return (
                                 <tr key={produitId} className="hover:bg-sand-50/50">
-                                  <td className="px-4 py-2.5 text-sand-800 font-medium">
+                                  <td className="px-4 py-2.5 text-sand-800 font-medium uppercase">
                                     {produit?.nom || 'Inconnu'}
                                   </td>
                                   <td className="px-4 py-2.5 text-right font-semibold text-sand-900 text-base">

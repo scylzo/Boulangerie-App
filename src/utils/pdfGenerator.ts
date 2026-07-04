@@ -103,7 +103,7 @@ export const generateFacturePDF = async (facture: Facture) => {
   const tableStartY = Math.max(yPos + 15, 120);
 
   const tableData = facture.lignes.map(ligne => [
-    ligne.produit?.nom || 'Produit inconnu',
+    (ligne.produit?.nom || 'Produit inconnu').toUpperCase(),
     ligne.quantiteLivree.toString(),
     ligne.quantiteRetournee.toString(),
     ligne.quantiteFacturee.toString(),
@@ -464,7 +464,7 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
   const clientData = rapport.produits
     .filter(p => p.destineClients)
     .map(p => [
-      p.produit?.nom || p.produitId,
+      (p.produit?.nom || p.produitId).toUpperCase(),
       (p.quantiteVendueClients + p.invendusClients).toString(),
       p.quantiteVendueClients.toString(),
       formatCurrencyCompact(p.valeurVenteClients),
@@ -510,7 +510,7 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
   const boutiqueData = rapport.produits
     .filter(p => p.destineBoutique)
     .map(p => [
-      p.produit?.nom || p.produitId,
+      (p.produit?.nom || p.produitId).toUpperCase(),
       (p.quantiteVendueBoutique + p.invendusBoutique).toString(),
       p.quantiteVendueBoutique.toString(),
       formatCurrencyCompact(p.valeurVenteBoutique),
@@ -782,7 +782,7 @@ export const generateProductionProgramPDF = async (programme: ProgrammeProductio
   const carData = programme.totauxParProduit
     .filter(p => ((p.repartitionCar1Matin ?? 0) + (p.repartitionCar2Matin ?? 0) + (p.repartitionCarSoir ?? 0)) > 0)
     .map(p => [
-      p.produit?.nom || p.produitId,
+      (p.produit?.nom || p.produitId).toUpperCase(),
       (p.repartitionCar1Matin ?? 0).toString(),
       (p.repartitionCar2Matin ?? 0).toString(),
       (p.repartitionCarSoir ?? 0).toString(),

@@ -336,7 +336,7 @@ export const RapportJournalier: React.FC = () => {
                             <tbody>
                               {bProds.map((p) => (
                                 <tr key={`b-${p.produitId}`} className="border-b border-sand-100 last:border-0 hover:bg-sand-50">
-                                  <td className="px-4 py-2.5 text-sand-800 truncate max-w-[150px]">{p.produit?.nom || p.produitId}</td>
+                                  <td className="px-4 py-2.5 text-sand-800 truncate max-w-[150px] uppercase">{p.produit?.nom || p.produitId}</td>
                                   <td className="px-3 py-2.5 text-right text-sand-500">{p.quantiteVendueBoutique + p.invendusBoutique}</td>
                                   <td className="px-3 py-2.5 text-right text-sand-700">{p.quantiteVendueBoutique}</td>
                                   <td className="px-3 py-2.5 text-right text-success-600">{p.restantsBoutique || 0}</td>
@@ -378,7 +378,7 @@ export const RapportJournalier: React.FC = () => {
                             <tbody>
                               {cProds.map((p) => (
                                 <tr key={`c-${p.produitId}`} className="border-b border-sand-100 last:border-0 hover:bg-sand-50">
-                                  <td className="px-4 py-2.5 text-sand-800 truncate max-w-[150px]">{p.produit?.nom || p.produitId}</td>
+                                  <td className="px-4 py-2.5 text-sand-800 truncate max-w-[150px] uppercase">{p.produit?.nom || p.produitId}</td>
                                   <td className="px-3 py-2.5 text-right text-sand-500">{p.quantiteVendueClients + p.invendusClients}</td>
                                   <td className="px-3 py-2.5 text-right text-sand-700">{p.quantiteVendueClients}</td>
                                   <td className="px-3 py-2.5 text-right text-danger-600 font-medium">{p.invendusClients}</td>
@@ -435,7 +435,7 @@ export const RapportJournalier: React.FC = () => {
                                   <div className="text-sm font-medium text-sand-900 truncate">{retour.client?.prenom ? `${retour.client.prenom} ${retour.client.nom}` : (retour.client?.nom || `Client #${retour.clientId}`)}</div>
                                   <div className="text-xs text-sand-500 mt-0.5 flex flex-wrap gap-x-2">
                                     {retour.produits.filter(p => p.invendus > 0).map((p, i) => (
-                                      <span key={i} className="whitespace-nowrap" title={`Livré : ${p.quantiteLivree}`}>{p.produit?.nom || p.produitId} <span className="text-danger-600 font-medium">−{p.invendus}</span></span>
+                                      <span key={i} className="whitespace-nowrap" title={`Livré : ${p.quantiteLivree}`}><span className="uppercase">{p.produit?.nom || p.produitId}</span> <span className="text-danger-600 font-medium">−{p.invendus}</span></span>
                                     ))}
                                   </div>
                                 </div>
@@ -459,7 +459,7 @@ export const RapportJournalier: React.FC = () => {
                                 <div className="min-w-0 flex-1">
                                   <div className="text-sm font-semibold text-sand-900">{ann.clientNom} <span className="text-danger-600 font-normal">· annulée</span></div>
                                   <div className="text-xs text-sand-500 mt-0.5">Motif : {ann.motif}</div>
-                                  <div className="text-xs text-sand-600 mt-1 flex flex-wrap gap-x-2">{ann.produits.map((p, i) => (<span key={i}>{p.nom} <span className="font-medium">×{p.quantite}</span></span>))}</div>
+                                  <div className="text-xs text-sand-600 mt-1 flex flex-wrap gap-x-2">{ann.produits.map((p, i) => (<span key={i}><span className="uppercase">{p.nom}</span> <span className="font-medium">×{p.quantite}</span></span>))}</div>
                                   <div className="text-xs text-info-600 mt-1"><span className="font-semibold uppercase">{ann.redistribution.type}</span> → {ann.redistribution.destinationNom}</div>
                                 </div>
                               </div>

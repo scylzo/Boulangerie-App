@@ -319,7 +319,7 @@ export const PageBoutique: React.FC = () => {
                                 <Icon icon={getProductIcon(p.produit?.nom || '')} className="text-xl" />
                               </div>
                               <div className="flex-1 overflow-hidden">
-                                <p className="font-semibold text-sand-900 truncate" title={p.produit?.nom}>{p.produit?.nom}</p>
+                                <p className="font-semibold text-sand-900 truncate uppercase" title={p.produit?.nom}>{p.produit?.nom}</p>
                                 <p className="text-xs text-sand-500">Stock: {p.stockDebut}</p>
                               </div>
                             </div>
@@ -585,7 +585,7 @@ export const PageBoutique: React.FC = () => {
                                 icon={getProductIcon(produit.produit?.nom || produit.produitId)}
                                 className="text-sand-600"
                               />
-                              <span className="font-medium text-sand-900">
+                              <span className="font-medium text-sand-900 uppercase">
                                 {produit.produit?.nom || produit.produitId}
                               </span>
                             </div>
@@ -888,7 +888,7 @@ export const PageBoutique: React.FC = () => {
                               </div>
                               <div className="flex-1">
                                 <div className="flex flex-wrap items-start gap-1 mb-1 min-h-[2.5rem]">
-                                  <h4 className="font-semibold text-sand-900 break-words mr-1 line-clamp-2">
+                                  <h4 className="font-semibold text-sand-900 break-words mr-1 line-clamp-2 uppercase">
                                     {produit.produit?.nom || produit.produitId}
                                   </h4>
                                   {produit.produit?.categorie && (
@@ -972,7 +972,7 @@ export const PageBoutique: React.FC = () => {
                               />
                             </div>
                             <div className="flex-1">
-                              <p className="font-medium text-sm text-sand-900">{produit.produit?.nom || produit.produitId}</p>
+                              <p className="font-medium text-sm text-sand-900 uppercase">{produit.produit?.nom || produit.produitId}</p>
                               <p className="text-xs text-sand-500">Stock pour le soir</p>
                             </div>
                           </div>
@@ -1118,7 +1118,7 @@ export const PageBoutique: React.FC = () => {
                                 </div>
                                 <div className="flex-1">
                                   <div className="flex flex-wrap items-start gap-1 mb-1 min-h-[2.5rem]">
-                                    <h4 className="font-semibold text-sand-900 break-words mr-1 line-clamp-2">
+                                    <h4 className="font-semibold text-sand-900 break-words mr-1 line-clamp-2 uppercase">
                                       {produit.produit?.nom || produit.produitId}
                                     </h4>
                                     {produit.produit?.categorie && (
@@ -1347,7 +1347,7 @@ export const PageBoutique: React.FC = () => {
                                     />
                                   </div>
                                   <div className="flex flex-col">
-                                    <span className="font-medium text-sand-900 text-sm">
+                                    <span className="font-medium text-sand-900 text-sm uppercase">
                                       {produit.produit?.nom || produit.produitId}
                                     </span>
                                     {produit.produit?.categorie && (

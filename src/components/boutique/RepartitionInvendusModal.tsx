@@ -150,7 +150,7 @@ export const RepartitionInvendusModal: React.FC<RepartitionInvendusModalProps> =
                                     >
                                         <div className="flex items-start justify-between mb-3">
                                             <div className="flex-1">
-                                                <h3 className="font-semibold text-sand-900 mb-1">
+                                                <h3 className="font-semibold text-sand-900 mb-1 uppercase">
                                                     {produit.produit?.nom || produit.produitId}
                                                 </h3>
                                                 <div className="flex items-center gap-2">

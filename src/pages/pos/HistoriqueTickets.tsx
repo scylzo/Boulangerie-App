@@ -88,7 +88,7 @@ export const HistoriqueTickets: React.FC = () => {
   const reimprimer = (t: TicketPOS) => {
     const w = window.open('', '_blank', 'width=340,height=640');
     if (!w) return;
-    const rows = t.lignes.map(l => `<tr><td>${l.nom}</td><td class="c">${l.quantite}</td><td class="r">${(l.prixUnitaire * l.quantite).toLocaleString('fr-FR')}</td></tr>`).join('');
+    const rows = t.lignes.map(l => `<tr><td>${l.nom.toUpperCase()}</td><td class="c">${l.quantite}</td><td class="r">${(l.prixUnitaire * l.quantite).toLocaleString('fr-FR')}</td></tr>`).join('');
     const remiseRows = (t.remise && t.remise > 0)
       ? `<div class="row"><span>Sous-total</span><span>${(t.sousTotal ?? t.total).toLocaleString('fr-FR')} F</span></div><div class="row"><span>Remise</span><span>- ${t.remise.toLocaleString('fr-FR')} F</span></div>`
       : '';
@@ -106,7 +106,7 @@ export const HistoriqueTickets: React.FC = () => {
   const imprimerRetour = (r: TicketPOS) => {
     const w = window.open('', '_blank', 'width=340,height=640');
     if (!w) return;
-    const rows = r.lignes.map(l => `<tr><td>${l.nom}</td><td class="c">${Math.abs(l.quantite)}</td><td class="r">${(l.prixUnitaire * Math.abs(l.quantite)).toLocaleString('fr-FR')}</td></tr>`).join('');
+    const rows = r.lignes.map(l => `<tr><td>${l.nom.toUpperCase()}</td><td class="c">${Math.abs(l.quantite)}</td><td class="r">${(l.prixUnitaire * Math.abs(l.quantite)).toLocaleString('fr-FR')}</td></tr>`).join('');
     const montant = Math.abs(r.total);
     const logoUrl = new URL(logo, window.location.origin).href;
     const dt = toDate(r.createdAt);

@@ -214,7 +214,7 @@ export const FicheProduit: React.FC = () => {
                                                 </button>
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                <div className="font-semibold text-sand-900">{produit.nom}</div>
+                                                <div className="font-semibold text-sand-900 uppercase">{produit.nom}</div>
                                                 <div className="text-xs text-sand-500 font-medium">Revendeur: {formatCurrencyCompact(produit.prixClient || produit.prixBoutique || 0)}</div>
                                             </td>
                                             <td className="px-6 py-4">

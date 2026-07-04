@@ -372,7 +372,7 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
               const produit = produits.find(p => p.id === item.produitId);
               return (
                 <div key={index} className="flex items-center justify-between text-sm">
-                  <span className="text-info-600">{produit?.nom || 'Produit inconnu'}</span>
+                  <span className="text-info-600 uppercase">{produit?.nom || 'Produit inconnu'}</span>
                   <span className="font-medium text-info-600">x{item.quantiteCommandee}</span>
                 </div>
               );

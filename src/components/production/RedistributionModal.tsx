@@ -206,7 +206,7 @@ export const RedistributionModal: React.FC<RedistributionModalProps> = ({
                                     return (
                                         <div key={produit.produitId} className="border border-sand-200 rounded-lg p-4">
                                             <div className="flex items-center justify-between mb-3">
-                                                <div className="font-medium">{produit.produit?.nom || produit.produitId}</div>
+                                                <div className="font-medium uppercase">{produit.produit?.nom || produit.produitId}</div>
                                                 <div className="text-sm">
                                                     <span className="font-semibold">{produit.quantiteCommandee}</span> unités
                                                     {restant > 0 && (

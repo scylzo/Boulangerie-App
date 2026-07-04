@@ -886,7 +886,7 @@ export const GestionFactures: React.FC = () => {
             {facturePourRetour.lignes.map(ligne => (
               <div key={ligne.produitId} className="flex items-center justify-between p-3 bg-sand-50 rounded-lg">
                 <div>
-                  <p className="font-medium text-sand-900">{ligne.produit?.nom || 'Produit'}</p>
+                  <p className="font-medium text-sand-900 uppercase">{ligne.produit?.nom || 'Produit'}</p>
                   <p className="text-xs text-sand-500">Livré : {ligne.quantiteLivree}</p>
                 </div>
                 <div className="flex items-center gap-2">

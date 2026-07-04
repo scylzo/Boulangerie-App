@@ -1043,7 +1043,7 @@ export const ProgrammeProduction: React.FC = () => {
                                     />
                                   </div>
                                   <div className="min-w-0 flex-1">
-                                    <h5 className="font-semibold text-sm sm:text-base text-sand-900 truncate mb-1" title={produit?.nom || 'Produit inconnu'}>
+                                    <h5 className="font-semibold text-sm sm:text-base text-sand-900 truncate mb-1 uppercase" title={produit?.nom || 'Produit inconnu'}>
                                       {produit?.nom || 'Produit inconnu'}
                                     </h5>
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -1242,7 +1242,7 @@ export const ProgrammeProduction: React.FC = () => {
                               <Icon icon="mdi:storefront" className="text-lg text-white" />
                             </div>
                             <div>
-                              <h4 className="font-semibold text-sand-900">
+                              <h4 className="font-semibold text-sand-900 uppercase">
                                 {produit?.nom || 'Produit inconnu'}
                               </h4>
                               <div className="flex items-center gap-2 mt-1">
@@ -1509,7 +1509,7 @@ export const ProgrammeProduction: React.FC = () => {
                                 <div className="w-8 h-8 bg-sand-100 text-sand-700 rounded-lg flex items-center justify-center shrink-0">
                                   <Icon icon={getProductIcon(total.produit?.nom || '')} className="text-lg" />
                                 </div>
-                                <span className="font-medium text-sand-900 truncate">{total.produit?.nom || total.produitId}</span>
+                                <span className="font-medium text-sand-900 truncate uppercase">{total.produit?.nom || total.produitId}</span>
                               </div>
                             </td>
                             <td className="px-4 py-2.5 text-right text-sand-600">{total.totalClient}</td>

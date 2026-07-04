@@ -666,7 +666,7 @@ export const SaisieRetours: React.FC = () => {
                               />
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-semibold text-sand-900 mb-1">
+                              <h4 className="font-semibold text-sand-900 mb-1 uppercase">
                                 {produitLivraison.produit?.nom || 'Produit inconnu'}
                               </h4>
                               <div className="text-sm text-sand-600">

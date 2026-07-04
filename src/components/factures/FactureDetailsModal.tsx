@@ -290,7 +290,7 @@ export const FactureDetailsModal: React.FC<FactureDetailsModalProps> = ({
               <tbody className="bg-white divide-y divide-sand-200">
                 {facture.lignes.map((ligne, index) => (
                   <tr key={index} className="hover:bg-sand-50">
-                    <td className="px-4 py-3 text-sm font-medium text-sand-900">
+                    <td className="px-4 py-3 text-sm font-medium text-sand-900 uppercase">
                       {ligne.produit?.nom || 'Produit inconnu'}
                     </td>
                     <td className="px-4 py-3 text-sm text-center text-sand-600">

@@ -583,7 +583,7 @@ export const PageLivraison: React.FC = () => {
                                               <div key={idx} className="flex justify-between items-center text-xs">
                                                 <div className="flex items-center gap-1.5 overflow-hidden">
                                                   <Icon icon={getProductIcon(item.produit?.nom || '')} className="text-sand-400 text-xs shrink-0" />
-                                                  <span className="text-sand-600 truncate">{item.produit?.nom}</span>
+                                                  <span className="text-sand-600 truncate uppercase">{item.produit?.nom}</span>
                                                 </div>
                                                 <span className="font-medium text-sand-900 bg-white px-1.5 rounded ml-2">
                                                   {item.quantite}
