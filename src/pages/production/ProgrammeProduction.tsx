@@ -890,13 +890,13 @@ export const ProgrammeProduction: React.FC = () => {
                   return (
                     <div
                       key={commande.id}
-                      className={`relative bg-white border ${alertSunday ? 'border-warning-500 ring-4 ring-warning-100' : 'border-sand-200'} rounded-xl p-4 sm:p-5 hover:border-sand-300 hover:shadow-elevated transition-all duration-200 overflow-hidden`}
+                      className={`relative bg-white border ${alertSunday ? 'border-warning-500 ring-2 ring-warning-100' : 'border-sand-200'} rounded-2xl p-4 sm:p-5 hover:border-sand-300 hover:shadow-elevated transition-all duration-200 overflow-hidden ${commande.statut === 'annulee' ? 'opacity-60' : ''}`}
                     >
                       {/* En-tête de la commande */}
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
                         <div className="flex items-start gap-2 sm:gap-3 min-w-0 flex-1">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-900 rounded-lg flex items-center justify-center shrink-0">
-                            <Icon icon="mdi:account" className="text-lg sm:text-xl text-white" />
+                          <div className="w-11 h-11 sm:w-12 sm:h-12 bg-sand-900 rounded-full flex items-center justify-center shrink-0 text-white font-semibold text-sm sm:text-base">
+                            {(client?.nom || '?').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">
                             <h3 className="font-semibold text-base sm:text-lg text-sand-900 mb-1 truncate" title={client?.nom || 'Client inconnu'}>
