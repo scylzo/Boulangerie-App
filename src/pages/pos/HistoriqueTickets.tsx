@@ -7,9 +7,17 @@ import { formatCurrency } from '../../utils/currency';
 import { TableLoader } from '../../components/ui/Loader';
 import { Modal } from '../../components/ui/Modal';
 import logo from '../../assets/logo.png';
+import omLogo from '../../assets/om.svg';
+import waveLogo from '../../assets/wave.svg';
 
 const modeLabel: Record<ModePaiement, string> = { espece: 'Espèces', om: 'Orange Money', wave: 'Wave' };
-const modeIcon: Record<ModePaiement, string> = { espece: 'mdi:cash', om: 'mdi:cellphone', wave: 'mdi:cellphone-wireless' };
+const modeLogo: Partial<Record<ModePaiement, string>> = { om: omLogo, wave: waveLogo };
+
+// Rendu visuel d'un moyen de paiement : logo OM/Wave, icône pour les espèces
+const ModeVisuel: React.FC<{ mode: ModePaiement; className?: string }> = ({ mode, className = 'w-5 h-5' }) =>
+  modeLogo[mode]
+    ? <img src={modeLogo[mode]} alt={modeLabel[mode]} className={`${className} object-contain`} />
+    : <Icon icon="mdi:cash" className={`${className} text-success-600`} />;
 const typeLabel: Record<TypeCommande, string> = { sur_place: 'Sur place', emporter: 'À emporter', livraison: 'Livraison' };
 
 // createdAt peut être un Timestamp Firestore, une Date ou une string
@@ -253,7 +261,7 @@ export const HistoriqueTickets: React.FC = () => {
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center gap-1.5 text-sand-700">
-                          <Icon icon={modeIcon[t.modePaiement]} className="text-base text-sand-500" />
+                          <ModeVisuel mode={t.modePaiement} className="w-4 h-4" />
                           {modeLabel[t.modePaiement]}
                         </span>
                       </td>
@@ -349,7 +357,7 @@ export const HistoriqueTickets: React.FC = () => {
                     onClick={() => setRetourMode(m)}
                     className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-medium transition-all ${retourMode === m ? 'border-danger-500 bg-danger-50 text-danger-700 ring-1 ring-danger-500' : 'border-sand-200 text-sand-600 hover:bg-sand-50'}`}
                   >
-                    <Icon icon={modeIcon[m]} className="text-base" /> {modeLabel[m]}
+                    <ModeVisuel mode={m} className="w-5 h-5" /> {modeLabel[m]}
                   </button>
                 ))}
               </div>
