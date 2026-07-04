@@ -255,9 +255,14 @@ export const GestionDepenses: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-sand-900">Gestion des Dépenses</h1>
-          <p className="text-sand-500">Suivi des coûts d'exploitation et gestion des fournisseurs</p>
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 bg-terracotta-50 rounded-xl flex items-center justify-center shrink-0">
+            <Wallet size={20} className="text-terracotta-600" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl font-semibold text-sand-900 truncate">Dépenses</h1>
+            <p className="text-sand-500 text-sm truncate">Suivi des coûts d'exploitation & fournisseurs</p>
+          </div>
         </div>
         <div className="flex gap-2">
           {activeTab !== 'fournisseurs' && (
@@ -283,7 +288,7 @@ export const GestionDepenses: React.FC = () => {
                     setEditingDepense(null);
                     setShowForm(!showForm);
                   }}
-                  className="flex items-center space-x-2 bg-warning-600 hover:bg-warning-600 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+                  className="flex items-center space-x-2 bg-terracotta-500 hover:bg-terracotta-600 text-white px-4 py-2 rounded-lg transition-colors shadow-soft"
                 >
                   <Plus size={20} />
                   <span>Nouvelle Dépense</span>
@@ -296,7 +301,7 @@ export const GestionDepenses: React.FC = () => {
 
       {activeTab !== 'fournisseurs' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-sand-100">
+          <div className="bg-white p-6 rounded-2xl shadow-card border border-sand-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sand-500 font-medium">{
                 dateFilter.debut === new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0] &&
@@ -305,14 +310,14 @@ export const GestionDepenses: React.FC = () => {
                   ? 'Total ce mois'
                   : 'Total sur la période'
               }</h3>
-              <div className="p-2 bg-danger-50 text-danger-600 rounded-lg">
+              <div className="w-11 h-11 bg-danger-50 text-danger-600 rounded-full flex items-center justify-center">
                 <TrendingDown size={20} />
               </div>
             </div>
             <p className="font-display text-3xl font-semibold text-sand-900">{totalDepenses.toLocaleString()} FCFA</p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-sand-100 md:col-span-2">
+          <div className="bg-white p-6 rounded-2xl shadow-card border border-sand-200 md:col-span-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
               <h3 className="text-sand-500 font-medium">Répartition par catégorie</h3>
 
@@ -361,13 +366,13 @@ export const GestionDepenses: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-sand-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-card border border-sand-200 overflow-hidden">
         <div className="border-b border-sand-100">
           <nav className="flex space-x-4 px-6" aria-label="Tabs">
             <button
               onClick={() => setActiveTab('generales')}
               className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'generales'
-                ? 'border-warning-500 text-warning-600'
+                ? 'border-terracotta-500 text-terracotta-600'
                 : 'border-transparent text-sand-500 hover:text-sand-700 hover:border-sand-300'
                 }`}
             >
@@ -377,7 +382,7 @@ export const GestionDepenses: React.FC = () => {
             <button
               onClick={() => setActiveTab('stock')}
               className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'stock'
-                ? 'border-warning-500 text-warning-600'
+                ? 'border-terracotta-500 text-terracotta-600'
                 : 'border-transparent text-sand-500 hover:text-sand-700 hover:border-sand-300'
                 }`}
             >
@@ -387,7 +392,7 @@ export const GestionDepenses: React.FC = () => {
             <button
               onClick={() => setActiveTab('fournisseurs')}
               className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'fournisseurs'
-                ? 'border-warning-500 text-warning-600'
+                ? 'border-terracotta-500 text-terracotta-600'
                 : 'border-transparent text-sand-500 hover:text-sand-700 hover:border-sand-300'
                 }`}
             >
