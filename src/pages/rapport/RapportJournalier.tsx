@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import { useRapportStore } from '../../store';
 import { downloadRapportJournalierPDF } from '../../utils/pdfGenerator';
 import { formatCurrency } from '../../utils/currency';
+import { StatCard } from '../../components/ui';
 
 export const RapportJournalier: React.FC = () => {
   const {
@@ -183,527 +184,215 @@ export const RapportJournalier: React.FC = () => {
             <p className="text-sand-500 font-medium">Analyse des données en cours...</p>
           </div>
         ) : modeAffichage === 'jour' && rapportJour ? (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* KPI Cards */}
-            {indicateurs && (
-              <div className="space-y-8">
-                <div className="space-y-12">
-                  {/* SECTION BOUTIQUE */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 px-1">
-                      <div className="w-10 h-10 bg-success-100 rounded-xl flex items-center justify-center text-success-600">
-                        <Icon icon="mdi:storefront" className="text-2xl" />
-                      </div>
-                      <div>
-                        <h2 className="font-display text-xl font-semibold text-sand-900">Performance Boutique</h2>
-                        <p className="text-xs text-sand-500 uppercase tracking-widest font-semibold">Ventes directes & Rayon</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-elevated transition-all group">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-success-50 rounded-full flex items-center justify-center text-success-600 group-hover:bg-success-600 group-hover:text-white transition-colors duration-300">
-                            <Icon icon="mdi:chart-arc" className="text-2xl" />
-                          </div>
-                          <span className="px-3 py-1 bg-success-50 text-success-700 rounded-full text-xs font-semibold font-mono">
-                            {indicateurs.tauxVenteBoutique.toFixed(1)}%
-                          </span>
-                        </div>
-                        <div className="font-display text-2xl font-semibold text-sand-900 tabular-nums mb-1">{indicateurs.tauxVenteBoutique.toFixed(1)}%</div>
-                        <div className="text-xs font-semibold text-sand-400 uppercase tracking-wider">Taux de Vente</div>
-                      </div>
-
-                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-elevated transition-all group">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-success-50 rounded-full flex items-center justify-center text-success-600 group-hover:bg-success-600 group-hover:text-white transition-colors duration-300">
-                            <Icon icon="mdi:cash-register" className="text-2xl" />
-                          </div>
-                        </div>
-                        <div className="font-display text-2xl font-semibold text-sand-900 tabular-nums mb-1">{formatCurrency(indicateurs.valeurVenteBoutique)}</div>
-                        <div className="text-xs font-semibold text-sand-400 uppercase tracking-wider">Chiffre d'Affaires</div>
-                      </div>
-
-                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-elevated transition-all group">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-success-50 rounded-full flex items-center justify-center text-success-600 group-hover:bg-success-600 group-hover:text-white transition-colors duration-300">
-                            <Icon icon="mdi:package-variant" className="text-2xl" />
-                          </div>
-                          <div className="flex gap-1">
-                            <span className="px-2 py-0.5 bg-danger-50 text-danger-600 rounded-md text-[10px] font-semibold">-{indicateurs.pertesBoutique} u.</span>
-                            <span className="px-2 py-0.5 bg-success-50 text-success-600 rounded-md text-[10px] font-semibold">+{indicateurs.restantsBoutique} u.</span>
-                          </div>
-                        </div>
-                        <div className="flex items-baseline gap-2 mb-1">
-                          <span className="font-display text-2xl font-semibold text-sand-900 tabular-nums">{indicateurs.pertesBoutique + indicateurs.restantsBoutique}</span>
-                          <span className="text-sand-400 text-sm font-medium">unités</span>
-                        </div>
-                        <div className="text-xs font-semibold text-sand-400 uppercase tracking-wider">Invendus & Restants</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* SECTION CLIENTS */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 px-1 border-t border-sand-100 pt-8 text-info-600">
-                      <div className="w-10 h-10 bg-info-100 rounded-xl flex items-center justify-center shadow-sm">
-                        <Icon icon="mdi:account-group" className="text-2xl" />
-                      </div>
-                      <div>
-                        <h2 className="font-display text-xl font-semibold text-sand-900">Performance Clients</h2>
-                        <p className="text-xs text-sand-500 uppercase tracking-widest font-semibold">Livraisons & Grossistes</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-elevated transition-all group font-jakarta">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-info-50 rounded-full flex items-center justify-center text-info-600 group-hover:bg-info-600 group-hover:text-white transition-colors duration-300">
-                            <Icon icon="mdi:truck-delivery" className="text-2xl" />
-                          </div>
-                          <span className="px-3 py-1 bg-info-50 text-info-600 rounded-full text-xs font-semibold font-mono">
-                            {indicateurs.tauxVenteClients.toFixed(1)}%
-                          </span>
-                        </div>
-                        <div className="font-display text-2xl font-semibold text-sand-900 tabular-nums mb-1">{indicateurs.tauxVenteClients.toFixed(1)}%</div>
-                        <div className="text-xs font-semibold text-sand-400 uppercase tracking-wider">Taux de Vente</div>
-                      </div>
-
-                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-elevated transition-all group font-jakarta">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-info-50 rounded-full flex items-center justify-center text-info-600 group-hover:bg-info-600 group-hover:text-white transition-colors duration-300">
-                            <Icon icon="mdi:invoice-list" className="text-2xl" />
-                          </div>
-                        </div>
-                        <div className="font-display text-2xl font-semibold text-sand-900 tabular-nums mb-1">{formatCurrency(indicateurs.valeurVenteClients)}</div>
-                        <div className="text-xs font-semibold text-sand-400 uppercase tracking-wider">Chiffre d'Affaires</div>
-                      </div>
-
-                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-sand-100 hover:shadow-elevated transition-all group font-jakarta">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-info-50 rounded-full flex items-center justify-center text-info-600 group-hover:bg-info-600 group-hover:text-white transition-colors duration-300">
-                            <Icon icon="mdi:account-arrow-left" className="text-2xl" />
-                          </div>
-                          <span className="px-3 py-1 bg-warning-50 text-warning-600 rounded-full text-xs font-semibold font-mono">
-                            {indicateurs.pertesClients} u.
-                          </span>
-                        </div>
-                        <div className="font-display text-2xl font-semibold text-sand-900 tabular-nums mb-1">{indicateurs.pertesClients} unités</div>
-                        <div className="text-xs font-semibold text-sand-400 uppercase tracking-wider">Retours Clients</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* SECTION SYNTHÈSE GLOBALE */}
-                  <div className="bg-sand-900 rounded-[2.5rem] p-8 sm:p-10 text-white shadow-elevated relative overflow-hidden">
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="w-6 h-1 bg-terracotta-400 rounded-full"></span>
-                          <span className="text-terracotta-300 text-xs font-semibold uppercase tracking-[0.2em]">Bilan Consolidé</span>
-                        </div>
-                        <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight mb-2">
-                          {formatCurrency(indicateurs.valeurVenteTotal)}
-                        </h2>
-                        <p className="text-terracotta-200 text-sm font-medium">Chiffre d'affaires total généré ce jour</p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-8 md:border-l md:border-white/10 md:pl-12">
-                        <div>
-                          <div className="text-terracotta-400 text-[10px] font-semibold uppercase tracking-widest mb-1">Performance</div>
-                          <div className="font-display text-2xl font-semibold">{indicateurs.tauxVenteGlobal.toFixed(1)}%</div>
-                        </div>
-                        <div>
-                          <div className="text-terracotta-400 text-[10px] font-semibold uppercase tracking-widest mb-1">Report total</div>
-                          <div className="font-display text-2xl font-semibold">{indicateurs.restantsTotaux} u.</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Détails par produit */}
-            <div className="bg-white rounded-xl border border-sand-200 shadow-sm overflow-hidden">
-              <div className="p-3 sm:p-6">
-                <div className="bg-sand-50 rounded-xl p-3 sm:p-6 mb-6 sm:mb-8">
-                  <h3 className="text-sm sm:text-base font-semibold text-sand-800 mb-3 sm:mb-4 flex items-center gap-2">
-                    <Icon icon="mdi:chart-box" className="text-base sm:text-lg" /> Totaux Quantités
-                  </h3>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-
-                    <div className="bg-white p-2 sm:p-3 rounded-lg border border-sand-100 text-center">
-                      <div className="font-display text-base sm:text-xl font-semibold">{rapportJour.totaux.quantitePrevue}</div>
-                      <div className="text-[10px] sm:text-xs text-sand-500 uppercase font-semibold">Prévu</div>
-                    </div>
-                    <div className="bg-white p-2 sm:p-3 rounded-lg border border-sand-100 text-center">
-                      <div className="font-display text-base sm:text-xl font-semibold text-info-600">{rapportJour.totaux.quantiteProduite}</div>
-                      <div className="text-[10px] sm:text-xs text-sand-500 uppercase font-semibold">Produit</div>
-                    </div>
-                    <div className="bg-white p-2 sm:p-3 rounded-lg border border-sand-100 text-center">
-                      <div className="font-display text-base sm:text-xl font-semibold text-success-600">{rapportJour.totaux.quantiteVendueTotal}</div>
-                      <div className="text-[10px] sm:text-xs text-sand-500 uppercase font-semibold">Vendu</div>
-                    </div>
-                    <div className="bg-terracotta-50 p-2 sm:p-3 rounded-lg border border-terracotta-100 text-center col-span-2 sm:col-span-1">
-                      <div className="text-sm sm:text-lg font-semibold text-terracotta-700">{formatCurrency(rapportJour.totaux.valeurVenteTotal)}</div>
-                      <div className="text-[10px] sm:text-xs text-terracotta-500 uppercase font-semibold">Valeur</div>
-                    </div>
-                  </div>
-
-
-                  {/* Ventilation détaillée des invendus */}
-                  <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 pt-4 border-t border-sand-100">
-                    <div className="text-center group">
-                      <div className="text-sm sm:text-lg font-semibold text-warning-600">{rapportJour.totaux.retoursClients || 0}</div>
-                      <div className="text-[8px] sm:text-[9px] text-sand-400 uppercase font-semibold tracking-tighter sm:tracking-normal group-hover:text-warning-500 transition-colors">Retours Clients</div>
-                    </div>
-                    <div className="text-center group">
-                      <div className="text-sm sm:text-lg font-semibold text-danger-500">{rapportJour.totaux.pertesBoutique || 0}</div>
-                      <div className="text-[8px] sm:text-[9px] text-sand-400 uppercase font-semibold tracking-tighter sm:tracking-normal group-hover:text-danger-500 transition-colors">Invendus Boutique</div>
-                    </div>
-                    <div className="text-center group">
-                      <div className="text-sm sm:text-lg font-semibold text-success-600">{rapportJour.totaux.restantsBoutique || 0}</div>
-                      <div className="text-[8px] sm:text-[9px] text-sand-400 uppercase font-semibold tracking-tighter sm:tracking-normal group-hover:text-success-500 transition-colors">Restants Boutique</div>
-                    </div>
-                  </div>
-                </div>
-
-
-                <div className="space-y-10">
-                  {/* SECTION BOUTIQUE */}
-                  {rapportJour.produits.some(p => p.destineBoutique) && (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 pb-2 border-b border-success-100">
-                        <Icon icon="mdi:storefront" className="text-success-600" />
-                        <h3 className="text-lg font-semibold text-sand-800">Ventes Boutique</h3>
-                      </div>
-
-                      <div className="space-y-6">
-                        {/* BOULANGERIE */}
-                        {rapportJour.produits.filter(p => p.destineBoutique && (!p.produit?.categorie || p.produit.categorie === 'boulangerie')).length > 0 && (
-                          <div>
-                            <h4 className="text-xs font-semibold text-sand-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-sand-100 pb-1">
-                              <span className="text-lg">🥖</span> Boulangerie
-                            </h4>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                              {rapportJour.produits.filter(p => p.destineBoutique && (!p.produit?.categorie || p.produit.categorie === 'boulangerie')).map((produit) => (
-                                <div key={`boutique-${produit.produitId}`} className="bg-white border border-sand-200 rounded-xl p-6 hover:shadow-elevated transition-all">
-                                  <div className="flex items-center justify-between mb-4">
-                                    <div className="flex flex-col">
-                                      <h4 className="font-semibold text-sand-900">{produit.produit?.nom || produit.produitId}</h4>
-                                      <span className="text-xs font-semibold text-success-600 bg-success-50 px-2 py-0.5 rounded w-fit mt-1">
-                                        {formatCurrency(produit.valeurVenteBoutique)}
-                                      </span>
-                                    </div>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteBoutique)}`}>
-                                      {produit.tauxVenteBoutique.toFixed(1)}%
-                                    </span>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-3 text-center">
-                                    <div className="bg-sand-50 p-2 rounded-lg">
-                                      <div className="text-lg font-semibold">{produit.quantiteVendueBoutique + produit.invendusBoutique}</div>
-                                      <div className="text-[10px] text-sand-500 uppercase">Stock</div>
-                                    </div>
-                                    <div className="bg-success-50 p-2 rounded-lg">
-                                      <div className="text-lg font-semibold text-success-700">{produit.quantiteVendueBoutique}</div>
-                                      <div className="text-[10px] text-success-600 uppercase">Vendu</div>
-                                    </div>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-2 mt-3">
-                                    <div className="bg-success-50 p-2 rounded-lg text-center">
-                                      <div className="text-lg font-semibold text-success-600">{produit.restantsBoutique || 0}</div>
-                                      <div className="text-[10px] text-success-500 uppercase">Restants</div>
-                                    </div>
-                                    <div className="bg-danger-50 p-2 rounded-lg text-center">
-                                      <div className="text-lg font-semibold text-danger-600">{produit.pertesBoutique || 0}</div>
-                                      <div className="text-[10px] text-danger-500 uppercase">Invendus</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* VIENNOISERIE */}
-                        {rapportJour.produits.filter(p => p.destineBoutique && p.produit?.categorie === 'viennoiserie').length > 0 && (
-                          <div>
-                            <h4 className="text-xs font-semibold text-sand-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-sand-100 pb-1">
-                              <span className="text-lg">🥐</span> Viennoiserie
-                            </h4>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                              {rapportJour.produits.filter(p => p.destineBoutique && p.produit?.categorie === 'viennoiserie').map((produit) => (
-                                <div key={`boutique-${produit.produitId}`} className="bg-white border border-sand-200 rounded-xl p-6 hover:shadow-elevated transition-all">
-                                  <div className="flex items-center justify-between mb-4">
-                                    <div className="flex flex-col">
-                                      <h4 className="font-semibold text-sand-900">{produit.produit?.nom || produit.produitId}</h4>
-                                      <span className="text-xs font-semibold text-success-600 bg-success-50 px-2 py-0.5 rounded w-fit mt-1">
-                                        {formatCurrency(produit.valeurVenteBoutique)}
-                                      </span>
-                                    </div>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteBoutique)}`}>
-                                      {produit.tauxVenteBoutique.toFixed(1)}%
-                                    </span>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-3 text-center">
-                                    <div className="bg-sand-50 p-2 rounded-lg">
-                                      <div className="text-lg font-semibold">{produit.quantiteVendueBoutique + produit.invendusBoutique}</div>
-                                      <div className="text-[10px] text-sand-500 uppercase">Stock</div>
-                                    </div>
-                                    <div className="bg-success-50 p-2 rounded-lg">
-                                      <div className="text-lg font-semibold text-success-700">{produit.quantiteVendueBoutique}</div>
-                                      <div className="text-[10px] text-success-600 uppercase">Vendu</div>
-                                    </div>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-2 mt-3">
-                                    <div className="bg-success-50 p-2 rounded-lg text-center">
-                                      <div className="text-lg font-semibold text-success-600">{produit.restantsBoutique || 0}</div>
-                                      <div className="text-[10px] text-success-500 uppercase">Restants</div>
-                                    </div>
-                                    <div className="bg-danger-50 p-2 rounded-lg text-center">
-                                      <div className="text-lg font-semibold text-danger-600">{produit.pertesBoutique || 0}</div>
-                                      <div className="text-[10px] text-danger-500 uppercase">Invendus</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Footer Boutique */}
-                      <div className="bg-success-600 text-white rounded-xl p-3 sm:p-4 shadow-sm">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                          <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
-                            <Icon icon="mdi:calculator" className="text-base sm:text-lg" /> TOTAL BOUTIQUE
-                          </div>
-                          <div className="flex flex-wrap gap-3 sm:gap-6 w-full sm:w-auto">
-                            <div className="text-left sm:text-right flex-1 sm:flex-none">
-                              <div className="text-[10px] text-white/90 uppercase font-semibold">Vendu (PCS)</div>
-                              <div className="text-base sm:text-xl font-semibold">{rapportJour.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + p.quantiteVendueBoutique, 0)}</div>
-                            </div>
-                            <div className="text-left sm:text-right flex-1 sm:flex-none sm:border-l sm:border-success-500 sm:pl-6">
-                              <div className="text-[10px] text-white/90 uppercase font-semibold">Valeur</div>
-                              <div className="text-base sm:text-xl font-semibold">{formatCurrency(rapportJour.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + p.valeurVenteBoutique, 0))}</div>
-                            </div>
-                            <div className="text-left sm:text-right flex-1 sm:flex-none sm:border-l sm:border-success-500 sm:pl-6">
-                              <div className="text-[10px] text-white/90 uppercase font-semibold">Restants</div>
-                              <div className="text-base sm:text-xl font-semibold">{rapportJour.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + (p.restantsBoutique || 0), 0)}</div>
-                            </div>
-                            <div className="text-left sm:text-right flex-1 sm:flex-none sm:border-l sm:border-success-500 sm:pl-6">
-                              <div className="text-[10px] text-white/90 uppercase font-semibold">Invendus</div>
-                              <div className="text-base sm:text-xl font-semibold">{rapportJour.produits.filter(p => p.destineBoutique).reduce((acc, p) => acc + (p.pertesBoutique || 0), 0)}</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+          <div className="space-y-6">
+            {(() => {
+              const bProds = rapportJour.produits.filter(p => p.destineBoutique);
+              const cProds = rapportJour.produits.filter(p => p.destineClients);
+              const bVendu = bProds.reduce((a, p) => a + p.quantiteVendueBoutique, 0);
+              const bRest = bProds.reduce((a, p) => a + (p.restantsBoutique || 0), 0);
+              const bInv = bProds.reduce((a, p) => a + (p.pertesBoutique || 0), 0);
+              const bCA = bProds.reduce((a, p) => a + p.valeurVenteBoutique, 0);
+              const cLivre = cProds.reduce((a, p) => a + (p.quantiteVendueClients + p.invendusClients), 0);
+              const cVendu = cProds.reduce((a, p) => a + p.quantiteVendueClients, 0);
+              const cRet = cProds.reduce((a, p) => a + p.invendusClients, 0);
+              const cCA = cProds.reduce((a, p) => a + p.valeurVenteClients, 0);
+              const retClients = (rapportJour.detailsRetours || []).filter(r => r.produits.some(p => p.invendus > 0));
+              return (
+                <>
+                  {/* KPI */}
+                  {indicateurs && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                      <StatCard label="CA du jour" value={formatCurrency(indicateurs.valeurVenteTotal)} icon="mdi:cash-multiple" tone="brand" />
+                      <StatCard label="Écoulement global" value={`${indicateurs.tauxVenteGlobal.toFixed(1)} %`} icon="mdi:progress-check" tone="gold" />
+                      <StatCard label="Vendu (total)" value={`${rapportJour.totaux.quantiteVendueTotal} u.`} icon="mdi:package-variant" tone="success" />
+                      <StatCard label="Invendus + retours" value={`${indicateurs.pertesBoutique + indicateurs.pertesClients} u.`} icon="mdi:basket-off-outline" tone="info" />
                     </div>
                   )}
 
-                  {/* SECTION CLIENTS */}
-                  {rapportJour.produits.some(p => p.destineClients) && (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 pb-2 border-b border-info-100">
-                        <Icon icon="mdi:account-group" className="text-info-600" />
-                        <h3 className="text-lg font-semibold text-sand-800">Livraisons Clients</h3>
+                  {/* Totaux quantités (bandeau) */}
+                  <div className="bg-white border border-sand-200 rounded-2xl shadow-card p-4 grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3 tabular-nums">
+                    {[
+                      { l: 'Prévu', v: rapportJour.totaux.quantitePrevue, c: 'text-sand-900' },
+                      { l: 'Produit', v: rapportJour.totaux.quantiteProduite, c: 'text-info-600' },
+                      { l: 'Vendu', v: rapportJour.totaux.quantiteVendueTotal, c: 'text-success-600' },
+                      { l: 'Valeur', v: formatCurrency(rapportJour.totaux.valeurVenteTotal), c: 'text-terracotta-600' },
+                      { l: 'Retours clients', v: rapportJour.totaux.retoursClients || 0, c: 'text-warning-600' },
+                      { l: 'Invendus boutique', v: rapportJour.totaux.pertesBoutique || 0, c: 'text-danger-600' },
+                      { l: 'Restants boutique', v: rapportJour.totaux.restantsBoutique || 0, c: 'text-success-600' },
+                    ].map((s, i) => (
+                      <div key={i} className="text-center">
+                        <div className={`font-display text-lg font-semibold ${s.c}`}>{s.v}</div>
+                        <div className="text-[10px] text-sand-500 uppercase tracking-wide font-semibold">{s.l}</div>
                       </div>
+                    ))}
+                  </div>
 
-                      <div className="space-y-6">
-                        {/* BOULANGERIE */}
-                        {rapportJour.produits.filter(p => p.destineClients && (!p.produit?.categorie || p.produit.categorie === 'boulangerie')).length > 0 && (
-                          <div>
-                            <h4 className="text-xs font-semibold text-sand-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-sand-100 pb-1">
-                              <span className="text-lg">🥖</span> Boulangerie
-                            </h4>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                              {rapportJour.produits.filter(p => p.destineClients && (!p.produit?.categorie || p.produit.categorie === 'boulangerie')).map((produit) => (
-                                <div key={`clients-${produit.produitId}`} className="bg-white border border-sand-200 rounded-xl p-6 hover:shadow-elevated transition-all">
-                                  <div className="flex items-center justify-between mb-4">
-                                    <div className="flex flex-col">
-                                      <h4 className="font-semibold text-sand-900">{produit.produit?.nom || produit.produitId}</h4>
-                                      <span className="text-xs font-semibold text-info-600 bg-info-50 px-2 py-0.5 rounded w-fit mt-1">
-                                        {formatCurrency(produit.valeurVenteClients)}
-                                      </span>
-                                    </div>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteClients)}`}>
-                                      {produit.tauxVenteClients.toFixed(1)}%
-                                    </span>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-3 text-center">
-                                    <div className="bg-sand-50 p-2 rounded-lg">
-                                      <div className="text-lg font-semibold">{produit.quantiteVendueClients + produit.invendusClients}</div>
-                                      <div className="text-[10px] text-sand-500 uppercase">Livré</div>
-                                    </div>
-                                    <div className="bg-info-50 p-2 rounded-lg">
-                                      <div className="text-lg font-semibold text-info-600">{produit.quantiteVendueClients}</div>
-                                      <div className="text-[10px] text-info-600 uppercase">Vendu</div>
-                                    </div>
-                                  </div>
-                                  <div className="mt-3 bg-warning-50 p-2 rounded-lg text-center">
-                                    <div className="text-lg font-semibold text-warning-600">{produit.invendusClients}</div>
-                                    <div className="text-[10px] text-warning-500 uppercase">Retours</div>
-                                  </div>
-                                </div>
+                  {/* Boutique + Clients */}
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    {bProds.length > 0 && (
+                      <div className="bg-white border border-sand-200 rounded-2xl shadow-card overflow-hidden">
+                        <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-sand-200 bg-sand-50">
+                          <Icon icon="mdi:storefront-outline" className="text-lg text-terracotta-600" />
+                          <h2 className="font-display text-base font-semibold text-sand-900">Performance boutique</h2>
+                          <span className="ml-auto font-display font-semibold text-sand-900 tabular-nums">{formatCurrency(bCA)}</span>
+                        </div>
+                        <div className="grid grid-cols-3 divide-x divide-sand-200 border-b border-sand-200 tabular-nums">
+                          <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Vendu</div><div className="font-display text-lg font-semibold text-success-600">{bVendu}</div></div>
+                          <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Restants</div><div className="font-display text-lg font-semibold text-sand-900">{bRest}</div></div>
+                          <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Invendus</div><div className="font-display text-lg font-semibold text-warning-600">{bInv}</div></div>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm min-w-[560px] tabular-nums">
+                            <thead>
+                              <tr className="text-left text-[11px] uppercase tracking-wide text-sand-500 border-b border-sand-200">
+                                <th className="font-semibold px-4 py-2.5">Produit</th>
+                                <th className="font-semibold px-3 py-2.5 text-right">Stock</th>
+                                <th className="font-semibold px-3 py-2.5 text-right">Vendu</th>
+                                <th className="font-semibold px-3 py-2.5 text-right">Rest.</th>
+                                <th className="font-semibold px-3 py-2.5 text-right">Inv.</th>
+                                <th className="font-semibold px-3 py-2.5 text-center">Taux</th>
+                                <th className="font-semibold px-4 py-2.5 text-right">CA</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {bProds.map((p) => (
+                                <tr key={`b-${p.produitId}`} className="border-b border-sand-100 last:border-0 hover:bg-sand-50">
+                                  <td className="px-4 py-2.5 text-sand-800 truncate max-w-[150px]">{p.produit?.nom || p.produitId}</td>
+                                  <td className="px-3 py-2.5 text-right text-sand-500">{p.quantiteVendueBoutique + p.invendusBoutique}</td>
+                                  <td className="px-3 py-2.5 text-right text-sand-700">{p.quantiteVendueBoutique}</td>
+                                  <td className="px-3 py-2.5 text-right text-success-600">{p.restantsBoutique || 0}</td>
+                                  <td className="px-3 py-2.5 text-right text-warning-600 font-medium">{p.pertesBoutique || 0}</td>
+                                  <td className="px-3 py-2.5 text-center"><span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${getTauxVenteBadgeColor(p.tauxVenteBoutique)}`}>{p.tauxVenteBoutique.toFixed(0)}%</span></td>
+                                  <td className="px-4 py-2.5 text-right font-display font-semibold text-sand-900">{formatCurrency(p.valeurVenteBoutique)}</td>
+                                </tr>
                               ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* VIENNOISERIE */}
-                        {rapportJour.produits.filter(p => p.destineClients && p.produit?.categorie === 'viennoiserie').length > 0 && (
-                          <div>
-                            <h4 className="text-xs font-semibold text-sand-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-sand-100 pb-1">
-                              <span className="text-lg">🥐</span> Viennoiserie
-                            </h4>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                              {rapportJour.produits.filter(p => p.destineClients && p.produit?.categorie === 'viennoiserie').map((produit) => (
-                                <div key={`clients-${produit.produitId}`} className="bg-white border border-sand-200 rounded-xl p-6 hover:shadow-elevated transition-all">
-                                  <div className="flex items-center justify-between mb-4">
-                                    <div className="flex flex-col">
-                                      <h4 className="font-semibold text-sand-900">{produit.produit?.nom || produit.produitId}</h4>
-                                      <span className="text-xs font-semibold text-info-600 bg-info-50 px-2 py-0.5 rounded w-fit mt-1">
-                                        {formatCurrency(produit.valeurVenteClients)}
-                                      </span>
-                                    </div>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTauxVenteBadgeColor(produit.tauxVenteClients)}`}>
-                                      {produit.tauxVenteClients.toFixed(1)}%
-                                    </span>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-3 text-center">
-                                    <div className="bg-sand-50 p-2 rounded-lg">
-                                      <div className="text-lg font-semibold">{produit.quantiteVendueClients + produit.invendusClients}</div>
-                                      <div className="text-[10px] text-sand-500 uppercase">Livré</div>
-                                    </div>
-                                    <div className="bg-info-50 p-2 rounded-lg">
-                                      <div className="text-lg font-semibold text-info-600">{produit.quantiteVendueClients}</div>
-                                      <div className="text-[10px] text-info-600 uppercase">Vendu</div>
-                                    </div>
-                                  </div>
-                                  <div className="mt-3 bg-warning-50 p-2 rounded-lg text-center">
-                                    <div className="text-lg font-semibold text-warning-600">{produit.invendusClients}</div>
-                                    <div className="text-[10px] text-warning-500 uppercase">Retours</div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Footer Clients */}
-                      <div className="bg-info-600 text-white rounded-xl p-3 sm:p-4 shadow-sm">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                          <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
-                            <Icon icon="mdi:calculator" className="text-base sm:text-lg" /> TOTAL CLIENTS
-                          </div>
-                          <div className="flex flex-wrap gap-3 sm:gap-6 w-full sm:w-auto">
-                            <div className="text-left sm:text-right flex-1 sm:flex-none">
-                              <div className="text-[10px] text-info-100 uppercase font-semibold">Livré (PCS)</div>
-                              <div className="text-base sm:text-xl font-semibold">{rapportJour.produits.filter(p => p.destineClients).reduce((acc, p) => acc + (p.quantiteVendueClients + p.invendusClients), 0)}</div>
-                            </div>
-                            <div className="text-left sm:text-right flex-1 sm:flex-none sm:border-l sm:border-info-500 sm:pl-6">
-                              <div className="text-[10px] text-info-100 uppercase font-semibold">Valeur</div>
-                              <div className="text-base sm:text-xl font-semibold">{formatCurrency(rapportJour.produits.filter(p => p.destineClients).reduce((acc, p) => acc + p.valeurVenteClients, 0))}</div>
-                            </div>
-                            <div className="text-left sm:text-right flex-1 sm:flex-none sm:border-l sm:border-info-500 sm:pl-6">
-                              <div className="text-[10px] text-info-100 uppercase font-semibold">Vendu</div>
-                              <div className="text-base sm:text-xl font-semibold">{rapportJour.produits.filter(p => p.destineClients).reduce((acc, p) => acc + p.quantiteVendueClients, 0)}</div>
-                            </div>
-                            <div className="text-left sm:text-right flex-1 sm:flex-none sm:border-l sm:border-info-500 sm:pl-6">
-                              <div className="text-[10px] text-info-100 uppercase font-semibold">Retours</div>
-                              <div className="text-base sm:text-xl font-semibold">{rapportJour.produits.filter(p => p.destineClients).reduce((acc, p) => acc + p.invendusClients, 0)}</div>
-                            </div>
-                          </div>
+                            </tbody>
+                          </table>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* SECTION DÉTAIL DES RETOURS PAR CLIENT */}
-                  {rapportJour.detailsRetours && rapportJour.detailsRetours.filter(r => r.produits.some(p => p.invendus > 0)).length > 0 && (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 pb-2 border-b border-warning-100">
-                        <Icon icon="mdi:account-arrow-left" className="text-warning-600" />
-                        <h3 className="text-lg font-semibold text-sand-800">Détail des Retours par Client</h3>
+                    {cProds.length > 0 && (
+                      <div className="bg-white border border-sand-200 rounded-2xl shadow-card overflow-hidden">
+                        <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-sand-200 bg-sand-50">
+                          <Icon icon="mdi:truck-delivery-outline" className="text-lg text-terracotta-600" />
+                          <h2 className="font-display text-base font-semibold text-sand-900">Performance clients</h2>
+                          <span className="ml-auto font-display font-semibold text-sand-900 tabular-nums">{formatCurrency(cCA)}</span>
+                        </div>
+                        <div className="grid grid-cols-3 divide-x divide-sand-200 border-b border-sand-200 tabular-nums">
+                          <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Livré</div><div className="font-display text-lg font-semibold text-sand-900">{cLivre}</div></div>
+                          <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Vendu</div><div className="font-display text-lg font-semibold text-success-600">{cVendu}</div></div>
+                          <div className="px-4 py-3"><div className="text-[11px] text-sand-500">Retours</div><div className="font-display text-lg font-semibold text-danger-600">{cRet}</div></div>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm min-w-[500px] tabular-nums">
+                            <thead>
+                              <tr className="text-left text-[11px] uppercase tracking-wide text-sand-500 border-b border-sand-200">
+                                <th className="font-semibold px-4 py-2.5">Produit</th>
+                                <th className="font-semibold px-3 py-2.5 text-right">Livré</th>
+                                <th className="font-semibold px-3 py-2.5 text-right">Vendu</th>
+                                <th className="font-semibold px-3 py-2.5 text-right">Retours</th>
+                                <th className="font-semibold px-3 py-2.5 text-center">Taux</th>
+                                <th className="font-semibold px-4 py-2.5 text-right">CA</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {cProds.map((p) => (
+                                <tr key={`c-${p.produitId}`} className="border-b border-sand-100 last:border-0 hover:bg-sand-50">
+                                  <td className="px-4 py-2.5 text-sand-800 truncate max-w-[150px]">{p.produit?.nom || p.produitId}</td>
+                                  <td className="px-3 py-2.5 text-right text-sand-500">{p.quantiteVendueClients + p.invendusClients}</td>
+                                  <td className="px-3 py-2.5 text-right text-sand-700">{p.quantiteVendueClients}</td>
+                                  <td className="px-3 py-2.5 text-right text-danger-600 font-medium">{p.invendusClients}</td>
+                                  <td className="px-3 py-2.5 text-center"><span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${getTauxVenteBadgeColor(p.tauxVenteClients)}`}>{p.tauxVenteClients.toFixed(0)}%</span></td>
+                                  <td className="px-4 py-2.5 text-right font-display font-semibold text-sand-900">{formatCurrency(p.valeurVenteClients)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {rapportJour.detailsRetours
-                          .filter(retour => retour.produits.some(p => p.invendus > 0))
-                          .map((retour, idx) => (
-                            <div key={idx} className="bg-white border border-warning-100 rounded-xl overflow-hidden shadow-sm hover:shadow-elevated transition-all">
-                              <div className="bg-warning-50 px-4 py-3 border-b border-warning-100 flex justify-between items-center">
-                                <h4 className="font-semibold text-sand-900 truncate pr-2">
-                                  {retour.client?.prenom 
-                                    ? `${retour.client.prenom} ${retour.client.nom}` 
-                                    : (retour.client?.nom || `Client #${retour.clientId}`)}
-                                </h4>
-                                <span className="bg-warning-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                                  {retour.produits.reduce((acc, p) => acc + p.invendus, 0)} u.
-                                </span>
-                              </div>
-                              <div className="p-4 space-y-2">
-                                {retour.produits
-                                  .filter(p => p.invendus > 0)
-                                  .map((p, pIdx) => (
-                                    <div key={pIdx} className="flex justify-between items-center text-sm border-b border-sand-50 pb-2 last:border-0 last:pb-0">
-                                      <span className="text-sand-600 font-medium">{p.produit?.nom || p.produitId}</span>
-                                      <div className="flex items-center gap-3">
-                                        <span className="text-[10px] text-sand-400">Livré: {p.quantiteLivree}</span>
-                                        <span className="font-semibold text-warning-600">-{p.invendus}</span>
-                                      </div>
-                                    </div>
-                                  ))}
-                              </div>
+                    )}
+                  </div>
+
+                  {/* Synthèse + Retours par client / Annulations */}
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    {indicateurs && (
+                      <div className="bg-white border border-sand-200 rounded-2xl shadow-card overflow-hidden">
+                        <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-sand-200 bg-sand-50">
+                          <Icon icon="mdi:scale-balance" className="text-lg text-terracotta-600" />
+                          <h2 className="font-display text-base font-semibold text-sand-900">Synthèse globale</h2>
+                        </div>
+                        <div className="p-4">
+                          {[
+                            { l: 'CA Boutique', v: formatCurrency(indicateurs.valeurVenteBoutique), c: 'text-sand-900' },
+                            { l: 'CA Clients', v: formatCurrency(indicateurs.valeurVenteClients), c: 'text-sand-900' },
+                            { l: 'Écoulement global', v: `${indicateurs.tauxVenteGlobal.toFixed(1)} %`, c: 'text-sand-900' },
+                            { l: 'Report total (restants)', v: `${indicateurs.restantsTotaux} u.`, c: 'text-warning-600' },
+                          ].map((s, i) => (
+                            <div key={i} className="flex items-center justify-between px-3 py-2.5 border-b border-sand-100">
+                              <span className="text-sm text-sand-600">{s.l}</span>
+                              <span className={`font-display font-semibold tabular-nums ${s.c}`}>{s.v}</span>
                             </div>
                           ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* SECTION ANNULATIONS */}
-                  {rapportJour.annulations && rapportJour.annulations.length > 0 && (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 pb-2 border-b border-warning-100">
-                        <Icon icon="mdi:cancel" className="text-warning-600" />
-                        <h3 className="text-lg font-semibold text-sand-800">Commandes Annulées & Redistribution</h3>
-                      </div>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {rapportJour.annulations.map((ann, idx) => (
-                          <div key={idx} className="bg-warning-50 border border-warning-100 rounded-xl p-4 shadow-sm">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <h4 className="font-semibold text-sand-900">{ann.clientNom}</h4>
-                                <p className="text-xs text-warning-600 font-medium">Motif: {ann.motif}</p>
-                              </div>
-                              <span className="bg-warning-100 text-warning-600 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase">
-                                {ann.redistribution.type}
-                              </span>
-                            </div>
-                            <div className="space-y-1 mt-3">
-                              <p className="text-[10px] font-semibold text-sand-500 uppercase tracking-wider">Produits redistribués :</p>
-                              {ann.produits.map((p, pidx) => (
-                                <div key={pidx} className="flex justify-between text-sm">
-                                  <span className="text-sand-700">{p.nom}</span>
-                                  <span className="font-semibold text-sand-900">x{p.quantite}</span>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="mt-3 pt-2 border-t border-warning-100">
-                              <p className="text-xs text-warning-600">
-                                <span className="font-semibold">Destination :</span> {ann.redistribution.destinationNom}
-                              </p>
-                            </div>
+                          <div className="flex items-center justify-between gap-3 mt-3 px-4 py-3 bg-sand-900 rounded-xl">
+                            <div className="flex items-center gap-2 text-white"><Icon icon="mdi:cash-multiple" className="text-lg" /><span className="text-sm font-medium">CA total du jour</span></div>
+                            <span className="font-display text-xl font-semibold text-white tabular-nums">{formatCurrency(indicateurs.valeurVenteTotal)}</span>
                           </div>
-                        ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
 
-              </div>
-            </div>
+                    <div className="space-y-6">
+                      {retClients.length > 0 && (
+                        <div className="bg-white border border-sand-200 rounded-2xl shadow-card overflow-hidden">
+                          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-sand-200 bg-sand-50">
+                            <Icon icon="mdi:account-arrow-left" className="text-lg text-terracotta-600" />
+                            <h2 className="font-display text-base font-semibold text-sand-900">Retours par client</h2>
+                          </div>
+                          <div className="divide-y divide-sand-100">
+                            {retClients.map((retour, idx) => (
+                              <div key={idx} className="px-4 py-3 flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="text-sm font-medium text-sand-900 truncate">{retour.client?.prenom ? `${retour.client.prenom} ${retour.client.nom}` : (retour.client?.nom || `Client #${retour.clientId}`)}</div>
+                                  <div className="text-xs text-sand-500 mt-0.5 flex flex-wrap gap-x-2">
+                                    {retour.produits.filter(p => p.invendus > 0).map((p, i) => (
+                                      <span key={i} className="whitespace-nowrap" title={`Livré : ${p.quantiteLivree}`}>{p.produit?.nom || p.produitId} <span className="text-danger-600 font-medium">−{p.invendus}</span></span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <span className="shrink-0 bg-warning-50 text-warning-600 text-xs font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ring-warning-100">{retour.produits.reduce((a, p) => a + p.invendus, 0)} u.</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {rapportJour.annulations && rapportJour.annulations.length > 0 && (
+                        <div className="bg-white border border-sand-200 rounded-2xl shadow-card overflow-hidden">
+                          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-sand-200 bg-sand-50">
+                            <Icon icon="mdi:swap-horizontal" className="text-lg text-terracotta-600" />
+                            <h2 className="font-display text-base font-semibold text-sand-900">Annulations & redistribution</h2>
+                          </div>
+                          <div className="p-3 space-y-2">
+                            {rapportJour.annulations.map((ann, idx) => (
+                              <div key={idx} className="flex items-start gap-3 p-3 border border-sand-200 rounded-xl bg-sand-50">
+                                <Icon icon="mdi:cancel" className="text-lg text-danger-600 shrink-0 mt-0.5" />
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-sm font-semibold text-sand-900">{ann.clientNom} <span className="text-danger-600 font-normal">· annulée</span></div>
+                                  <div className="text-xs text-sand-500 mt-0.5">Motif : {ann.motif}</div>
+                                  <div className="text-xs text-sand-600 mt-1 flex flex-wrap gap-x-2">{ann.produits.map((p, i) => (<span key={i}>{p.nom} <span className="font-medium">×{p.quantite}</span></span>))}</div>
+                                  <div className="text-xs text-info-600 mt-1"><span className="font-semibold uppercase">{ann.redistribution.type}</span> → {ann.redistribution.destinationNom}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         ) : modeAffichage === 'jour' && !rapportJour && !isLoading ? (
           <div className="bg-white rounded-2xl border border-sand-200 p-12 text-center shadow-sm">
