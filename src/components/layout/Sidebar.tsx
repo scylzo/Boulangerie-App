@@ -46,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, collapsed, onClose
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-30 bg-sand-950 flex flex-col transition-all duration-300
+      className={`fixed inset-y-0 left-0 z-40 bg-sand-950 flex flex-col transition-all duration-300
         ${collapsed ? 'w-64 lg:w-16' : 'w-64'}
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
     >

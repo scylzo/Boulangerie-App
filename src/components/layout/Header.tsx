@@ -70,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-sand-50/95 backdrop-blur border-b border-sand-200">
+    <header className="sticky top-0 z-30 bg-sand-50/95 backdrop-blur border-b border-sand-200">
       <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-4">
         {/* Gauche : toggles + titre */}
         <div className="flex items-center gap-1.5 min-w-0">
