@@ -67,10 +67,12 @@
     prods.forEach((p,i)=>{
       const q = cart[i]||0;
       grid.insertAdjacentHTML('beforeend', `
-        <button class="group relative bg-white border border-sand-200 rounded-2xl shadow-card hover:shadow-elevated hover:border-sand-300 transition-all p-4 text-left flex flex-col gap-3">
-          <div class="w-11 h-11 rounded-xl bg-sand-100 text-sand-700 flex items-center justify-center group-hover:bg-terracotta-50 transition-colors"><iconify-icon icon="${p[2]}" class="text-2xl"></iconify-icon></div>
-          <div><div class="font-medium text-sand-900 text-sm leading-tight">${p[0]}</div><div class="text-lg font-semibold text-sand-900 tnums mt-1">${p[1].toLocaleString('fr-FR')} <span class="text-xs text-sand-400 font-normal">F</span></div></div>
-          ${q?`<span class="absolute top-2 right-2 w-6 h-6 rounded-full bg-terracotta-500 text-white text-xs font-semibold flex items-center justify-center tnums">${q}</span>`:''}
+        <button class="group relative bg-white border border-sand-200 rounded-2xl shadow-card hover:shadow-elevated hover:border-sand-300 transition-all overflow-hidden text-left flex flex-col">
+          <div class="aspect-[4/3] bg-sand-100 flex items-center justify-center text-sand-300 relative overflow-hidden">
+            <iconify-icon icon="${p[2]}" class="text-5xl transition-transform duration-300 group-hover:scale-110"></iconify-icon>
+            ${q?`<span class="absolute top-2 right-2 min-w-6 h-6 px-1.5 rounded-full bg-terracotta-500 text-white text-xs font-semibold flex items-center justify-center tnums ring-2 ring-white">${q}</span>`:''}
+          </div>
+          <div class="p-3"><div class="font-medium text-sand-900 text-sm leading-tight min-h-[2.5rem]">${p[0]}</div><div class="text-lg font-semibold text-sand-900 tnums mt-1">${p[1].toLocaleString('fr-FR')} <span class="text-xs text-sand-400 font-normal">F</span></div></div>
         </button>`);
     });
     const lines = document.getElementById('lines'); let total=0;
