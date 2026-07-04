@@ -62,6 +62,14 @@
           <div class="flex items-center justify-between text-sm"><span class="text-sand-500">Sous-total</span><span class="text-sand-700 tnums" id="st">0</span></div>
           <div class="flex items-center justify-between border-t border-dashed border-sand-200 pt-3"><span class="font-semibold text-sand-900">TOTAL</span><span class="text-2xl font-semibold text-sand-900 tnums" id="tot">0</span></div>
           <div class="relative"><input placeholder="Code promo / bon" class="w-full pl-3 pr-9 py-2 rounded-lg border border-sand-300 bg-sand-50 text-sm"><iconify-icon icon="mdi:ticket-percent-outline" class="absolute right-3 top-1/2 -translate-y-1/2 text-sand-400"></iconify-icon></div>
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-sand-500 mb-1.5">Moyen de paiement</div>
+            <div class="grid grid-cols-3 gap-2">
+              <button class="flex flex-col items-center gap-1 py-2 rounded-xl border text-[11px] font-medium border-gold-600 bg-gold-50 text-gold-700 ring-1 ring-gold-600"><iconify-icon icon="mdi:cash" class="text-xl"></iconify-icon><span>Espèces</span></button>
+              <button class="flex flex-col items-center gap-1 py-2 rounded-xl border text-[11px] font-medium border-sand-200 text-sand-600"><iconify-icon icon="mdi:cellphone" class="text-xl text-orange-500"></iconify-icon><span>Orange Money</span></button>
+              <button class="flex flex-col items-center gap-1 py-2 rounded-xl border text-[11px] font-medium border-sand-200 text-sand-600"><iconify-icon icon="mdi:waves" class="text-xl text-sky-500"></iconify-icon><span>Wave</span></button>
+            </div>
+          </div>
           <button class="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gold-600 hover:bg-gold-500 text-white font-semibold shadow-soft"><iconify-icon icon="mdi:cash-register" class="text-lg"></iconify-icon> Encaisser · <span id="cta"></span></button>
         </div>
       </div>

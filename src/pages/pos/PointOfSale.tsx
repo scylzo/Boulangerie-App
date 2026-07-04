@@ -268,6 +268,27 @@ export const PointOfSale: React.FC = () => {
                 <Icon icon="mdi:ticket-percent-outline" className="absolute right-3 top-1/2 -translate-y-1/2 text-sand-400" />
               </div>
             </div>
+            {/* Moyen de paiement */}
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-sand-500 mb-1.5">Moyen de paiement</div>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { val: 'espece', label: 'Espèces', icon: 'mdi:cash' },
+                  { val: 'om', label: 'Orange Money', img: omLogo },
+                  { val: 'wave', label: 'Wave', img: waveLogo },
+                ] as { val: ModePaiement; label: string; icon?: string; img?: string }[]).map(m => (
+                  <button
+                    key={m.val}
+                    onClick={() => setPaiement(m.val)}
+                    className={`flex flex-col items-center gap-1 py-2 rounded-xl border text-[11px] font-medium transition-all ${paiement === m.val ? 'border-gold-600 bg-gold-50 text-gold-700 ring-1 ring-gold-600' : 'border-sand-200 text-sand-600 hover:bg-sand-50'}`}
+                  >
+                    {m.img ? <img src={m.img} alt={m.label} className="w-6 h-6 object-contain" /> : <Icon icon={m.icon!} className="text-xl" />}
+                    <span className="text-center leading-tight">{m.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <button
               onClick={() => nbArticles > 0 && setShowPayment(true)}
               disabled={nbArticles === 0}
