@@ -45,6 +45,8 @@ export const PointOfSale: React.FC = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [paiement, setPaiement] = useState<ModePaiement>('espece');
   const [recu, setRecu] = useState('');
+  const [remiseVal, setRemiseVal] = useState('');
+  const [remiseType, setRemiseType] = useState<'montant' | 'pourcent'>('montant');
 
   useEffect(() => { chargerProduits(); }, [chargerProduits]);
 
@@ -63,7 +65,11 @@ export const PointOfSale: React.FC = () => {
     , [cart, produitById]);
 
   const sousTotal = lignes.reduce((s, l) => s + prixDe(l.produit!) * l.qty, 0);
-  const total = sousTotal;
+  const remiseNum = parseFloat(remiseVal) || 0;
+  const montantRemise = remiseType === 'pourcent'
+    ? Math.round(sousTotal * Math.min(Math.max(remiseNum, 0), 100) / 100)
+    : Math.min(Math.max(remiseNum, 0), sousTotal);
+  const total = Math.max(0, sousTotal - montantRemise);
   const nbArticles = lignes.reduce((s, l) => s + l.qty, 0);
   const recuNum = parseInt(recu) || 0;
   const rendu = Math.max(0, recuNum - total);
@@ -72,7 +78,7 @@ export const PointOfSale: React.FC = () => {
   const setQty = (id: string, qty: number) => setCart(c => {
     const n = { ...c }; if (qty <= 0) delete n[id]; else n[id] = qty; return n;
   });
-  const clearAll = () => { setCart({}); };
+  const clearAll = () => { setCart({}); setRemiseVal(''); };
 
   const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   const jour = new Date().toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
@@ -84,8 +90,9 @@ export const PointOfSale: React.FC = () => {
     const modeLabel = paiement === 'espece' ? 'Espèces' : paiement === 'om' ? 'Orange Money' : 'Wave';
     const rows = lignes.map(l => `<tr><td>${l.produit!.nom}</td><td class="c">${l.qty}</td><td class="r">${(prixDe(l.produit!) * l.qty).toLocaleString('fr-FR')}</td></tr>`).join('');
     const cashRows = paiement === 'espece' ? `<div class="row"><span>Reçu</span><span>${recuNum.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Rendu</span><span>${rendu.toLocaleString('fr-FR')} F</span></div>` : '';
+    const remiseRows = montantRemise > 0 ? `<div class="row"><span>Sous-total</span><span>${sousTotal.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Remise${remiseType === 'pourcent' ? ` (${remiseNum}%)` : ''}</span><span>- ${montantRemise.toLocaleString('fr-FR')} F</span></div>` : '';
     const logoUrl = new URL(logo, window.location.origin).href;
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}.logo{display:block;margin:0 auto 6px;max-width:160px;max-height:64px;object-fit:contain}h1{font-size:16px;text-align:center;margin:0 0 2px}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="sub">Ticket n°${numero} · ${jour} ${heure} · ${typeLabel[typeCommande]}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/><div class="tot"><span>TOTAL</span><span>${total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel}</span></div>${cashRows}<hr/><p class="foot">${nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>*{font-family:'Courier New',monospace;font-size:12px;color:#000}body{width:280px;margin:0 auto;padding:12px}.logo{display:block;margin:0 auto 6px;max-width:160px;max-height:64px;object-fit:contain}h1{font-size:16px;text-align:center;margin:0 0 2px}.sub{text-align:center;font-size:11px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0}.c{text-align:center;width:32px}.r{text-align:right;width:80px}.row{display:flex;justify-content:space-between;margin:2px 0}.tot{display:flex;justify-content:space-between;font-size:15px;font-weight:bold;margin:6px 0}.foot{text-align:center;margin-top:12px;font-size:11px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="sub">Ticket n°${numero} · ${jour} ${heure} · ${typeLabel[typeCommande]}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/>${remiseRows}<div class="tot"><span>TOTAL</span><span>${total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel}</span></div>${cashRows}<hr/><p class="foot">${nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
     w.document.close(); w.focus();
   };
 
@@ -95,10 +102,12 @@ export const PointOfSale: React.FC = () => {
       const base = {
         date: new Date().toISOString().split('T')[0],
         lignes: lignes.map(l => ({ produitId: l.produit!.id, nom: l.produit!.nom, prixUnitaire: prixDe(l.produit!), quantite: l.qty })),
+        sousTotal,
         total,
         nbArticles,
         modePaiement: paiement,
         typeCommande,
+        ...(montantRemise > 0 ? { remise: montantRemise } : {}),
       };
       const payload = paiement === 'espece' ? { ...base, montantRecu: recuNum, rendu } : base;
       const numero = await enregistrerTicket(payload);
@@ -275,15 +284,40 @@ export const PointOfSale: React.FC = () => {
               <span className="text-sand-500">Sous-total</span>
               <span className="text-sand-700 tabular-nums">{formatCurrency(sousTotal)}</span>
             </div>
+            {/* Remise */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  min={0}
+                  value={remiseVal}
+                  onChange={(e) => setRemiseVal(e.target.value)}
+                  placeholder="Remise"
+                  className="w-full pl-3 pr-9 py-2 rounded-lg border border-sand-300 bg-sand-50 text-sm tabular-nums focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                />
+                <Icon icon="mdi:ticket-percent-outline" className="absolute right-3 top-1/2 -translate-y-1/2 text-sand-400" />
+              </div>
+              <div className="flex rounded-lg border border-sand-300 overflow-hidden shrink-0">
+                {(['montant', 'pourcent'] as const).map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setRemiseType(t)}
+                    className={`px-3 py-2 text-sm font-semibold transition-colors ${remiseType === t ? 'bg-gold-600 text-white' : 'bg-white text-sand-600 hover:bg-sand-50'}`}
+                  >
+                    {t === 'montant' ? 'F' : '%'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {montantRemise > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gold-700">Remise{remiseType === 'pourcent' ? ` (${remiseNum}%)` : ''}</span>
+                <span className="text-gold-700 font-medium tabular-nums">− {formatCurrency(montantRemise)}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between border-t border-dashed border-sand-200 pt-3">
               <span className="font-semibold text-sand-900">TOTAL</span>
               <span className="font-display text-2xl font-semibold text-sand-900 tabular-nums">{formatCurrency(total)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <input placeholder="Code promo / bon" className="w-full pl-3 pr-9 py-2 rounded-lg border border-sand-300 bg-sand-50 text-sm focus:ring-2 focus:ring-gold-500 focus:border-transparent" />
-                <Icon icon="mdi:ticket-percent-outline" className="absolute right-3 top-1/2 -translate-y-1/2 text-sand-400" />
-              </div>
             </div>
             {/* Moyen de paiement */}
             <div>

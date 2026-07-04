@@ -18,7 +18,9 @@ export interface TicketPOS {
   date: string;              // yyyy-mm-dd
   createdAt: Date;
   lignes: LigneTicket[];
-  total: number;
+  sousTotal?: number;        // total avant remise
+  remise?: number;           // montant remisé en FCFA
+  total: number;             // total après remise
   nbArticles: number;
   modePaiement: ModePaiement;
   typeCommande: TypeCommande;
