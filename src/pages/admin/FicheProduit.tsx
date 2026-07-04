@@ -104,8 +104,8 @@ export const FicheProduit: React.FC = () => {
             <div className="bg-white border-b border-sand-200 px-6 py-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-warning-600 rounded-xl flex items-center justify-center shadow-card shadow-warning-100">
-                            <Icon icon="mdi:file-certificate" className="text-2xl text-white" />
+                        <div className="w-12 h-12 bg-terracotta-50 rounded-xl flex items-center justify-center">
+                            <Icon icon="mdi:file-certificate" className="text-2xl text-terracotta-600" />
                         </div>
                         <div>
                             <h1 className="font-display text-2xl font-semibold text-sand-900">Générateur de Fiche Produit</h1>

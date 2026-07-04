@@ -36,11 +36,11 @@ export const DatabaseAdmin: React.FC = () => {
       <div className="bg-white border-b border-sand-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-danger-600 rounded-lg flex items-center justify-center">
-              <Icon icon="mdi:database-cog" className="text-2xl text-white" />
+            <div className="w-10 h-10 bg-danger-50 rounded-xl flex items-center justify-center">
+              <Icon icon="mdi:database-cog" className="text-2xl text-danger-600" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-sand-900">
+              <h1 className="font-display text-xl sm:text-2xl font-semibold text-sand-900">
                 Administration Base de Données
               </h1>
               <p className="text-sm text-sand-500">

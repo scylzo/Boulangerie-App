@@ -281,11 +281,11 @@ export const CarteKiosques: React.FC = () => {
             <div className="bg-white border-b border-sand-200 px-6 py-4 shadow-sm z-20">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-sand-900 rounded-2xl flex items-center justify-center shadow-elevated">
-                            <Icon icon="mdi:map-marker-path" className="text-2xl text-white" />
+                        <div className="w-12 h-12 bg-terracotta-50 rounded-xl flex items-center justify-center">
+                            <Icon icon="mdi:map-marker-path" className="text-2xl text-terracotta-600" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-semibold text-sand-900 uppercase tracking-tight">Supervision Géo-Performance</h1>
+                            <h1 className="font-display text-xl sm:text-2xl font-semibold text-sand-900 tracking-tight">Supervision Géo-Performance</h1>
                             <div className="flex items-center gap-2">
                                 <span className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></span>
                                 <p className="text-[10px] font-semibold text-sand-500 uppercase tracking-widest text-success-600">Système Live</p>

@@ -152,8 +152,8 @@ export const RotationBoulangers: React.FC = () => {
     <div className="min-h-screen bg-sand-100 overflow-x-hidden">
       <div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-4 sm:py-5">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-warning-100 rounded-xl flex items-center justify-center shrink-0">
-            <Icon icon="mdi:calendar-sync" className="text-2xl text-warning-600" />
+          <div className="w-12 h-12 bg-terracotta-50 rounded-xl flex items-center justify-center shrink-0">
+            <Icon icon="mdi:calendar-sync" className="text-2xl text-terracotta-600" />
           </div>
           <div>
             <h1 className="font-display text-xl sm:text-2xl font-semibold text-sand-900">Rotation des Boulangers</h1>
@@ -165,7 +165,7 @@ export const RotationBoulangers: React.FC = () => {
       <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
         
         {/* Paramètres du calendrier */}
-        <div className="bg-white rounded-xl shadow-sm border border-sand-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-card border border-sand-200 overflow-hidden">
           <div className="p-4 border-b border-sand-200 bg-sand-50/50 flex items-center gap-2">
             <Icon icon="mdi:cog" className="text-xl text-sand-600" />
             <h2 className="text-lg font-semibold text-sand-800">Paramètres de la Rotation</h2>
@@ -193,7 +193,7 @@ export const RotationBoulangers: React.FC = () => {
         </div>
 
         {/* Équipes */}
-        <div className="bg-white rounded-xl shadow-sm border border-sand-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-card border border-sand-200 overflow-hidden">
           <div className="p-4 border-b border-sand-200 bg-sand-50/50 flex items-center justify-between">
              <div className="flex items-center gap-2">
                 <Icon icon="mdi:account-group" className="text-xl text-sand-600" />
@@ -295,7 +295,7 @@ export const RotationBoulangers: React.FC = () => {
 
         {/* Aperçu du calendrier */}
         {schedule.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-sand-200 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-card border border-sand-200 overflow-hidden">
                 <div className="p-4 border-b border-sand-200 bg-sand-50/50 flex items-center gap-2">
                     <Icon icon="mdi:eye" className="text-xl text-sand-600" />
                     <h2 className="text-lg font-semibold text-sand-800">Aperçu du Calendrier</h2>

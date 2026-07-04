@@ -37,11 +37,11 @@ export const GestionStock: React.FC = () => {
       <div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-terracotta-500 rounded-xl flex items-center justify-center shrink-0">
-              <Package className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-terracotta-50 rounded-xl flex items-center justify-center shrink-0">
+              <Package className="w-5 h-5 text-terracotta-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-xl font-semibold text-sand-900 truncate">Gestion des Stocks</h1>
+              <h1 className="font-display text-lg sm:text-2xl font-semibold text-sand-900 truncate">Gestion des Stocks</h1>
               <p className="text-xs sm:text-sm text-sand-500 truncate">Suivi des matières premières</p>
             </div>
           </div>
@@ -59,7 +59,7 @@ export const GestionStock: React.FC = () => {
       <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
         <StockDashboard />
 
-        <div className="bg-white rounded-xl shadow-sm border border-sand-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-card border border-sand-200 overflow-hidden">
           <div className="border-b border-sand-100 bg-sand-50/50">
             <nav className="flex space-x-2 sm:space-x-4 px-4 sm:px-6 overflow-x-auto" aria-label="Tabs">
               <button
