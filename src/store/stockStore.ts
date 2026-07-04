@@ -156,8 +156,8 @@ export const useStockStore = create<StockState>((set, get) => ({
 
             const updates = {
                 unite: unite,
-                stockActuel: matiere.stockActuel * factor, // Ex: 1 sac * 50 = 50 kg
-                stockMinimum: matiere.stockMinimum * factor,
+                stockActuel: Math.round((matiere.stockActuel * factor + Number.EPSILON) * 100) / 100, // Ex: 1 sac * 50 = 50 kg
+                stockMinimum: Math.round((matiere.stockMinimum * factor + Number.EPSILON) * 100) / 100,
                 updatedAt: new Date()
             };
 
@@ -266,7 +266,8 @@ export const useStockStore = create<StockState>((set, get) => ({
                 // 4. Écritures dans la transaction
                 transaction.set(newMouvementRef, newMouvement);
                 transaction.update(matiereRef, {
-                    stockActuel: newStock,
+                    // Arrondi 2 décimales : évite l'accumulation d'artefacts de virgule flottante
+                    stockActuel: Math.round((newStock + Number.EPSILON) * 100) / 100,
                     prixUnitaireMoyen: newPMP, // Mise à jour du PMP
                     updatedAt: new Date()
                 });
@@ -408,7 +409,7 @@ export const useStockStore = create<StockState>((set, get) => ({
                     }
 
                     transaction.update(matiereRef, {
-                        stockActuel: newStock,
+                        stockActuel: Math.round((newStock + Number.EPSILON) * 100) / 100,
                         updatedAt: new Date()
                     });
                 }
