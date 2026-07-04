@@ -4,6 +4,7 @@ import { ArrowDownLeft, ArrowUpRight, Search, Edit2, Trash2 } from 'lucide-react
 import type { MouvementStock, MatierePremiere } from '../../types';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { MouvementModal } from './MouvementModal';
+import { formaterQuantite } from '../../utils/calculations';
 
 type EnrichedMouvement = MouvementStock & {
   matiereNom: string;
@@ -245,7 +246,7 @@ export const MouvementsList: React.FC = () => {
                 <td className="px-3 py-4 whitespace-nowrap text-sm text-right font-medium text-sand-900">
                   {/* Affichage Quantité */}
                   <div className="font-semibold text-sand-900">
-                    {m.quantite.toLocaleString('fr-FR')} {m.matiereUnite}
+                    {formaterQuantite(m.quantite, m.matiereUnite)}
                   </div>
                   {/* Parsing du motif pour afficher les sacs ou sachets si présents */}
                   {(() => {

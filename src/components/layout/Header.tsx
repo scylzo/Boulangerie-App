@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import { Menu } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useStockStore } from '../../store/stockStore';
-import { formatQuantite } from '../../utils/format';
+import { formaterQuantite } from '../../utils/calculations';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -155,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
                               <span className="min-w-0 flex-1">
                                 <span className="block text-sm font-medium text-sand-900 truncate uppercase">{m.nom}</span>
                                 <span className="block text-xs text-sand-500 tabular-nums">
-                                  Stock : {formatQuantite(m.stockActuel)} {m.unite} · seuil {formatQuantite(m.stockMinimum)} {m.unite}
+                                  Stock : {formaterQuantite(m.stockActuel, m.unite)} · seuil {formaterQuantite(m.stockMinimum, m.unite)}
                                 </span>
                               </span>
                               <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${rupture ? 'bg-danger-100 text-danger-700' : 'bg-warning-100 text-warning-700'}`}>

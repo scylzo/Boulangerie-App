@@ -4,6 +4,7 @@ import { ChevronLeft, Save, Calendar, Package } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { formaterQuantite } from '../../utils/calculations';
 
 interface LigneDeclaration {
     matiereId: string;
@@ -307,7 +308,7 @@ export const StockDeclaration: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">
                                             <span className={`inline-flex px-2 py-1 text-xs rounded-full ${ligne.stockActuel <= 0 ? 'bg-danger-100 text-danger-700' : 'bg-sand-100 text-sand-800'}`}>
-                                                {ligne.stockActuel.toLocaleString()} {ligne.unite}
+                                                {formaterQuantite(ligne.stockActuel, ligne.unite)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right">

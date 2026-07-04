@@ -4,6 +4,7 @@ import { Plus, Edit2, Trash2, AlertTriangle, ArrowRightLeft } from 'lucide-react
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
 import type { MatierePremiere, UniteMesure } from '../../types';
+import { formaterQuantite } from '../../utils/calculations';
 
 interface MatiereListProps {
   onAddMouvement: (matiere: MatierePremiere) => void;
@@ -286,7 +287,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
               <div className="bg-info-50 p-3 rounded-lg text-sm text-info-600">
                 <p className="font-medium">Aperçu du résultat :</p>
                 <ul className="list-disc list-inside mt-1 space-y-1 text-xs">
-                  <li>Stock : {conversionState.matiere.stockActuel} → <b>{((conversionState.matiere.stockActuel || 0) * parseFloat(conversionState.factor || '0')).toLocaleString()} {conversionState.targetUnit}</b></li>
+                  <li>Stock : {formaterQuantite(conversionState.matiere.stockActuel)} → <b>{formaterQuantite((conversionState.matiere.stockActuel || 0) * parseFloat(conversionState.factor || '0'), conversionState.targetUnit)}</b></li>
                 </ul>
               </div>
             </div>
@@ -336,10 +337,10 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                     <div className="text-xs sm:text-sm font-medium text-sand-900">
-                      {matiere.stockActuel.toLocaleString()} <span className="text-sand-500 text-xs">{matiere.unite}</span>
+                      {formaterQuantite(matiere.stockActuel)} <span className="text-sand-500 text-xs">{matiere.unite}</span>
                     </div>
                     <div className="text-[10px] text-sand-400 mt-0.5">
-                      Seuil: {matiere.stockMinimum.toLocaleString()} {matiere.unite}
+                      Seuil: {formaterQuantite(matiere.stockMinimum, matiere.unite)}
                     </div>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
