@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '@iconify/react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Modal } from '../../components/ui/Modal';
 import { useReferentielStore } from '../../store/referentielStore';
@@ -136,11 +137,16 @@ export const PointOfSale: React.FC = () => {
               <Icon icon="mdi:clock-outline" className="text-lg text-gold-600" />{heure}
             </span>
           </div>
-          {nbArticles > 0 && (
-            <button onClick={clearAll} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-danger-600 hover:bg-danger-50 text-sm font-medium">
-              <Icon icon="mdi:close-circle-outline" className="text-lg" /> Annuler la commande
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            <Link to="/caisse/historique" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-sand-200 text-sand-700 hover:bg-sand-50 text-sm font-medium shadow-soft">
+              <Icon icon="mdi:receipt-text-clock-outline" className="text-lg text-gold-600" /> <span className="hidden sm:inline">Historique</span>
+            </Link>
+            {nbArticles > 0 && (
+              <button onClick={clearAll} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-danger-600 hover:bg-danger-50 text-sm font-medium">
+                <Icon icon="mdi:close-circle-outline" className="text-lg" /> <span className="hidden sm:inline">Annuler la commande</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Cartes catégories */}

@@ -7,6 +7,7 @@ import { Layout } from './components/layout/Layout';
 import { Login } from './pages/auth/Login';
 import { Dashboard } from './pages/Dashboard';
 import { PointOfSale } from './pages/pos/PointOfSale';
+import { HistoriqueTickets } from './pages/pos/HistoriqueTickets';
 import { ProgrammeProduction } from './pages/production/ProgrammeProduction';
 import { RotationBoulangers } from './pages/production/RotationBoulangers';
 import { VueBoulanger } from './pages/production/VueBoulanger';
@@ -114,6 +115,12 @@ function App() {
         <Route path="/caisse" element={
           <ProtectedRoute>
             <PointOfSale />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/caisse/historique" element={
+          <ProtectedRoute>
+            <HistoriqueTickets />
           </ProtectedRoute>
         } />
 

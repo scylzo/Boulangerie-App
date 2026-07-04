@@ -15,6 +15,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
   const getPageTitle = () => {
     const path = location.pathname;
     if (path === '/dashboard') return 'Tableau de bord';
+    if (path === '/caisse/historique') return 'Historique de caisse';
     if (path === '/caisse') return 'Caisse';
     if (path === '/production') return 'Programme Production';
     if (path === '/boulanger') return 'Vue Boulanger';
