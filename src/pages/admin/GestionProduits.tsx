@@ -193,8 +193,12 @@ export const GestionProduits: React.FC = () => {
                     <tr key={produit.id} className="border-b border-sand-100 last:border-0 hover:bg-sand-50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 bg-sand-100 text-sand-700 rounded-lg flex items-center justify-center shrink-0">
-                            <Icon icon={getProductIcon(produit.nom)} className="text-lg" />
+                          <div className="w-9 h-9 bg-sand-100 text-sand-700 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                            {produit.imageUrl ? (
+                              <img src={produit.imageUrl} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <Icon icon={getProductIcon(produit.nom)} className="text-lg" />
+                            )}
                           </div>
                           <div className="min-w-0">
                             <div className="font-medium text-sand-900 truncate">{produit.nom}</div>

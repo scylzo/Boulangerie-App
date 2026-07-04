@@ -174,22 +174,28 @@ export const PointOfSale: React.FC = () => {
                 <button
                   key={p.id}
                   onClick={() => add(p.id)}
-                  className="group relative bg-white border border-sand-200 rounded-2xl shadow-card hover:shadow-elevated hover:border-terracotta-300 transition-all p-4 text-left flex flex-col gap-3 active:scale-[0.98]"
+                  className="group relative bg-white border border-sand-200 rounded-2xl shadow-card hover:shadow-elevated hover:border-terracotta-300 transition-all overflow-hidden text-left flex flex-col active:scale-[0.98]"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-sand-100 text-sand-700 flex items-center justify-center group-hover:bg-terracotta-50 group-hover:text-terracotta-600 transition-colors">
-                    <Icon icon={getProductIcon(p.nom)} className="text-2xl" />
+                  <div className="aspect-[4/3] bg-sand-100 overflow-hidden relative">
+                    {p.imageUrl ? (
+                      <img src={p.imageUrl} alt={p.nom} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sand-300">
+                        <Icon icon={getProductIcon(p.nom)} className="text-5xl" />
+                      </div>
+                    )}
+                    {cart[p.id] > 0 && (
+                      <span className="absolute top-2 right-2 min-w-6 h-6 px-1.5 rounded-full bg-terracotta-500 text-white text-xs font-semibold flex items-center justify-center tabular-nums ring-2 ring-white">
+                        {cart[p.id]}
+                      </span>
+                    )}
                   </div>
-                  <div className="min-w-0">
-                    <div className="font-medium text-sand-900 text-sm leading-tight line-clamp-2">{p.nom}</div>
+                  <div className="p-3 min-w-0">
+                    <div className="font-medium text-sand-900 text-sm leading-tight line-clamp-2 min-h-[2.5rem]">{p.nom}</div>
                     <div className="font-display text-lg font-semibold text-sand-900 tabular-nums mt-1">
                       {prixDe(p).toLocaleString('fr-FR')} <span className="text-xs text-sand-400 font-normal">F</span>
                     </div>
                   </div>
-                  {cart[p.id] > 0 && (
-                    <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-terracotta-500 text-white text-xs font-semibold flex items-center justify-center tabular-nums">
-                      {cart[p.id]}
-                    </span>
-                  )}
                 </button>
               ))}
             </div>

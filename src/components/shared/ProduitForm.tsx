@@ -23,6 +23,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
 
   const [formData, setFormData] = useState({
     nom: '',
+    imageUrl: '' as string,
     prixClient: '' as number | '',
     prixBoutique: '' as number | '',
     categorie: 'boulangerie' as 'boulangerie' | 'viennoiserie',
@@ -45,6 +46,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     if (produit) {
       setFormData({
         nom: produit.nom,
+        imageUrl: produit.imageUrl || '',
         prixClient: produit.prixClient || '',
         prixBoutique: produit.prixBoutique || '',
         categorie: produit.categorie || 'boulangerie',
@@ -83,11 +85,34 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     setFormData({ ...formData, recette: updatedRecette });
   };
 
+  // Upload image : redimensionne dans le navigateur puis stocke en data URL (base64)
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 400;
+        let { width, height } = img;
+        if (width > height && width > MAX) { height = Math.round(height * MAX / width); width = MAX; }
+        else if (height > MAX) { width = Math.round(width * MAX / height); height = MAX; }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d')?.drawImage(img, 0, 0, width, height);
+        setFormData(fd => ({ ...fd, imageUrl: canvas.toDataURL('image/jpeg', 0.8) }));
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const produitData = {
         nom: formData.nom,
+        imageUrl: formData.imageUrl || '',
         prixClient: Number(formData.prixClient) || 0,
         prixBoutique: Number(formData.prixBoutique) || 0,
         categorie: formData.categorie,
@@ -103,6 +128,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
       if (!produit) {
         setFormData({
           nom: '',
+          imageUrl: '',
           prixClient: '',
           prixBoutique: '',
           categorie: 'boulangerie',
@@ -124,6 +150,33 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <h4 className="font-medium text-sand-900 border-b pb-2">Informations Générales</h4>
+
+          {/* Photo du produit */}
+          <div>
+            <label className="block text-sm font-medium text-sand-700 mb-2">Photo du produit</label>
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-xl border border-sand-200 bg-sand-50 overflow-hidden flex items-center justify-center shrink-0">
+                {formData.imageUrl ? (
+                  <img src={formData.imageUrl} alt="Aperçu" className="w-full h-full object-cover" />
+                ) : (
+                  <Icon icon="mdi:image-outline" className="text-3xl text-sand-300" />
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-sand-300 text-sand-700 text-sm font-medium hover:bg-sand-50 cursor-pointer w-fit">
+                  <Icon icon="mdi:upload" /> {formData.imageUrl ? 'Changer la photo' : 'Choisir une image'}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                </label>
+                {formData.imageUrl && (
+                  <button type="button" onClick={() => setFormData(fd => ({ ...fd, imageUrl: '' }))} className="text-xs text-danger-600 hover:text-danger-700 w-fit">
+                    Retirer l'image
+                  </button>
+                )}
+                <p className="text-xs text-sand-400">JPG/PNG · redimensionnée automatiquement (400px)</p>
+              </div>
+            </div>
+          </div>
+
           <Input
             label="Nom du produit *"
             value={formData.nom}
