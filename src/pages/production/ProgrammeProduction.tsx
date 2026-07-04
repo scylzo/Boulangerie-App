@@ -1475,145 +1475,65 @@ export const ProgrammeProduction: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                  {programmeActuel.totauxParProduit.map((total) => {
-                    // Fonction pour obtenir l'icône du produit basé sur son nom
-                    const getProductIcon = (productName: string): string => {
-                      const name = productName?.toLowerCase() || '';
-                      if (name.includes('baguette')) return 'mdi:baguette';
-                      if (name.includes('pain')) return 'mdi:bread-slice';
-                      if (name.includes('croissant')) return 'mdi:croissant';
-                      if (name.includes('brioche')) return 'mdi:muffin';
-                      if (name.includes('tarte')) return 'mdi:pie';
-                      if (name.includes('gateau') || name.includes('gâteau')) return 'mdi:cake';
-                      if (name.includes('sandwich')) return 'mdi:food';
-                      if (name.includes('viennoiserie')) return 'mdi:pretzel';
-                      return 'mdi:food-variant';
-                    };
-
-                    return (
-                      <div
-                        key={total.produitId}
-                        className="bg-white border border-sand-200 rounded-2xl p-4 hover:border-terracotta-100 hover:shadow-elevated transition-all duration-300 group"
-                      >
-                        {/* En-tête du produit */}
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-12 h-12 bg-terracotta-500 rounded-2xl flex items-center justify-center shadow-card transition-transform">
-                            <Icon
-                              icon={getProductIcon(total.produit?.nom || '')}
-                              className="text-xl text-white"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-lg text-sand-900 mb-0.5">
-                              {total.produit?.nom || total.produitId}
-                            </h4>
-                            <div className="flex items-center gap-2">
-                              <span className="font-display text-xl font-semibold text-sand-800">{total.totalGlobal}</span>
-                              <span className="text-xs text-sand-500 bg-sand-100 px-2 py-0.5 rounded-lg">pièces</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Répartition Client vs Boutique */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                          <div className="bg-sand-50 rounded-xl p-4 text-center border border-sand-200 group-hover:shadow-elevated transition-shadow">
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                              <div className="w-8 h-8 bg-terracotta-500 rounded-lg flex items-center justify-center">
-                                <Icon icon="mdi:account-group" className="text-white text-sm" />
+                <div className="overflow-x-auto rounded-xl border border-sand-200">
+                  <table className="w-full text-sm min-w-[720px]">
+                    <thead>
+                      <tr className="bg-sand-50 border-b border-sand-200 text-left text-[11px] uppercase tracking-wide text-sand-500">
+                        <th className="font-semibold px-4 py-3">Produit</th>
+                        <th className="font-semibold px-4 py-3 text-right">Clients</th>
+                        <th className="font-semibold px-4 py-3 text-right">Boutique</th>
+                        <th className="font-semibold px-4 py-3 text-right">Car 1M</th>
+                        <th className="font-semibold px-4 py-3 text-right">Car 2M</th>
+                        <th className="font-semibold px-4 py-3 text-right">Soir</th>
+                        <th className="font-semibold px-4 py-3 text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="tabular-nums">
+                      {programmeActuel.totauxParProduit.map((total) => {
+                        const getProductIcon = (productName: string): string => {
+                          const name = productName?.toLowerCase() || '';
+                          if (name.includes('baguette')) return 'mdi:baguette';
+                          if (name.includes('pain')) return 'mdi:bread-slice';
+                          if (name.includes('croissant')) return 'mdi:croissant';
+                          if (name.includes('brioche')) return 'mdi:muffin';
+                          if (name.includes('tarte')) return 'mdi:pie';
+                          if (name.includes('gateau') || name.includes('gâteau')) return 'mdi:cake';
+                          if (name.includes('sandwich')) return 'mdi:food';
+                          if (name.includes('viennoiserie')) return 'mdi:pretzel';
+                          return 'mdi:food-variant';
+                        };
+                        return (
+                          <tr key={total.produitId} className="border-b border-sand-100 last:border-0 hover:bg-sand-50 transition-colors">
+                            <td className="px-4 py-2.5">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-8 h-8 bg-sand-100 text-sand-700 rounded-lg flex items-center justify-center shrink-0">
+                                  <Icon icon={getProductIcon(total.produit?.nom || '')} className="text-lg" />
+                                </div>
+                                <span className="font-medium text-sand-900 truncate">{total.produit?.nom || total.produitId}</span>
                               </div>
-                              <span className="text-sm font-semibold text-sand-700">Clients</span>
-                            </div>
-                            <div className="font-display text-2xl font-semibold text-sand-800">{total.totalClient}</div>
-                          </div>
-                          <div className="bg-sand-50 rounded-xl p-4 text-center border border-sand-200 group-hover:shadow-elevated transition-shadow">
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                              <div className="w-8 h-8 bg-terracotta-500 rounded-lg flex items-center justify-center">
-                                <Icon icon="mdi:storefront" className="text-white text-sm" />
-                              </div>
-                              <span className="text-sm font-semibold text-sand-700">Boutique</span>
-                            </div>
-                            <div className="font-display text-2xl font-semibold text-sand-800">{total.totalBoutique}</div>
-                          </div>
-                        </div>
-
-                        {/* Répartition par cars de livraison */}
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2 pb-2 border-b border-sand-200">
-                            <Icon icon="mdi:truck-delivery" className="text-sand-500" />
-                            <h5 className="text-sm font-semibold text-sand-700">
-                              Planning de livraison
-                            </h5>
-                          </div>
-
-                          <div className="space-y-2">
-                            {/* Car 1 Matin */}
-                            {(total.repartitionCar1Matin || 0) > 0 && (
-                              <div className="flex items-center justify-between p-3 bg-sand-50 border border-sand-200 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-terracotta-500 rounded-lg flex items-center justify-center">
-                                    <Icon icon="mdi:truck" className="text-white" />
-                                  </div>
-                                  <div>
-                                    <div className="font-semibold text-sand-800">Car 1 - Matin</div>
-                                    <div className="text-xs text-sand-600 flex items-center gap-1">
-                                      <Icon icon="mdi:clock-time-eight" className="text-xs" />
-                                      06:00 - 10:00
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="font-display text-xl font-semibold text-sand-800">
-                                  {total.repartitionCar1Matin}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Car 2 Matin */}
-                            {(total.repartitionCar2Matin || 0) > 0 && (
-                              <div className="flex items-center justify-between p-3 bg-sand-50 border border-sand-200 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-terracotta-500 rounded-lg flex items-center justify-center">
-                                    <Icon icon="mdi:truck-outline" className="text-white" />
-                                  </div>
-                                  <div>
-                                    <div className="font-semibold text-sand-800">Car 2 - Matin</div>
-                                    <div className="text-xs text-sand-600 flex items-center gap-1">
-                                      <Icon icon="mdi:clock-time-nine" className="text-xs" />
-                                      08:00 - 12:00
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="font-display text-xl font-semibold text-sand-800">
-                                  {total.repartitionCar2Matin}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Car Soir */}
-                            {(total.repartitionCarSoir || 0) > 0 && (
-                              <div className="flex items-center justify-between p-3 bg-sand-50 border border-sand-200 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-terracotta-500 rounded-lg flex items-center justify-center">
-                                    <Icon icon="mdi:truck-fast" className="text-white" />
-                                  </div>
-                                  <div>
-                                    <div className="font-semibold text-sand-800">Car - Soir</div>
-                                    <div className="text-xs text-sand-600 flex items-center gap-1">
-                                      <Icon icon="mdi:clock-time-five" className="text-xs" />
-                                      15:00 - 19:00
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="font-display text-xl font-semibold text-sand-800">
-                                  {total.repartitionCarSoir}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                            </td>
+                            <td className="px-4 py-2.5 text-right text-sand-600">{total.totalClient}</td>
+                            <td className="px-4 py-2.5 text-right text-sand-600">{total.totalBoutique}</td>
+                            <td className="px-4 py-2.5 text-right text-sand-600">{total.repartitionCar1Matin || 0}</td>
+                            <td className="px-4 py-2.5 text-right text-sand-600">{total.repartitionCar2Matin || 0}</td>
+                            <td className="px-4 py-2.5 text-right text-sand-600">{total.repartitionCarSoir || 0}</td>
+                            <td className="px-4 py-2.5 text-right font-display font-semibold text-sand-900">{total.totalGlobal}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr className="bg-sand-50 border-t-2 border-sand-200 text-sand-900 font-semibold tabular-nums">
+                        <td className="px-4 py-3">Total général</td>
+                        <td className="px-4 py-3 text-right">{programmeActuel.totauxParProduit.reduce((s, t) => s + (t.totalClient || 0), 0)}</td>
+                        <td className="px-4 py-3 text-right">{programmeActuel.totauxParProduit.reduce((s, t) => s + (t.totalBoutique || 0), 0)}</td>
+                        <td className="px-4 py-3 text-right">{programmeActuel.totauxParProduit.reduce((s, t) => s + (t.repartitionCar1Matin || 0), 0)}</td>
+                        <td className="px-4 py-3 text-right">{programmeActuel.totauxParProduit.reduce((s, t) => s + (t.repartitionCar2Matin || 0), 0)}</td>
+                        <td className="px-4 py-3 text-right">{programmeActuel.totauxParProduit.reduce((s, t) => s + (t.repartitionCarSoir || 0), 0)}</td>
+                        <td className="px-4 py-3 text-right font-display">{programmeActuel.totauxParProduit.reduce((s, t) => s + (t.totalGlobal || 0), 0)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
                 </div>
               </div>
 
