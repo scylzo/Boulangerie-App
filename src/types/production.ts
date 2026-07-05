@@ -14,7 +14,8 @@ export interface Produit {
   imageUrl?: string; // Photo du produit (data URL base64 redimensionnée, ou URL)
   reconduisible?: boolean; // Si true, les invendus peuvent être reconduits le lendemain
   productionQuotidienne?: boolean; // Produit fabriqué tous les jours pour la boutique (rappelé dans le programme)
-  quantiteBoutiqueDefaut?: number; // Quantité boutique par défaut (pré-remplie via le rappel quotidien)
+  quantiteBoutiqueDefaut?: number; // Quantité boutique par défaut totale (= somme des cars)
+  quantiteBoutiqueDefautCars?: { car1_matin: number; car2_matin: number; car_soir: number }; // Répartition par défaut sur les cars
   prixUnitaire?: number; // Pour compatibilité avec l'ancien code (à supprimer progressivement)
   recette?: Ingredient[]; // Liste des ingrédients nécessaires
   active: boolean;

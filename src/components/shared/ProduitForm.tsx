@@ -29,7 +29,9 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     categorie: 'boulangerie' as 'boulangerie' | 'viennoiserie',
     reconduisible: false,
     productionQuotidienne: false,
-    quantiteBoutiqueDefaut: '' as number | '',
+    defCar1: '' as number | '',
+    defCar2: '' as number | '',
+    defCarSoir: '' as number | '',
     active: true,
     recette: [] as Ingredient[]
   });
@@ -54,7 +56,9 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         categorie: produit.categorie || 'boulangerie',
         reconduisible: produit.reconduisible || false,
         productionQuotidienne: produit.productionQuotidienne || false,
-        quantiteBoutiqueDefaut: produit.quantiteBoutiqueDefaut ?? '',
+        defCar1: produit.quantiteBoutiqueDefautCars?.car1_matin ?? (produit.quantiteBoutiqueDefaut ?? ''),
+        defCar2: produit.quantiteBoutiqueDefautCars?.car2_matin ?? '',
+        defCarSoir: produit.quantiteBoutiqueDefautCars?.car_soir ?? '',
         active: produit.active,
         recette: produit.recette || []
       });
@@ -122,7 +126,12 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         categorie: formData.categorie,
         reconduisible: formData.reconduisible,
         productionQuotidienne: formData.productionQuotidienne,
-        quantiteBoutiqueDefaut: formData.productionQuotidienne ? (Number(formData.quantiteBoutiqueDefaut) || 0) : 0,
+        quantiteBoutiqueDefautCars: formData.productionQuotidienne
+          ? { car1_matin: Number(formData.defCar1) || 0, car2_matin: Number(formData.defCar2) || 0, car_soir: Number(formData.defCarSoir) || 0 }
+          : { car1_matin: 0, car2_matin: 0, car_soir: 0 },
+        quantiteBoutiqueDefaut: formData.productionQuotidienne
+          ? (Number(formData.defCar1) || 0) + (Number(formData.defCar2) || 0) + (Number(formData.defCarSoir) || 0)
+          : 0,
         active: formData.active,
         recette: formData.recette, // Include recipe
         description: '',
@@ -140,7 +149,9 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           categorie: 'boulangerie',
           reconduisible: false,
           productionQuotidienne: false,
-          quantiteBoutiqueDefaut: '',
+          defCar1: '',
+          defCar2: '',
+          defCarSoir: '',
           active: true,
           recette: []
         });
@@ -281,7 +292,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
             </div>
           </div>
 
-          <div className="bg-terracotta-50 border border-terracotta-100 rounded-lg p-4">
+          <div className="bg-sand-50 border border-sand-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <input
                 id="productionQuotidienne"
@@ -298,18 +309,30 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                   Fabriqué tous les jours pour la boutique. Il sera rappelé automatiquement dans le programme de production s'il manque (ex: baguette, pain).
                 </p>
                 {formData.productionQuotidienne && (
-                  <div className="mt-3 flex items-center gap-2">
-                    <label htmlFor="quantiteBoutiqueDefaut" className="text-sm text-sand-700">Quantité boutique par défaut :</label>
-                    <input
-                      id="quantiteBoutiqueDefaut"
-                      type="number"
-                      min="0"
-                      value={formData.quantiteBoutiqueDefaut}
-                      onChange={(e) => setFormData({ ...formData, quantiteBoutiqueDefaut: e.target.value === '' ? '' : Number(e.target.value) })}
-                      placeholder="0"
-                      className="w-24 px-3 py-1.5 border border-sand-300 rounded-lg text-right text-sm tabular-nums focus:ring-2 focus:ring-terracotta-500 focus:border-transparent"
-                    />
-                    <span className="text-xs text-sand-500">pièces</span>
+                  <div className="mt-3">
+                    <p className="text-sm text-sand-700 mb-2">Quantités boutique par défaut (par car) :</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        { key: 'defCar1' as const, label: 'Car 1 - Matin' },
+                        { key: 'defCar2' as const, label: 'Car 2 - Matin' },
+                        { key: 'defCarSoir' as const, label: 'Car Soir' },
+                      ]).map((c) => (
+                        <div key={c.key}>
+                          <label className="block text-[11px] font-medium text-sand-500 mb-1">{c.label}</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={formData[c.key]}
+                            onChange={(e) => setFormData({ ...formData, [c.key]: e.target.value === '' ? '' : Number(e.target.value) })}
+                            placeholder="0"
+                            className="w-full px-2 py-1.5 border border-sand-300 rounded-lg text-right text-sm tabular-nums focus:ring-2 focus:ring-terracotta-500 focus:border-transparent"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-sand-500 mt-1.5 text-right">
+                      Total : {(Number(formData.defCar1) || 0) + (Number(formData.defCar2) || 0) + (Number(formData.defCarSoir) || 0)} pièces
+                    </p>
                   </div>
                 )}
               </div>

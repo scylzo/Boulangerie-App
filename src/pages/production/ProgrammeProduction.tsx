@@ -486,12 +486,14 @@ export const ProgrammeProduction: React.FC = () => {
 
   const ajouterQuotidiensManquants = () => {
     quotidiensManquants.forEach((p) => {
-      const q = Math.max(0, p.quantiteBoutiqueDefaut || 0);
+      // Répartition par défaut sur les cars (fallback : ancien total → car 1 matin)
+      const cars = p.quantiteBoutiqueDefautCars || { car1_matin: p.quantiteBoutiqueDefaut || 0, car2_matin: 0, car_soir: 0 };
+      const total = (cars.car1_matin || 0) + (cars.car2_matin || 0) + (cars.car_soir || 0);
       ajouterQuantiteBoutique({
         produitId: p.id,
         produit: p,
-        quantite: q,
-        repartitionCars: { car1_matin: q, car2_matin: 0, car_soir: 0 },
+        quantite: total,
+        repartitionCars: { car1_matin: cars.car1_matin || 0, car2_matin: cars.car2_matin || 0, car_soir: cars.car_soir || 0 },
       });
     });
     if (quotidiensManquants.length > 0) {
@@ -1229,26 +1231,27 @@ export const ProgrammeProduction: React.FC = () => {
 
             {/* Rappel : produits quotidiens manquants */}
             {quotidiensManquants.length > 0 && (
-              <div className="mb-5 rounded-xl border border-warning-200 bg-warning-50 p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <div className="flex items-start gap-3 min-w-0 flex-1">
-                    <Icon icon="mdi:alert-circle-outline" className="text-xl text-warning-600 shrink-0 mt-0.5" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-warning-700">
-                        {quotidiensManquants.length} produit(s) quotidien(s) pas encore ajouté(s)
+              <div className="mb-5 rounded-xl border border-warning-100 bg-warning-50/60 p-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 text-warning-700">
+                      <Icon icon="mdi:bell-ring-outline" className="text-lg shrink-0" />
+                      <p className="text-sm font-semibold">
+                        {quotidiensManquants.length} produit{quotidiensManquants.length > 1 ? 's' : ''} quotidien{quotidiensManquants.length > 1 ? 's' : ''} à ajouter
                       </p>
-                      <p className="text-xs text-warning-600 mt-0.5 flex flex-wrap gap-x-2">
-                        {quotidiensManquants.map((p) => (
-                          <span key={p.id} className="uppercase font-medium">
-                            {p.nom}{p.quantiteBoutiqueDefaut ? ` (${p.quantiteBoutiqueDefaut})` : ''}
-                          </span>
-                        ))}
-                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {quotidiensManquants.map((p) => (
+                        <span key={p.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-sand-700 text-[11px] font-medium ring-1 ring-inset ring-warning-100">
+                          <span className="uppercase">{p.nom}</span>
+                          {p.quantiteBoutiqueDefaut ? <span className="text-sand-400 tabular-nums">· {p.quantiteBoutiqueDefaut}</span> : null}
+                        </span>
+                      ))}
                     </div>
                   </div>
                   <button
                     onClick={ajouterQuotidiensManquants}
-                    className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 bg-warning-600 hover:bg-warning-700 text-white rounded-lg transition-all shadow-sm text-sm font-medium"
+                    className="shrink-0 inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-warning-600 hover:bg-warning-700 text-white rounded-lg transition-colors shadow-sm text-sm font-medium"
                   >
                     <Icon icon="mdi:playlist-plus" className="text-lg" />
                     Ajouter les manquants
