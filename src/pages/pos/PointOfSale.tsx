@@ -161,7 +161,7 @@ export const PointOfSale: React.FC = () => {
     if (!w) return;
     const modeLabel = paiement === 'espece' ? 'Espèces' : paiement === 'om' ? 'Orange Money' : 'Wave';
     const rows = lignes.map(l => `<tr><td>${l.produit!.nom.toUpperCase()}</td><td class="c">${l.qty}</td><td class="r">${(prixDe(l.produit!) * l.qty).toLocaleString('fr-FR')}</td></tr>`).join('');
-    const cashRows = paiement === 'espece' ? `<div class="row"><span>Reçu</span><span>${recuNum.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Rendu</span><span>${rendu.toLocaleString('fr-FR')} F</span></div>` : '';
+    const cashRows = paiement === 'espece' && recu.trim() !== '' ? `<div class="row"><span>Reçu</span><span>${recuNum.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Rendu</span><span>${rendu.toLocaleString('fr-FR')} F</span></div>` : '';
     const remiseRows = montantRemise > 0 ? `<div class="row"><span>Sous-total</span><span>${sousTotal.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Remise${remiseType === 'pourcent' ? ` (${remiseNum}%)` : ''}</span><span>- ${montantRemise.toLocaleString('fr-FR')} F</span></div>` : '';
     const logoUrl = new URL(logo, window.location.origin).href;
     w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>*{font-family:'Courier New',monospace;font-size:22px;color:#000}body{width:340px;margin:0 auto;padding:14px}.logo{display:block;margin:6px auto 2px;max-width:160px;max-height:64px;object-fit:contain}h1{font-size:26px;text-align:center;margin:0 0 2px}.sub{text-align:center;font-size:21px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:3px 0}.c{text-align:center;width:48px}.r{text-align:right;width:120px}.row{display:flex;justify-content:space-between;margin:3px 0}.tot{display:flex;justify-content:space-between;font-size:26px;font-weight:bold;margin:8px 0}.foot{text-align:center;margin-top:14px;font-size:21px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><p class="sub">Ticket n°${numero} · ${jour} ${heure} · ${typeLabel[typeCommande]}${vendeur.trim() ? `<br/>Vendeur : ${vendeur.trim()}` : ''}</p><hr/><table><thead><tr><td>Article</td><td class="c">Qté</td><td class="r">FCFA</td></tr></thead><tbody>${rows}</tbody></table><hr/>${remiseRows}<div class="tot"><span>TOTAL</span><span>${total.toLocaleString('fr-FR')} F</span></div><div class="row"><span>Paiement</span><span>${modeLabel}</span></div>${cashRows}<hr/><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="foot">${nbArticles} article(s) · Merci de votre visite !</p></body></html>`);
@@ -169,7 +169,9 @@ export const PointOfSale: React.FC = () => {
   };
 
   const validerPaiement = async () => {
-    if (paiement === 'espece' && recuNum < total) { toast.error('Montant reçu insuffisant'); return; }
+    const recuSaisi = recu.trim() !== '';
+    // Le montant reçu est optionnel ; on ne bloque que s'il est saisi ET insuffisant
+    if (paiement === 'espece' && recuSaisi && recuNum < total) { toast.error('Montant reçu insuffisant'); return; }
     try {
       const base = {
         date: new Date().toISOString().split('T')[0],
@@ -182,7 +184,7 @@ export const PointOfSale: React.FC = () => {
         ...(montantRemise > 0 ? { remise: montantRemise } : {}),
         ...(vendeur.trim() ? { vendeur: vendeur.trim() } : {}),
       };
-      const payload = paiement === 'espece' ? { ...base, montantRecu: recuNum, rendu } : base;
+      const payload = paiement === 'espece' && recuSaisi ? { ...base, montantRecu: recuNum, rendu } : base;
       const numero = await enregistrerTicket(payload);
       imprimerTicket(numero);
       toast.success(`Ticket n°${numero} encaissé · ${formatCurrency(total)}`);
