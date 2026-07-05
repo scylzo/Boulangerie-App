@@ -3,7 +3,11 @@ import { Icon } from '@iconify/react';
 import { Menu } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useStockStore } from '../../store/stockStore';
+import { useReferentielStore } from '../../store/referentielStore';
 import { formaterQuantite } from '../../utils/calculations';
+import { APP_MODULES } from '../../constants/modules';
+
+type ResultatRecherche = { type: 'page' | 'produit' | 'client'; label: string; sous?: string; icon: string; href: string };
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -37,6 +41,51 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
     setShowAlerts(false);
     navigate('/stocks');
   };
+
+  // ── Recherche globale (écrans + produits + clients) ────────────────
+  const { produits, clients, chargerProduits, chargerClients } = useReferentielStore();
+  const [q, setQ] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const chargerRecherche = () => {
+    if (produits.length === 0) chargerProduits();
+    if (clients.length === 0) chargerClients();
+  };
+
+  const resultats = useMemo<ResultatRecherche[]>(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return [];
+    const match = (s?: string) => (s || '').toLowerCase().includes(term);
+
+    const pages: ResultatRecherche[] = APP_MODULES
+      .filter((m) => match(m.name))
+      .slice(0, 5)
+      .map((m) => ({ type: 'page', label: m.name, icon: m.icon, href: m.href }));
+
+    const prods: ResultatRecherche[] = produits
+      .filter((p) => match(p.nom))
+      .slice(0, 6)
+      .map((p) => ({ type: 'produit', label: p.nom.toUpperCase(), sous: p.categorie, icon: 'mdi:bread-slice-outline', href: '/admin/produits' }));
+
+    const clis: ResultatRecherche[] = clients
+      .filter((c) => match(c.nom) || match((c as any).prenom))
+      .slice(0, 6)
+      .map((c) => ({ type: 'client', label: [(c as any).prenom, c.nom].filter(Boolean).join(' '), sous: (c as any).typeClient, icon: 'mdi:account-outline', href: '/admin/clients' }));
+
+    return [...pages, ...prods, ...clis];
+  }, [q, produits, clients]);
+
+  const choisirResultat = (r: ResultatRecherche) => {
+    setQ('');
+    setSearchOpen(false);
+    navigate(r.href);
+  };
+
+  const groupes: { cle: ResultatRecherche['type']; titre: string }[] = [
+    { cle: 'page', titre: 'Écrans' },
+    { cle: 'produit', titre: 'Produits' },
+    { cle: 'client', titre: 'Clients' },
+  ];
 
   const getPageTitle = () => {
     const path = location.pathname;
@@ -83,10 +132,66 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
 
         {/* Droite : recherche + actions */}
         <div className="flex items-center gap-1">
-          <div className="hidden md:flex items-center gap-2 h-10 px-3.5 rounded-xl bg-sand-100 text-sand-400 text-sm w-72">
-            <Icon icon="mdi:magnify" className="text-lg" />
-            <span>Recherche rapide…</span>
+          {/* Recherche globale */}
+          <div className="hidden md:block relative">
+            <div className="flex items-center gap-2 h-10 px-3.5 rounded-xl bg-sand-100 text-sand-500 text-sm w-72 focus-within:ring-2 focus-within:ring-terracotta-500/40">
+              <Icon icon="mdi:magnify" className="text-lg shrink-0" />
+              <input
+                value={q}
+                onChange={(e) => { setQ(e.target.value); setSearchOpen(true); }}
+                onFocus={() => { chargerRecherche(); setSearchOpen(true); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && resultats[0]) choisirResultat(resultats[0]);
+                  if (e.key === 'Escape') { setQ(''); setSearchOpen(false); }
+                }}
+                placeholder="Rechercher un écran, un produit, un client…"
+                className="flex-1 bg-transparent outline-none text-sand-900 placeholder:text-sand-400"
+              />
+              {q && (
+                <button onClick={() => { setQ(''); setSearchOpen(false); }} className="text-sand-400 hover:text-sand-600 shrink-0">
+                  <Icon icon="mdi:close-circle" className="text-base" />
+                </button>
+              )}
+            </div>
+
+            {searchOpen && q.trim() && (
+              <>
+                <div className="fixed inset-0 z-20" onClick={() => setSearchOpen(false)} />
+                <div className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-y-auto bg-white rounded-xl border border-sand-200 shadow-overlay z-30">
+                  {resultats.length === 0 ? (
+                    <div className="px-4 py-6 text-center text-sm text-sand-500">Aucun résultat pour « {q} »</div>
+                  ) : (
+                    groupes.map((g) => {
+                      const items = resultats.filter((r) => r.type === g.cle);
+                      if (items.length === 0) return null;
+                      return (
+                        <div key={g.cle} className="py-1.5">
+                          <p className="px-4 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-sand-400">{g.titre}</p>
+                          {items.map((r, i) => (
+                            <button
+                              key={`${g.cle}-${i}`}
+                              onClick={() => choisirResultat(r)}
+                              className="w-full flex items-center gap-3 px-4 py-2 hover:bg-sand-50 transition-colors text-left"
+                            >
+                              <span className="w-8 h-8 rounded-lg bg-sand-100 text-sand-600 flex items-center justify-center shrink-0">
+                                <Icon icon={r.icon} className="text-lg" />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-sm font-medium text-sand-900 truncate">{r.label}</span>
+                                {r.sous && <span className="block text-xs text-sand-500 capitalize truncate">{r.sous}</span>}
+                              </span>
+                              <Icon icon="mdi:arrow-top-left" className="text-sand-300 shrink-0" />
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
           </div>
+
           {/* Alertes rupture de stock */}
           <div className="relative">
             <button
