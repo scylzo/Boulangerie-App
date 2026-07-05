@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { TableLoader } from '../../components/ui/Loader';
 import { Modal } from '../../components/ui/Modal';
@@ -20,8 +21,9 @@ export const GestionProduits: React.FC = () => {
     setProduitEnEdition
   } = useReferentielStore();
 
+  const [searchParams] = useSearchParams();
   const [showForm, setShowForm] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => searchParams.get('q') || '');
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; produitId: string; produitNom: string }>({
     isOpen: false,
     produitId: '',
@@ -34,6 +36,12 @@ export const GestionProduits: React.FC = () => {
     chargerProduits();
     chargerStock();
   }, [chargerProduits, chargerStock]);
+
+  // Préremplir la recherche depuis l'URL (?q=) — ex. depuis la recherche globale
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q !== null) setSearch(q);
+  }, [searchParams]);
 
   const handleAjouter = async (produitData: Omit<Produit, 'id' | 'createdAt' | 'updatedAt'>) => {
     await ajouterProduit(produitData);

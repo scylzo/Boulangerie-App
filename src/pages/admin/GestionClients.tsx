@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { TableLoader } from '../../components/ui/Loader';
 import { Modal } from '../../components/ui/Modal';
@@ -25,7 +26,8 @@ export const GestionClients: React.FC = () => {
   const { chargerLivreurs, getLivreurById } = useLivreurStore();
 
   const [showForm, setShowForm] = useState(false);
-  const [search, setSearch] = useState('');
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get('q') || '');
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; clientId: string; clientNom: string }>({
     isOpen: false,
     clientId: '',
@@ -36,6 +38,12 @@ export const GestionClients: React.FC = () => {
     chargerClients();
     chargerLivreurs();
   }, [chargerClients, chargerLivreurs]);
+
+  // Préremplir la recherche depuis l'URL (?q=) — ex. depuis la recherche globale
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q !== null) setSearch(q);
+  }, [searchParams]);
 
   const handleAjouter = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
     await ajouterClient(clientData);

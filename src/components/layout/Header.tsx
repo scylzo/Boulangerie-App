@@ -65,12 +65,15 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
     const prods: ResultatRecherche[] = produits
       .filter((p) => match(p.nom))
       .slice(0, 6)
-      .map((p) => ({ type: 'produit', label: p.nom.toUpperCase(), sous: p.categorie, icon: 'mdi:bread-slice-outline', href: '/admin/produits' }));
+      .map((p) => ({ type: 'produit', label: p.nom.toUpperCase(), sous: p.categorie, icon: 'mdi:bread-slice-outline', href: `/admin/produits?q=${encodeURIComponent(p.nom)}` }));
 
     const clis: ResultatRecherche[] = clients
       .filter((c) => match(c.nom) || match((c as any).prenom))
       .slice(0, 6)
-      .map((c) => ({ type: 'client', label: [(c as any).prenom, c.nom].filter(Boolean).join(' '), sous: (c as any).typeClient, icon: 'mdi:account-outline', href: '/admin/clients' }));
+      .map((c) => {
+        const nomComplet = [(c as any).prenom, c.nom].filter(Boolean).join(' ');
+        return { type: 'client', label: nomComplet, sous: (c as any).typeClient, icon: 'mdi:account-outline', href: `/admin/clients?q=${encodeURIComponent(c.nom)}` };
+      });
 
     return [...pages, ...prods, ...clis];
   }, [q, produits, clients]);
