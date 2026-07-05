@@ -13,6 +13,8 @@ export interface Produit {
   categorie?: 'boulangerie' | 'viennoiserie';
   imageUrl?: string; // Photo du produit (data URL base64 redimensionnée, ou URL)
   reconduisible?: boolean; // Si true, les invendus peuvent être reconduits le lendemain
+  productionQuotidienne?: boolean; // Produit fabriqué tous les jours pour la boutique (rappelé dans le programme)
+  quantiteBoutiqueDefaut?: number; // Quantité boutique par défaut (pré-remplie via le rappel quotidien)
   prixUnitaire?: number; // Pour compatibilité avec l'ancien code (à supprimer progressivement)
   recette?: Ingredient[]; // Liste des ingrédients nécessaires
   active: boolean;

@@ -28,6 +28,8 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     prixBoutique: '' as number | '',
     categorie: 'boulangerie' as 'boulangerie' | 'viennoiserie',
     reconduisible: false,
+    productionQuotidienne: false,
+    quantiteBoutiqueDefaut: '' as number | '',
     active: true,
     recette: [] as Ingredient[]
   });
@@ -51,6 +53,8 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         prixBoutique: produit.prixBoutique || '',
         categorie: produit.categorie || 'boulangerie',
         reconduisible: produit.reconduisible || false,
+        productionQuotidienne: produit.productionQuotidienne || false,
+        quantiteBoutiqueDefaut: produit.quantiteBoutiqueDefaut ?? '',
         active: produit.active,
         recette: produit.recette || []
       });
@@ -117,6 +121,8 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         prixBoutique: Number(formData.prixBoutique) || 0,
         categorie: formData.categorie,
         reconduisible: formData.reconduisible,
+        productionQuotidienne: formData.productionQuotidienne,
+        quantiteBoutiqueDefaut: formData.productionQuotidienne ? (Number(formData.quantiteBoutiqueDefaut) || 0) : 0,
         active: formData.active,
         recette: formData.recette, // Include recipe
         description: '',
@@ -133,6 +139,8 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           prixBoutique: '',
           categorie: 'boulangerie',
           reconduisible: false,
+          productionQuotidienne: false,
+          quantiteBoutiqueDefaut: '',
           active: true,
           recette: []
         });
@@ -269,6 +277,41 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                   Les invendus de ce produit peuvent être vendus le lendemain (ex: biscuits, pains spéciaux).
                   Si décoché, les invendus seront considérés comme des pertes (ex: baguettes fraîches, croissants).
                 </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-terracotta-50 border border-terracotta-100 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <input
+                id="productionQuotidienne"
+                type="checkbox"
+                checked={formData.productionQuotidienne}
+                onChange={(e) => setFormData({ ...formData, productionQuotidienne: e.target.checked })}
+                className="mt-1 h-4 w-4 text-terracotta-600 focus:ring-terracotta-500 border-sand-300 rounded"
+              />
+              <div className="flex-1">
+                <label htmlFor="productionQuotidienne" className="block text-sm font-medium text-sand-900 cursor-pointer">
+                  Produit quotidien (boutique)
+                </label>
+                <p className="text-xs text-sand-600 mt-1">
+                  Fabriqué tous les jours pour la boutique. Il sera rappelé automatiquement dans le programme de production s'il manque (ex: baguette, pain).
+                </p>
+                {formData.productionQuotidienne && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <label htmlFor="quantiteBoutiqueDefaut" className="text-sm text-sand-700">Quantité boutique par défaut :</label>
+                    <input
+                      id="quantiteBoutiqueDefaut"
+                      type="number"
+                      min="0"
+                      value={formData.quantiteBoutiqueDefaut}
+                      onChange={(e) => setFormData({ ...formData, quantiteBoutiqueDefaut: e.target.value === '' ? '' : Number(e.target.value) })}
+                      placeholder="0"
+                      className="w-24 px-3 py-1.5 border border-sand-300 rounded-lg text-right text-sm tabular-nums focus:ring-2 focus:ring-terracotta-500 focus:border-transparent"
+                    />
+                    <span className="text-xs text-sand-500">pièces</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
