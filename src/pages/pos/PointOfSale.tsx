@@ -37,7 +37,7 @@ const prixDe = (p: Produit) => p.prixBoutique || p.prixClient || 0;
 
 export const PointOfSale: React.FC = () => {
   const { produits, chargerProduits } = useReferentielStore();
-  const { enregistrerTicket, isSaving, sessionActive, chargerSessionActive, ouvrirSession, fermerSession, getResumeSessionActive } = usePosStore();
+  const { enregistrerTicket, isSaving, sessionActive, chargerSessionActive, ouvrirSession, fermerSession, getResumeSessionActive, getClassementProduits } = usePosStore();
   const { user } = useAuthStore();
 
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -59,12 +59,16 @@ export const PointOfSale: React.FC = () => {
   const [resume, setResume] = useState<ResumeSession | null>(null);
   const [sessionBusy, setSessionBusy] = useState(false);
 
+  // Classement des produits par popularité (ventes récentes) pour trier la grille
+  const [classement, setClassement] = useState<Record<string, number>>({});
+
   const vendeur = sessionActive?.ouvertePar || '';
 
   useEffect(() => {
     chargerProduits();
     chargerSessionActive().finally(() => setSessionChecked(true));
-  }, [chargerProduits, chargerSessionActive]);
+    getClassementProduits().then(setClassement).catch(() => setClassement({}));
+  }, [chargerProduits, chargerSessionActive, getClassementProduits]);
 
   useEffect(() => {
     setOuvVendeur(user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : '');
@@ -105,7 +109,14 @@ export const PointOfSale: React.FC = () => {
     actifs
       .filter(p => categorie === 'tous' || p.categorie === categorie)
       .filter(p => p.nom.toLowerCase().includes(search.toLowerCase().trim()))
-    , [actifs, categorie, search]);
+      // Les plus vendus d'abord (classement récent) ; à égalité, ordre alphabétique
+      .sort((a, b) => {
+        const va = classement[a.id] || 0;
+        const vb = classement[b.id] || 0;
+        if (vb !== va) return vb - va;
+        return a.nom.localeCompare(b.nom);
+      })
+    , [actifs, categorie, search, classement]);
 
   const produitById = useMemo(() => Object.fromEntries(produits.map(p => [p.id, p])), [produits]);
   const lignes = useMemo(() =>
