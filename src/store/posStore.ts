@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, addDoc, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, orderBy, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export type ModePaiement = 'espece' | 'om' | 'wave';
@@ -33,6 +33,28 @@ export interface TicketPOS {
   ticketOrigineId?: string;      // doc id du ticket de vente retourné
   ticketOrigineNumero?: number;  // n° du ticket d'origine (affichage)
   motifRetour?: string;
+  sessionId?: string;            // session de caisse rattachée
+}
+
+/** Session de caisse (type Odoo) : ouverture avec fond, clôture avec comptage. */
+export interface SessionPOS {
+  id?: string;
+  date: string;                  // yyyy-mm-dd d'ouverture
+  ouvertePar: string;            // vendeur
+  ouvertureAt: Date;
+  fondCaisse: number;            // fond de caisse initial (espèces)
+  statut: 'ouverte' | 'fermee';
+  // Renseignés à la clôture
+  fermetureAt?: Date;
+  comptageEspeces?: number;      // espèces réellement comptées
+  totalVentes?: number;          // CA net de la session
+  totalEspeces?: number;         // net espèces (ventes − retours)
+  totalOm?: number;
+  totalWave?: number;
+  totalRetours?: number;
+  nbTickets?: number;
+  especesAttendues?: number;     // fond + net espèces
+  ecart?: number;                // comptage − attendu
 }
 
 // Heure de bascule matin → soir pour la ventilation des ventes caisse
@@ -50,6 +72,13 @@ export const periodeTicket = (t: TicketPOS): 'matin' | 'soir' =>
 interface PosStore {
   isSaving: boolean;
   ticketsDuJour: TicketPOS[];
+  // Session de caisse
+  sessionActive: SessionPOS | null;
+  chargerSessionActive: () => Promise<void>;
+  ouvrirSession: (params: { ouvertePar: string; fondCaisse: number }) => Promise<void>;
+  fermerSession: (comptageEspeces: number) => Promise<SessionPOS | null>;
+  /** Résumé (live) de la session active pour l'écran de clôture. */
+  getResumeSessionActive: () => Promise<ResumeSession | null>;
   chargerTicketsDuJour: (date: Date) => Promise<void>;
   enregistrerTicket: (ticket: Omit<TicketPOS, 'id' | 'createdAt' | 'numero'>) => Promise<number>;
   /** Récupère les tickets POS sur une période (bornes incluses). */
@@ -64,10 +93,123 @@ interface PosStore {
   getQuantitesJourParPeriode: (date: Date) => Promise<Record<string, { matin: number; soir: number; total: number }>>;
 }
 
+export interface ResumeSession {
+  fondCaisse: number;
+  totalVentes: number;
+  totalEspeces: number;
+  totalOm: number;
+  totalWave: number;
+  totalRetours: number;
+  nbTickets: number;
+  especesAttendues: number;
+}
+
 const jourKey = (d: Date) => d.toISOString().split('T')[0];
 
 export const usePosStore = create<PosStore>((set, get) => ({
   isSaving: false,
+  sessionActive: null,
+
+  chargerSessionActive: async () => {
+    try {
+      const q = query(collection(db, 'pos_sessions'), where('statut', '==', 'ouverte'));
+      const snap = await getDocs(q);
+      if (snap.empty) { set({ sessionActive: null }); return; }
+      // La plus récente si plusieurs
+      const sessions = snap.docs.map(d => {
+        const data = d.data() as any;
+        return { id: d.id, ...data, ouvertureAt: data.ouvertureAt?.toDate ? data.ouvertureAt.toDate() : new Date(data.ouvertureAt) } as SessionPOS;
+      }).sort((a, b) => b.ouvertureAt.getTime() - a.ouvertureAt.getTime());
+      set({ sessionActive: sessions[0] });
+    } catch (e) {
+      console.error('Erreur chargement session POS:', e);
+      set({ sessionActive: null });
+    }
+  },
+
+  ouvrirSession: async ({ ouvertePar, fondCaisse }) => {
+    const now = new Date();
+    const payload = {
+      date: jourKey(now),
+      ouvertePar,
+      ouvertureAt: Timestamp.now(),
+      fondCaisse,
+      statut: 'ouverte' as const,
+    };
+    const ref = await addDoc(collection(db, 'pos_sessions'), payload);
+    set({ sessionActive: { id: ref.id, ...payload, ouvertureAt: now } });
+  },
+
+  getResumeSessionActive: async () => {
+    const session = get().sessionActive;
+    if (!session?.id) return null;
+    let tickets: TicketPOS[] = [];
+    try {
+      const q = query(collection(db, 'pos_tickets'), where('sessionId', '==', session.id));
+      const snap = await getDocs(q);
+      tickets = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as TicketPOS[];
+    } catch (e) {
+      console.error('Erreur résumé session:', e);
+    }
+    const somme = (m: ModePaiement) => tickets.filter(t => t.modePaiement === m).reduce((s, t) => s + (t.total || 0), 0);
+    const totalEspeces = somme('espece');
+    const totalOm = somme('om');
+    const totalWave = somme('wave');
+    return {
+      fondCaisse: session.fondCaisse || 0,
+      totalEspeces, totalOm, totalWave,
+      totalVentes: totalEspeces + totalOm + totalWave,
+      totalRetours: tickets.filter(t => t.type === 'retour').reduce((s, t) => s + Math.abs(t.total || 0), 0),
+      nbTickets: tickets.length,
+      especesAttendues: (session.fondCaisse || 0) + totalEspeces,
+    };
+  },
+
+  fermerSession: async (comptageEspeces: number) => {
+    const session = get().sessionActive;
+    if (!session?.id) return null;
+    // Tickets de la session
+    let tickets: TicketPOS[] = [];
+    try {
+      const q = query(collection(db, 'pos_tickets'), where('sessionId', '==', session.id));
+      const snap = await getDocs(q);
+      tickets = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as TicketPOS[];
+    } catch (e) {
+      console.error('Erreur chargement tickets session:', e);
+    }
+    const somme = (m: ModePaiement) => tickets.filter(t => t.modePaiement === m).reduce((s, t) => s + (t.total || 0), 0);
+    const totalEspeces = somme('espece');
+    const totalOm = somme('om');
+    const totalWave = somme('wave');
+    const totalVentes = totalEspeces + totalOm + totalWave;
+    const totalRetours = tickets.filter(t => t.type === 'retour').reduce((s, t) => s + Math.abs(t.total || 0), 0);
+    const especesAttendues = (session.fondCaisse || 0) + totalEspeces;
+    const ecart = Math.round((comptageEspeces - especesAttendues + Number.EPSILON) * 100) / 100;
+
+    const cloture: Partial<SessionPOS> = {
+      statut: 'fermee',
+      fermetureAt: new Date(),
+      comptageEspeces,
+      totalVentes,
+      totalEspeces,
+      totalOm,
+      totalWave,
+      totalRetours,
+      nbTickets: tickets.length,
+      especesAttendues,
+      ecart,
+    };
+    try {
+      await updateDoc(doc(db, 'pos_sessions', session.id), { ...cloture, fermetureAt: Timestamp.now() });
+    } catch (e) {
+      console.error('Erreur clôture session:', e);
+      throw e;
+    }
+    const sessionFermee = { ...session, ...cloture } as SessionPOS;
+    set({ sessionActive: null });
+    return sessionFermee;
+  },
+
   ticketsDuJour: [],
 
   chargerTicketsDuJour: async (date: Date) => {
@@ -163,14 +305,16 @@ export const usePosStore = create<PosStore>((set, get) => ({
       await get().chargerTicketsDuJour(date);
       const numero = (get().ticketsDuJour.length || 0) + 1;
 
+      const sessionId = get().sessionActive?.id;
       const ref = await addDoc(collection(db, 'pos_tickets'), {
         ...ticket,
         numero,
         createdAt: Timestamp.now(),
+        ...(sessionId ? { sessionId } : {}),
       });
       set(state => ({
         isSaving: false,
-        ticketsDuJour: [...state.ticketsDuJour, { id: ref.id, numero, createdAt: date, ...ticket }],
+        ticketsDuJour: [...state.ticketsDuJour, { id: ref.id, numero, createdAt: date, ...ticket, ...(sessionId ? { sessionId } : {}) }],
       }));
       return numero;
     } catch (e) {

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Modal } from '../../components/ui/Modal';
 import { useReferentielStore } from '../../store/referentielStore';
-import { usePosStore } from '../../store/posStore';
+import { usePosStore, type SessionPOS, type ResumeSession } from '../../store/posStore';
 import { useAuthStore } from '../../store/authStore';
 import { formatCurrency } from '../../utils/currency';
 import type { Produit } from '../../types';
@@ -37,7 +37,7 @@ const prixDe = (p: Produit) => p.prixBoutique || p.prixClient || 0;
 
 export const PointOfSale: React.FC = () => {
   const { produits, chargerProduits } = useReferentielStore();
-  const { enregistrerTicket, isSaving } = usePosStore();
+  const { enregistrerTicket, isSaving, sessionActive, chargerSessionActive, ouvrirSession, fermerSession, getResumeSessionActive } = usePosStore();
   const { user } = useAuthStore();
 
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -50,29 +50,53 @@ export const PointOfSale: React.FC = () => {
   const [remiseVal, setRemiseVal] = useState('');
   const [remiseType, setRemiseType] = useState<'montant' | 'pourcent'>('montant');
 
-  // Session vendeur (déclaré à l'ouverture de la caisse, mémorisé localement)
-  const [vendeur, setVendeur] = useState(() => localStorage.getItem('cm.pos.vendeur') || '');
-  const [showVendeur, setShowVendeur] = useState(false);
-  const [vendeurInput, setVendeurInput] = useState('');
+  // ── Session de caisse (type Odoo) ──────────────────────────────────
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [ouvVendeur, setOuvVendeur] = useState('');
+  const [ouvFond, setOuvFond] = useState('');
+  const [showCloture, setShowCloture] = useState(false);
+  const [comptage, setComptage] = useState('');
+  const [resume, setResume] = useState<ResumeSession | null>(null);
+  const [sessionBusy, setSessionBusy] = useState(false);
 
-  useEffect(() => { chargerProduits(); }, [chargerProduits]);
+  const vendeur = sessionActive?.ouvertePar || '';
 
-  // À l'ouverture, si aucun vendeur déclaré, proposer de le déclarer (pré-rempli avec l'utilisateur connecté)
   useEffect(() => {
-    if (!vendeur) {
-      setVendeurInput(user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : '');
-      setShowVendeur(true);
-    }
-  }, [vendeur, user]);
+    chargerProduits();
+    chargerSessionActive().finally(() => setSessionChecked(true));
+  }, [chargerProduits, chargerSessionActive]);
 
-  const declarerVendeur = () => {
-    const nom = vendeurInput.trim();
-    if (!nom) { toast.error('Indiquez le nom du vendeur'); return; }
-    localStorage.setItem('cm.pos.vendeur', nom);
-    setVendeur(nom);
-    setShowVendeur(false);
+  useEffect(() => {
+    setOuvVendeur(user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : '');
+  }, [user]);
+
+  const confirmerOuverture = async () => {
+    const nom = ouvVendeur.trim();
+    if (!nom) { toast.error('Indiquez le vendeur'); return; }
+    setSessionBusy(true);
+    try {
+      await ouvrirSession({ ouvertePar: nom, fondCaisse: parseFloat(ouvFond.replace(',', '.')) || 0 });
+      toast.success('Caisse ouverte');
+    } catch { toast.error("Erreur à l'ouverture de la caisse"); }
+    finally { setSessionBusy(false); }
   };
-  const ouvrirVendeur = () => { setVendeurInput(vendeur); setShowVendeur(true); };
+
+  const ouvrirCloture = async () => {
+    setResume(await getResumeSessionActive());
+    setComptage('');
+    setShowCloture(true);
+  };
+
+  const confirmerCloture = async () => {
+    setSessionBusy(true);
+    try {
+      const s = await fermerSession(parseFloat(comptage.replace(',', '.')) || 0);
+      if (s) imprimerRapportZ(s);
+      toast.success('Caisse clôturée · rapport Z généré');
+      setShowCloture(false);
+    } catch { toast.error('Erreur lors de la clôture'); }
+    finally { setSessionBusy(false); }
+  };
 
   const actifs = useMemo(() => produits.filter(p => p.active), [produits]);
   const count = (c: CategorieFiltre) => c === 'tous' ? actifs.length : actifs.filter(p => p.categorie === c).length;
@@ -107,6 +131,19 @@ export const PointOfSale: React.FC = () => {
   const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   const jour = new Date().toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
   const typeLabel: Record<TypeCommande, string> = { sur_place: 'Sur place', emporter: 'À emporter', livraison: 'Livraison' };
+
+  const imprimerRapportZ = (s: SessionPOS) => {
+    const w = window.open('', '_blank', 'width=400,height=760');
+    if (!w) return;
+    const logoUrl = new URL(logo, window.location.origin).href;
+    const fmt = (n?: number) => (n || 0).toLocaleString('fr-FR');
+    const ouv = s.ouvertureAt ? new Date(s.ouvertureAt as any) : null;
+    const fer = s.fermetureAt ? new Date(s.fermetureAt as any) : new Date();
+    const fmtDT = (d: Date | null) => d ? d.toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+    const ecartTxt = (s.ecart || 0) === 0 ? 'OK (0 F)' : `${(s.ecart || 0) > 0 ? '+' : ''}${fmt(s.ecart)} F`;
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Rapport Z</title><style>*{font-family:'Courier New',monospace;font-size:22px;color:#000}body{width:340px;margin:0 auto;padding:14px}.logo{display:block;margin:6px auto 2px;max-width:160px;max-height:64px;object-fit:contain}.title{text-align:center;font-size:24px;font-weight:bold;margin:0 0 2px}.sub{text-align:center;font-size:21px;margin:0 0 8px;color:#333}hr{border:none;border-top:1px dashed #999;margin:8px 0}.row{display:flex;justify-content:space-between;margin:3px 0}.tot{display:flex;justify-content:space-between;font-size:26px;font-weight:bold;margin:8px 0}.foot{text-align:center;margin-top:14px;font-size:21px}</style></head><body onload="setTimeout(function(){window.focus();window.print();},300)"><p class="title">RAPPORT Z — CLÔTURE</p><p class="sub">Vendeur : ${s.ouvertePar}<br/>Ouverture : ${fmtDT(ouv)}<br/>Clôture : ${fmtDT(fer)}</p><hr/><div class="row"><span>Tickets</span><span>${s.nbTickets || 0}</span></div><div class="row"><span>Fond de caisse</span><span>${fmt(s.fondCaisse)} F</span></div><hr/><div class="row"><span>Espèces</span><span>${fmt(s.totalEspeces)} F</span></div><div class="row"><span>Orange Money</span><span>${fmt(s.totalOm)} F</span></div><div class="row"><span>Wave</span><span>${fmt(s.totalWave)} F</span></div>${(s.totalRetours || 0) > 0 ? `<div class="row"><span>Retours</span><span>- ${fmt(s.totalRetours)} F</span></div>` : ''}<div class="tot"><span>CA NET</span><span>${fmt(s.totalVentes)} F</span></div><hr/><div class="row"><span>Espèces attendues</span><span>${fmt(s.especesAttendues)} F</span></div><div class="row"><span>Espèces comptées</span><span>${fmt(s.comptageEspeces)} F</span></div><div class="tot"><span>ÉCART</span><span>${ecartTxt}</span></div><hr/><img class="logo" src="${logoUrl}" alt="Chez Mina" onerror="this.style.display='none'"/><p class="foot">Session clôturée · Merci !</p></body></html>`);
+    w.document.close(); w.focus();
+  };
 
   const imprimerTicket = (numero: number) => {
     const w = window.open('', '_blank', 'width=400,height=680');
@@ -154,15 +191,13 @@ export const PointOfSale: React.FC = () => {
         {/* Barre compacte : vendeur / heure / actions */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <button
-              onClick={ouvrirVendeur}
-              title="Changer le vendeur"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-sand-200 text-sm font-medium text-sand-800 shadow-soft hover:bg-sand-50"
+            <span
+              title={`Session ouverte par ${vendeur}`}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-success-50 border border-success-100 text-sm font-medium text-success-700 shadow-soft"
             >
-              <Icon icon="mdi:account-circle-outline" className="text-base text-gold-600" />
-              <span className="max-w-[110px] truncate">{vendeur || 'Vendeur ?'}</span>
-              <Icon icon="mdi:pencil-outline" className="text-xs text-sand-400" />
-            </button>
+              <Icon icon="mdi:cash-register" className="text-base" />
+              <span className="max-w-[110px] truncate">{vendeur || '—'}</span>
+            </span>
             <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-sand-200 text-xs font-medium text-sand-500 shadow-soft">
               <Icon icon="mdi:clock-outline" className="text-sm text-gold-600" />{heure}
             </span>
@@ -176,6 +211,13 @@ export const PointOfSale: React.FC = () => {
             <Link to="/caisse/historique" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-sand-200 text-sand-700 hover:bg-sand-50 text-sm font-medium shadow-soft">
               <Icon icon="mdi:receipt-text-clock-outline" className="text-base text-gold-600" /> <span className="hidden sm:inline">Historique</span>
             </Link>
+            <button
+              onClick={ouvrirCloture}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-sand-200 text-danger-600 hover:bg-danger-50 text-sm font-medium shadow-soft"
+              title="Clôturer la caisse et générer le rapport Z"
+            >
+              <Icon icon="mdi:lock-outline" className="text-base" /> <span className="hidden sm:inline">Fermer la caisse</span>
+            </button>
           </div>
         </div>
 
@@ -427,33 +469,103 @@ export const PointOfSale: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Modal déclaration du vendeur */}
-      <Modal isOpen={showVendeur} onClose={() => { if (vendeur) setShowVendeur(false); }} title="Vendeur en caisse" size="sm" position="center">
+      {/* Modal OUVERTURE de session (bloquant tant qu'aucune session ouverte) */}
+      <Modal isOpen={sessionChecked && !sessionActive} onClose={() => { }} title="Ouvrir la caisse" size="sm" position="center">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gold-50 text-gold-600 flex items-center justify-center shrink-0">
-              <Icon icon="mdi:account-circle-outline" className="text-xl" />
+              <Icon icon="mdi:cash-register" className="text-xl" />
             </div>
-            <p className="text-sm text-sand-500">Déclarez le vendeur qui tient la caisse. Son nom sera associé à chaque ticket.</p>
+            <p className="text-sm text-sand-500">Démarrez une session de caisse. Toutes les ventes y seront rattachées jusqu'à la clôture.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-sand-700 mb-1.5">Nom du vendeur</label>
+            <label className="block text-sm font-medium text-sand-700 mb-1.5">Vendeur</label>
             <input
-              value={vendeurInput}
-              onChange={(e) => setVendeurInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') declarerVendeur(); }}
+              value={ouvVendeur}
+              onChange={(e) => setOuvVendeur(e.target.value)}
               placeholder="Ex. Awa Diop"
               autoFocus
               className="w-full px-3 py-2.5 border border-sand-300 rounded-lg text-sm focus:ring-2 focus:ring-gold-500 focus:border-transparent"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-sand-700 mb-1.5">Fond de caisse (espèces au départ)</label>
+            <input
+              type="number"
+              min="0"
+              value={ouvFond}
+              onChange={(e) => setOuvFond(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') confirmerOuverture(); }}
+              placeholder="0"
+              className="w-full px-3 py-2.5 border border-sand-300 rounded-lg text-right font-display text-lg font-semibold text-sand-900 tabular-nums focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+            />
+          </div>
           <button
-            onClick={declarerVendeur}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gold-600 hover:bg-gold-500 text-white font-semibold shadow-soft transition-all"
+            onClick={confirmerOuverture}
+            disabled={sessionBusy}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gold-600 hover:bg-gold-500 text-white font-semibold shadow-soft transition-all disabled:opacity-60"
           >
-            <Icon icon="mdi:check-circle-outline" className="text-lg" />
-            Démarrer la caisse
+            <Icon icon={sessionBusy ? 'mdi:loading' : 'mdi:play-circle-outline'} className={`text-lg ${sessionBusy ? 'animate-spin' : ''}`} />
+            {sessionBusy ? 'Ouverture…' : 'Démarrer la session'}
           </button>
+        </div>
+      </Modal>
+
+      {/* Modal CLÔTURE de session (rapport Z) */}
+      <Modal isOpen={showCloture} onClose={() => setShowCloture(false)} title="Clôturer la caisse" size="sm" position="center">
+        <div className="space-y-4">
+          {resume && (
+            <div className="rounded-xl border border-sand-200 divide-y divide-sand-100 text-sm">
+              <div className="flex items-center justify-between px-3 py-2"><span className="text-sand-500">Tickets</span><span className="font-medium text-sand-900 tabular-nums">{resume.nbTickets}</span></div>
+              <div className="flex items-center justify-between px-3 py-2"><span className="text-sand-500">Espèces</span><span className="font-medium text-sand-900 tabular-nums">{formatCurrency(resume.totalEspeces)}</span></div>
+              <div className="flex items-center justify-between px-3 py-2"><span className="text-sand-500">Orange Money</span><span className="font-medium text-sand-900 tabular-nums">{formatCurrency(resume.totalOm)}</span></div>
+              <div className="flex items-center justify-between px-3 py-2"><span className="text-sand-500">Wave</span><span className="font-medium text-sand-900 tabular-nums">{formatCurrency(resume.totalWave)}</span></div>
+              {resume.totalRetours > 0 && (
+                <div className="flex items-center justify-between px-3 py-2"><span className="text-danger-600">Retours</span><span className="font-medium text-danger-600 tabular-nums">− {formatCurrency(resume.totalRetours)}</span></div>
+              )}
+              <div className="flex items-center justify-between px-3 py-2 bg-sand-50"><span className="font-semibold text-sand-900">CA net</span><span className="font-display font-semibold text-sand-900 tabular-nums">{formatCurrency(resume.totalVentes)}</span></div>
+            </div>
+          )}
+          <div className="flex items-center justify-between text-sm px-1">
+            <span className="text-sand-500">Fond + espèces (attendu)</span>
+            <span className="font-semibold text-sand-900 tabular-nums">{formatCurrency(resume?.especesAttendues || 0)}</span>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-sand-700 mb-1.5">Espèces comptées en caisse</label>
+            <input
+              type="number"
+              min="0"
+              value={comptage}
+              onChange={(e) => setComptage(e.target.value)}
+              placeholder="0"
+              autoFocus
+              className="w-full px-3 py-2.5 border border-sand-300 rounded-lg text-right font-display text-lg font-semibold text-sand-900 tabular-nums focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+            />
+          </div>
+          {comptage !== '' && resume && (() => {
+            const ecart = Math.round(((parseFloat(comptage.replace(',', '.')) || 0) - resume.especesAttendues + Number.EPSILON) * 100) / 100;
+            return (
+              <div className="flex items-center justify-between px-1">
+                <span className="text-sm text-sand-500">Écart de caisse</span>
+                <span className={`font-display text-lg font-semibold tabular-nums ${ecart === 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                  {ecart > 0 ? '+' : ''}{formatCurrency(ecart)}
+                </span>
+              </div>
+            );
+          })()}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowCloture(false)} className="flex-1 py-2.5 rounded-xl border border-sand-300 text-sand-700 hover:bg-sand-50 font-medium">
+              Annuler
+            </button>
+            <button
+              onClick={confirmerCloture}
+              disabled={sessionBusy}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-danger-600 hover:bg-danger-500 text-white font-semibold shadow-soft transition-all disabled:opacity-60"
+            >
+              <Icon icon={sessionBusy ? 'mdi:loading' : 'mdi:lock-check-outline'} className={`text-lg ${sessionBusy ? 'animate-spin' : ''}`} />
+              {sessionBusy ? 'Clôture…' : 'Clôturer & imprimer Z'}
+            </button>
+          </div>
         </div>
       </Modal>
     </div>
