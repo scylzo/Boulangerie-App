@@ -558,11 +558,11 @@ export const Comptabilite: React.FC = () => {
                             <h3 className="font-display text-2xl sm:text-3xl font-semibold tabular-nums text-sand-900 truncate">{formatCurrency(totalRecettes)}</h3>
                             <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm pt-2">
                                 <div className="bg-success-50/50 p-2 rounded">
-                                    <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Boutique (caisse)</p>
+                                    <p className="text-success-700 text-[9px] sm:text-[10px] uppercase tracking-wide font-semibold leading-tight">Boutique (caisse)</p>
                                     <p className="font-medium text-success-700 truncate">{formatCurrency(caBoutiquePos)}</p>
                                 </div>
                                 <div className="bg-success-50/50 p-2 rounded">
-                                    <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">{L.livraison}</p>
+                                    <p className="text-success-700 text-[9px] sm:text-[10px] uppercase tracking-wide font-semibold leading-tight">{L.livraison}</p>
                                     <p className="font-medium text-success-700 truncate">{formatCurrency(caLivraisonAffiche)}</p>
                                 </div>
                             </div>
@@ -581,11 +581,11 @@ export const Comptabilite: React.FC = () => {
                             <h3 className="font-display text-2xl sm:text-3xl font-semibold tabular-nums text-sand-900 truncate">{formatCurrency(totalCouts)}</h3>
                             <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm pt-2">
                                 <div className="bg-danger-50/50 p-2 rounded">
-                                    <p className="text-danger-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">{estTreso ? 'Achats' : 'Matières'}</p>
+                                    <p className="text-danger-700 text-[9px] sm:text-[10px] uppercase tracking-wide font-semibold leading-tight">{estTreso ? 'Achats' : 'Matières'}</p>
                                     <p className="font-medium text-danger-700 truncate">{formatCurrency(matieresAffiche)}</p>
                                 </div>
                                 <div className="bg-danger-50/50 p-2 rounded">
-                                    <p className="text-danger-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Charges</p>
+                                    <p className="text-danger-700 text-[9px] sm:text-[10px] uppercase tracking-wide font-semibold leading-tight">Charges</p>
                                     <p className="font-medium text-danger-700 truncate">{formatCurrency(chargesAffiche)}</p>
                                 </div>
                             </div>
