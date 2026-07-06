@@ -25,6 +25,10 @@ interface FacturationStore {
   validerFacture: (factureId: string) => Promise<void>;
   envoyerFacture: (factureId: string) => Promise<void>;
   marquerPayee: (factureId: string, reglements: Reglement[] | { montant: number, mode: ModePaiement, date?: Date }) => Promise<void>;
+  /** Journal des règlements sur une période (par date de règlement, cross-période). */
+  getReglementsPeriode: (debut: Date, fin: Date) => Promise<{ mode: ModePaiement; montant: number; date: Date; factureId: string; clientId: string }[]>;
+  /** Alimente le journal 'reglements' à partir des règlements existants sur les factures (idempotent). */
+  backfillReglementsJournal: () => Promise<number>;
   annulerFacture: (factureId: string, motif?: string) => Promise<void>;
   actualiserStatutsFactures: (clientId?: string, date?: Date) => Promise<void>;
   modifierTauxTVA: (factureId: string, nouveauTaux: number) => Promise<void>;
@@ -935,6 +939,23 @@ export const useFacturationStore = create<FacturationStore>()(
 
           await updateDoc(doc(db, 'factures', factureId), updateData);
 
+          // Journal des règlements (collection interrogeable par date de règlement).
+          // Id déterministe -> écriture idempotente (pas de doublon si rejoué).
+          try {
+            await Promise.all(nouveauxReglements.map(r =>
+              setDoc(doc(db, 'reglements', `${factureId}_${r.id}`), {
+                factureId,
+                clientId: facture.clientId,
+                mode: r.mode,
+                montant: r.montant,
+                date: r.date,
+                reference: (r as any).reference || null,
+              })
+            ));
+          } catch (e) {
+            console.error('Erreur journal règlements:', e);
+          }
+
           set(state => ({
             factures: state.factures.map(f =>
               f.id === factureId ? { ...f, ...updateData } : f
@@ -947,6 +968,57 @@ export const useFacturationStore = create<FacturationStore>()(
         } catch (error) {
           console.error('❌ Erreur lors du marquage du paiement:', error);
           throw error;
+        }
+      },
+
+      getReglementsPeriode: async (debut: Date, fin: Date) => {
+        try {
+          const q = query(collection(db, 'reglements'), where('date', '>=', debut), where('date', '<=', fin));
+          const snap = await getDocs(q);
+          return snap.docs.map(d => {
+            const x = d.data() as any;
+            return {
+              mode: x.mode as ModePaiement,
+              montant: x.montant || 0,
+              date: x.date?.toDate ? x.date.toDate() : new Date(x.date),
+              factureId: x.factureId,
+              clientId: x.clientId,
+            };
+          });
+        } catch (e) {
+          console.error('Erreur getReglementsPeriode:', e);
+          return [];
+        }
+      },
+
+      backfillReglementsJournal: async () => {
+        try {
+          const snap = await getDocs(collection(db, 'factures'));
+          const ops: Promise<any>[] = [];
+          let n = 0;
+          snap.docs.forEach(d => {
+            const f = d.data() as any;
+            (f.reglements || []).forEach((r: any) => {
+              if (!r?.id) return;
+              const date = r.date?.toDate ? r.date.toDate() : (r.date ? new Date(r.date) : null);
+              if (!date) return;
+              ops.push(setDoc(doc(db, 'reglements', `${d.id}_${r.id}`), {
+                factureId: d.id,
+                clientId: f.clientId,
+                mode: r.mode,
+                montant: r.montant,
+                date,
+                reference: r.reference || null,
+              }));
+              n++;
+            });
+          });
+          await Promise.all(ops);
+          console.log(`✅ Journal règlements alimenté : ${n} règlement(s)`);
+          return n;
+        } catch (e) {
+          console.error('Erreur backfill règlements:', e);
+          return 0;
         }
       },
 

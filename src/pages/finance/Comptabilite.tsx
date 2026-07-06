@@ -53,7 +53,7 @@ export const Comptabilite: React.FC = () => {
     });
 
     const { chargerDepenses, getDepensesProRata, depenses } = useDepenseStore();
-    const { chargerFactures, factures } = useFacturationStore();
+    const { chargerFactures, factures, getReglementsPeriode, backfillReglementsJournal } = useFacturationStore();
     const { getVentesPeriode } = useBoutiqueStore();
     const { getVentesPeriode: getVentesPos, getEncaissementsParMode } = usePosStore();
     const { chargerDonnees: chargerStock, mouvements, matieres } = useStockStore();
@@ -116,17 +116,34 @@ export const Comptabilite: React.FC = () => {
 
             // Le stock (matières + mouvements) est filtré en mémoire par période → inutile de le
             // recharger à chaque changement de dates. On ne le (re)charge que si vide ou refresh manuel.
+            // Backfill unique du journal des règlements (historique) — une seule fois par navigateur
+            try {
+                if (!localStorage.getItem('cm.reglementsBackfilled')) {
+                    await backfillReglementsJournal();
+                    localStorage.setItem('cm.reglementsBackfilled', '1');
+                }
+            } catch { /* ignore */ }
+
             const doitChargerStock = forceStock || matieres.length === 0 || mouvements.length === 0;
-            const [caBoutique, , , , caPos, posParMode] = await Promise.all([
+            const [caBoutique, , , , caPos, posParMode, reglementsPeriode] = await Promise.all([
                 getVentesPeriode(debut, fin),
                 chargerFactures(debut, fin),
                 chargerDepenses(debut, fin),
                 doitChargerStock ? chargerStock() : Promise.resolve(),
                 getVentesPos(debut, fin),
-                getEncaissementsParMode(debut, fin)
+                getEncaissementsParMode(debut, fin),
+                getReglementsPeriode(debut, fin)
             ]);
 
-            setStats(prev => ({ ...prev, loading: false, caBoutique, caPos, posParMode }));
+            // Encaissements livraison = règlements datés dans la période (journal, cross-période)
+            const factParMode: Record<'espece' | 'om' | 'wave', number> = { espece: 0, om: 0, wave: 0 };
+            let caLivraisonEncaisse = 0;
+            reglementsPeriode.forEach(r => {
+                if (r.mode) factParMode[r.mode] = (factParMode[r.mode] || 0) + r.montant;
+                caLivraisonEncaisse += r.montant;
+            });
+
+            setStats(prev => ({ ...prev, loading: false, caBoutique, caPos, posParMode, factParMode, caLivraisonEncaisse }));
         } catch (e) {
             console.error("Erreur calcul compta:", e);
             setStats(prev => ({ ...prev, loading: false }));
@@ -228,19 +245,8 @@ export const Comptabilite: React.FC = () => {
         const totalCouts = coutMatieresConsommees + totalChargesExternes;
 
         // ── VUE TRÉSORERIE (encaissé / décaissé réel) ──────────────────
-        // Recettes encaissées : livraisons réellement réglées (montantRegle)
-        const caLivraisonEncaisse = facturesNettoyees.reduce((sum, f) => sum + (f.montantRegle || 0), 0);
-
-        // Règlements factures ventilés par moyen de paiement (sur la période)
-        const factParMode: Record<'espece' | 'om' | 'wave', number> = { espece: 0, om: 0, wave: 0 };
-        facturesNettoyees.forEach(f => {
-            (f.reglements || []).forEach(r => {
-                const dr = new Date(r.date);
-                if (dr >= debut && dr <= fin && r.mode) {
-                    factParMode[r.mode] = (factParMode[r.mode] || 0) + (r.montant || 0);
-                }
-            });
-        });
+        // Note : caLivraisonEncaisse et factParMode viennent du journal des règlements
+        // (calculés dans chargerDonnees, par date de règlement, cross-période).
 
         // Décaissements matières : achats payés (mouvements 'achat', cash out réel)
         const achatsCash = mouvements.reduce((sum, mvt) => {
@@ -266,7 +272,6 @@ export const Comptabilite: React.FC = () => {
         setStats(prev => ({
             ...prev,
             caLivraison,
-            caLivraisonEncaisse,
             totalCouts,
             achatsMatieres: coutMatieresConsommees, // On remplace sémantiquement "Achats" par "Consommation"
             achatsCash,
@@ -274,8 +279,7 @@ export const Comptabilite: React.FC = () => {
             chargesCash,
             depensesParCategorie: depensesFiltrees,
             chargesCashParCategorie,
-            detailMatieres: detailMatieresTemp,
-            factParMode
+            detailMatieres: detailMatieresTemp
         }));
     };
 
