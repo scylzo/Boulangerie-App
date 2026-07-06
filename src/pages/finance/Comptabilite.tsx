@@ -7,6 +7,8 @@ import { useFacturationStore } from '../../store/facturationStore';
 import { useBoutiqueStore } from '../../store/boutiqueStore';
 import { usePosStore } from '../../store/posStore';
 import { DonutChart } from '../../components/ui';
+import omLogo from '../../assets/om.svg';
+import waveLogo from '../../assets/wave.svg';
 import {
     TrendingUp,
     TrendingDown,
@@ -45,13 +47,15 @@ export const Comptabilite: React.FC = () => {
         depensesParCategorie: {} as Record<string, number>,       // prorata — vue Marge
         chargesCashParCategorie: {} as Record<string, number>,    // cash — vue Trésorerie
         detailMatieres: {} as Record<string, number>,
+        posParMode: { espece: 0, om: 0, wave: 0 } as Record<'espece' | 'om' | 'wave', number>,   // encaissements POS par moyen
+        factParMode: { espece: 0, om: 0, wave: 0 } as Record<'espece' | 'om' | 'wave', number>,  // règlements factures par moyen
         loading: false
     });
 
     const { chargerDepenses, getDepensesProRata, depenses } = useDepenseStore();
     const { chargerFactures, factures } = useFacturationStore();
     const { getVentesPeriode } = useBoutiqueStore();
-    const { getVentesPeriode: getVentesPos } = usePosStore();
+    const { getVentesPeriode: getVentesPos, getEncaissementsParMode } = usePosStore();
     const { chargerDonnees: chargerStock, mouvements, matieres } = useStockStore();
 
     // Charger les données au montage et quand la période change
@@ -85,6 +89,14 @@ export const Comptabilite: React.FC = () => {
     // Écart Marge ↔ Trésorerie (créances + décalage achats/conso), pour info
     const ecartMargeTreso = (stats.caLivraison - stats.caLivraisonEncaisse);
 
+    // Encaissements réels par moyen de paiement (POS + règlements factures)
+    const encaissementsParMode = {
+        espece: stats.posParMode.espece + stats.factParMode.espece,
+        om: stats.posParMode.om + stats.factParMode.om,
+        wave: stats.posParMode.wave + stats.factParMode.wave,
+    };
+    const totalEncaisseMode = encaissementsParMode.espece + encaissementsParMode.om + encaissementsParMode.wave;
+
     // Libellés dynamiques
     const L = estTreso
         ? { recettes: 'Encaissements', couts: 'Décaissements', resultat: 'Solde trésorerie', livraison: 'Livraisons réglées', matieres: 'Achats matières' }
@@ -105,15 +117,16 @@ export const Comptabilite: React.FC = () => {
             // Le stock (matières + mouvements) est filtré en mémoire par période → inutile de le
             // recharger à chaque changement de dates. On ne le (re)charge que si vide ou refresh manuel.
             const doitChargerStock = forceStock || matieres.length === 0 || mouvements.length === 0;
-            const [caBoutique, , , , caPos] = await Promise.all([
+            const [caBoutique, , , , caPos, posParMode] = await Promise.all([
                 getVentesPeriode(debut, fin),
                 chargerFactures(debut, fin),
                 chargerDepenses(debut, fin),
                 doitChargerStock ? chargerStock() : Promise.resolve(),
-                getVentesPos(debut, fin)
+                getVentesPos(debut, fin),
+                getEncaissementsParMode(debut, fin)
             ]);
 
-            setStats(prev => ({ ...prev, loading: false, caBoutique, caPos }));
+            setStats(prev => ({ ...prev, loading: false, caBoutique, caPos, posParMode }));
         } catch (e) {
             console.error("Erreur calcul compta:", e);
             setStats(prev => ({ ...prev, loading: false }));
@@ -218,6 +231,17 @@ export const Comptabilite: React.FC = () => {
         // Recettes encaissées : livraisons réellement réglées (montantRegle)
         const caLivraisonEncaisse = facturesNettoyees.reduce((sum, f) => sum + (f.montantRegle || 0), 0);
 
+        // Règlements factures ventilés par moyen de paiement (sur la période)
+        const factParMode: Record<'espece' | 'om' | 'wave', number> = { espece: 0, om: 0, wave: 0 };
+        facturesNettoyees.forEach(f => {
+            (f.reglements || []).forEach(r => {
+                const dr = new Date(r.date);
+                if (dr >= debut && dr <= fin && r.mode) {
+                    factParMode[r.mode] = (factParMode[r.mode] || 0) + (r.montant || 0);
+                }
+            });
+        });
+
         // Décaissements matières : achats payés (mouvements 'achat', cash out réel)
         const achatsCash = mouvements.reduce((sum, mvt) => {
             const dateMvt = new Date(mvt.date);
@@ -250,7 +274,8 @@ export const Comptabilite: React.FC = () => {
             chargesCash,
             depensesParCategorie: depensesFiltrees,
             chargesCashParCategorie,
-            detailMatieres: detailMatieresTemp
+            detailMatieres: detailMatieresTemp,
+            factParMode
         }));
     };
 
@@ -575,6 +600,46 @@ export const Comptabilite: React.FC = () => {
                                 </p>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Encaissements par moyen de paiement (réel) */}
+                <div className="bg-white rounded-2xl shadow-card border border-sand-200 p-5 sm:p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-base sm:text-lg font-semibold text-sand-800 flex items-center gap-2">
+                            <Coins className="text-sand-500" size={18} />
+                            <span className="truncate">Encaissements par moyen de paiement</span>
+                        </h3>
+                        <span className="text-xs text-sand-400 hidden sm:block">Caisse + règlements factures</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                        {([
+                            { key: 'espece' as const, label: 'Espèces', icon: 'mdi:cash', color: 'success' },
+                            { key: 'om' as const, label: 'Orange Money', img: omLogo, color: 'warning' },
+                            { key: 'wave' as const, label: 'Wave', img: waveLogo, color: 'info' },
+                        ]).map((m) => {
+                            const montant = encaissementsParMode[m.key];
+                            const pct = totalEncaisseMode > 0 ? Math.round((montant / totalEncaisseMode) * 100) : 0;
+                            return (
+                                <div key={m.key} className="rounded-xl border border-sand-200 p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        {m.img
+                                            ? <img src={m.img} alt={m.label} className="w-6 h-6 object-contain" />
+                                            : <span className="w-6 h-6 rounded-md bg-success-50 text-success-600 flex items-center justify-center"><Coins size={14} /></span>}
+                                        <span className="text-sm font-medium text-sand-700">{m.label}</span>
+                                        <span className="ml-auto text-xs font-semibold text-sand-400 tabular-nums">{pct}%</span>
+                                    </div>
+                                    <p className="font-display text-xl sm:text-2xl font-semibold text-sand-900 tabular-nums truncate">{formatCurrency(montant)}</p>
+                                    <div className="mt-2 w-full bg-sand-100 rounded-full h-1.5">
+                                        <div className={`h-1.5 rounded-full ${m.color === 'success' ? 'bg-success-500' : m.color === 'warning' ? 'bg-warning-500' : 'bg-info-500'}`} style={{ width: `${pct}%` }}></div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-sand-100 flex items-center justify-between">
+                        <span className="text-sm text-sand-500">Total encaissé (tous moyens)</span>
+                        <span className="font-display text-lg font-semibold text-sand-900 tabular-nums">{formatCurrency(totalEncaisseMode)}</span>
                     </div>
                 </div>
 

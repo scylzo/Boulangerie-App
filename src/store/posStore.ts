@@ -85,6 +85,8 @@ interface PosStore {
   getTicketsPeriode: (debut: Date, fin: Date) => Promise<TicketPOS[]>;
   /** Somme des totaux des tickets POS sur une période. */
   getVentesPeriode: (debut: Date, fin: Date) => Promise<number>;
+  /** Encaissements POS ventilés par moyen de paiement sur une période. */
+  getEncaissementsParMode: (debut: Date, fin: Date) => Promise<Record<ModePaiement, number>>;
   /** Retours (avoirs) déjà enregistrés pour un ticket de vente donné. */
   getRetoursDeTicket: (ticketOrigineId: string) => Promise<TicketPOS[]>;
   /** Quantités nettes vendues par produit (ventes − retours) pour un jour. */
@@ -262,6 +264,13 @@ export const usePosStore = create<PosStore>((set, get) => ({
   getVentesPeriode: async (debut: Date, fin: Date) => {
     const tickets = await get().getTicketsPeriode(debut, fin);
     return tickets.reduce((s, t) => s + (t.total || 0), 0);
+  },
+
+  getEncaissementsParMode: async (debut: Date, fin: Date) => {
+    const tickets = await get().getTicketsPeriode(debut, fin);
+    const acc: Record<ModePaiement, number> = { espece: 0, om: 0, wave: 0 };
+    tickets.forEach(t => { acc[t.modePaiement] = (acc[t.modePaiement] || 0) + (t.total || 0); });
+    return acc;
   },
 
   getQuantitesJour: async (date: Date) => {
