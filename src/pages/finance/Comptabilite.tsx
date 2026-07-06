@@ -90,7 +90,7 @@ export const Comptabilite: React.FC = () => {
         ? { recettes: 'Encaissements', couts: 'Décaissements', resultat: 'Solde trésorerie', livraison: 'Livraisons réglées', matieres: 'Achats matières' }
         : { recettes: 'Recettes', couts: 'Dépenses', resultat: 'Résultat économique', livraison: 'Livraisons facturées', matieres: 'Matières consommées' };
 
-    const chargerDonnees = async () => {
+    const chargerDonnees = async (forceStock = false) => {
         setStats(prev => ({ ...prev, loading: true }));
 
         const debut = new Date(periode.debut);
@@ -102,11 +102,14 @@ export const Comptabilite: React.FC = () => {
         try {
             console.log("Calcul comptabilité pour la période:", debut.toLocaleString(), "au", fin.toLocaleString());
 
+            // Le stock (matières + mouvements) est filtré en mémoire par période → inutile de le
+            // recharger à chaque changement de dates. On ne le (re)charge que si vide ou refresh manuel.
+            const doitChargerStock = forceStock || matieres.length === 0 || mouvements.length === 0;
             const [caBoutique, , , , caPos] = await Promise.all([
                 getVentesPeriode(debut, fin),
                 chargerFactures(debut, fin),
                 chargerDepenses(debut, fin),
-                chargerStock(),
+                doitChargerStock ? chargerStock() : Promise.resolve(),
                 getVentesPos(debut, fin)
             ]);
 
@@ -439,7 +442,7 @@ export const Comptabilite: React.FC = () => {
                         </button>
 
                         <button
-                            onClick={chargerDonnees}
+                            onClick={() => chargerDonnees(true)}
                             disabled={stats.loading}
                             className="p-2 text-sand-600 hover:text-sand-900 hover:bg-sand-100 rounded-lg transition-colors"
                             title="Actualiser les données"

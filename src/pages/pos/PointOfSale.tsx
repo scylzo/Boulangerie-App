@@ -67,8 +67,26 @@ export const PointOfSale: React.FC = () => {
   useEffect(() => {
     chargerProduits();
     chargerSessionActive().finally(() => setSessionChecked(true));
-    getClassementProduits().then(setClassement).catch(() => setClassement({}));
-  }, [chargerProduits, chargerSessionActive, getClassementProduits]);
+  }, [chargerProduits, chargerSessionActive]);
+
+  // Classement produits : mis en cache 6 h (évite de relire ~30 j de tickets à chaque ouverture)
+  useEffect(() => {
+    const CACHE_KEY = 'cm.pos.classement';
+    const TTL = 6 * 60 * 60 * 1000;
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { at, data } = JSON.parse(cached);
+        if (Date.now() - at < TTL && data) { setClassement(data); return; }
+      }
+    } catch { /* cache invalide, on recharge */ }
+    getClassementProduits()
+      .then((data) => {
+        setClassement(data);
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), data })); } catch { /* quota localStorage */ }
+      })
+      .catch(() => setClassement({}));
+  }, [getClassementProduits]);
 
   useEffect(() => {
     setOuvVendeur(user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : '');

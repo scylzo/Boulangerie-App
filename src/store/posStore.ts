@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, addDoc, getDocs, query, where, orderBy, Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, getCountFromServer, query, where, orderBy, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export type ModePaiement = 'espece' | 'om' | 'wave';
@@ -316,8 +316,16 @@ export const usePosStore = create<PosStore>((set, get) => ({
     try {
       const date = new Date();
       // Numéro de ticket = nombre de tickets du jour + 1
-      await get().chargerTicketsDuJour(date);
-      const numero = (get().ticketsDuJour.length || 0) + 1;
+      // Lecture d'agrégation (1 lecture) au lieu de charger tous les tickets du jour
+      let numero = 1;
+      try {
+        const qCount = query(collection(db, 'pos_tickets'), where('date', '==', jourKey(date)));
+        const countSnap = await getCountFromServer(qCount);
+        numero = (countSnap.data().count || 0) + 1;
+      } catch {
+        await get().chargerTicketsDuJour(date);
+        numero = (get().ticketsDuJour.length || 0) + 1;
+      }
 
       const sessionId = get().sessionActive?.id;
       const ref = await addDoc(collection(db, 'pos_tickets'), {
