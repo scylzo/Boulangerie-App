@@ -173,9 +173,10 @@ export const Comptabilite: React.FC = () => {
         // On exclut aussi 'Carburant Four' s'il est géré en stock maintenant.
         // La logique utilisateur est "plus de dépense intrant". Donc on filtre tout ce qui est Intrant.
         const statsCouts = getDepensesProRata(debut, fin);
-        const depensesParCategorie = { ...statsCouts.parCategorie };
+        // Record<string> pour pouvoir omettre des clés historiques ('Carburant Four') hors du type
+        const depensesParCategorie: Record<string, number> = { ...statsCouts.parCategorie };
 
-        // SUPPRESSION DES INTRANTS + CARBURANT FOUR des Dépenses pour éviter doublon
+        // SUPPRESSION DES INTRANTS + CARBURANT FOUR (données historiques) pour éviter doublon
         // Ces coûts sont déjà comptés via la consommation de stock (matières). On les ignore ici.
         const { Intrants: _ignored, 'Carburant Four': _carburantFour, ...depensesFiltrees } = depensesParCategorie;
 
