@@ -979,7 +979,7 @@ export const PageBoutique: React.FC = () => {
                               </div>
                               <div className="text-sm">
                                 <span className="text-sand-600">
-                                  {stockJour.isJourneeContinue ? 'Invendu final: ' : 'Reste midi: '}
+                                  {stockJour.isJourneeContinue ? 'Invendu final: ' : 'Reste: '}
                                 </span>
                                 <span className="font-semibold text-info-600">{produit.reste} pièces</span>
                               </div>
