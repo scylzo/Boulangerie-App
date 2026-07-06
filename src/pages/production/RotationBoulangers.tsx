@@ -9,6 +9,7 @@ interface Team {
   boulanger: string;
   assistant1: string;
   assistant2: string;
+  assistant3: string;
 }
 
 interface ScheduleDay {
@@ -25,14 +26,14 @@ export const RotationBoulangers: React.FC = () => {
   const [endDate, setEndDate] = useState(defaultEndDate.toISOString().split('T')[0]);
 
   const [teams, setTeams] = useState<Team[]>([
-    { id: '1', boulanger: '', assistant1: '', assistant2: '' },
-    { id: '2', boulanger: '', assistant1: '', assistant2: '' }
+    { id: '1', boulanger: '', assistant1: '', assistant2: '', assistant3: '' },
+    { id: '2', boulanger: '', assistant1: '', assistant2: '', assistant3: '' }
   ]);
 
   const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
 
   const handleAddTeam = () => {
-    setTeams([...teams, { id: Date.now().toString(), boulanger: '', assistant1: '', assistant2: '' }]);
+    setTeams([...teams, { id: Date.now().toString(), boulanger: '', assistant1: '', assistant2: '', assistant3: '' }]);
   };
 
   const handleRemoveTeam = (id: string) => {
@@ -102,12 +103,13 @@ export const RotationBoulangers: React.FC = () => {
     doc.setTextColor(100, 100, 100);
     doc.text(`Du ${new Date(startDate).toLocaleDateString('fr-FR')} au ${new Date(endDate).toLocaleDateString('fr-FR')}`, 14, 30);
 
-    const tableColumn = ["Date", "Boulanger", "Assistant 1", "Assistant 2"];
+    const tableColumn = ["Date", "Boulanger", "Assistant 1", "Assistant 2", "Assistant 3"];
     const tableRows = schedule.map(day => [
       day.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
       day.team.boulanger,
       day.team.assistant1,
-      day.team.assistant2
+      day.team.assistant2,
+      day.team.assistant3 || '—'
     ]);
 
     autoTable(doc, {
@@ -141,7 +143,11 @@ export const RotationBoulangers: React.FC = () => {
       message += `*${dateCapitalized}*\n`;
       message += `👨‍🍳 Boulanger : ${day.team.boulanger}\n`;
       message += `👨‍🍳 Assistant 1 : ${day.team.assistant1}\n`;
-      message += `👨‍🍳 Assistant 2 : ${day.team.assistant2}\n\n`;
+      message += `👨‍🍳 Assistant 2 : ${day.team.assistant2}\n`;
+      if (day.team.assistant3?.trim()) {
+        message += `👨‍🍳 Assistant 3 : ${day.team.assistant3}\n`;
+      }
+      message += `\n`;
     });
 
     const encodedMessage = encodeURIComponent(message);
@@ -221,7 +227,7 @@ export const RotationBoulangers: React.FC = () => {
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-warning-100 text-warning-600 font-semibold shrink-0">
                     {index + 1}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full flex-1">
                     <div>
                         <label className="block text-xs font-semibold text-sand-500 uppercase tracking-wider mb-1">Boulanger</label>
                         <input
@@ -249,6 +255,16 @@ export const RotationBoulangers: React.FC = () => {
                             placeholder="Nom de l'assistant 2"
                             value={team.assistant2}
                             onChange={(e) => handleChangeTeam(team.id, 'assistant2', e.target.value)}
+                            className="w-full px-3 py-2 bg-white border border-sand-300 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold text-sand-500 uppercase tracking-wider mb-1">Assistant 3 <span className="text-sand-400 normal-case font-normal">(optionnel)</span></label>
+                        <input
+                            type="text"
+                            placeholder="Nom de l'assistant 3"
+                            value={team.assistant3}
+                            onChange={(e) => handleChangeTeam(team.id, 'assistant3', e.target.value)}
                             className="w-full px-3 py-2 bg-white border border-sand-300 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
                         />
                     </div>
@@ -308,6 +324,7 @@ export const RotationBoulangers: React.FC = () => {
                                 <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Boulanger</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Assistant 1</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Assistant 2</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-sand-500 uppercase tracking-wider">Assistant 3</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-sand-100">
@@ -327,6 +344,9 @@ export const RotationBoulangers: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-sand-600">
                                         {day.team.assistant2}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-sand-600">
+                                        {day.team.assistant3 || '—'}
                                     </td>
                                 </tr>
                             ))}
