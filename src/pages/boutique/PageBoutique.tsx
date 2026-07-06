@@ -15,6 +15,8 @@ export const PageBoutique: React.FC = () => {
     creerStockDepuisProduction,
     commencerEquipeMatin,
     commencerEquipeSoir,
+    saisirVenteMatin,
+    saisirVenteSoir,
     terminerEquipeMatin,
     terminerEquipeMatinAvecRepartition,
     sauvegarderEquipe,
@@ -34,6 +36,17 @@ export const PageBoutique: React.FC = () => {
   } = useBoutiqueStore();
 
   const [syncingPos, setSyncingPos] = useState(false);
+
+  // Mode de fonctionnement de la boutique :
+  //  - 'classique' : saisie manuelle des ventes (ancien fonctionnement)
+  //  - 'avance'    : ventes injectées depuis la caisse (POS), en lecture seule
+  const [mode, setMode] = useState<'classique' | 'avance'>(
+    () => (localStorage.getItem('cm.boutique.mode') as 'classique' | 'avance') || 'classique'
+  );
+  const changerMode = (m: 'classique' | 'avance') => {
+    localStorage.setItem('cm.boutique.mode', m);
+    setMode(m);
+  };
 
   const [vendeuseMatin, setVendeuseMatin] = useState(() => localStorage.getItem('cm.pos.vendeur') || '');
   const [vendeuseSoir, setVendeuseSoir] = useState(() => localStorage.getItem('cm.pos.vendeur') || '');
@@ -103,8 +116,10 @@ export const PageBoutique: React.FC = () => {
         // 4. Charger le catalogue produits (pour l'ajout manuel)
         await chargerProduits();
 
-        // 5. Injecter les ventes caisse (POS) dans les équipes en cours
-        await useBoutiqueStore.getState().synchroniserVentesPOS(dateActuelle);
+        // 5. Mode avancé uniquement : injecter les ventes caisse (POS) dans les équipes en cours
+        if (localStorage.getItem('cm.boutique.mode') !== 'classique') {
+          await useBoutiqueStore.getState().synchroniserVentesPOS(dateActuelle);
+        }
 
         console.log('✅ Toutes les données chargées');
       } catch (error) {
@@ -182,7 +197,32 @@ export const PageBoutique: React.FC = () => {
                 day: 'numeric'
               })}
             </div>
+
+            {/* Sélecteur de mode */}
+            <div className="sm:ml-auto shrink-0">
+              <div className="inline-flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200">
+                {([
+                  { val: 'classique', label: 'Classique', icon: 'mdi:pencil-outline' },
+                  { val: 'avance', label: 'Avancé (caisse)', icon: 'mdi:cash-register' },
+                ] as { val: 'classique' | 'avance'; label: string; icon: string }[]).map((m) => (
+                  <button
+                    key={m.val}
+                    onClick={() => changerMode(m.val)}
+                    title={m.val === 'classique' ? 'Saisie manuelle des ventes' : 'Ventes injectées depuis la caisse (POS)'}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${mode === m.val ? 'bg-white text-sand-900 shadow-sm' : 'text-sand-500 hover:text-sand-700'}`}
+                  >
+                    <Icon icon={m.icon} className="text-base" />
+                    <span>{m.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
+          <p className="text-[11px] text-sand-400 mt-2">
+            {mode === 'classique'
+              ? 'Mode classique : vous saisissez manuellement les ventes matin/soir.'
+              : 'Mode avancé : les ventes sont injectées automatiquement depuis la caisse (POS).'}
+          </p>
         </div>
 
         {/* État du chargement ou absence de stock */}
@@ -844,11 +884,13 @@ export const PageBoutique: React.FC = () => {
                     {/* Grille des ventes matin/journee */}
                     <div className="space-y-4">
                       <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-sand-200">
-                        <Icon icon="mdi:cash-register" className="text-gold-600" />
+                        <Icon icon={mode === 'avance' ? 'mdi:cash-register' : 'mdi:pencil-outline'} className="text-gold-600" />
                         <h3 className="text-lg font-semibold text-sand-800">
-                          {stockJour.isJourneeContinue ? 'Ventes de la journée (caisse)' : 'Ventes matinales (caisse)'}
+                          {mode === 'avance'
+                            ? (stockJour.isJourneeContinue ? 'Ventes de la journée (caisse)' : 'Ventes matinales (caisse)')
+                            : (stockJour.isJourneeContinue ? 'Saisie des ventes journée' : 'Saisie des ventes matinales')}
                         </h3>
-                        {equipeMatin.statut === 'en_cours' && (
+                        {mode === 'avance' && equipeMatin.statut === 'en_cours' && (
                           <button
                             onClick={handleSyncPos}
                             disabled={syncingPos}
@@ -915,13 +957,25 @@ export const PageBoutique: React.FC = () => {
                                 <label className="text-sm font-medium text-sand-700">
                                   {stockJour.isJourneeContinue ? 'Vendu Total:' : 'Vendu matin:'}
                                 </label>
-                                <span
-                                  title="Quantité vendue en caisse (POS)"
-                                  className="inline-flex items-center gap-1.5 min-w-[5rem] px-3 py-2 border border-sand-200 rounded-lg bg-white text-sand-900 font-semibold tabular-nums"
-                                >
-                                  <Icon icon="mdi:cash-register" className="text-sm text-gold-600" />
-                                  {produit.vendu || 0}
-                                </span>
+                                {mode === 'classique' ? (
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max={produit.stockDebut}
+                                    value={produit.vendu || ''}
+                                    onChange={(e) => saisirVenteMatin(produit.produitId, parseInt(e.target.value) || 0)}
+                                    disabled={equipeMatin.statut === 'termine'}
+                                    className="w-20 px-3 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-terracotta-500 focus:border-transparent disabled:bg-sand-50"
+                                  />
+                                ) : (
+                                  <span
+                                    title="Quantité vendue en caisse (POS)"
+                                    className="inline-flex items-center gap-1.5 min-w-[5rem] px-3 py-2 border border-sand-200 rounded-lg bg-white text-sand-900 font-semibold tabular-nums"
+                                  >
+                                    <Icon icon="mdi:cash-register" className="text-sm text-gold-600" />
+                                    {produit.vendu || 0}
+                                  </span>
+                                )}
                               </div>
                               <div className="text-sm">
                                 <span className="text-sand-600">
@@ -1076,9 +1130,9 @@ export const PageBoutique: React.FC = () => {
                       {/* Grille des ventes soir */}
                       <div className="space-y-4">
                         <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-sand-200">
-                          <Icon icon="mdi:cash-register" className="text-gold-600" />
-                          <h3 className="text-lg font-semibold text-sand-800">Ventes du soir (caisse)</h3>
-                          {equipeSoir.statut === 'en_cours' && (
+                          <Icon icon={mode === 'avance' ? 'mdi:cash-register' : 'mdi:pencil-outline'} className="text-gold-600" />
+                          <h3 className="text-lg font-semibold text-sand-800">{mode === 'avance' ? 'Ventes du soir (caisse)' : 'Saisie des ventes du soir'}</h3>
+                          {mode === 'avance' && equipeSoir.statut === 'en_cours' && (
                             <button
                               onClick={handleSyncPos}
                               disabled={syncingPos}
@@ -1143,13 +1197,25 @@ export const PageBoutique: React.FC = () => {
                               <div className="space-y-3">
                                 <div className="flex items-center gap-2">
                                   <label className="text-sm font-medium text-sand-700">Vendu soir:</label>
-                                  <span
-                                    title="Quantité vendue en caisse (POS)"
-                                    className="inline-flex items-center gap-1.5 min-w-[5rem] px-3 py-2 border border-sand-200 rounded-lg bg-white text-sand-900 font-semibold tabular-nums"
-                                  >
-                                    <Icon icon="mdi:cash-register" className="text-sm text-gold-600" />
-                                    {produit.vendu || 0}
-                                  </span>
+                                  {mode === 'classique' ? (
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max={produit.stockDebut}
+                                      value={produit.vendu || ''}
+                                      onChange={(e) => saisirVenteSoir(produit.produitId, parseInt(e.target.value) || 0)}
+                                      disabled={equipeSoir.statut === 'termine'}
+                                      className="w-20 px-3 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-terracotta-500 focus:border-transparent disabled:bg-sand-50"
+                                    />
+                                  ) : (
+                                    <span
+                                      title="Quantité vendue en caisse (POS)"
+                                      className="inline-flex items-center gap-1.5 min-w-[5rem] px-3 py-2 border border-sand-200 rounded-lg bg-white text-sand-900 font-semibold tabular-nums"
+                                    >
+                                      <Icon icon="mdi:cash-register" className="text-sm text-gold-600" />
+                                      {produit.vendu || 0}
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="text-sm">
                                   <span className="text-sand-600">Invendu: </span>
