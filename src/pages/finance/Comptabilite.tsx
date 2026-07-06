@@ -29,14 +29,21 @@ export const Comptabilite: React.FC = () => {
         };
     });
 
+    // Vue : 'marge' (économique) ou 'tresorerie' (encaissé)
+    const [vue, setVue] = useState<'marge' | 'tresorerie'>('marge');
+
     const [stats, setStats] = useState({
         caBoutique: 0,
         caPos: 0,
-        caLivraison: 0,
-        achatsMatieres: 0,
-        autresCharges: 0,
+        caLivraison: 0,            // facturé (TTC) — vue Marge
+        caLivraisonEncaisse: 0,    // réellement réglé (montantRegle) — vue Trésorerie
+        achatsMatieres: 0,         // matières consommées (stock × PMP) — vue Marge
+        achatsCash: 0,             // achats matières payés (mouvements 'achat') — vue Trésorerie
+        autresCharges: 0,          // charges au prorata — vue Marge
+        chargesCash: 0,            // dépenses payées (montant plein) — vue Trésorerie
         totalCouts: 0,
-        depensesParCategorie: {} as Record<string, number>,
+        depensesParCategorie: {} as Record<string, number>,       // prorata — vue Marge
+        chargesCashParCategorie: {} as Record<string, number>,    // cash — vue Trésorerie
         detailMatieres: {} as Record<string, number>,
         loading: false
     });
@@ -59,10 +66,29 @@ export const Comptabilite: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [factures, depenses, mouvements, matieres, periode.debut, periode.fin]);
 
-    // Calculs dérivés pour l'affichage (garantit la cohérence)
-    const totalRecettes = stats.caBoutique + stats.caPos + stats.caLivraison;
-    const resultat = totalRecettes - stats.totalCouts;
+    // ── Calculs dérivés selon la vue active ────────────────────────────
+    const estTreso = vue === 'tresorerie';
+    const caBoutiquePos = stats.caBoutique + stats.caPos;
+
+    // Valeurs affichées (basculent selon la vue)
+    const caLivraisonAffiche = estTreso ? stats.caLivraisonEncaisse : stats.caLivraison;
+    const matieresAffiche = estTreso ? stats.achatsCash : stats.achatsMatieres;
+    const chargesAffiche = estTreso ? stats.chargesCash : stats.autresCharges;
+    const chargesParCategAffiche = estTreso ? stats.chargesCashParCategorie : stats.depensesParCategorie;
+    const detailMatieresAffiche: Record<string, number> = estTreso ? {} : stats.detailMatieres;
+
+    const totalRecettes = caBoutiquePos + caLivraisonAffiche;
+    const totalCouts = matieresAffiche + chargesAffiche;
+    const resultat = totalRecettes - totalCouts;
     const marge = totalRecettes > 0 ? (resultat / totalRecettes) * 100 : 0;
+
+    // Écart Marge ↔ Trésorerie (créances + décalage achats/conso), pour info
+    const ecartMargeTreso = (stats.caLivraison - stats.caLivraisonEncaisse);
+
+    // Libellés dynamiques
+    const L = estTreso
+        ? { recettes: 'Encaissements', couts: 'Décaissements', resultat: 'Solde trésorerie', livraison: 'Livraisons réglées', matieres: 'Achats matières' }
+        : { recettes: 'Recettes', couts: 'Dépenses', resultat: 'Résultat économique', livraison: 'Livraisons facturées', matieres: 'Matières consommées' };
 
     const chargerDonnees = async () => {
         setStats(prev => ({ ...prev, loading: true }));
@@ -185,14 +211,42 @@ export const Comptabilite: React.FC = () => {
         // TOTAL COUTS = MATIERES + CHARGES
         const totalCouts = coutMatieresConsommees + totalChargesExternes;
 
+        // ── VUE TRÉSORERIE (encaissé / décaissé réel) ──────────────────
+        // Recettes encaissées : livraisons réellement réglées (montantRegle)
+        const caLivraisonEncaisse = facturesNettoyees.reduce((sum, f) => sum + (f.montantRegle || 0), 0);
+
+        // Décaissements matières : achats payés (mouvements 'achat', cash out réel)
+        const achatsCash = mouvements.reduce((sum, mvt) => {
+            const dateMvt = new Date(mvt.date);
+            if (mvt.type === 'achat' && dateMvt >= debut && dateMvt <= fin) {
+                return sum + (mvt.montantPaye || (mvt.prixUnitaire ? mvt.prixUnitaire * Math.abs(mvt.quantite) : 0));
+            }
+            return sum;
+        }, 0);
+
+        // Décaissements charges : dépenses payées (montant plein, à la date de paiement, hors Intrants/Carburant Four)
+        const estIntrant = (cat: string) => cat === 'Intrants' || cat === 'Carburant Four';
+        const chargesCashParCategorie: Record<string, number> = {};
+        let chargesCash = 0;
+        depenses.forEach(d => {
+            const dd = new Date(d.date);
+            if (dd >= debut && dd <= fin && !estIntrant(d.categorie as string)) {
+                chargesCash += d.montant;
+                chargesCashParCategorie[d.categorie] = (chargesCashParCategorie[d.categorie] || 0) + d.montant;
+            }
+        });
 
         setStats(prev => ({
             ...prev,
             caLivraison,
+            caLivraisonEncaisse,
             totalCouts,
             achatsMatieres: coutMatieresConsommees, // On remplace sémantiquement "Achats" par "Consommation"
+            achatsCash,
             autresCharges: totalChargesExternes,
+            chargesCash,
             depensesParCategorie: depensesFiltrees,
+            chargesCashParCategorie,
             detailMatieres: detailMatieresTemp
         }));
     };
@@ -244,7 +298,7 @@ export const Comptabilite: React.FC = () => {
 
         const summaryData = [
             ['Total Recettes', formatPdfCurrency(totalRecettes)],
-            ['Total Dépenses', formatPdfCurrency(stats.totalCouts)],
+            ['Total Dépenses', formatPdfCurrency(totalCouts)],
             ['RÉSULTAT NET', formatPdfCurrency(resultat)],
             ['Marge Nette', `${marge.toFixed(1)} %`]
         ];
@@ -282,8 +336,8 @@ export const Comptabilite: React.FC = () => {
         doc.text("2. Détail des Recettes", 14, finalY);
 
         const recetteData = [
-            ['Ventes Boutique (dont caisse)', formatPdfCurrency(stats.caBoutique + stats.caPos)],
-            ['Livraisons (Facturées)', formatPdfCurrency(stats.caLivraison)],
+            ['Ventes Boutique (dont caisse)', formatPdfCurrency(caBoutiquePos)],
+            [L.livraison, formatPdfCurrency(caLivraisonAffiche)],
             ['TOTAL RECETTES', formatPdfCurrency(totalRecettes)] // Ajout ligne total
         ];
 
@@ -313,8 +367,8 @@ export const Comptabilite: React.FC = () => {
 
         // Fusionner dépenses classiques et matières premières détaillées
         const allDepenses = [
-            ...Object.entries(stats.depensesParCategorie).map(([nom, montant]) => ({ nom, montant })),
-            ...Object.entries(stats.detailMatieres).map(([nom, montant]) => ({ nom: `${nom} (Intrant)`, montant }))
+            ...Object.entries(chargesParCategAffiche).map(([nom, montant]) => ({ nom, montant })),
+            ...Object.entries(detailMatieresAffiche).map(([nom, montant]) => ({ nom: `${nom} (Intrant)`, montant }))
         ];
 
         // Trier par montant décroissant et mapper pour le tableau
@@ -324,7 +378,7 @@ export const Comptabilite: React.FC = () => {
             .map(d => [d.nom, formatPdfCurrency(d.montant)]);
 
         // Ajouter le total à la fin
-        depenseData.push(['TOTAL DÉPENSES', formatPdfCurrency(stats.totalCouts)]);
+        depenseData.push(['TOTAL DÉPENSES', formatPdfCurrency(totalCouts)]);
 
         autoTable(doc, {
             startY: finalY + 5,
@@ -369,7 +423,7 @@ export const Comptabilite: React.FC = () => {
                         </div>
                         <div className="min-w-0 flex-1">
                             <h1 className="text-lg sm:text-xl font-semibold text-sand-900 truncate">Comptabilité</h1>
-                            <p className="text-xs sm:text-sm text-sand-500 truncate">Recettes - Dépenses = Résultat (Trésorerie)</p>
+                            <p className="text-xs sm:text-sm text-sand-500 truncate">{estTreso ? 'Encaissements − Décaissements = Solde de trésorerie' : 'Recettes − Coûts consommés = Résultat économique'}</p>
                         </div>
                     </div>
 
@@ -420,6 +474,35 @@ export const Comptabilite: React.FC = () => {
 
             {/* Contenu principal */}
             <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+                {/* Sélecteur de vue : Marge économique / Trésorerie */}
+                <div className="bg-white rounded-2xl shadow-card border border-sand-200 p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="inline-flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200 self-start shrink-0">
+                        <button
+                            onClick={() => setVue('marge')}
+                            className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all ${!estTreso ? 'bg-info-600 text-white shadow-sm' : 'text-sand-500 hover:text-sand-700'}`}
+                        >
+                            <PieChartIcon size={16} /> Marge économique
+                        </button>
+                        <button
+                            onClick={() => setVue('tresorerie')}
+                            className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all ${estTreso ? 'bg-success-600 text-white shadow-sm' : 'text-sand-500 hover:text-sand-700'}`}
+                        >
+                            <Coins size={16} /> Trésorerie
+                        </button>
+                    </div>
+                    <p className="text-xs text-sand-500 min-w-0 flex-1">
+                        {estTreso
+                            ? 'Argent réellement encaissé et décaissé — les factures non réglées ne comptent pas.'
+                            : 'Rentabilité de l’activité : CA produit − coûts consommés (inclut le facturé non encore encaissé).'}
+                    </p>
+                    {ecartMargeTreso > 0 && (
+                        <span className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warning-50 text-warning-700 text-xs font-semibold ring-1 ring-inset ring-warning-100">
+                            <Coins size={14} />
+                            Créances à encaisser : {formatCurrency(ecartMargeTreso)}
+                        </span>
+                    )}
+                </div>
+
                 {/* KPI Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                     {/* Recettes */}
@@ -428,18 +511,18 @@ export const Comptabilite: React.FC = () => {
                             <div className="w-11 h-11 bg-success-50 rounded-full flex items-center justify-center">
                                 <TrendingUp className="text-success-600" size={20} />
                             </div>
-                            <span className="text-[10px] sm:text-xs font-medium text-success-700 bg-success-50 px-2 sm:px-3 py-1 rounded-full truncate">Recettes</span>
+                            <span className="text-[10px] sm:text-xs font-medium text-success-700 bg-success-50 px-2 sm:px-3 py-1 rounded-full truncate">{L.recettes}</span>
                         </div>
                         <div className="space-y-2 relative z-10">
                             <h3 className="font-display text-2xl sm:text-3xl font-semibold tabular-nums text-sand-900 truncate">{formatCurrency(totalRecettes)}</h3>
                             <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm pt-2">
                                 <div className="bg-success-50/50 p-2 rounded">
                                     <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Boutique (caisse)</p>
-                                    <p className="font-medium text-success-700 truncate">{formatCurrency(stats.caBoutique + stats.caPos)}</p>
+                                    <p className="font-medium text-success-700 truncate">{formatCurrency(caBoutiquePos)}</p>
                                 </div>
                                 <div className="bg-success-50/50 p-2 rounded">
-                                    <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Livraisons</p>
-                                    <p className="font-medium text-success-700 truncate">{formatCurrency(stats.caLivraison)}</p>
+                                    <p className="text-success-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">{L.livraison}</p>
+                                    <p className="font-medium text-success-700 truncate">{formatCurrency(caLivraisonAffiche)}</p>
                                 </div>
                             </div>
                         </div>
@@ -451,18 +534,18 @@ export const Comptabilite: React.FC = () => {
                             <div className="w-11 h-11 bg-danger-50 rounded-full flex items-center justify-center">
                                 <TrendingDown className="text-danger-600" size={20} />
                             </div>
-                            <span className="text-[10px] sm:text-xs font-medium text-danger-700 bg-danger-50 px-2 sm:px-3 py-1 rounded-full truncate">Dépenses</span>
+                            <span className="text-[10px] sm:text-xs font-medium text-danger-700 bg-danger-50 px-2 sm:px-3 py-1 rounded-full truncate">{L.couts}</span>
                         </div>
                         <div className="space-y-2 relative z-10">
-                            <h3 className="font-display text-2xl sm:text-3xl font-semibold tabular-nums text-sand-900 truncate">{formatCurrency(stats.totalCouts)}</h3>
+                            <h3 className="font-display text-2xl sm:text-3xl font-semibold tabular-nums text-sand-900 truncate">{formatCurrency(totalCouts)}</h3>
                             <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm pt-2">
                                 <div className="bg-danger-50/50 p-2 rounded">
-                                    <p className="text-danger-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Matières</p>
-                                    <p className="font-medium text-danger-700 truncate">{formatCurrency(stats.achatsMatieres)}</p>
+                                    <p className="text-danger-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">{estTreso ? 'Achats' : 'Matières'}</p>
+                                    <p className="font-medium text-danger-700 truncate">{formatCurrency(matieresAffiche)}</p>
                                 </div>
                                 <div className="bg-danger-50/50 p-2 rounded">
                                     <p className="text-danger-700 text-[10px] sm:text-xs uppercase tracking-wider font-semibold truncate">Charges</p>
-                                    <p className="font-medium text-danger-700 truncate">{formatCurrency(stats.autresCharges)}</p>
+                                    <p className="font-medium text-danger-700 truncate">{formatCurrency(chargesAffiche)}</p>
                                 </div>
                             </div>
                         </div>
@@ -475,7 +558,7 @@ export const Comptabilite: React.FC = () => {
                                 <Activity className={resultat >= 0 ? 'text-info-600' : 'text-warning-600'} size={20} />
                             </div>
                             <span className={`text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 rounded-full truncate ${resultat >= 0 ? 'text-info-600 bg-info-50' : 'text-warning-600 bg-warning-50'}`}>
-                                Résultat Net
+                                {L.resultat}
                             </span>
                         </div>
                         <div className="space-y-2 relative z-10">
@@ -504,8 +587,8 @@ export const Comptabilite: React.FC = () => {
                             const palette = ['text-sand-900', 'text-gold-500', 'text-sand-500', 'text-warning-500', 'text-sand-400', 'text-gold-600', 'text-sand-300'];
                             let i = 0;
                             const slices: { label: string; value: number; className: string }[] = [];
-                            if (stats.achatsMatieres > 0) slices.push({ label: 'Matières premières', value: stats.achatsMatieres, className: palette[i++ % palette.length] });
-                            Object.entries(stats.depensesParCategorie).forEach(([categ, montant]) => {
+                            if (matieresAffiche > 0) slices.push({ label: 'Matières premières', value: matieresAffiche, className: palette[i++ % palette.length] });
+                            Object.entries(chargesParCategAffiche).forEach(([categ, montant]) => {
                                 if (categ === 'Intrants' || !montant) return;
                                 slices.push({ label: categ, value: montant as number, className: palette[i++ % palette.length] });
                             });
@@ -516,7 +599,7 @@ export const Comptabilite: React.FC = () => {
                                         data={slices}
                                         size={140}
                                         stroke={20}
-                                        centerValue={<span className="text-sm">{Math.round(stats.totalCouts).toLocaleString('fr-FR')}</span>}
+                                        centerValue={<span className="text-sm">{Math.round(totalCouts).toLocaleString('fr-FR')}</span>}
                                         centerLabel="FCFA"
                                     />
                                     <div className="flex-1 w-full space-y-1.5">
@@ -524,7 +607,7 @@ export const Comptabilite: React.FC = () => {
                                             <div key={idx} className="flex items-center gap-2 text-xs">
                                                 <span className={`w-2.5 h-2.5 rounded-full bg-current ${s.className} shrink-0`}></span>
                                                 <span className="text-sand-600 truncate flex-1">{s.label}</span>
-                                                <span className="text-sand-900 font-medium tabular-nums shrink-0">{stats.totalCouts > 0 ? Math.round((s.value / stats.totalCouts) * 100) : 0}%</span>
+                                                <span className="text-sand-900 font-medium tabular-nums shrink-0">{totalCouts > 0 ? Math.round((s.value / totalCouts) * 100) : 0}%</span>
                                             </div>
                                         ))}
                                     </div>
@@ -533,8 +616,8 @@ export const Comptabilite: React.FC = () => {
                         })()}
                         <div className="space-y-4 sm:space-y-6">
                             {/* Détail des Matières Premières */}
-                            {Object.keys(stats.detailMatieres).length > 0 ? (
-                                Object.entries(stats.detailMatieres)
+                            {Object.keys(detailMatieresAffiche).length > 0 ? (
+                                Object.entries(detailMatieresAffiche)
                                     .sort((a, b) => b[1] - a[1])
                                     .map(([nom, montant]) => (
                                         <div key={nom}>
@@ -543,10 +626,10 @@ export const Comptabilite: React.FC = () => {
                                                     <span className="text-sand-600 truncate">{nom}</span>
                                                     <span className="text-[10px] bg-warning-50 text-warning-600 px-1.5 py-0.5 rounded-full font-medium border border-warning-100 shrink-0">Intrant</span>
                                                 </div>
-                                                <span className="font-semibold text-sand-900 shrink-0 ml-2">{stats.totalCouts > 0 ? Math.round((montant / stats.totalCouts) * 100) : 0}%</span>
+                                                <span className="font-semibold text-sand-900 shrink-0 ml-2">{totalCouts > 0 ? Math.round((montant / totalCouts) * 100) : 0}%</span>
                                             </div>
                                             <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
-                                                <div className="bg-warning-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? (montant / stats.totalCouts) * 100 : 0}%` }}></div>
+                                                <div className="bg-warning-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalCouts > 0 ? (montant / totalCouts) * 100 : 0}%` }}></div>
                                             </div>
                                             <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(montant)}</p>
                                         </div>
@@ -555,24 +638,24 @@ export const Comptabilite: React.FC = () => {
                                 <div>
                                     <div className="flex justify-between text-xs sm:text-sm mb-2">
                                         <span className="text-sand-600 truncate">Matières Premières</span>
-                                        <span className="font-semibold text-sand-900 shrink-0">{stats.totalCouts > 0 ? Math.round((stats.achatsMatieres / stats.totalCouts) * 100) : 0}%</span>
+                                        <span className="font-semibold text-sand-900 shrink-0">{totalCouts > 0 ? Math.round((matieresAffiche / totalCouts) * 100) : 0}%</span>
                                     </div>
                                     <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
-                                        <div className="bg-warning-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? (stats.achatsMatieres / stats.totalCouts) * 100 : 0}%` }}></div>
+                                        <div className="bg-warning-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalCouts > 0 ? (matieresAffiche / totalCouts) * 100 : 0}%` }}></div>
                                     </div>
-                                    <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(stats.achatsMatieres)}</p>
+                                    <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(matieresAffiche)}</p>
                                 </div>
                             )}
-                            {Object.entries(stats.depensesParCategorie).map(([categ, montant]) => {
+                            {Object.entries(chargesParCategAffiche).map(([categ, montant]) => {
                                 if (categ === 'Intrants' || montant === 0) return null;
                                 return (
                                     <div key={categ}>
                                         <div className="flex justify-between text-xs sm:text-sm mb-2">
                                             <span className="text-sand-600 truncate">{categ}</span>
-                                            <span className="font-semibold text-sand-900 shrink-0">{stats.totalCouts > 0 ? Math.round(((montant as number) / stats.totalCouts) * 100) : 0}%</span>
+                                            <span className="font-semibold text-sand-900 shrink-0">{totalCouts > 0 ? Math.round(((montant as number) / totalCouts) * 100) : 0}%</span>
                                         </div>
                                         <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
-                                            <div className="bg-sand-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${stats.totalCouts > 0 ? ((montant as number) / stats.totalCouts) * 100 : 0}%` }}></div>
+                                            <div className="bg-sand-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalCouts > 0 ? ((montant as number) / totalCouts) * 100 : 0}%` }}></div>
                                         </div>
                                         <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(montant as number)}</p>
                                     </div>
@@ -591,22 +674,22 @@ export const Comptabilite: React.FC = () => {
                             <div>
                                 <div className="flex justify-between text-xs sm:text-sm mb-2">
                                     <span className="text-sand-600 truncate">Ventes Boutique (caisse)</span>
-                                    <span className="font-semibold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round(((stats.caBoutique + stats.caPos) / totalRecettes) * 100) : 0}%</span>
+                                    <span className="font-semibold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round((caBoutiquePos / totalRecettes) * 100) : 0}%</span>
                                 </div>
                                 <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
-                                    <div className="bg-info-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? ((stats.caBoutique + stats.caPos) / totalRecettes) * 100 : 0}%` }}></div>
+                                    <div className="bg-info-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (caBoutiquePos / totalRecettes) * 100 : 0}%` }}></div>
                                 </div>
-                                <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(stats.caBoutique + stats.caPos)}</p>
+                                <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(caBoutiquePos)}</p>
                             </div>
                             <div>
                                 <div className="flex justify-between text-xs sm:text-sm mb-2">
-                                    <span className="text-sand-600 truncate">Livraisons (Facturées)</span>
-                                    <span className="font-semibold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round((stats.caLivraison / totalRecettes) * 100) : 0}%</span>
+                                    <span className="text-sand-600 truncate">{L.livraison}</span>
+                                    <span className="font-semibold text-sand-900 shrink-0">{totalRecettes > 0 ? Math.round((caLivraisonAffiche / totalRecettes) * 100) : 0}%</span>
                                 </div>
                                 <div className="w-full bg-sand-100 rounded-full h-2 sm:h-3">
-                                    <div className="bg-terracotta-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (stats.caLivraison / totalRecettes) * 100 : 0}%` }}></div>
+                                    <div className="bg-terracotta-500 h-2 sm:h-3 rounded-full transition-all duration-500" style={{ width: `${totalRecettes > 0 ? (caLivraisonAffiche / totalRecettes) * 100 : 0}%` }}></div>
                                 </div>
-                                <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(stats.caLivraison)}</p>
+                                <p className="text-[10px] sm:text-xs text-sand-400 mt-1 text-right truncate">{formatCurrency(caLivraisonAffiche)}</p>
                             </div>
                         </div>
                     </div>
