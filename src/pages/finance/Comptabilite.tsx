@@ -55,7 +55,7 @@ export const Comptabilite: React.FC = () => {
     const { chargerDepenses, getDepensesProRata, depenses } = useDepenseStore();
     const { chargerFactures, factures, getReglementsPeriode, backfillReglementsJournal } = useFacturationStore();
     const { getVentesPeriode } = useBoutiqueStore();
-    const { getVentesPeriode: getVentesPos, getEncaissementsParMode } = usePosStore();
+    const { getEncaissementsParMode } = usePosStore();
     const { chargerDonnees: chargerStock, mouvements, matieres } = useStockStore();
 
     // Charger les données au montage et quand la période change
@@ -114,26 +114,35 @@ export const Comptabilite: React.FC = () => {
         try {
             console.log("Calcul comptabilité pour la période:", debut.toLocaleString(), "au", fin.toLocaleString());
 
-            // Le stock (matières + mouvements) est filtré en mémoire par période → inutile de le
-            // recharger à chaque changement de dates. On ne le (re)charge que si vide ou refresh manuel.
-            // Backfill unique du journal des règlements (historique) — une seule fois par navigateur
-            try {
-                if (!localStorage.getItem('cm.reglementsBackfilled')) {
-                    await backfillReglementsJournal();
-                    localStorage.setItem('cm.reglementsBackfilled', '1');
-                }
-            } catch { /* ignore */ }
+            // Backfill du journal des règlements (historique) — NON bloquant : ne retarde pas
+            // l'affichage. Une fois terminé (1ʳᵉ fois par navigateur), on rafraîchit les stats
+            // dérivées des règlements.
+            if (!localStorage.getItem('cm.reglementsBackfilled')) {
+                backfillReglementsJournal()
+                    .then(() => { localStorage.setItem('cm.reglementsBackfilled', '1'); return getReglementsPeriode(debut, fin); })
+                    .then((regs) => {
+                        const fpm: Record<'espece' | 'om' | 'wave', number> = { espece: 0, om: 0, wave: 0 };
+                        let cle = 0;
+                        (regs || []).forEach(r => { if (r.mode) fpm[r.mode] += r.montant; cle += r.montant; });
+                        setStats(prev => ({ ...prev, factParMode: fpm, caLivraisonEncaisse: cle }));
+                    })
+                    .catch(() => { /* ignore */ });
+            }
 
+            // Le stock (matières + mouvements) est filtré en mémoire par période → on ne le (re)charge
+            // que si vide ou refresh manuel. Les tickets POS ne sont lus qu'UNE fois (par moyen de
+            // paiement), et caPos en est dérivé (plus de double lecture).
             const doitChargerStock = forceStock || matieres.length === 0 || mouvements.length === 0;
-            const [caBoutique, , , , caPos, posParMode, reglementsPeriode] = await Promise.all([
+            const [caBoutique, , , , posParMode, reglementsPeriode] = await Promise.all([
                 getVentesPeriode(debut, fin),
                 chargerFactures(debut, fin),
                 chargerDepenses(debut, fin),
                 doitChargerStock ? chargerStock() : Promise.resolve(),
-                getVentesPos(debut, fin),
                 getEncaissementsParMode(debut, fin),
                 getReglementsPeriode(debut, fin)
             ]);
+
+            const caPos = posParMode.espece + posParMode.om + posParMode.wave;
 
             // Encaissements livraison = règlements datés dans la période (journal, cross-période)
             const factParMode: Record<'espece' | 'om' | 'wave', number> = { espece: 0, om: 0, wave: 0 };
