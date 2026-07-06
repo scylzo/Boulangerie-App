@@ -175,9 +175,9 @@ export const Comptabilite: React.FC = () => {
         const statsCouts = getDepensesProRata(debut, fin);
         const depensesParCategorie = { ...statsCouts.parCategorie };
 
-        // SUPPRESSION DES INTRANTS des Dépenses pour éviter doublon
-        // Si l'utilisateur a quand même saisi des intrants dans "Dépenses", on les ignore ici pour la Marge sur Prod.
-        const { Intrants: _ignored, ...depensesFiltrees } = depensesParCategorie;
+        // SUPPRESSION DES INTRANTS + CARBURANT FOUR des Dépenses pour éviter doublon
+        // Ces coûts sont déjà comptés via la consommation de stock (matières). On les ignore ici.
+        const { Intrants: _ignored, 'Carburant Four': _carburantFour, ...depensesFiltrees } = depensesParCategorie;
 
         const totalChargesExternes = Object.values(depensesFiltrees).reduce((acc, curr) => acc + curr, 0);
 

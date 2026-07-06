@@ -13,7 +13,7 @@ interface DepenseFormProps {
 const CATEGORIES: CategorieDepense[] = [
   'Carburant Véhicule',
   'Carburant Moto',
-  'Carburant Four',
+  // 'Carburant Four' retiré du menu : à saisir en 'Intrants' (géré via le stock)
   'Électricité',
   'Eau',
   'Loyer',

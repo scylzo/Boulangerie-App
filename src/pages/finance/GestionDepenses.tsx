@@ -13,7 +13,7 @@ import type { Depense, CategorieDepense } from '../../types/depense';
 const CATEGORIES: CategorieDepense[] = [
   'Carburant Véhicule',
   'Carburant Moto',
-  'Carburant Four',
+  // 'Carburant Four' retiré : à saisir en 'Intrants' (géré via le stock)
   'Électricité',
   'Eau',
   'Loyer',
