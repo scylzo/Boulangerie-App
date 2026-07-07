@@ -108,7 +108,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
     if (path === '/admin/users') return 'Gestion Utilisateurs';
     if (path === '/depenses') return 'Dépenses';
     if (path === '/comptabilite') return 'Comptabilité';
-    if (path === '/creances') return 'Créances clients';
     return 'Tableau de bord';
   };
 

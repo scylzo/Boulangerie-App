@@ -29,8 +29,6 @@ interface FacturationStore {
   getReglementsPeriode: (debut: Date, fin: Date) => Promise<{ mode: ModePaiement; montant: number; date: Date; factureId: string; clientId: string }[]>;
   /** Alimente le journal 'reglements' à partir des règlements existants sur les factures (idempotent). */
   backfillReglementsJournal: () => Promise<number>;
-  /** Toutes les créances ouvertes (factures non payées/annulées avec reste à payer > 0). */
-  getCreances: () => Promise<Facture[]>;
   annulerFacture: (factureId: string, motif?: string) => Promise<void>;
   actualiserStatutsFactures: (clientId?: string, date?: Date) => Promise<void>;
   modifierTauxTVA: (factureId: string, nouveauTaux: number) => Promise<void>;
@@ -51,9 +49,6 @@ interface FacturationStore {
   setLoading: (loading: boolean) => void;
   setFactureActive: (facture: Facture | null) => void;
 }
-
-// Cache mémoire (session) des créances ouvertes — invalidé à chaque règlement/annulation
-let _creancesCache: { at: number; data: Facture[] } | null = null;
 
 export const useFacturationStore = create<FacturationStore>()(
   persist(
@@ -961,8 +956,6 @@ export const useFacturationStore = create<FacturationStore>()(
             console.error('Erreur journal règlements:', e);
           }
 
-          _creancesCache = null; // un paiement change les créances
-
           set(state => ({
             factures: state.factures.map(f =>
               f.id === factureId ? { ...f, ...updateData } : f
@@ -1029,44 +1022,7 @@ export const useFacturationStore = create<FacturationStore>()(
         }
       },
 
-      getCreances: async () => {
-        // Cache court (10 min) — évite de relire à chaque ouverture de l'écran Créances
-        if (_creancesCache && Date.now() - _creancesCache.at < 10 * 60 * 1000) {
-          return _creancesCache.data;
-        }
-        try {
-          // Requête ciblée : seulement les statuts ouverts (champ unique -> pas d'index composite)
-          const q = query(
-            collection(db, 'factures'),
-            where('statut', 'in', ['validee', 'envoyee', 'partiellement_payee', 'en_attente_retours'])
-          );
-          const snap = await getDocs(q);
-          const creances = snap.docs.map(d => {
-            const data = d.data() as any;
-            return {
-              ...data,
-              dateLivraison: data.dateLivraison?.toDate ? data.dateLivraison.toDate() : new Date(data.dateLivraison),
-              dateFacture: data.dateFacture?.toDate ? data.dateFacture.toDate() : (data.dateFacture ? new Date(data.dateFacture) : undefined),
-              echeance: data.echeance?.toDate ? data.echeance.toDate() : (data.echeance ? new Date(data.echeance) : undefined),
-              reglements: data.reglements ? data.reglements.map((r: any) => ({
-                ...r,
-                date: r.date?.toDate ? r.date.toDate() : (r.date ? new Date(r.date) : new Date())
-              })) : undefined,
-            } as Facture;
-          })
-            // Reste réellement dû > 0
-            .filter(f => (f.netAPayer ?? (f.totalTTC - (f.montantRegle || 0))) > 0);
-
-          _creancesCache = { at: Date.now(), data: creances };
-          return creances;
-        } catch (e) {
-          console.error('Erreur getCreances:', e);
-          return [];
-        }
-      },
-
       annulerFacture: async (factureId: string, motif?: string) => {
-        _creancesCache = null; // une annulation change les créances
         try {
           const updateData = {
             statut: 'annulee' as const,

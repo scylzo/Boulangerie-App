@@ -541,8 +541,8 @@ export const Comptabilite: React.FC = () => {
                     </p>
                     {ecartMargeTreso > 0 && (
                         <button
-                            onClick={() => navigate('/creances')}
-                            title="Voir les créances clients"
+                            onClick={() => navigate('/facturation')}
+                            title="Voir les factures / impayés"
                             className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warning-50 text-warning-700 text-xs font-semibold ring-1 ring-inset ring-warning-100 hover:bg-warning-100 transition-colors"
                         >
                             <Coins size={14} />

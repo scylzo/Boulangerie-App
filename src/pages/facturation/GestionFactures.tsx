@@ -17,8 +17,6 @@ import type { Facture, Client } from '../../types';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 
-import omLogo from '../../assets/om.svg';
-import waveLogo from '../../assets/wave.svg';
 
 // Types pour la vue
 type ViewMode = 'clients_list' | 'client_details';
@@ -176,6 +174,30 @@ export const GestionFactures: React.FC = () => {
         client.telephone?.includes(searchTerm)
       );
   }, [clients, searchTerm]);
+
+  // Synthèse par client (à partir des factures du mois chargé)
+  const factParClient = useMemo(() => {
+    const map: Record<string, { nb: number; du: number; impayees: number }> = {};
+    factures.forEach(f => {
+      if (f.statut === 'annulee') return;
+      if (!map[f.clientId]) map[f.clientId] = { nb: 0, du: 0, impayees: 0 };
+      const m = map[f.clientId];
+      m.nb++;
+      const du = f.netAPayer ?? (f.totalTTC - (f.montantRegle || 0));
+      if (f.statut !== 'payee' && du > 0) { m.du += du; m.impayees++; }
+    });
+    return map;
+  }, [factures]);
+
+  // Clients triés : débiteurs (reste dû) en tête, puis alphabétique
+  const clientsTries = useMemo(() => {
+    return [...filteredClients].sort((a, b) => {
+      const da = factParClient[a.id]?.du || 0;
+      const db2 = factParClient[b.id]?.du || 0;
+      if (db2 !== da) return db2 - da;
+      return a.nom.localeCompare(b.nom);
+    });
+  }, [filteredClients, factParClient]);
 
   // --- Logique Vue Détails Client ---
 
@@ -403,68 +425,74 @@ export const GestionFactures: React.FC = () => {
         </Button>
       </div>
 
-      {/* Grid of Clients */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-        {filteredClients.map(client => {
-          return (
-            <div
-              key={client.id}
-              className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-sand-200 hover:shadow-elevated hover:border-sand-300 transition-all group relative overflow-hidden"
-            >
-              <div
-                onClick={() => handleSelectClient(client)}
-                className="cursor-pointer"
-              >
-                <div className="flex items-start justify-between mb-3 sm:mb-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sand-100 text-sand-900 rounded-full flex items-center justify-center font-semibold text-base sm:text-xl group-hover:bg-sand-900 group-hover:text-white transition-colors shrink-0">
-                    {client.nom.charAt(0).toUpperCase()}
-                  </div>
-                  <Icon icon="mdi:chevron-right" className="text-sand-300 group-hover:text-sand-900 text-xl sm:text-2xl" />
-                </div>
-                <h3 className="font-semibold text-sand-900 text-base sm:text-lg mb-1 truncate" title={client.nom}>{client.nom}</h3>
-                <p className="text-xs sm:text-sm text-sand-500 flex items-center gap-2 mb-3 sm:mb-4 truncate">
-                  <Icon icon="mdi:phone" className="text-sand-400 shrink-0" />
-                  <span className="truncate">{client.telephone || 'Non renseigné'}</span>
-                </p>
-                {client.modePaiementPreference && (
-                  <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${client.modePaiementPreference === 'espece' ? 'bg-success-100 text-success-700' :
-                    client.modePaiementPreference === 'om' ? 'bg-warning-100 text-warning-600' :
-                      client.modePaiementPreference === 'wave' ? 'bg-info-100 text-info-600' :
-                        client.modePaiementPreference === 'cheque' ? 'bg-sand-100 text-sand-800' :
-                          'bg-terracotta-100 text-terracotta-700'
-                    }`}>
-                    {(client.modePaiementPreference === 'om' || client.modePaiementPreference === 'wave') ? (
-                      <img
-                        src={client.modePaiementPreference === 'om' ? omLogo : waveLogo}
-                        alt={client.modePaiementPreference}
-                        className="w-4 h-4 object-contain"
-                      />
-                    ) : (
-                      <Icon icon={
-                        client.modePaiementPreference === 'espece' ? 'mdi:cash' :
-                          client.modePaiementPreference === 'cheque' ? 'mdi:checkbook' :
-                            'mdi:bank-transfer'
-                      } />
-                    )}
-                    <span>{
-                      client.modePaiementPreference === 'espece' ? 'Espèces' :
-                        client.modePaiementPreference === 'om' ? 'Orange Money' :
-                          client.modePaiementPreference === 'wave' ? 'Wave' :
-                            client.modePaiementPreference === 'cheque' ? 'Chèque' :
-                              'Virement'
-                    }</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {filteredClients.length === 0 && (
-        <div className="text-center py-12 sm:py-20 text-sand-500">
+      {/* Liste des clients (cliquable → factures du client) */}
+      {filteredClients.length === 0 ? (
+        <div className="text-center py-12 sm:py-20 text-sand-500 bg-white rounded-2xl border border-sand-200 shadow-card">
           <Icon icon="mdi:account-off" className="text-5xl sm:text-6xl mx-auto mb-4 text-sand-300" />
           <p className="text-sm sm:text-base">Aucun client trouvé pour "{searchTerm}"</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-sand-200 shadow-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[560px]">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wide text-sand-500 border-b border-sand-200 bg-sand-50">
+                  <th className="font-semibold px-4 sm:px-5 py-3">Client</th>
+                  <th className="font-semibold px-3 py-3 text-center">Factures</th>
+                  <th className="font-semibold px-3 py-3 text-right">Reste dû</th>
+                  <th className="font-semibold px-4 sm:px-5 py-3">Statut</th>
+                  <th className="w-8"></th>
+                </tr>
+              </thead>
+              <tbody className="tabular-nums">
+                {clientsTries.map(client => {
+                  const s = factParClient[client.id] || { nb: 0, du: 0, impayees: 0 };
+                  return (
+                    <tr
+                      key={client.id}
+                      onClick={() => handleSelectClient(client)}
+                      className="border-b border-sand-100 last:border-0 hover:bg-sand-50 cursor-pointer transition-colors group"
+                    >
+                      <td className="px-4 sm:px-5 py-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 bg-sand-100 text-sand-700 rounded-full flex items-center justify-center font-semibold shrink-0 group-hover:bg-sand-900 group-hover:text-white transition-colors">
+                            {client.nom.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-medium text-sand-900 truncate">{client.nom}</div>
+                            <div className="text-xs text-sand-400 flex items-center gap-1 truncate">
+                              <Icon icon="mdi:phone" className="text-sand-300 shrink-0" />
+                              {client.telephone || 'Non renseigné'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-center text-sand-600">{s.nb || '—'}</td>
+                      <td className={`px-3 py-3 text-right font-semibold ${s.du > 0 ? 'text-danger-600' : 'text-sand-400'}`}>
+                        {s.du > 0 ? formatCurrency(s.du) : '—'}
+                      </td>
+                      <td className="px-4 sm:px-5 py-3">
+                        {s.impayees > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-danger-50 text-danger-700 ring-1 ring-inset ring-danger-100">
+                            <Icon icon="mdi:alert-circle-outline" className="text-xs" /> {s.impayees} impayée{s.impayees > 1 ? 's' : ''}
+                          </span>
+                        ) : s.nb > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-success-50 text-success-700 ring-1 ring-inset ring-success-100">
+                            <Icon icon="mdi:check-circle-outline" className="text-xs" /> À jour
+                          </span>
+                        ) : (
+                          <span className="text-xs text-sand-400">Aucune facture</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-3 text-right">
+                        <Icon icon="mdi:chevron-right" className="text-sand-300 group-hover:text-sand-900 text-xl" />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
