@@ -4,6 +4,36 @@
 
 @import "tailwindcss";
 
+/* ── Google Sans (auto-hébergée, sous-ensemble Latin, OFL) ───────────── */
+@font-face {
+  font-family: "Google Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/GoogleSans-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Google Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/GoogleSans-Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Google Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/GoogleSans-SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Google Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/GoogleSans-Bold.woff2") format("woff2");
+}
+
 /* ── Design System « Chez Mina » — Monochrome Pro ─────────────────────────
    Direction : dashboard haut de gamme (Linear/Vercel), neutres froids +
    primaire quasi-noir + accent indigo rare. Source de vérité unique (@theme).
@@ -73,9 +103,9 @@
   --color-info-500: #6366F1;
   --color-info-600: #4F46E5;
 
-  /* Typographie — Inter partout. font-display = Inter (plus de serif). */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-display: "Inter", system-ui, -apple-system, sans-serif;
+  /* Typographie — Google Sans partout (auto-hébergée), Inter en repli. */
+  --font-sans: "Google Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Google Sans", "Inter", system-ui, -apple-system, sans-serif;
 
   /* Rayons resserrés (look pro/dense) */
   --radius-sm: 0.375rem;
