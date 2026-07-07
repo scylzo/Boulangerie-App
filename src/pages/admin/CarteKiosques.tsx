@@ -364,6 +364,19 @@ export const CarteKiosques: React.FC = () => {
             {/* Map Area */}
             <div className="flex-1 w-full bg-sand-100 p-4">
                 <div className="w-full rounded-2xl overflow-hidden shadow-elevated border-4 border-white" style={{ height: 'calc(100vh - 160px)', position: 'relative' }}>
+                    {/* Légende des couleurs (performance sur 30 j) */}
+                    <div className="absolute bottom-4 left-4 z-[500] bg-white/95 backdrop-blur rounded-xl border border-sand-200 shadow-elevated p-3">
+                        <p className="text-[11px] font-semibold text-sand-700 mb-2 flex items-center gap-1.5">
+                            <Icon icon="mdi:chart-donut" className="text-sm text-terracotta-600" />
+                            Écoulement (30 j)
+                        </p>
+                        <ul className="space-y-1.5 text-[11px] text-sand-600">
+                            <li className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-[#10b981] shrink-0"></span> Élite · &gt; 90%</li>
+                            <li className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] shrink-0"></span> Moyen · 70-90%</li>
+                            <li className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-[#ef4444] shrink-0"></span> Alerte · &lt; 70%</li>
+                            <li className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-[#6b11cb] shrink-0"></span> Inconnu · pas de données</li>
+                        </ul>
+                    </div>
                     <MapContainer
                         center={mapCenter}
                         zoom={15}
