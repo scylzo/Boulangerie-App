@@ -112,11 +112,11 @@ export const CarteKiosques: React.FC = () => {
         clientEnEdition,
         setClientEnEdition
     } = useReferentielStore();
-    const { invendusClients, chargerInvendusDuJour } = useLivraisonStore();
+    const { invendusClients, chargerInvendusPeriode } = useLivraisonStore();
     const { livreurs, chargerLivreurs } = useLivreurStore();
 
     const [counts, setCounts] = useState({ total: 0, mapped: 0 });
-    const [dateSelectionnee] = useState(new Date());
+    const JOURS_PERF = 30; // fenêtre d'analyse de la performance (écoulement moyen)
     const [afficherZones, setAfficherZones] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
     const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
@@ -149,8 +149,12 @@ export const CarteKiosques: React.FC = () => {
     useEffect(() => {
         chargerClients();
         chargerLivreurs();
-        chargerInvendusDuJour(dateSelectionnee);
-    }, [chargerClients, chargerLivreurs, chargerInvendusDuJour, dateSelectionnee]);
+        // Performance = écoulement moyen sur les 30 derniers jours (données plus stables)
+        const fin = new Date();
+        const debut = new Date();
+        debut.setDate(debut.getDate() - JOURS_PERF);
+        chargerInvendusPeriode(debut, fin);
+    }, [chargerClients, chargerLivreurs, chargerInvendusPeriode]);
 
     useEffect(() => {
         const kiosques = clients.filter(c => c.aKiosque);
@@ -161,27 +165,37 @@ export const CarteKiosques: React.FC = () => {
         });
     }, [clients]);
 
-    // Calcul de la performance par client
+    // Calcul de la performance par client — cumulé sur toute la période chargée
     const performanceData = useMemo(() => {
-        const stats: Record<string, { taux: number; montantVendu: number }> = {};
+        // On additionne d'abord livré/vendu par client (plusieurs retours possibles par client)
+        const cumul: Record<string, { livre: number; vendu: number; valeur: number }> = {};
         invendusClients.forEach(inv => {
-            let totalLivré = 0;
-            let totalVendu = 0;
-            let totalValeurVendu = 0;
+            if (!cumul[inv.clientId]) cumul[inv.clientId] = { livre: 0, vendu: 0, valeur: 0 };
             inv.produits.forEach(p => {
-                totalLivré += p.quantiteLivree;
-                totalVendu += p.vendu;
-                totalValeurVendu += p.vendu * (p.produit?.prixClient || 0);
+                cumul[inv.clientId].livre += p.quantiteLivree;
+                cumul[inv.clientId].vendu += p.vendu;
+                cumul[inv.clientId].valeur += p.vendu * (p.produit?.prixClient || 0);
             });
-            if (totalLivré > 0) {
-                stats[inv.clientId] = {
-                    taux: (totalVendu / totalLivré) * 100,
-                    montantVendu: totalValeurVendu
-                };
+        });
+
+        const stats: Record<string, { taux: number; montantVendu: number }> = {};
+        Object.entries(cumul).forEach(([clientId, c]) => {
+            if (c.livre > 0) {
+                stats[clientId] = { taux: (c.vendu / c.livre) * 100, montantVendu: c.valeur };
             }
         });
         return stats;
     }, [invendusClients]);
+
+    // Nombre de clients Élite (>90%) / Alerte (<70%) sur la période
+    const perfCounts = useMemo(() => {
+        let elite = 0, alerte = 0;
+        Object.values(performanceData).forEach(p => {
+            if (p.taux >= 90) elite++;
+            else if (p.taux < 70) alerte++;
+        });
+        return { elite, alerte };
+    }, [performanceData]);
 
     // Groupement des clients par livreur pour les zones
     const zonesLivraison = useMemo(() => {
@@ -297,7 +311,7 @@ export const CarteKiosques: React.FC = () => {
                                 <span className="w-1.5 h-1.5 bg-success-500 rounded-full animate-pulse"></span>
                                 <p className="text-[10px] font-medium text-success-600 uppercase tracking-wide">Système live</p>
                                 <span className="text-sand-300">·</span>
-                                <span className="text-[10px] text-sand-500 tabular-nums">{counts.mapped}/{counts.total} localisés</span>
+                                <span className="text-[10px] text-sand-500 tabular-nums">{counts.mapped}/{counts.total} localisés · perf. 30 j</span>
                             </div>
                         </div>
                     </div>
@@ -328,15 +342,17 @@ export const CarteKiosques: React.FC = () => {
                             <span className="hidden sm:inline">{userPosition ? 'Position' : 'Me localiser'}</span>
                         </button>
 
-                        {/* Légende compacte */}
+                        {/* Légende compacte avec compteurs */}
                         <div className="hidden md:flex items-center gap-3 pl-3 ml-1 border-l border-sand-200">
-                            <span className="inline-flex items-center gap-1.5" title="Écoulement > 90%">
+                            <span className="inline-flex items-center gap-1.5 tabular-nums" title="Clients qui écoulent > 90% du livré (30 j)">
                                 <span className="w-2 h-2 rounded-full bg-[#10b981]"></span>
                                 <span className="text-[11px] text-sand-600">Élite</span>
+                                <span className="text-[11px] font-semibold text-sand-900">{perfCounts.elite}</span>
                             </span>
-                            <span className="inline-flex items-center gap-1.5" title="Écoulement < 70%">
+                            <span className="inline-flex items-center gap-1.5 tabular-nums" title="Clients qui écoulent < 70% du livré (30 j)">
                                 <span className="w-2 h-2 rounded-full bg-[#ef4444]"></span>
                                 <span className="text-[11px] text-sand-600">Alerte</span>
+                                <span className="text-[11px] font-semibold text-sand-900">{perfCounts.alerte}</span>
                             </span>
                         </div>
                     </div>

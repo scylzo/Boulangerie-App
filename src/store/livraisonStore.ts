@@ -14,6 +14,7 @@ interface LivraisonStore {
   // Actions Livraisons
   chargerLivraisonsDuJour: (date: Date) => Promise<void>;
   chargerInvendusDuJour: (date: Date) => Promise<void>;
+  chargerInvendusPeriode: (debut: Date, fin: Date) => Promise<void>;
   commencerLivraison: (clientId: string) => void;
   terminerLivraison: (clientId: string) => void;
 
@@ -98,6 +99,33 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
     } catch (error) {
       set({ isLoading: false });
       console.error(`❌ Erreur lors du chargement des invendus:`, error);
+    }
+  },
+
+  chargerInvendusPeriode: async (debut: Date, fin: Date) => {
+    set({ isLoading: true });
+    try {
+      const startDate = new Date(debut); startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(fin); endDate.setHours(23, 59, 59, 999);
+      const retoursQuery = query(
+        collection(db, 'clientReturns'),
+        where('dateLivraison', '>=', startDate),
+        where('dateLivraison', '<=', endDate)
+      );
+      const snap = await getDocs(retoursQuery);
+      const invendusData = snap.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          dateLivraison: data.dateLivraison.toDate(),
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(),
+        } as InvendusClient;
+      });
+      set({ invendusClients: invendusData, isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      console.error('❌ Erreur chargement invendus période:', error);
     }
   },
 
