@@ -3,6 +3,9 @@ import { collection, setDoc, getDocs, query, where, doc, writeBatch, deleteDoc }
 import { db } from '../firebase/config';
 import type { LivraisonClient, InvendusClient, Client, Produit } from '../types';
 
+// Cache mémoire (session) des invendus sur période — évite les relectures Firestore rapprochées
+let _invendusPeriodeCache: { key: string; at: number; data: InvendusClient[] } | null = null;
+
 interface LivraisonStore {
   // État
   livraisonsJour: LivraisonClient[];
@@ -103,10 +106,18 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
   },
 
   chargerInvendusPeriode: async (debut: Date, fin: Date) => {
+    const startDate = new Date(debut); startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(fin); endDate.setHours(23, 59, 59, 999);
+
+    // Cache court (10 min) : évite de relire Firestore si on rouvre la carte peu après
+    const key = `${startDate.toISOString().slice(0, 10)}_${endDate.toISOString().slice(0, 10)}`;
+    if (_invendusPeriodeCache && _invendusPeriodeCache.key === key && Date.now() - _invendusPeriodeCache.at < 10 * 60 * 1000) {
+      set({ invendusClients: _invendusPeriodeCache.data });
+      return;
+    }
+
     set({ isLoading: true });
     try {
-      const startDate = new Date(debut); startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(fin); endDate.setHours(23, 59, 59, 999);
       const retoursQuery = query(
         collection(db, 'clientReturns'),
         where('dateLivraison', '>=', startDate),
@@ -122,6 +133,7 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
           updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(),
         } as InvendusClient;
       });
+      _invendusPeriodeCache = { key, at: Date.now(), data: invendusData };
       set({ invendusClients: invendusData, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
