@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, collapsed, onClose
           <img
             src={logoImg}
             alt="Chez Mina Noflaye"
-            className="h-9 w-auto object-contain select-none"
+            className="h-14 w-auto max-h-full object-contain select-none"
             style={{ filter: 'brightness(0) invert(1)' }}
           />
         )}
