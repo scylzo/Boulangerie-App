@@ -20,6 +20,7 @@ export const APP_MODULES: Module[] = [
   { id: 'stocks', name: 'Stocks', href: '/stocks', icon: 'mdi:warehouse' },
   { id: 'depenses', name: 'Dépenses', href: '/depenses', icon: 'mdi:cash-multiple' },
   { id: 'comptabilite', name: 'Comptabilité', href: '/comptabilite', icon: 'mdi:calculator' },
+  { id: 'creances', name: 'Créances clients', href: '/creances', icon: 'mdi:cash-clock' },
   { id: 'rapport', name: 'Rapport Journalier', href: '/rapport', icon: 'mdi:chart-bar' },
   { id: 'fiche_produit', name: 'Fiche Produit', href: '/admin/fiche-produit', icon: 'mdi:file-certificate' },
   { id: 'admin_produits', name: 'Gestion Produits', href: '/admin/produits', icon: 'mdi:bread-slice' },

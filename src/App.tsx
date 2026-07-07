@@ -24,6 +24,7 @@ import { GestionFactures } from './pages/facturation/GestionFactures';
 import { GestionStock } from './pages/stock/GestionStock';
 import { GestionDepenses } from './pages/finance/GestionDepenses';
 import { Comptabilite } from './pages/finance/Comptabilite';
+import { GestionCreances } from './pages/finance/GestionCreances';
 import { SaisieConsommations } from './pages/stock/SaisieConsommations';
 import { CarteKiosques } from './pages/admin/CarteKiosques';
 import { useAuthStore } from './store';
@@ -231,6 +232,12 @@ function App() {
         <Route path="/comptabilite" element={
           <ProtectedRoute>
             <Comptabilite />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/creances" element={
+          <ProtectedRoute>
+            <GestionCreances />
           </ProtectedRoute>
         } />
 

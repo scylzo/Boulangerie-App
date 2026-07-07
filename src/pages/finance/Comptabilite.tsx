@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStockStore } from '../../store/stockStore';
 import { useDepenseStore } from '../../store/depenseStore';
 import { useFacturationStore } from '../../store/facturationStore';
@@ -17,7 +18,8 @@ import {
     RefreshCw,
     Coins,
     Calendar,
-    FileText
+    FileText,
+    ArrowRight
 } from 'lucide-react';
 
 
@@ -31,6 +33,7 @@ export const Comptabilite: React.FC = () => {
         };
     });
 
+    const navigate = useNavigate();
     // Vue : 'marge' (économique) ou 'tresorerie' (encaissé)
     const [vue, setVue] = useState<'marge' | 'tresorerie'>('marge');
 
@@ -537,10 +540,15 @@ export const Comptabilite: React.FC = () => {
                             : 'Rentabilité de l’activité : CA produit − coûts consommés (inclut le facturé non encore encaissé).'}
                     </p>
                     {ecartMargeTreso > 0 && (
-                        <span className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warning-50 text-warning-700 text-xs font-semibold ring-1 ring-inset ring-warning-100">
+                        <button
+                            onClick={() => navigate('/creances')}
+                            title="Voir les créances clients"
+                            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warning-50 text-warning-700 text-xs font-semibold ring-1 ring-inset ring-warning-100 hover:bg-warning-100 transition-colors"
+                        >
                             <Coins size={14} />
                             Créances à encaisser : {formatCurrency(ecartMargeTreso)}
-                        </span>
+                            <ArrowRight size={14} />
+                        </button>
                     )}
                 </div>
 
