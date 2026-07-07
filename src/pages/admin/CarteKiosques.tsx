@@ -187,16 +187,6 @@ export const CarteKiosques: React.FC = () => {
         return stats;
     }, [invendusClients]);
 
-    // Nombre de clients Élite (>90%) / Alerte (<70%) sur la période
-    const perfCounts = useMemo(() => {
-        let elite = 0, alerte = 0;
-        Object.values(performanceData).forEach(p => {
-            if (p.taux >= 90) elite++;
-            else if (p.taux < 70) alerte++;
-        });
-        return { elite, alerte };
-    }, [performanceData]);
-
     // Groupement des clients par livreur pour les zones
     const zonesLivraison = useMemo(() => {
         const zones: Record<string, { points: [number, number][]; color: string; livreurNom: string }> = {};
@@ -241,6 +231,18 @@ export const CarteKiosques: React.FC = () => {
         }
         return [14.7167, -17.4677] as [number, number];
     }, [kiosquesMapped]);
+
+    // Compteurs Élite/Alerte alignés sur les marqueurs RÉELLEMENT affichés (kiosques géolocalisés)
+    const perfCounts = useMemo(() => {
+        let elite = 0, alerte = 0;
+        kiosquesMapped.forEach(k => {
+            const p = performanceData[k.id];
+            if (!p) return; // inconnu (violet) — pas de données
+            if (p.taux >= 90) elite++;
+            else if (p.taux < 70) alerte++;
+        });
+        return { elite, alerte };
+    }, [kiosquesMapped, performanceData]);
 
     if (isLoadingClients) {
         return <TableLoader message="Initialisation des systèmes cartographiques..." />;
