@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polygon } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -102,6 +103,7 @@ const ZONE_COLORS = [
 ];
 
 export const CarteKiosques: React.FC = () => {
+    const navigate = useNavigate();
     const {
         clients,
         chargerClients,
@@ -277,67 +279,65 @@ export const CarteKiosques: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-sand-100 flex flex-col font-jakarta">
-            {/* Header Intelligent */}
-            <div className="bg-white border-b border-sand-200 px-6 py-4 shadow-sm z-20">
-                <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-terracotta-50 rounded-xl flex items-center justify-center">
-                            <Icon icon="mdi:map-marker-path" className="text-2xl text-terracotta-600" />
-                        </div>
-                        <div>
-                            <h1 className="font-display text-xl sm:text-2xl font-semibold text-sand-900 tracking-tight">Supervision Géo-Performance</h1>
-                            <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></span>
-                                <p className="text-[10px] font-semibold text-sand-500 uppercase tracking-widest text-success-600">Système Live</p>
+            {/* Header épuré */}
+            <div className="bg-white border-b border-sand-200 px-3 sm:px-5 py-3 z-20">
+                <div className="flex items-center justify-between gap-3">
+                    {/* Gauche : retour + titre */}
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <button
+                            onClick={() => navigate('/admin/clients')}
+                            title="Retour aux clients"
+                            className="w-9 h-9 rounded-lg text-sand-500 hover:bg-sand-100 hover:text-sand-900 flex items-center justify-center shrink-0 transition-colors"
+                        >
+                            <Icon icon="mdi:arrow-left" className="text-xl" />
+                        </button>
+                        <div className="min-w-0">
+                            <h1 className="font-display text-base sm:text-lg font-semibold text-sand-900 truncate">Supervision Géo-Performance</h1>
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 bg-success-500 rounded-full animate-pulse"></span>
+                                <p className="text-[10px] font-medium text-success-600 uppercase tracking-wide">Système live</p>
+                                <span className="text-sand-300">·</span>
+                                <span className="text-[10px] text-sand-500 tabular-nums">{counts.mapped}/{counts.total} localisés</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4">
-                        {/* Toggle Zones */}
+                    {/* Droite : actions compactes */}
+                    <div className="flex items-center gap-2 shrink-0">
                         <button
                             onClick={() => setAfficherZones(!afficherZones)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-widest transition-all ${afficherZones
-                                ? 'bg-terracotta-600 text-white shadow-card shadow-terracotta-200'
-                                : 'bg-sand-100 text-sand-400 border border-sand-200'
+                            title={afficherZones ? 'Masquer les zones' : 'Afficher les zones'}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${afficherZones
+                                ? 'bg-terracotta-50 text-terracotta-700 border border-terracotta-100'
+                                : 'bg-white text-sand-500 border border-sand-200 hover:bg-sand-50'
                                 }`}
                         >
-                            <Icon icon={afficherZones ? "mdi:layers" : "mdi:layers-off"} className="text-lg" />
-                            {afficherZones ? "Zones Activées" : "Zones Masqué"}
+                            <Icon icon={afficherZones ? 'mdi:layers' : 'mdi:layers-off'} className="text-lg" />
+                            <span className="hidden sm:inline">Zones</span>
                         </button>
 
                         <button
                             onClick={localiserUtilisateur}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-widest transition-all ${userPosition
-                                ? 'bg-success-600 text-white shadow-card shadow-success-100'
-                                : 'bg-sand-900 text-white shadow-card'
+                            title="Me localiser"
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${userPosition
+                                ? 'bg-success-600 text-white'
+                                : 'bg-sand-900 text-white hover:bg-sand-800'
                                 }`}
                         >
                             <Icon icon="mdi:crosshairs-gps" className="text-lg" />
-                            {userPosition ? "Ma Position Active" : "Me Localiser"}
+                            <span className="hidden sm:inline">{userPosition ? 'Position' : 'Me localiser'}</span>
                         </button>
 
-                        {/* Légende */}
-                        <div className="flex items-center gap-4 bg-sand-50 p-2 rounded-2xl border border-sand-100">
-                            <div className="flex items-center gap-1">
-                                <div className="w-2.5 h-2.5 bg-[#10b981] rounded-full"></div>
-                                <span className="text-[9px] font-semibold uppercase text-sand-500">Elite</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <div className="w-2.5 h-2.5 bg-[#ef4444] rounded-full"></div>
-                                <span className="text-[9px] font-semibold uppercase text-sand-500">Alerte</span>
-                            </div>
-                            <div className="mx-2 w-px h-6 bg-sand-200"></div>
-                            <div className="flex items-center gap-3">
-                                <div className="text-center">
-                                    <div className="text-xs font-semibold text-sand-900">{counts.total}</div>
-                                    <div className="text-[7px] font-semibold text-sand-400 uppercase leading-none">Total</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-xs font-semibold text-info-600">{counts.mapped}</div>
-                                    <div className="text-[7px] font-semibold text-sand-400 uppercase leading-none">Map</div>
-                                </div>
-                            </div>
+                        {/* Légende compacte */}
+                        <div className="hidden md:flex items-center gap-3 pl-3 ml-1 border-l border-sand-200">
+                            <span className="inline-flex items-center gap-1.5" title="Écoulement > 90%">
+                                <span className="w-2 h-2 rounded-full bg-[#10b981]"></span>
+                                <span className="text-[11px] text-sand-600">Élite</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1.5" title="Écoulement < 70%">
+                                <span className="w-2 h-2 rounded-full bg-[#ef4444]"></span>
+                                <span className="text-[11px] text-sand-600">Alerte</span>
+                            </span>
                         </div>
                     </div>
                 </div>
