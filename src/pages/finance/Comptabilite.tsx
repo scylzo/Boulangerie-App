@@ -7,9 +7,14 @@ import { useDepenseStore } from '../../store/depenseStore';
 import { useFacturationStore } from '../../store/facturationStore';
 import { useBoutiqueStore } from '../../store/boutiqueStore';
 import { usePosStore } from '../../store/posStore';
+import { useReferentielStore } from '../../store/referentielStore';
 import { DonutChart } from '../../components/ui';
+import { Modal } from '../../components/ui/Modal';
+import { Icon } from '@iconify/react';
 import omLogo from '../../assets/om.svg';
 import waveLogo from '../../assets/wave.svg';
+
+type EncaissEntry = { source: 'caisse' | 'livraison'; label: string; ref?: string; montant: number; date: Date };
 import {
     TrendingUp,
     TrendingDown,
@@ -52,13 +57,18 @@ export const Comptabilite: React.FC = () => {
         detailMatieres: {} as Record<string, number>,
         posParMode: { espece: 0, om: 0, wave: 0 } as Record<'espece' | 'om' | 'wave', number>,   // encaissements POS par moyen
         factParMode: { espece: 0, om: 0, wave: 0 } as Record<'espece' | 'om' | 'wave', number>,  // règlements factures par moyen
+        encaissementsDetail: { espece: [], om: [], wave: [] } as Record<'espece' | 'om' | 'wave', EncaissEntry[]>, // détail par moyen (qui/quand)
         loading: false
     });
+
+    // Modal détail d'un moyen de paiement
+    const [modeDetail, setModeDetail] = useState<'espece' | 'om' | 'wave' | null>(null);
 
     const { chargerDepenses, getDepensesProRata, depenses } = useDepenseStore();
     const { chargerFactures, factures, getReglementsPeriode, backfillReglementsJournal } = useFacturationStore();
     const { getVentesPeriode } = useBoutiqueStore();
-    const { getEncaissementsParMode } = usePosStore();
+    const { getTicketsPeriode } = usePosStore();
+    const { clients, chargerClients } = useReferentielStore();
     const { chargerDonnees: chargerStock, mouvements, matieres } = useStockStore();
 
     // Charger les données au montage et quand la période change
@@ -135,27 +145,65 @@ export const Comptabilite: React.FC = () => {
             // Le stock (matières + mouvements) est filtré en mémoire par période → on ne le (re)charge
             // que si vide ou refresh manuel. Les tickets POS ne sont lus qu'UNE fois (par moyen de
             // paiement), et caPos en est dérivé (plus de double lecture).
+            if (clients.length === 0) await chargerClients();
+
             const doitChargerStock = forceStock || matieres.length === 0 || mouvements.length === 0;
-            const [caBoutique, , , , posParMode, reglementsPeriode] = await Promise.all([
+            // Tickets POS chargés une seule fois → agrégat + détail (qui/quand)
+            const [caBoutique, , , , tickets, reglementsPeriode] = await Promise.all([
                 getVentesPeriode(debut, fin),
                 chargerFactures(debut, fin),
                 chargerDepenses(debut, fin),
                 doitChargerStock ? chargerStock() : Promise.resolve(),
-                getEncaissementsParMode(debut, fin),
+                getTicketsPeriode(debut, fin),
                 getReglementsPeriode(debut, fin)
             ]);
 
-            const caPos = posParMode.espece + posParMode.om + posParMode.wave;
+            const clientsList = useReferentielStore.getState().clients;
+            const nomClient = (id: string) => {
+                const c = clientsList.find(cl => cl.id === id);
+                return c ? [c.prenom, c.nom].filter(Boolean).join(' ') : 'Client';
+            };
+            const dateTicket = (t: any): Date => (t.createdAt?.toDate ? t.createdAt.toDate() : new Date(t.createdAt));
 
-            // Encaissements livraison = règlements datés dans la période (journal, cross-période)
+            const posParMode: Record<'espece' | 'om' | 'wave', number> = { espece: 0, om: 0, wave: 0 };
             const factParMode: Record<'espece' | 'om' | 'wave', number> = { espece: 0, om: 0, wave: 0 };
-            let caLivraisonEncaisse = 0;
-            reglementsPeriode.forEach(r => {
-                if (r.mode) factParMode[r.mode] = (factParMode[r.mode] || 0) + r.montant;
-                caLivraisonEncaisse += r.montant;
+            const detail: Record<'espece' | 'om' | 'wave', EncaissEntry[]> = { espece: [], om: [], wave: [] };
+
+            // Caisse (POS) : chaque ticket → qui (vendeur) / quand
+            tickets.forEach(t => {
+                const m = t.modePaiement as 'espece' | 'om' | 'wave';
+                if (m !== 'espece' && m !== 'om' && m !== 'wave') return;
+                posParMode[m] += (t.total || 0);
+                detail[m].push({
+                    source: 'caisse',
+                    label: t.vendeur || 'Caisse',
+                    ref: `Ticket n°${t.numero}${t.type === 'retour' ? ' · retour' : ''}`,
+                    montant: t.total || 0,
+                    date: dateTicket(t),
+                });
             });
 
-            setStats(prev => ({ ...prev, loading: false, caBoutique, caPos, posParMode, factParMode, caLivraisonEncaisse }));
+            // Livraison : chaque règlement → qui (client) / quand
+            let caLivraisonEncaisse = 0;
+            reglementsPeriode.forEach(r => {
+                if (!r.mode) return;
+                factParMode[r.mode] += r.montant;
+                caLivraisonEncaisse += r.montant;
+                detail[r.mode].push({
+                    source: 'livraison',
+                    label: nomClient(r.clientId),
+                    ref: 'Règlement facture',
+                    montant: r.montant,
+                    date: r.date,
+                });
+            });
+
+            // Tri chronologique décroissant dans chaque moyen
+            (['espece', 'om', 'wave'] as const).forEach(m => detail[m].sort((a, b) => b.date.getTime() - a.date.getTime()));
+
+            const caPos = posParMode.espece + posParMode.om + posParMode.wave;
+
+            setStats(prev => ({ ...prev, loading: false, caBoutique, caPos, posParMode, factParMode, caLivraisonEncaisse, encaissementsDetail: detail }));
         } catch (e) {
             console.error("Erreur calcul compta:", e);
             setStats(prev => ({ ...prev, loading: false }));
@@ -641,8 +689,14 @@ export const Comptabilite: React.FC = () => {
                         ]).map((m) => {
                             const montant = encaissementsParMode[m.key];
                             const pct = totalEncaisseMode > 0 ? Math.round((montant / totalEncaisseMode) * 100) : 0;
+                            const nbOps = stats.encaissementsDetail[m.key]?.length || 0;
                             return (
-                                <div key={m.key} className="rounded-xl border border-sand-200 p-4">
+                                <button
+                                    key={m.key}
+                                    onClick={() => setModeDetail(m.key)}
+                                    className="text-left rounded-xl border border-sand-200 p-4 hover:border-sand-300 hover:shadow-elevated transition-all"
+                                    title="Voir le détail (qui / quand)"
+                                >
                                     <div className="flex items-center gap-2 mb-2">
                                         {m.img
                                             ? <img src={m.img} alt={m.label} className="w-6 h-6 object-contain" />
@@ -654,7 +708,11 @@ export const Comptabilite: React.FC = () => {
                                     <div className="mt-2 w-full bg-sand-100 rounded-full h-1.5">
                                         <div className={`h-1.5 rounded-full ${m.color === 'success' ? 'bg-success-500' : m.color === 'warning' ? 'bg-warning-500' : 'bg-info-500'}`} style={{ width: `${pct}%` }}></div>
                                     </div>
-                                </div>
+                                    <div className="mt-2 flex items-center gap-1 text-[11px] text-sand-400">
+                                        <Icon icon="mdi:format-list-bulleted" className="text-sm" />
+                                        {nbOps} opération{nbOps > 1 ? 's' : ''} · détail
+                                    </div>
+                                </button>
                             );
                         })}
                     </div>
@@ -784,6 +842,48 @@ export const Comptabilite: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Détail des encaissements d'un moyen de paiement */}
+            <Modal
+                isOpen={modeDetail !== null}
+                onClose={() => setModeDetail(null)}
+                title={`Détail — ${modeDetail === 'espece' ? 'Espèces' : modeDetail === 'om' ? 'Orange Money' : 'Wave'}`}
+                size="md"
+                position="center"
+            >
+                {modeDetail && (() => {
+                    const entries = stats.encaissementsDetail[modeDetail] || [];
+                    const total = entries.reduce((s, e) => s + e.montant, 0);
+                    return (
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between px-1">
+                                <span className="text-sm text-sand-500">{entries.length} opération(s)</span>
+                                <span className="font-display text-lg font-semibold text-sand-900 tabular-nums">{formatCurrency(total)}</span>
+                            </div>
+                            {entries.length === 0 ? (
+                                <div className="py-8 text-center text-sm text-sand-500">Aucun encaissement sur la période.</div>
+                            ) : (
+                                <div className="max-h-[55vh] overflow-y-auto rounded-xl border border-sand-200 divide-y divide-sand-100">
+                                    {entries.map((e, i) => (
+                                        <div key={i} className="flex items-center gap-3 px-3 py-2.5">
+                                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${e.source === 'caisse' ? 'bg-gold-50 text-gold-600' : 'bg-terracotta-50 text-terracotta-600'}`}>
+                                                <Icon icon={e.source === 'caisse' ? 'mdi:cash-register' : 'mdi:truck-outline'} className="text-base" />
+                                            </span>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-sm font-medium text-sand-900 truncate">{e.label}</div>
+                                                <div className="text-[11px] text-sand-500 truncate">
+                                                    {e.source === 'caisse' ? 'Caisse' : 'Livraison'}{e.ref ? ` · ${e.ref}` : ''} · {e.date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                            </div>
+                                            <span className={`shrink-0 font-semibold tabular-nums ${e.montant < 0 ? 'text-danger-600' : 'text-sand-900'}`}>{formatCurrency(e.montant)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })()}
+            </Modal>
         </div>
     );
 };
