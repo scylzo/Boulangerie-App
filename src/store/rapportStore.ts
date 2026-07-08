@@ -91,11 +91,15 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
       await boutiqueStore.chargerStockJour(date);
       console.log('✅ Stock boutique chargé');
 
-      // 2c. Charger les ventes caisse (POS) du jour — source du vendu boutique
+      // 2c. Charger les ventes caisse (POS) du jour — source du vendu boutique EN MODE AVANCÉ uniquement
       console.log('🧾 Chargement ventes caisse (POS)...');
       const posQtes = await usePosStore.getState().getQuantitesJour(date);
       const hasPos = Object.values(posQtes).some(q => q !== 0);
-      console.log('✅ Ventes caisse chargées', { hasPos, produits: Object.keys(posQtes).length });
+      // Le rapport respecte le mode boutique : en 'classique' on utilise la saisie manuelle,
+      // même s'il existe des tickets POS (ex. tests). Défaut = classique.
+      const modeBoutique = (typeof localStorage !== 'undefined' && localStorage.getItem('cm.boutique.mode')) || 'classique';
+      const utiliserPos = modeBoutique !== 'classique' && hasPos;
+      console.log('✅ Ventes caisse chargées', { hasPos, utiliserPos, modeBoutique });
 
       // 3. Charger les retours clients
       console.log('📦 Chargement retours clients...');
@@ -183,7 +187,7 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
       }
 
       // Produits vendus en caisse (POS)
-      Object.keys(posQtes).forEach(id => allProduitIds.add(id));
+      if (utiliserPos) Object.keys(posQtes).forEach(id => allProduitIds.add(id));
 
       console.log('📋 Liste exhaustive des produits identifiés:', Array.from(allProduitIds));
 
@@ -208,9 +212,9 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
             return sum + total;
           }, 0);
 
-        // Ventes boutique — depuis le POS si la caisse a tourné ce jour, sinon saisie legacy (Odoo)
+        // Ventes boutique — depuis le POS uniquement en mode avancé, sinon saisie manuelle (classique)
         const venteBoutiqueProduit = ventesJour?.produits.find(v => v.produitId === produitId);
-        const venduBoutique = hasPos
+        const venduBoutique = utiliserPos
           ? Math.max(0, posQtes[produitId] || 0)
           : (venteBoutiqueProduit?.venduTotal || 0);
         const invenduBoutique = venteBoutiqueProduit?.invenduBoutique || 0;
@@ -256,7 +260,7 @@ export const useRapportStore = create<RapportStore>((set, get) => ({
 
         // Flag de destination
         const destineClients = (progProduit?.totalClient || 0) > 0 || quantiteLivreeClients > 0 || (commandesClients?.some(cmd => cmd.produits.some(p => p.produitId === produitId)) ?? false);
-        const destineBoutique = (progProduit?.totalBoutique || 0) > 0 || stockDebutBoutique > 0 || (ventesJour?.produits.some(v => v.produitId === produitId) ?? false) || (posQtes[produitId] || 0) > 0;
+        const destineBoutique = (progProduit?.totalBoutique || 0) > 0 || stockDebutBoutique > 0 || (ventesJour?.produits.some(v => v.produitId === produitId) ?? false) || (utiliserPos && (posQtes[produitId] || 0) > 0);
 
         return {
           produitId: produitId,
