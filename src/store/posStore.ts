@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, addDoc, getDocs, getCountFromServer, query, where, orderBy, Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, getCountFromServer, query, where, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export type ModePaiement = 'espece' | 'om' | 'wave';
@@ -81,6 +81,8 @@ interface PosStore {
   getResumeSessionActive: () => Promise<ResumeSession | null>;
   chargerTicketsDuJour: (date: Date) => Promise<void>;
   enregistrerTicket: (ticket: Omit<TicketPOS, 'id' | 'createdAt' | 'numero'>) => Promise<number>;
+  /** Supprime un ticket (réservé admin côté UI). */
+  supprimerTicket: (id: string) => Promise<void>;
   /** Récupère les tickets POS sur une période (bornes incluses). */
   getTicketsPeriode: (debut: Date, fin: Date) => Promise<TicketPOS[]>;
   /** Somme des totaux des tickets POS sur une période. */
@@ -353,5 +355,10 @@ export const usePosStore = create<PosStore>((set, get) => ({
       console.error('Erreur enregistrement ticket POS:', e);
       throw e;
     }
+  },
+
+  supprimerTicket: async (id: string) => {
+    await deleteDoc(doc(db, 'pos_tickets', id));
+    set(state => ({ ticketsDuJour: state.ticketsDuJour.filter(t => t.id !== id) }));
   },
 }));

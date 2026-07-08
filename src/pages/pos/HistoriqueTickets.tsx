@@ -6,6 +6,8 @@ import { usePosStore, type TicketPOS, type ModePaiement, type TypeCommande } fro
 import { formatCurrency } from '../../utils/currency';
 import { TableLoader } from '../../components/ui/Loader';
 import { Modal } from '../../components/ui/Modal';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { useAuthStore } from '../../store/authStore';
 import logo from '../../assets/logo.png';
 import omLogo from '../../assets/om.svg';
 import waveLogo from '../../assets/wave.svg';
@@ -25,7 +27,26 @@ const toDate = (v: any): Date => (v && typeof v.toDate === 'function') ? v.toDat
 const heureDe = (t: TicketPOS) => toDate(t.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
 export const HistoriqueTickets: React.FC = () => {
-  const { ticketsDuJour, chargerTicketsDuJour, enregistrerTicket, getRetoursDeTicket, isSaving } = usePosStore();
+  const { ticketsDuJour, chargerTicketsDuJour, enregistrerTicket, getRetoursDeTicket, supprimerTicket, isSaving } = usePosStore();
+  const { user } = useAuthStore();
+  const peutSupprimer = user?.role === 'admin'; // garde : suppression réservée aux admins
+  const [ticketASupprimer, setTicketASupprimer] = useState<TicketPOS | null>(null);
+  const [suppression, setSuppression] = useState(false);
+
+  const confirmerSuppression = async () => {
+    if (!ticketASupprimer?.id) return;
+    setSuppression(true);
+    try {
+      await supprimerTicket(ticketASupprimer.id);
+      toast.success(`Ticket n°${ticketASupprimer.numero} supprimé`);
+      setTicketASupprimer(null);
+      rechargerJour();
+    } catch {
+      toast.error('Erreur lors de la suppression');
+    } finally {
+      setSuppression(false);
+    }
+  };
   const [dateStr, setDateStr] = useState(() => new Date().toISOString().split('T')[0]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -294,6 +315,15 @@ export const HistoriqueTickets: React.FC = () => {
                             <Icon icon="mdi:printer-outline" className="text-base" />
                             <span className="hidden sm:inline">Réimprimer</span>
                           </button>
+                          {peutSupprimer && (
+                            <button
+                              onClick={() => setTicketASupprimer(t)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sand-500 hover:bg-danger-50 hover:text-danger-600 transition-colors text-xs font-medium"
+                              title="Supprimer le ticket (admin)"
+                            >
+                              <Icon icon="mdi:trash-can-outline" className="text-base" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -402,6 +432,21 @@ export const HistoriqueTickets: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      {/* Confirmation de suppression (admin) */}
+      <ConfirmModal
+        isOpen={!!ticketASupprimer}
+        onClose={() => setTicketASupprimer(null)}
+        onConfirm={confirmerSuppression}
+        title="Supprimer ce ticket ?"
+        message={ticketASupprimer
+          ? `Le ticket n°${ticketASupprimer.numero} (${formatCurrency(ticketASupprimer.total)}) sera définitivement supprimé.\n\nCette action est irréversible et impacte les rapports et la comptabilité.`
+          : ''}
+        confirmText={suppression ? 'Suppression…' : 'Supprimer'}
+        cancelText="Annuler"
+        type="danger"
+        position="center"
+      />
     </div>
   );
 };
