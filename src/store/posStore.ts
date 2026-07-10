@@ -97,6 +97,8 @@ interface PosStore {
   getQuantitesJourParPeriode: (date: Date) => Promise<Record<string, { matin: number; soir: number; total: number }>>;
   /** Classement des produits par quantités vendues sur les N derniers jours (pour trier la caisse). */
   getClassementProduits: (joursEnArriere?: number) => Promise<Record<string, number>>;
+  /** Ventes POS par produit (quantité nette + valeur) sur une période. */
+  getVentesParProduitPeriode: (debut: Date, fin: Date) => Promise<Record<string, { qty: number; valeur: number }>>;
 }
 
 export interface ResumeSession {
@@ -306,6 +308,17 @@ export const usePosStore = create<PosStore>((set, get) => ({
     const map: Record<string, number> = {};
     tickets.forEach(t => t.lignes.forEach(l => {
       map[l.produitId] = (map[l.produitId] || 0) + l.quantite; // net (retours en négatif)
+    }));
+    return map;
+  },
+
+  getVentesParProduitPeriode: async (debut: Date, fin: Date) => {
+    const tickets = await get().getTicketsPeriode(debut, fin);
+    const map: Record<string, { qty: number; valeur: number }> = {};
+    tickets.forEach(t => t.lignes.forEach(l => {
+      if (!map[l.produitId]) map[l.produitId] = { qty: 0, valeur: 0 };
+      map[l.produitId].qty += l.quantite;                       // net (retours négatifs)
+      map[l.produitId].valeur += l.quantite * (l.prixUnitaire || 0);
     }));
     return map;
   },

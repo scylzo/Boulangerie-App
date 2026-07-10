@@ -53,6 +53,7 @@ interface BoutiqueStore {
   chargerEquipe: (date: Date, periode: 'matin' | 'soir') => Promise<void>;
   chargerVentes: (date: Date) => Promise<void>;
   getVentesPeriode: (dateDebut: Date, dateFin: Date) => Promise<number>;
+  getVentesBoutiqueParProduit: (dateDebut: Date, dateFin: Date) => Promise<Record<string, { qty: number; valeur: number }>>;
 
   // Setters
   setLoading: (loading: boolean) => void;
@@ -982,6 +983,32 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
       });
       return total;
     } catch (e) { console.error(e); return 0; }
+  },
+
+  getVentesBoutiqueParProduit: async (dateDebut: Date, dateFin: Date) => {
+    const res: Record<string, { qty: number; valeur: number }> = {};
+    try {
+      const q = query(collection(db, 'shopSales'), where('date', '>=', dateToTimestamp(dateDebut)), where('date', '<=', dateToTimestamp(dateFin)));
+      const snapshot = await getDocs(q);
+      if (get().produits.length === 0) await get().chargerProduits();
+      const catalogue = get().produits;
+      snapshot.docs.forEach(docu => {
+        const data = docu.data() as VentesBoutique;
+        data.produits.forEach(p => {
+          const qty = p.venduTotal || 0;
+          if (qty <= 0) return;
+          let prix = p.produit?.prixBoutique || p.produit?.prixUnitaire || 0;
+          if (!prix) {
+            const inCat = catalogue.find(cp => cp.id === p.produitId);
+            prix = inCat?.prixBoutique || inCat?.prixUnitaire || 0;
+          }
+          if (!res[p.produitId]) res[p.produitId] = { qty: 0, valeur: 0 };
+          res[p.produitId].qty += qty;
+          res[p.produitId].valeur += qty * prix;
+        });
+      });
+    } catch (e) { console.error('getVentesBoutiqueParProduit:', e); }
+    return res;
   },
 
   setLoading: (loading: boolean) => set({ isLoading: loading }),
