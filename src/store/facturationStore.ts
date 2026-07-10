@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { collection, updateDoc, doc, setDoc, deleteDoc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, updateDoc, doc, setDoc, deleteDoc, getDoc, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { realTimeListeners } from '../firebase/collections';
 import { db } from '../firebase/config';
 import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient, Client, Reglement, ModePaiement } from '../types';
@@ -27,6 +27,10 @@ interface FacturationStore {
   marquerPayee: (factureId: string, reglements: Reglement[] | { montant: number, mode: ModePaiement, date?: Date }) => Promise<void>;
   /** Journal des règlements sur une période (par date de règlement, cross-période). */
   getReglementsPeriode: (debut: Date, fin: Date) => Promise<{ mode: ModePaiement; montant: number; date: Date; factureId: string; clientId: string }[]>;
+  /** Ventes livraison (factures) par produit sur une période, par date de livraison. */
+  getVentesFactureParProduit: (debut: Date, fin: Date, payeesUniquement?: boolean) => Promise<Record<string, { qty: number; valeur: number }>>;
+  /** Date (yyyy-mm-dd) de la toute première livraison facturée, ou null. */
+  getPremiereDateVenteLivraison: () => Promise<string | null>;
   /** Alimente le journal 'reglements' à partir des règlements existants sur les factures (idempotent). */
   backfillReglementsJournal: () => Promise<number>;
   annulerFacture: (factureId: string, motif?: string) => Promise<void>;
@@ -988,6 +992,50 @@ export const useFacturationStore = create<FacturationStore>()(
         } catch (e) {
           console.error('Erreur getReglementsPeriode:', e);
           return [];
+        }
+      },
+
+      getVentesFactureParProduit: async (debut: Date, fin: Date, payeesUniquement = false) => {
+        const res: Record<string, { qty: number; valeur: number }> = {};
+        try {
+          const q = query(
+            collection(db, 'factures'),
+            where('dateLivraison', '>=', debut),
+            where('dateLivraison', '<=', fin)
+          );
+          const snap = await getDocs(q);
+          snap.docs.forEach(d => {
+            const f = d.data() as any;
+            // Exclure brouillons et annulées (pas de vente réelle)
+            if (f.statut === 'annulee' || f.statut === 'brouillon') return;
+            if (payeesUniquement && f.statut !== 'payee') return;
+            (f.lignes || []).forEach((l: any) => {
+              const qty = l.quantiteFacturee || 0;
+              if (qty <= 0) return;
+              if (!res[l.produitId]) res[l.produitId] = { qty: 0, valeur: 0 };
+              res[l.produitId].qty += qty;
+              res[l.produitId].valeur += (l.montantLigne != null ? l.montantLigne : qty * (l.prixUnitaire || 0));
+            });
+          });
+        } catch (e) {
+          console.error('getVentesFactureParProduit:', e);
+        }
+        return res;
+      },
+
+      getPremiereDateVenteLivraison: async () => {
+        try {
+          const q = query(collection(db, 'factures'), orderBy('dateLivraison', 'asc'), limit(1));
+          const snap = await getDocs(q);
+          if (snap.empty) return null;
+          const d: any = (snap.docs[0].data() as any).dateLivraison;
+          const date: Date | null = d?.toDate ? d.toDate() : (typeof d?.seconds === 'number' ? new Date(d.seconds * 1000) : (d ? new Date(d) : null));
+          if (!date || isNaN(date.getTime())) return null;
+          const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), j = String(date.getDate()).padStart(2, '0');
+          return `${y}-${m}-${j}`;
+        } catch (e) {
+          console.error('getPremiereDateVenteLivraison:', e);
+          return null;
         }
       },
 

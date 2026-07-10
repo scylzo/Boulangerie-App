@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useReferentielStore } from '../../store/referentielStore';
 import { usePosStore } from '../../store/posStore';
 import { useBoutiqueStore } from '../../store/boutiqueStore';
+import { useFacturationStore } from '../../store/facturationStore';
 import { useSaveurStore, type Saveur } from '../../store/saveurStore';
 import { formatCurrency } from '../../utils/currency';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
@@ -17,6 +18,7 @@ export const SuiviSaveur: React.FC = () => {
   const { produits, chargerProduits } = useReferentielStore();
   const { getVentesParProduitPeriode, getPremiereDateVente } = usePosStore();
   const { getVentesBoutiqueParProduit, getPremiereDateVenteBoutique } = useBoutiqueStore();
+  const { getVentesFactureParProduit, getPremiereDateVenteLivraison } = useFacturationStore();
   const { achats, chargerAchats, ajouterAchat, supprimerAchat } = useSaveurStore();
 
   const [periode, setPeriode] = useState(() => {
@@ -26,7 +28,8 @@ export const SuiviSaveur: React.FC = () => {
       fin: now.toISOString().split('T')[0],
     };
   });
-  const [source, setSource] = useState<'caisse' | 'boutique' | 'les_deux'>('les_deux');
+  const [source, setSource] = useState<'caisse' | 'boutique' | 'livraison' | 'toutes'>('toutes');
+  const [payeesUniquement, setPayeesUniquement] = useState(false);
   const [ventesProduit, setVentesProduit] = useState<Record<string, { qty: number; valeur: number }>>({});
   const [loading, setLoading] = useState(true);
 
@@ -43,12 +46,14 @@ export const SuiviSaveur: React.FC = () => {
   useEffect(() => {
     let annule = false;
     (async () => {
-      const [dPos, dBout] = await Promise.all([getPremiereDateVente(), getPremiereDateVenteBoutique()]);
-      const candidats = [dPos, dBout].filter((d): d is string => !!d).sort();
+      const [dPos, dBout, dLiv] = await Promise.all([
+        getPremiereDateVente(), getPremiereDateVenteBoutique(), getPremiereDateVenteLivraison(),
+      ]);
+      const candidats = [dPos, dBout, dLiv].filter((d): d is string => !!d).sort();
       if (!annule) setDebutPremiereVente(candidats[0] || null);
     })();
     return () => { annule = true; };
-  }, [getPremiereDateVente, getPremiereDateVenteBoutique]);
+  }, [getPremiereDateVente, getPremiereDateVenteBoutique, getPremiereDateVenteLivraison]);
 
   // Repli : création du plus ancien produit tagué salé/sucré (si aucune vente lue)
   const debutPremierProduit = useMemo(() => {
@@ -100,12 +105,16 @@ export const SuiviSaveur: React.FC = () => {
     const fin = new Date(periode.fin + 'T23:59:59');
     (async () => {
       const vide: Record<string, { qty: number; valeur: number }> = {};
-      const [pos, bout] = await Promise.all([
-        source !== 'boutique' ? getVentesParProduitPeriode(debut, fin) : Promise.resolve(vide),
-        source !== 'caisse' ? getVentesBoutiqueParProduit(debut, fin) : Promise.resolve(vide),
+      const inclCaisse = source === 'caisse' || source === 'toutes';
+      const inclBoutique = source === 'boutique' || source === 'toutes';
+      const inclLivraison = source === 'livraison' || source === 'toutes';
+      const [pos, bout, liv] = await Promise.all([
+        inclCaisse ? getVentesParProduitPeriode(debut, fin) : Promise.resolve(vide),
+        inclBoutique ? getVentesBoutiqueParProduit(debut, fin) : Promise.resolve(vide),
+        inclLivraison ? getVentesFactureParProduit(debut, fin, payeesUniquement) : Promise.resolve(vide),
       ]);
       const combined: Record<string, { qty: number; valeur: number }> = {};
-      [pos, bout].forEach(src => {
+      [pos, bout, liv].forEach(src => {
         Object.entries(src).forEach(([id, v]) => {
           if (!combined[id]) combined[id] = { qty: 0, valeur: 0 };
           combined[id].qty += v.qty;
@@ -116,7 +125,7 @@ export const SuiviSaveur: React.FC = () => {
       if (!annule) { setVentesProduit(combined); setLoading(false); }
     })();
     return () => { annule = true; };
-  }, [periode.debut, periode.fin, source, getVentesParProduitPeriode, getVentesBoutiqueParProduit, chargerAchats]);
+  }, [periode.debut, periode.fin, source, payeesUniquement, getVentesParProduitPeriode, getVentesBoutiqueParProduit, getVentesFactureParProduit, chargerAchats]);
 
   const saveurDe = (id: string): Saveur | undefined => produits.find(p => p.id === id)?.saveur as Saveur | undefined;
 
@@ -205,22 +214,36 @@ export const SuiviSaveur: React.FC = () => {
 
       <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Source des ventes */}
-        <div className="bg-white rounded-2xl border border-sand-200 shadow-card p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-          <span className="text-sm font-medium text-sand-700 shrink-0">Source des ventes :</span>
-          <div className="inline-flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200 self-start">
-            {([
-              { v: 'caisse', l: 'Caisse' },
-              { v: 'boutique', l: 'Boutique' },
-              { v: 'les_deux', l: 'Les deux' },
-            ] as { v: typeof source; l: string }[]).map(o => (
-              <button key={o.v} onClick={() => setSource(o.v)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${source === o.v ? 'bg-white text-sand-900 shadow-sm' : 'text-sand-500 hover:text-sand-700'}`}>
-                {o.l}
-              </button>
-            ))}
+        <div className="bg-white rounded-2xl border border-sand-200 shadow-card p-3 sm:p-4 space-y-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <span className="text-sm font-medium text-sand-700 shrink-0">Source des ventes :</span>
+            <div className="inline-flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200 self-start">
+              {([
+                { v: 'caisse', l: 'Caisse' },
+                { v: 'boutique', l: 'Boutique' },
+                { v: 'livraison', l: 'Livraison' },
+                { v: 'toutes', l: 'Toutes' },
+              ] as { v: typeof source; l: string }[]).map(o => (
+                <button key={o.v} onClick={() => setSource(o.v)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${source === o.v ? 'bg-white text-sand-900 shadow-sm' : 'text-sand-500 hover:text-sand-700'}`}>
+                  {o.l}
+                </button>
+              ))}
+            </div>
+            {/* Filtre payées (uniquement pertinent quand la livraison est incluse) */}
+            {(source === 'livraison' || source === 'toutes') && (
+              <label className="flex items-center gap-2 self-start sm:ml-1 cursor-pointer select-none">
+                <button type="button" role="switch" aria-checked={payeesUniquement}
+                  onClick={() => setPayeesUniquement(v => !v)}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${payeesUniquement ? 'bg-terracotta-600' : 'bg-sand-300'}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${payeesUniquement ? 'translate-x-4' : ''}`} />
+                </button>
+                <span className="text-xs font-medium text-sand-600">Factures payées seulement</span>
+              </label>
+            )}
           </div>
-          <p className="text-[11px] text-sand-400 sm:ml-2">
-            En mode Boutique « Avancé » (boutique = caisse), choisis <b>Caisse</b> ou <b>Boutique</b> seul pour éviter le double comptage.
+          <p className="text-[11px] text-sand-400">
+            Caisse + Boutique + Livraison (factures). En mode Boutique « Avancé » (boutique = caisse), choisis <b>Caisse</b> ou <b>Boutique</b> seul pour éviter le double comptage. La livraison est une source distincte (pas de doublon).
           </p>
         </div>
 
