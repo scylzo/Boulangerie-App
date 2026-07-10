@@ -38,6 +38,37 @@ export const SuiviSaveur: React.FC = () => {
 
   useEffect(() => { if (produits.length === 0) chargerProduits(); }, [produits.length, chargerProduits]);
 
+  // Premier jour de vente possible = création du plus ancien produit tagué salé/sucré
+  const debutPremierProduit = useMemo(() => {
+    const dates = produits
+      .filter(p => p.saveur === 'sale' || p.saveur === 'sucre')
+      .map(p => (p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt as any)))
+      .filter(d => !isNaN(d.getTime()));
+    if (dates.length === 0) return null;
+    return new Date(Math.min(...dates.map(d => d.getTime()))).toISOString().split('T')[0];
+  }, [produits]);
+
+  const debutPreset = (k: 'mois' | '3mois' | 'debut'): string => {
+    const now = new Date();
+    if (k === 'mois') return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    if (k === '3mois') return new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()).toISOString().split('T')[0];
+    return debutPremierProduit || now.toISOString().split('T')[0];
+  };
+
+  const appliquerPreset = (k: 'mois' | '3mois' | 'debut') => {
+    setPeriode({ debut: debutPreset(k), fin: new Date().toISOString().split('T')[0] });
+  };
+
+  const presetActif = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (periode.fin !== today) return null;
+    for (const k of ['mois', '3mois', 'debut'] as const) {
+      if (periode.debut === debutPreset(k)) return k;
+    }
+    return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [periode, debutPremierProduit]);
+
   useEffect(() => {
     let annule = false;
     setLoading(true);
@@ -121,14 +152,29 @@ export const SuiviSaveur: React.FC = () => {
               <p className="text-xs sm:text-sm text-sand-500 truncate">Ventes vs coût d'investissement</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <input type="date" value={periode.debut} max={periode.fin}
-              onChange={(e) => setPeriode(p => ({ ...p, debut: e.target.value }))}
-              className="px-2.5 py-2 border border-sand-300 rounded-lg bg-white text-sm text-sand-900 focus:ring-2 focus:ring-terracotta-500 focus:border-transparent" />
-            <span className="text-sand-400 text-sm">→</span>
-            <input type="date" value={periode.fin} min={periode.debut}
-              onChange={(e) => setPeriode(p => ({ ...p, fin: e.target.value }))}
-              className="px-2.5 py-2 border border-sand-300 rounded-lg bg-white text-sm text-sand-900 focus:ring-2 focus:ring-terracotta-500 focus:border-transparent" />
+          <div className="flex flex-col gap-2 sm:items-end">
+            <div className="flex items-center gap-2">
+              <input type="date" value={periode.debut} max={periode.fin}
+                onChange={(e) => setPeriode(p => ({ ...p, debut: e.target.value }))}
+                className="px-2.5 py-2 border border-sand-300 rounded-lg bg-white text-sm text-sand-900 focus:ring-2 focus:ring-terracotta-500 focus:border-transparent" />
+              <span className="text-sand-400 text-sm">→</span>
+              <input type="date" value={periode.fin} min={periode.debut}
+                onChange={(e) => setPeriode(p => ({ ...p, fin: e.target.value }))}
+                className="px-2.5 py-2 border border-sand-300 rounded-lg bg-white text-sm text-sand-900 focus:ring-2 focus:ring-terracotta-500 focus:border-transparent" />
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {([
+                { k: 'mois', l: 'Ce mois' },
+                { k: '3mois', l: '3 mois' },
+                { k: 'debut', l: 'Depuis le début' },
+              ] as { k: 'mois' | '3mois' | 'debut'; l: string }[]).map(p => (
+                <button key={p.k} onClick={() => appliquerPreset(p.k)}
+                  disabled={p.k === 'debut' && !debutPremierProduit}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${presetActif === p.k ? 'bg-terracotta-600 border-terracotta-600 text-white' : 'bg-white border-sand-200 text-sand-600 hover:bg-sand-50'}`}>
+                  {p.l}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
