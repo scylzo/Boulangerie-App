@@ -16,7 +16,7 @@ interface SidebarProps {
 const SECTIONS: { label: string; ids: string[] }[] = [
   { label: 'Principal', ids: ['dashboard', 'production', 'boulanger', 'rotation'] },
   { label: 'Commercial', ids: ['pos', 'pos_historique', 'facturation', 'livraison', 'retours', 'boutique'] },
-  { label: 'Gestion', ids: ['stocks', 'depenses', 'comptabilite', 'rapport'] },
+  { label: 'Gestion', ids: ['stocks', 'depenses', 'comptabilite', 'suivi_saveur', 'rapport'] },
   { label: 'Administration', ids: ['fiche_produit', 'admin_produits', 'admin_clients', 'admin_livreurs', 'admin_users'] },
 ];
 
@@ -31,7 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, collapsed, onClose
       return user.permissions.includes(module.id);
     }
     const rolePermissions: Record<string, string[]> = {
-      gestionnaire: ['dashboard', 'pos', 'pos_historique', 'production', 'rotation', 'facturation', 'stocks', 'depenses', 'comptabilite', 'rapport', 'fiche_produit'],
+      gestionnaire: ['dashboard', 'pos', 'pos_historique', 'production', 'rotation', 'facturation', 'stocks', 'depenses', 'comptabilite', 'suivi_saveur', 'rapport', 'fiche_produit'],
       boulanger: ['boulanger'],
       livreur: ['livraison', 'retours'],
       vendeuse: ['pos', 'pos_historique', 'boutique']
