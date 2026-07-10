@@ -214,14 +214,14 @@ export const SuiviSaveur: React.FC = () => {
           </div>
 
           {/* Formulaire d'ajout */}
-          <div className="p-4 border-b border-sand-100 grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
-            <div className="col-span-2 sm:col-span-1">
+          <div className="p-4 border-b border-sand-100 flex flex-wrap sm:flex-nowrap items-end gap-2 sm:gap-3">
+            <div className="w-[calc(50%-0.25rem)] sm:w-36">
               <label className="block text-[11px] font-medium text-sand-500 mb-1">Date</label>
               <input type="date" value={form.date} max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setForm(f => ({ ...f, date: e.target.value }))}
                 className="w-full px-2.5 py-2 border border-sand-300 rounded-lg text-sm focus:ring-2 focus:ring-terracotta-500 focus:border-transparent" />
             </div>
-            <div>
+            <div className="w-[calc(50%-0.25rem)] sm:w-28">
               <label className="block text-[11px] font-medium text-sand-500 mb-1">Catégorie</label>
               <select value={form.saveur} onChange={(e) => setForm(f => ({ ...f, saveur: e.target.value as Saveur }))}
                 className="w-full px-2.5 py-2 border border-sand-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
@@ -229,21 +229,22 @@ export const SuiviSaveur: React.FC = () => {
                 <option value="sucre">Sucré</option>
               </select>
             </div>
-            <div>
+            <div className="w-[calc(50%-0.25rem)] sm:w-28">
               <label className="block text-[11px] font-medium text-sand-500 mb-1">Montant (F)</label>
               <input type="number" min="0" value={form.montant} placeholder="0"
                 onChange={(e) => setForm(f => ({ ...f, montant: e.target.value }))}
                 className="w-full px-2.5 py-2 border border-sand-300 rounded-lg text-sm text-right tabular-nums focus:ring-2 focus:ring-terracotta-500 focus:border-transparent" />
             </div>
-            <div className="col-span-2 sm:col-span-1 flex items-end gap-2">
+            <div className="flex-1 min-w-[8rem]">
+              <label className="block text-[11px] font-medium text-sand-500 mb-1">Note</label>
               <input type="text" value={form.note} placeholder="Note (facultatif)"
                 onChange={(e) => setForm(f => ({ ...f, note: e.target.value }))}
-                className="flex-1 min-w-0 px-2.5 py-2 border border-sand-300 rounded-lg text-sm focus:ring-2 focus:ring-terracotta-500 focus:border-transparent" />
-              <button onClick={ajouter} disabled={saving}
-                className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-terracotta-600 hover:bg-terracotta-700 text-white shadow-sm disabled:opacity-50" title="Ajouter">
-                <Icon icon={saving ? 'mdi:loading' : 'mdi:plus'} className={`text-lg ${saving ? 'animate-spin' : ''}`} />
-              </button>
+                className="w-full px-2.5 py-2 border border-sand-300 rounded-lg text-sm focus:ring-2 focus:ring-terracotta-500 focus:border-transparent" />
             </div>
+            <button onClick={ajouter} disabled={saving}
+              className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-terracotta-600 hover:bg-terracotta-700 text-white shadow-sm disabled:opacity-50" title="Ajouter">
+              <Icon icon={saving ? 'mdi:loading' : 'mdi:plus'} className={`text-lg ${saving ? 'animate-spin' : ''}`} />
+            </button>
           </div>
 
           {/* Liste des achats */}
