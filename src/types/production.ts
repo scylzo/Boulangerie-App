@@ -11,6 +11,7 @@ export interface Produit {
   prixClient?: number; // Prix avec réduction pour les clients
   prixBoutique?: number; // Prix normal pour la boutique
   categorie?: 'boulangerie' | 'viennoiserie';
+  saveur?: 'sale' | 'sucre'; // Catégorie salé/sucré — suivi des ventes vs coût d'investissement
   imageUrl?: string; // Photo du produit (data URL base64 redimensionnée, ou URL)
   reconduisible?: boolean; // Si true, les invendus peuvent être reconduits le lendemain
   productionQuotidienne?: boolean; // Produit fabriqué tous les jours pour la boutique (rappelé dans le programme)

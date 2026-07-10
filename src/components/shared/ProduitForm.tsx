@@ -27,6 +27,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     prixClient: '' as number | '',
     prixBoutique: '' as number | '',
     categorie: 'boulangerie' as 'boulangerie' | 'viennoiserie',
+    saveur: '' as '' | 'sale' | 'sucre',
     reconduisible: false,
     productionQuotidienne: false,
     defCar1: '' as number | '',
@@ -54,6 +55,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         prixClient: produit.prixClient || '',
         prixBoutique: produit.prixBoutique || '',
         categorie: produit.categorie || 'boulangerie',
+        saveur: produit.saveur || '',
         reconduisible: produit.reconduisible || false,
         productionQuotidienne: produit.productionQuotidienne || false,
         defCar1: produit.quantiteBoutiqueDefautCars?.car1_matin ?? (produit.quantiteBoutiqueDefaut ?? ''),
@@ -124,6 +126,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         prixClient: Number(formData.prixClient) || 0,
         prixBoutique: Number(formData.prixBoutique) || 0,
         categorie: formData.categorie,
+        ...(formData.saveur ? { saveur: formData.saveur } : {}),
         reconduisible: formData.reconduisible,
         productionQuotidienne: formData.productionQuotidienne,
         quantiteBoutiqueDefautCars: formData.productionQuotidienne
@@ -147,6 +150,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           prixClient: '',
           prixBoutique: '',
           categorie: 'boulangerie',
+          saveur: '',
           reconduisible: false,
           productionQuotidienne: false,
           defCar1: '',
@@ -268,6 +272,36 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                   </div>
                 </div>
               </label>
+            </div>
+          </div>
+
+          {/* Catégorie Salé / Sucré (suivi des ventes vs coût) */}
+          <div>
+            <label className="block text-sm font-medium text-sand-700 mb-2">
+              Salé / Sucré <span className="text-sand-400 font-normal">(pour le suivi des ventes)</span>
+            </label>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              {([
+                { val: '', label: 'Aucun', emoji: '—' },
+                { val: 'sale', label: 'Salé', emoji: '🧀' },
+                { val: 'sucre', label: 'Sucré', emoji: '🍩' },
+              ] as { val: '' | 'sale' | 'sucre'; label: string; emoji: string }[]).map((s) => (
+                <label
+                  key={s.val || 'none'}
+                  className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-all ${formData.saveur === s.val ? 'bg-terracotta-50 border-terracotta-200 ring-1 ring-terracotta-500' : 'bg-white border-sand-200 hover:bg-sand-50'}`}
+                >
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    name="saveur"
+                    value={s.val}
+                    checked={formData.saveur === s.val}
+                    onChange={() => setFormData({ ...formData, saveur: s.val })}
+                  />
+                  <span className="text-lg">{s.emoji}</span>
+                  <span className="text-sm font-medium text-sand-900">{s.label}</span>
+                </label>
+              ))}
             </div>
           </div>
 
