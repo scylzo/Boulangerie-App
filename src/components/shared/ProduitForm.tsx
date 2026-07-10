@@ -282,10 +282,10 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
             </label>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {([
-                { val: '', label: 'Aucun', emoji: '—' },
-                { val: 'sale', label: 'Salé', emoji: '🧀' },
-                { val: 'sucre', label: 'Sucré', emoji: '🍩' },
-              ] as { val: '' | 'sale' | 'sucre'; label: string; emoji: string }[]).map((s) => (
+                { val: '', label: 'Aucun', icon: 'mdi:minus-circle-outline' },
+                { val: 'sale', label: 'Salé', icon: 'mdi:cheese' },
+                { val: 'sucre', label: 'Sucré', icon: 'mdi:cupcake' },
+              ] as { val: '' | 'sale' | 'sucre'; label: string; icon: string }[]).map((s) => (
                 <label
                   key={s.val || 'none'}
                   className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-all ${formData.saveur === s.val ? 'bg-terracotta-50 border-terracotta-200 ring-1 ring-terracotta-500' : 'bg-white border-sand-200 hover:bg-sand-50'}`}
@@ -298,7 +298,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                     checked={formData.saveur === s.val}
                     onChange={() => setFormData({ ...formData, saveur: s.val })}
                   />
-                  <span className="text-lg">{s.emoji}</span>
+                  <Icon icon={s.icon} className={`text-lg ${formData.saveur === s.val ? 'text-terracotta-600' : 'text-sand-400'}`} />
                   <span className="text-sm font-medium text-sand-900">{s.label}</span>
                 </label>
               ))}

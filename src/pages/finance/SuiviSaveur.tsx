@@ -8,9 +8,9 @@ import { useSaveurStore, type Saveur } from '../../store/saveurStore';
 import { formatCurrency } from '../../utils/currency';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 
-const SAVEURS: { key: Saveur; label: string; emoji: string; accent: string }[] = [
-  { key: 'sale', label: 'Salé', emoji: '🧀', accent: 'warning' },
-  { key: 'sucre', label: 'Sucré', emoji: '🍩', accent: 'info' },
+const SAVEURS: { key: Saveur; label: string; icon: string }[] = [
+  { key: 'sale', label: 'Salé', icon: 'mdi:cheese' },
+  { key: 'sucre', label: 'Sucré', icon: 'mdi:cupcake' },
 ];
 
 export const SuiviSaveur: React.FC = () => {
@@ -165,7 +165,7 @@ export const SuiviSaveur: React.FC = () => {
             return (
               <div key={s.key} className="bg-white rounded-2xl border border-sand-200 shadow-card overflow-hidden">
                 <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-sand-200 bg-sand-50">
-                  <span className="text-xl">{s.emoji}</span>
+                  <Icon icon={s.icon} className="text-xl text-terracotta-600" />
                   <h2 className="font-display text-base font-semibold text-sand-900">Produits {s.label}s</h2>
                   <span className="ml-auto text-xs text-sand-500 tabular-nums">{ventes.qty} vendu(s)</span>
                 </div>
@@ -254,7 +254,8 @@ export const SuiviSaveur: React.FC = () => {
               {achats.map(a => (
                 <div key={a.id} className="flex items-center gap-3 px-5 py-2.5">
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium shrink-0 ${a.saveur === 'sale' ? 'bg-warning-50 text-warning-700 ring-1 ring-inset ring-warning-100' : 'bg-info-50 text-info-600 ring-1 ring-inset ring-info-100'}`}>
-                    {a.saveur === 'sale' ? '🧀 Salé' : '🍩 Sucré'}
+                    <Icon icon={a.saveur === 'sale' ? 'mdi:cheese' : 'mdi:cupcake'} className="text-sm" />
+                    {a.saveur === 'sale' ? 'Salé' : 'Sucré'}
                   </span>
                   <span className="text-xs text-sand-500 shrink-0 tabular-nums">{new Date(a.date + 'T12:00:00').toLocaleDateString('fr-FR')}</span>
                   <span className="min-w-0 flex-1 text-sm text-sand-600 truncate">{a.note || '—'}</span>
