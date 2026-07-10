@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, addDoc, getDocs, getCountFromServer, query, where, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, getCountFromServer, query, where, orderBy, limit, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export type ModePaiement = 'espece' | 'om' | 'wave';
@@ -99,6 +99,8 @@ interface PosStore {
   getClassementProduits: (joursEnArriere?: number) => Promise<Record<string, number>>;
   /** Ventes POS par produit (quantité nette + valeur) sur une période. */
   getVentesParProduitPeriode: (debut: Date, fin: Date) => Promise<Record<string, { qty: number; valeur: number }>>;
+  /** Date (yyyy-mm-dd) du tout premier ticket POS enregistré, ou null. */
+  getPremiereDateVente: () => Promise<string | null>;
 }
 
 export interface ResumeSession {
@@ -310,6 +312,19 @@ export const usePosStore = create<PosStore>((set, get) => ({
       map[l.produitId] = (map[l.produitId] || 0) + l.quantite; // net (retours en négatif)
     }));
     return map;
+  },
+
+  getPremiereDateVente: async () => {
+    try {
+      const q = query(collection(db, 'pos_tickets'), orderBy('date', 'asc'), limit(1));
+      const snap = await getDocs(q);
+      if (snap.empty) return null;
+      const d = (snap.docs[0].data() as any).date;
+      return typeof d === 'string' ? d : null;
+    } catch (e) {
+      console.error('getPremiereDateVente POS:', e);
+      return null;
+    }
   },
 
   getVentesParProduitPeriode: async (debut: Date, fin: Date) => {

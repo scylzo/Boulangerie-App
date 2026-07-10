@@ -15,8 +15,8 @@ const SAVEURS: { key: Saveur; label: string; icon: string }[] = [
 
 export const SuiviSaveur: React.FC = () => {
   const { produits, chargerProduits } = useReferentielStore();
-  const { getVentesParProduitPeriode } = usePosStore();
-  const { getVentesBoutiqueParProduit } = useBoutiqueStore();
+  const { getVentesParProduitPeriode, getPremiereDateVente } = usePosStore();
+  const { getVentesBoutiqueParProduit, getPremiereDateVenteBoutique } = useBoutiqueStore();
   const { achats, chargerAchats, ajouterAchat, supprimerAchat } = useSaveurStore();
 
   const [periode, setPeriode] = useState(() => {
@@ -38,7 +38,19 @@ export const SuiviSaveur: React.FC = () => {
 
   useEffect(() => { if (produits.length === 0) chargerProduits(); }, [produits.length, chargerProduits]);
 
-  // Premier jour de vente possible = création du plus ancien produit tagué salé/sucré
+  // Vraie première date de vente enregistrée (ticket caisse + vente boutique les plus anciens)
+  const [debutPremiereVente, setDebutPremiereVente] = useState<string | null>(null);
+  useEffect(() => {
+    let annule = false;
+    (async () => {
+      const [dPos, dBout] = await Promise.all([getPremiereDateVente(), getPremiereDateVenteBoutique()]);
+      const candidats = [dPos, dBout].filter((d): d is string => !!d).sort();
+      if (!annule) setDebutPremiereVente(candidats[0] || null);
+    })();
+    return () => { annule = true; };
+  }, [getPremiereDateVente, getPremiereDateVenteBoutique]);
+
+  // Repli : création du plus ancien produit tagué salé/sucré (si aucune vente lue)
   const debutPremierProduit = useMemo(() => {
     // createdAt peut être une Date, un Timestamp Firestore ({toDate/seconds}) ou une chaîne
     const toDate = (v: any): Date | null => {
@@ -57,11 +69,14 @@ export const SuiviSaveur: React.FC = () => {
     return new Date(Math.min(...dates.map(d => d.getTime()))).toISOString().split('T')[0];
   }, [produits]);
 
+  // Date de départ « Depuis le début » : 1re vente réelle, sinon création du 1er produit tagué
+  const debutDepuisLeDebut = debutPremiereVente || debutPremierProduit;
+
   const debutPreset = (k: 'mois' | '3mois' | 'debut'): string => {
     const now = new Date();
     if (k === 'mois') return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
     if (k === '3mois') return new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()).toISOString().split('T')[0];
-    return debutPremierProduit || now.toISOString().split('T')[0];
+    return debutDepuisLeDebut || now.toISOString().split('T')[0];
   };
 
   const appliquerPreset = (k: 'mois' | '3mois' | 'debut') => {
@@ -76,7 +91,7 @@ export const SuiviSaveur: React.FC = () => {
     }
     return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periode, debutPremierProduit]);
+  }, [periode, debutDepuisLeDebut]);
 
   useEffect(() => {
     let annule = false;
@@ -178,7 +193,7 @@ export const SuiviSaveur: React.FC = () => {
                 { k: 'debut', l: 'Depuis le début' },
               ] as { k: 'mois' | '3mois' | 'debut'; l: string }[]).map(p => (
                 <button key={p.k} onClick={() => appliquerPreset(p.k)}
-                  disabled={p.k === 'debut' && !debutPremierProduit}
+                  disabled={p.k === 'debut' && !debutDepuisLeDebut}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${presetActif === p.k ? 'bg-terracotta-600 border-terracotta-600 text-white' : 'bg-white border-sand-200 text-sand-600 hover:bg-sand-50'}`}>
                   {p.l}
                 </button>

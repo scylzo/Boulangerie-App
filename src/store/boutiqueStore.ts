@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, getDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { dateToTimestamp } from '../firebase/collections';
 import type { StockBoutique, EquipeBoutique, VentesBoutique, Produit } from '../types';
@@ -54,6 +54,7 @@ interface BoutiqueStore {
   chargerVentes: (date: Date) => Promise<void>;
   getVentesPeriode: (dateDebut: Date, dateFin: Date) => Promise<number>;
   getVentesBoutiqueParProduit: (dateDebut: Date, dateFin: Date) => Promise<Record<string, { qty: number; valeur: number }>>;
+  getPremiereDateVenteBoutique: () => Promise<string | null>;
 
   // Setters
   setLoading: (loading: boolean) => void;
@@ -1009,6 +1010,23 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
       });
     } catch (e) { console.error('getVentesBoutiqueParProduit:', e); }
     return res;
+  },
+
+  getPremiereDateVenteBoutique: async () => {
+    try {
+      const q = query(collection(db, 'shopSales'), orderBy('date', 'asc'), limit(1));
+      const snap = await getDocs(q);
+      if (snap.empty) return null;
+      const d: any = (snap.docs[0].data() as any).date;
+      const date: Date | null = d?.toDate ? d.toDate() : (typeof d?.seconds === 'number' ? new Date(d.seconds * 1000) : (d ? new Date(d) : null));
+      if (!date || isNaN(date.getTime())) return null;
+      // Format yyyy-mm-dd en local (cohérent avec les autres clés de date)
+      const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), j = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${j}`;
+    } catch (e) {
+      console.error('getPremiereDateVenteBoutique:', e);
+      return null;
+    }
   },
 
   setLoading: (loading: boolean) => set({ isLoading: loading }),
