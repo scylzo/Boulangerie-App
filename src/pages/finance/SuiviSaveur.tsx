@@ -105,9 +105,21 @@ export const SuiviSaveur: React.FC = () => {
     const fin = new Date(periode.fin + 'T23:59:59');
     (async () => {
       const vide: Record<string, { qty: number; valeur: number }> = {};
-      const inclCaisse = source === 'caisse' || source === 'toutes';
-      const inclBoutique = source === 'boutique' || source === 'toutes';
-      const inclLivraison = source === 'livraison' || source === 'toutes';
+      // En mode Boutique « Avancé », shopSales est alimenté depuis la caisse (POS) :
+      // additionner Caisse + Boutique doublerait. « Toutes » prend donc UN SEUL
+      // canal comptoir selon le mode (POS si avancé, boutique si classique) + livraison.
+      const modeBoutique = (typeof localStorage !== 'undefined' && localStorage.getItem('cm.boutique.mode')) || 'classique';
+      const avance = modeBoutique !== 'classique';
+      let inclCaisse: boolean, inclBoutique: boolean, inclLivraison: boolean;
+      if (source === 'toutes') {
+        inclLivraison = true;
+        inclCaisse = avance;      // comptoir = caisse en avancé
+        inclBoutique = !avance;   // comptoir = boutique en classique
+      } else {
+        inclCaisse = source === 'caisse';
+        inclBoutique = source === 'boutique';
+        inclLivraison = source === 'livraison';
+      }
       const [pos, bout, liv] = await Promise.all([
         inclCaisse ? getVentesParProduitPeriode(debut, fin) : Promise.resolve(vide),
         inclBoutique ? getVentesBoutiqueParProduit(debut, fin) : Promise.resolve(vide),
@@ -243,7 +255,7 @@ export const SuiviSaveur: React.FC = () => {
             )}
           </div>
           <p className="text-[11px] text-sand-400">
-            Caisse + Boutique + Livraison (factures). En mode Boutique « Avancé » (boutique = caisse), choisis <b>Caisse</b> ou <b>Boutique</b> seul pour éviter le double comptage. La livraison est une source distincte (pas de doublon).
+            <b>Toutes</b> = comptoir + livraison, <b>sans double comptage</b> : le comptoir est pris depuis la <b>caisse</b> si Boutique est en mode « Avancé », sinon depuis la <b>boutique</b> (car en Avancé, boutique = caisse). Les options <b>Caisse</b> / <b>Boutique</b> / <b>Livraison</b> servent à inspecter une source isolée.
           </p>
         </div>
 
