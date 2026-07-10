@@ -40,10 +40,19 @@ export const SuiviSaveur: React.FC = () => {
 
   // Premier jour de vente possible = création du plus ancien produit tagué salé/sucré
   const debutPremierProduit = useMemo(() => {
+    // createdAt peut être une Date, un Timestamp Firestore ({toDate/seconds}) ou une chaîne
+    const toDate = (v: any): Date | null => {
+      if (!v) return null;
+      if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+      if (typeof v.toDate === 'function') return v.toDate();
+      if (typeof v.seconds === 'number') return new Date(v.seconds * 1000);
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? null : d;
+    };
     const dates = produits
       .filter(p => p.saveur === 'sale' || p.saveur === 'sucre')
-      .map(p => (p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt as any)))
-      .filter(d => !isNaN(d.getTime()));
+      .map(p => toDate(p.createdAt))
+      .filter((d): d is Date => d !== null);
     if (dates.length === 0) return null;
     return new Date(Math.min(...dates.map(d => d.getTime()))).toISOString().split('T')[0];
   }, [produits]);
