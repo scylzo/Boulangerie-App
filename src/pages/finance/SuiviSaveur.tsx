@@ -14,6 +14,22 @@ const SAVEURS: { key: Saveur; label: string; icon: string }[] = [
   { key: 'sucre', label: 'Sucré', icon: 'mdi:cupcake' },
 ];
 
+type VentesMap = Record<string, { qty: number; valeur: number }>;
+
+// Cache mémoire des agrégats de ventes (évite de relire Firestore à chaque
+// bascule de source/période). Clé = type:debut:fin[:payées]. TTL 3 min.
+const _ventesCache = new Map<string, { t: number; data: VentesMap }>();
+const CACHE_TTL = 3 * 60 * 1000;
+async function ventesEnCache(cle: string, charger: () => Promise<VentesMap>): Promise<VentesMap> {
+  const hit = _ventesCache.get(cle);
+  if (hit && Date.now() - hit.t < CACHE_TTL) return hit.data;
+  const data = await charger();
+  _ventesCache.set(cle, { t: Date.now(), data });
+  return data;
+}
+// Cache des premières dates de vente (stables sur une session).
+let _premieresDates: { t: number; val: string | null } | null = null;
+
 export const SuiviSaveur: React.FC = () => {
   const { produits, chargerProduits } = useReferentielStore();
   const { getVentesParProduitPeriode, getPremiereDateVente } = usePosStore();
@@ -46,11 +62,17 @@ export const SuiviSaveur: React.FC = () => {
   useEffect(() => {
     let annule = false;
     (async () => {
+      if (_premieresDates && Date.now() - _premieresDates.t < CACHE_TTL) {
+        if (!annule) setDebutPremiereVente(_premieresDates.val);
+        return;
+      }
       const [dPos, dBout, dLiv] = await Promise.all([
         getPremiereDateVente(), getPremiereDateVenteBoutique(), getPremiereDateVenteLivraison(),
       ]);
       const candidats = [dPos, dBout, dLiv].filter((d): d is string => !!d).sort();
-      if (!annule) setDebutPremiereVente(candidats[0] || null);
+      const val = candidats[0] || null;
+      _premieresDates = { t: Date.now(), val };
+      if (!annule) setDebutPremiereVente(val);
     })();
     return () => { annule = true; };
   }, [getPremiereDateVente, getPremiereDateVenteBoutique, getPremiereDateVenteLivraison]);
@@ -120,10 +142,11 @@ export const SuiviSaveur: React.FC = () => {
         inclBoutique = source === 'boutique';
         inclLivraison = source === 'livraison';
       }
+      const dk = periode.debut, fk = periode.fin;
       const [pos, bout, liv] = await Promise.all([
-        inclCaisse ? getVentesParProduitPeriode(debut, fin) : Promise.resolve(vide),
-        inclBoutique ? getVentesBoutiqueParProduit(debut, fin) : Promise.resolve(vide),
-        inclLivraison ? getVentesFactureParProduit(debut, fin, payeesUniquement) : Promise.resolve(vide),
+        inclCaisse ? ventesEnCache(`pos:${dk}:${fk}`, () => getVentesParProduitPeriode(debut, fin)) : Promise.resolve(vide),
+        inclBoutique ? ventesEnCache(`bout:${dk}:${fk}`, () => getVentesBoutiqueParProduit(debut, fin)) : Promise.resolve(vide),
+        inclLivraison ? ventesEnCache(`liv:${dk}:${fk}:${payeesUniquement}`, () => getVentesFactureParProduit(debut, fin, payeesUniquement)) : Promise.resolve(vide),
       ]);
       const combined: Record<string, { qty: number; valeur: number }> = {};
       [pos, bout, liv].forEach(src => {
