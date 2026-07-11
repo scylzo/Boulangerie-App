@@ -1,53 +1,55 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase/config';
 import { Layout } from './components/layout/Layout';
 import { Login } from './pages/auth/Login';
-import { Dashboard } from './pages/Dashboard';
-import { PointOfSale } from './pages/pos/PointOfSale';
-import { HistoriqueTickets } from './pages/pos/HistoriqueTickets';
-import { ProgrammeProduction } from './pages/production/ProgrammeProduction';
-import { RotationBoulangers } from './pages/production/RotationBoulangers';
-import { VueBoulanger } from './pages/production/VueBoulanger';
-import { PageLivraison } from './pages/livraison/PageLivraison';
-import { SaisieRetours } from './pages/livraison/SaisieRetours';
-import { PageBoutique } from './pages/boutique/PageBoutique';
-import { RapportJournalier } from './pages/rapport/RapportJournalier';
-import { GestionProduits } from './pages/admin/GestionProduits';
-import { GestionClients } from './pages/admin/GestionClients';
-import { GestionLivreurs } from './pages/admin/GestionLivreurs';
-import { GestionUtilisateurs } from './pages/admin/GestionUtilisateurs';
-import { FicheProduit } from './pages/admin/FicheProduit';
-import { GestionFactures } from './pages/facturation/GestionFactures';
-import { GestionStock } from './pages/stock/GestionStock';
-import { GestionDepenses } from './pages/finance/GestionDepenses';
-import { Comptabilite } from './pages/finance/Comptabilite';
-import { SuiviSaveur } from './pages/finance/SuiviSaveur';
-import { SaisieConsommations } from './pages/stock/SaisieConsommations';
-import { CarteKiosques } from './pages/admin/CarteKiosques';
+// Pages chargées à la demande (code-splitting) — allège le bundle initial.
+const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const PointOfSale = lazy(() => import('./pages/pos/PointOfSale').then(m => ({ default: m.PointOfSale })));
+const HistoriqueTickets = lazy(() => import('./pages/pos/HistoriqueTickets').then(m => ({ default: m.HistoriqueTickets })));
+const ProgrammeProduction = lazy(() => import('./pages/production/ProgrammeProduction').then(m => ({ default: m.ProgrammeProduction })));
+const RotationBoulangers = lazy(() => import('./pages/production/RotationBoulangers').then(m => ({ default: m.RotationBoulangers })));
+const VueBoulanger = lazy(() => import('./pages/production/VueBoulanger').then(m => ({ default: m.VueBoulanger })));
+const PageLivraison = lazy(() => import('./pages/livraison/PageLivraison').then(m => ({ default: m.PageLivraison })));
+const SaisieRetours = lazy(() => import('./pages/livraison/SaisieRetours').then(m => ({ default: m.SaisieRetours })));
+const PageBoutique = lazy(() => import('./pages/boutique/PageBoutique').then(m => ({ default: m.PageBoutique })));
+const RapportJournalier = lazy(() => import('./pages/rapport/RapportJournalier').then(m => ({ default: m.RapportJournalier })));
+const GestionProduits = lazy(() => import('./pages/admin/GestionProduits').then(m => ({ default: m.GestionProduits })));
+const GestionClients = lazy(() => import('./pages/admin/GestionClients').then(m => ({ default: m.GestionClients })));
+const GestionLivreurs = lazy(() => import('./pages/admin/GestionLivreurs').then(m => ({ default: m.GestionLivreurs })));
+const GestionUtilisateurs = lazy(() => import('./pages/admin/GestionUtilisateurs').then(m => ({ default: m.GestionUtilisateurs })));
+const FicheProduit = lazy(() => import('./pages/admin/FicheProduit').then(m => ({ default: m.FicheProduit })));
+const GestionFactures = lazy(() => import('./pages/facturation/GestionFactures').then(m => ({ default: m.GestionFactures })));
+const GestionStock = lazy(() => import('./pages/stock/GestionStock').then(m => ({ default: m.GestionStock })));
+const GestionDepenses = lazy(() => import('./pages/finance/GestionDepenses').then(m => ({ default: m.GestionDepenses })));
+const Comptabilite = lazy(() => import('./pages/finance/Comptabilite').then(m => ({ default: m.Comptabilite })));
+const SuiviSaveur = lazy(() => import('./pages/finance/SuiviSaveur').then(m => ({ default: m.SuiviSaveur })));
+const SaisieConsommations = lazy(() => import('./pages/stock/SaisieConsommations').then(m => ({ default: m.SaisieConsommations })));
+const CarteKiosques = lazy(() => import('./pages/admin/CarteKiosques').then(m => ({ default: m.CarteKiosques })));
 import { useAuthStore } from './store';
 import 'leaflet/dist/leaflet.css';
 
 
+const PageLoader: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center bg-sand-50">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-warning-500"></div>
+  </div>
+);
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuthStore();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-sand-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-warning-500"></div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!isAuthenticated) {
     return <Login />;
   }
 
-  return <Layout>{children}</Layout>;
+  return <Layout><Suspense fallback={<PageLoader />}>{children}</Suspense></Layout>;
 };
 
 function App() {
