@@ -101,6 +101,35 @@ interface ProductionStore {
   debugTotaux: () => void;
 }
 
+// Deux dates tombent-elles le même jour calendaire ? (tolère Date, Timestamp, string)
+const memeJour = (a: any, b: any): boolean => {
+  const toD = (v: any): Date | null => {
+    if (!v) return null;
+    if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+    if (typeof v.toDate === 'function') return v.toDate();
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  const da = toD(a), db = toD(b);
+  if (!da || !db) return false;
+  return da.toDateString() === db.toDateString();
+};
+
+/**
+ * Ne garde que les commandes livrées le jour du programme.
+ * Empêche les commandes d'une autre journée (ex: la veille, restées en mémoire
+ * lors d'un changement de date) de polluer le programme et de gonfler les
+ * quantités à produire.
+ */
+const commandesDuJour = (commandes: any[], dateProduction: any): CommandeClient[] => {
+  const gardees = (commandes || []).filter(c => memeJour(c.dateLivraison, dateProduction));
+  const ecartees = (commandes || []).length - gardees.length;
+  if (ecartees > 0) {
+    console.warn(`⚠️ ${ecartees} commande(s) d'une autre journée écartée(s) du programme du ${new Date(dateProduction).toLocaleDateString('fr-FR')}`);
+  }
+  return gardees;
+};
+
 export const useProductionStore = create<ProductionStore>((set, get) => ({
   // État initial
   programmeActuel: null,
@@ -184,13 +213,17 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           })),
         };
 
+        const cmdsJour = commandesDuJour(programmeConverti.commandesClients, programmeConverti.dateProduction);
+        const contamine = cmdsJour.length !== (programmeConverti.commandesClients || []).length;
         set({
-          programmeActuel: programmeConverti,
-          commandesClients: programmeConverti.commandesClients || [],
+          programmeActuel: { ...programmeConverti, commandesClients: cmdsJour },
+          commandesClients: cmdsJour,
           quantitesBoutique: programmeConverti.quantitesBoutique || [],
           isLoading: false
         });
-        console.log('📋 Programme chargé avec', programmeConverti.commandesClients?.length || 0, 'commandes');
+        // Les totaux stockés incluaient les commandes parasites : on les recalcule.
+        if (contamine) get().calculerTotauxParProduit();
+        console.log('📋 Programme chargé avec', cmdsJour.length, 'commandes');
       } else {
         // Aucun programme trouvé, créer un nouveau programme automatiquement pour cette date
         console.log('❌ Aucun programme trouvé, création automatique...');
@@ -235,7 +268,10 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       programListener();
     }
 
-    set({ isLoading: true });
+    // Vider l'état AVANT l'arrivée du snapshot : sinon les commandes de la date
+    // précédente restent en mémoire et peuvent être écrites dans le programme
+    // de la nouvelle date (sauvegarderProgramme sort si programmeActuel est null).
+    set({ isLoading: true, programmeActuel: null, commandesClients: [], quantitesBoutique: [] });
 
     // Configurer le nouveau listener
     const unsubscribe = realTimeListeners.subscribeToProgram(date, (programmes) => {
@@ -262,14 +298,18 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           })),
         };
 
+        const cmdsJour = commandesDuJour(programmeConverti.commandesClients, programmeConverti.dateProduction);
+        const contamine = cmdsJour.length !== (programmeConverti.commandesClients || []).length;
         set({
-          programmeActuel: programmeConverti,
-          commandesClients: programmeConverti.commandesClients || [],
+          programmeActuel: { ...programmeConverti, commandesClients: cmdsJour },
+          commandesClients: cmdsJour,
           quantitesBoutique: programmeConverti.quantitesBoutique || [],
           isLoading: false
         });
+        // Les totaux stockés incluaient les commandes parasites : on les recalcule.
+        if (contamine) get().calculerTotauxParProduit();
 
-        console.log('🔄 Programme synchronisé avec', programmeConverti.commandesClients?.length || 0, 'commandes');
+        console.log('🔄 Programme synchronisé avec', cmdsJour.length, 'commandes');
       } else {
         // Aucun programme trouvé, créer un nouveau programme
         console.log('❌ Aucun programme trouvé via listener, création automatique...');
@@ -319,9 +359,12 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
     set({ isLoading: true });
     try {
+      // Garde-fou : ne jamais persister une commande d'une autre journée
+      const cmdsJour = commandesDuJour(commandesClients, programmeActuel.dateProduction);
+
       const programmeAEnregistrer = {
         ...programmeActuel,
-        commandesClients,
+        commandesClients: cmdsJour,
         quantitesBoutique,
         dateProduction: dateToTimestamp(programmeActuel.dateProduction),
         dateCreation: dateToTimestamp(programmeActuel.dateCreation),

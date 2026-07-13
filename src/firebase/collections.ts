@@ -171,10 +171,10 @@ export const businessQueries = {
 export const realTimeListeners = {
   // Listener pour les programmes de production par date
   subscribeToProgram(date: Date, callback: (programs: any[]) => void) {
-    const dateStart = new Date(date);
-    dateStart.setHours(0, 0, 0, 0);
-    const dateEnd = new Date(date);
-    dateEnd.setHours(23, 59, 59, 999);
+    // Mêmes bornes UTC que getProgrammeByDate : dateProduction est stockée à
+    // minuit UTC (les dates 'YYYY-MM-DD' sont parsées en UTC par new Date()).
+    const dateStart = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0));
+    const dateEnd = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999));
 
     const q = query(
       collectionsRef.productionPrograms,
