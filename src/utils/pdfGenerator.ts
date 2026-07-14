@@ -482,6 +482,16 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
     head: [['Produit', 'Livré', 'Vendu', 'Valeur', 'Retours', 'Taux']],
     body: clientData,
     foot: [['TOTAL', totalClientLivre.toString(), totalClientVendu.toString(), formatCurrencyCompact(totalClientValeur), totalClientInvendus.toString(), '']],
+    // Le TOTAL ne s'imprime qu'à la fin : sinon il est répété sur chaque page
+    // et la suite du tableau passe pour un second tableau complet.
+    showFoot: 'lastPage',
+    didDrawPage: (data) => {
+      if (data.pageNumber > 1) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DÉTAIL LIVRAISONS CLIENTS (suite)', 15, data.settings.margin.top - 3);
+      }
+    },
     theme: 'grid',
     headStyles: { fillColor: colors.client as any, fontSize: 8 },
     footStyles: { fillColor: [243, 244, 246], textColor: colors.text as any, fontStyle: 'bold', fontSize: 8, halign: 'center' },
@@ -530,6 +540,16 @@ export const generateRapportJournalierPDF = async (rapport: RapportJournalier, i
     head: [['Produit', 'En rayon', 'Vendu', 'Valeur', 'Restants', 'Invendus', 'Taux']],
     body: boutiqueData,
     foot: [['TOTAL', totalBoutiqueStock.toString(), totalBoutiqueVendu.toString(), formatCurrencyCompact(totalBoutiqueValeur), totalBoutiqueRestants.toString(), totalBoutiquePertes.toString(), '']],
+    // Le TOTAL ne s'imprime qu'à la fin : sinon il est répété sur chaque page
+    // et la suite du tableau passe pour un second tableau complet.
+    showFoot: 'lastPage',
+    didDrawPage: (data) => {
+      if (data.pageNumber > 1) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DÉTAIL VENTES BOUTIQUE (suite)', 15, data.settings.margin.top - 3);
+      }
+    },
     theme: 'grid',
     headStyles: { fillColor: colors.boutique as any, fontSize: 8 },
     footStyles: { fillColor: [243, 244, 246], textColor: colors.text as any, fontStyle: 'bold', fontSize: 8, halign: 'center' },
