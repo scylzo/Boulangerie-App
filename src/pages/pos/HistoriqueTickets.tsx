@@ -41,8 +41,14 @@ export const HistoriqueTickets: React.FC = () => {
       toast.success(`Ticket n°${ticketASupprimer.numero} supprimé`);
       setTicketASupprimer(null);
       rechargerJour();
-    } catch {
-      toast.error('Erreur lors de la suppression');
+    } catch (e: any) {
+      console.error('Suppression ticket:', e);
+      if (e?.code === 'permission-denied') {
+        // La règle Firestore exige un document users/{uid} avec role == 'admin'
+        toast.error("Suppression refusée : réservée aux administrateurs (votre profil doit avoir le rôle « admin »).");
+      } else {
+        toast.error('Erreur lors de la suppression');
+      }
     } finally {
       setSuppression(false);
     }
