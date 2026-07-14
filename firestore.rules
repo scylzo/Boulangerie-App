@@ -11,10 +11,19 @@ service cloud.firestore {
 
     // Toutes les collections de l'app sont au 1er niveau : on peut conditionner
     // la suppression sur le nom de la collection.
+    // ⚠️ Un seul bloc match : les règles Firestore s'ADDITIONNENT (union). Un
+    // second match /users/{uid} plus strict ne restreindrait rien, car ce
+    // catch-all continuerait d'autoriser. Les exceptions sont donc traitées ici.
     match /{col}/{docId} {
-      // Lecture + écriture (création / mise à jour) : tout utilisateur connecté.
+      // Lecture : tout utilisateur connecté.
       allow read: if request.auth != null;
-      allow create, update: if request.auth != null;
+
+      // ÉCRITURE (création / mise à jour) :
+      //  - users → ADMINS uniquement. Sinon n'importe quel utilisateur connecté
+      //    pourrait éditer son propre profil, se donner role: 'admin', et
+      //    contourner le verrou de suppression ci-dessous.
+      //  - autres collections → tout utilisateur connecté (comportement inchangé).
+      allow create, update: if col == 'users' ? isAdmin() : request.auth != null;
 
       // SUPPRESSION :
       //  - tickets de caisse (pos_tickets) et utilisateurs (users) → ADMINS uniquement (données sensibles) ;
