@@ -9,6 +9,7 @@ import { formaterQuantite } from '../utils/calculations';
 import { ClientPerformanceWidget } from '../components/dashboard/ClientPerformanceWidget';
 import { PeriodeSelector } from '../components/dashboard/PeriodeSelector';
 import { EmptyState, TrendChart, RadialGauge } from '../components/ui';
+import { PageLoader } from '../components/ui/PageLoader';
 
 export const Dashboard: React.FC = () => {
     const { factures, chargerFactures } = useFacturationStore();
@@ -26,16 +27,28 @@ export const Dashboard: React.FC = () => {
         return new Date().toISOString().split('T')[0];
     });
 
+    // Tant que les données ne sont pas chargées, on garde le loader (sinon la
+    // page s'affiche vide et l'utilisateur croit à un bug).
+    const [chargement, setChargement] = useState(true);
+
     useEffect(() => {
+        let annule = false;
         const init = async () => {
-            await Promise.all([
-                chargerFactures(),
-                chargerStock(),
-                chargerProgramme(new Date()),
-                chargerClients()
-            ]);
+            try {
+                await Promise.all([
+                    chargerFactures(),
+                    chargerStock(),
+                    chargerProgramme(new Date()),
+                    chargerClients()
+                ]);
+            } catch (e) {
+                console.error('Erreur chargement Dashboard:', e);
+            } finally {
+                if (!annule) setChargement(false);
+            }
         };
         init();
+        return () => { annule = true; };
     }, []);
 
     // Stats Facturation
@@ -134,6 +147,10 @@ export const Dashboard: React.FC = () => {
         }
         return days;
     }, [factures]);
+
+    if (chargement) {
+        return <PageLoader message="Chargement des données…" />;
+    }
 
     return (
         <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 pb-20 bg-sand-100 min-h-screen overflow-x-hidden">

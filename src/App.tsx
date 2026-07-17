@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase/config';
 import { Layout } from './components/layout/Layout';
 import { Login } from './pages/auth/Login';
+import { PageLoader } from './components/ui/PageLoader';
 // Pages chargées à la demande (code-splitting) — allège le bundle initial.
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const PointOfSale = lazy(() => import('./pages/pos/PointOfSale').then(m => ({ default: m.PointOfSale })));
@@ -31,12 +32,6 @@ const CarteKiosques = lazy(() => import('./pages/admin/CarteKiosques').then(m =>
 import { useAuthStore } from './store';
 import 'leaflet/dist/leaflet.css';
 
-
-const PageLoader: React.FC = () => (
-  <div className="min-h-screen flex items-center justify-center bg-sand-50">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-warning-500"></div>
-  </div>
-);
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuthStore();
