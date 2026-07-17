@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
+import { PageLoader } from '../../components/ui/PageLoader';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { FactureDetailsModal } from '../../components/factures/FactureDetailsModal';
 import { PaymentModal } from '../../components/factures/PaymentModal';
@@ -133,6 +134,10 @@ export const GestionFactures: React.FC = () => {
 
 
   // Initialisation
+  // Loader plein écran au premier chargement (les changements de mois gardent
+  // l'indicateur inline isLoading).
+  const [chargementInitial, setChargementInitial] = useState(true);
+
   useEffect(() => {
     const initialiser = async () => {
       try {
@@ -143,6 +148,8 @@ export const GestionFactures: React.FC = () => {
         await chargerClients(); // Charger les clients
       } catch (error) {
         console.error('Erreur lors de l\'initialisation:', error);
+      } finally {
+        setChargementInitial(false);
       }
     };
     initialiser();
@@ -1081,6 +1088,10 @@ export const GestionFactures: React.FC = () => {
     );
   };
 
+
+  if (chargementInitial) {
+    return <PageLoader message="Chargement des factures…" />;
+  }
 
   return (
     <div className="min-h-screen bg-sand-100 overflow-x-hidden">

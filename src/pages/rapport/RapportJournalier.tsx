@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
+import { PageLoader } from '../../components/ui/PageLoader';
 import { useRapportStore } from '../../store';
 import { usePosStore, periodeTicket, HEURE_BASCULE_MATIN_SOIR, type TicketPOS } from '../../store/posStore';
 import { downloadRapportJournalierPDF } from '../../utils/pdfGenerator';
@@ -55,9 +56,14 @@ export const RapportJournalier: React.FC = () => {
   };
 
 
+  // Loader plein écran au premier chargement (les changements de date gardent
+  // l'indicateur inline isLoading).
+  const [chargementInitial, setChargementInitial] = useState(true);
+
   useEffect(() => {
     // Charger le rapport existant si disponible
-    chargerRapport(new Date(dateSelectionnee));
+    Promise.resolve(chargerRapport(new Date(dateSelectionnee)))
+      .finally(() => setChargementInitial(false));
   }, [dateSelectionnee, chargerRapport]);
 
   // Charger les ventes caisse (POS) du jour sélectionné
@@ -87,6 +93,10 @@ export const RapportJournalier: React.FC = () => {
     if (taux >= 75) return 'bg-warning-100 text-warning-600';
     return 'bg-danger-100 text-danger-700';
   };
+
+  if (chargementInitial) {
+    return <PageLoader message="Chargement du rapport…" />;
+  }
 
   return (
     <div className="min-h-screen bg-sand-100">

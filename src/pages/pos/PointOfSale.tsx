@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { PageLoader } from '../../components/ui/PageLoader';
 import { Modal } from '../../components/ui/Modal';
 import { useReferentielStore } from '../../store/referentielStore';
 import { usePosStore, type SessionPOS, type ResumeSession } from '../../store/posStore';
@@ -64,9 +65,12 @@ export const PointOfSale: React.FC = () => {
 
   const vendeur = sessionActive?.ouvertePar || '';
 
+  // Loader plein écran tant que produits + session ne sont pas chargés.
+  const [chargementInitial, setChargementInitial] = useState(true);
+
   useEffect(() => {
-    chargerProduits();
-    chargerSessionActive().finally(() => setSessionChecked(true));
+    Promise.all([chargerProduits(), chargerSessionActive()])
+      .finally(() => { setSessionChecked(true); setChargementInitial(false); });
   }, [chargerProduits, chargerSessionActive]);
 
   // Classement produits : mis en cache 6 h (évite de relire ~30 j de tickets à chaque ouverture)
@@ -214,6 +218,10 @@ export const PointOfSale: React.FC = () => {
   };
 
   const montantsRapides = [1000, 2000, 5000, 10000];
+
+  if (chargementInitial) {
+    return <PageLoader message="Chargement de la caisse…" />;
+  }
 
   return (
     <div className="flex flex-col lg:flex-row gap-3 h-[calc(100vh-6rem)]">

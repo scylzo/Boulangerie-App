@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
+import { PageLoader } from '../../components/ui/PageLoader';
 import toast from 'react-hot-toast';
 
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
@@ -123,6 +124,13 @@ export const ProgrammeProduction: React.FC = () => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [rafraichirDonnees]);
+
+  // Loader plein écran au premier chargement, jusqu'à l'arrivée du 1er snapshot
+  // du programme (le listener met programmeActuel à null pendant le chargement).
+  const [chargementInitial, setChargementInitial] = useState(true);
+  useEffect(() => {
+    if (programmeActuel && chargementInitial) setChargementInitial(false);
+  }, [programmeActuel, chargementInitial]);
 
   // Fonction pour changer de date
   const handleDateChange = (nouvelleDate: string) => {
@@ -501,6 +509,10 @@ export const ProgrammeProduction: React.FC = () => {
     }
   };
 
+
+  if (chargementInitial) {
+    return <PageLoader message="Chargement du programme…" />;
+  }
 
   return (
     <div className="min-h-screen bg-sand-100 overflow-x-hidden">

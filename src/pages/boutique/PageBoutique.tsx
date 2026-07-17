@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import { useBoutiqueStore } from '../../store';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { RepartitionInvendusModal } from '../../components/boutique/RepartitionInvendusModal';
+import { PageLoader } from '../../components/ui/PageLoader';
 
 export const PageBoutique: React.FC = () => {
   const {
@@ -47,6 +48,10 @@ export const PageBoutique: React.FC = () => {
     localStorage.setItem('cm.boutique.mode', m);
     setMode(m);
   };
+
+  // Loader plein écran au premier chargement (les changements de date gardent
+  // l'indicateur inline isLoading de la page).
+  const [chargementInitial, setChargementInitial] = useState(true);
 
   const [vendeuseMatin, setVendeuseMatin] = useState(() => localStorage.getItem('cm.pos.vendeur') || '');
   const [vendeuseSoir, setVendeuseSoir] = useState(() => localStorage.getItem('cm.pos.vendeur') || '');
@@ -124,6 +129,8 @@ export const PageBoutique: React.FC = () => {
         console.log('✅ Toutes les données chargées');
       } catch (error) {
         console.error('❌ Erreur lors du chargement automatique:', error);
+      } finally {
+        setChargementInitial(false);
       }
     };
 
@@ -152,6 +159,10 @@ export const PageBoutique: React.FC = () => {
     if (name.includes('viennoiserie')) return 'mdi:pretzel';
     return 'mdi:food-variant';
   };
+
+  if (chargementInitial) {
+    return <PageLoader message="Chargement de la boutique…" />;
+  }
 
   return (
     <div className="min-h-screen bg-sand-100 overflow-x-hidden">

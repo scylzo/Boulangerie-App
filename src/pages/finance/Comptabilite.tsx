@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PageLoader } from '../../components/ui/PageLoader';
 import { useStockStore } from '../../store/stockStore';
 import { useDepenseStore } from '../../store/depenseStore';
 import { useFacturationStore } from '../../store/facturationStore';
@@ -71,9 +72,13 @@ export const Comptabilite: React.FC = () => {
     const { clients, chargerClients } = useReferentielStore();
     const { chargerDonnees: chargerStock, mouvements, matieres } = useStockStore();
 
+    // Loader plein écran uniquement au premier chargement (les changements de
+    // période gardent l'indicateur inline stats.loading).
+    const [chargementInitial, setChargementInitial] = useState(true);
+
     // Charger les données au montage et quand la période change
     useEffect(() => {
-        chargerDonnees();
+        chargerDonnees().finally(() => setChargementInitial(false));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [periode.debut, periode.fin]);
 
@@ -503,6 +508,10 @@ export const Comptabilite: React.FC = () => {
 
         doc.save(`Rapport_Financier_${periode.debut}_${periode.fin}.pdf`);
     };
+
+    if (chargementInitial) {
+        return <PageLoader message="Chargement de la comptabilité…" />;
+    }
 
     return (
         <div className="min-h-screen bg-sand-100 overflow-x-hidden">
