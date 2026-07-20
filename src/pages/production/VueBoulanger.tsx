@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useProductionStore } from '../../store';
+import { useLivreurStore } from '../../store/livreurStore';
 import { htmlPrintService } from '../../services/htmlPrintService';
 
 const printStyles = `
@@ -105,16 +106,19 @@ const printStyles = `
 
 
 export const VueBoulanger: React.FC = () => {
-  const { programmeActuel, chargerProgramme, chargerProduits, produits, setQuantiteProduite } = useProductionStore();
+  const { programmeActuel, chargerProgramme, chargerProduits, produits, setQuantiteProduite, clients, chargerClients } = useProductionStore();
+  const { livreurs, chargerLivreurs } = useLivreurStore();
   const [dateSelectionnee, setDateSelectionnee] = useState(new Date().toISOString().split('T')[0]);
 
   // Chargement initial des données
   useEffect(() => {
     const initialiser = async () => {
       await chargerProduits();
+      await chargerClients();
+      await chargerLivreurs();
     };
     initialiser();
-  }, [chargerProduits]);
+  }, [chargerProduits, chargerClients, chargerLivreurs]);
 
   // Calculer les répartitions clients uniquement (sans boutique)
   const calculerRepartitionsClients = () => {
@@ -154,6 +158,88 @@ export const VueBoulanger: React.FC = () => {
 
   const repartitionsClients = calculerRepartitionsClients();
 
+  // Calculer la répartition par livreur (et boutique)
+  const calculerDispatchParLivreur = () => {
+    const dispatch: Record<string, {
+      nom: string;
+      car1_matin: Record<string, number>;
+      car2_matin: Record<string, number>;
+      car_soir: Record<string, number>;
+    }> = {};
+
+    // 1. Clients
+    if (programmeActuel?.commandesClients) {
+      programmeActuel.commandesClients
+        .filter(commande => commande.statut !== 'annulee')
+        .forEach(commande => {
+          const clientObj = clients.find(c => c.id === commande.clientId);
+          commande.produits.forEach(item => {
+            const repartition = item.repartitionCars || { car1_matin: 0, car2_matin: 0, car_soir: 0 };
+            const cars: ('car1_matin' | 'car2_matin' | 'car_soir')[] = ['car1_matin', 'car2_matin', 'car_soir'];
+            
+            cars.forEach(car => {
+              const qty = Number(repartition[car]) || 0;
+              if (qty > 0) {
+                const livreurId = clientObj?.livreursParCar?.[car] || clientObj?.livreurId || 'non-assigne';
+                let livreurNom = 'Non assigné';
+                if (livreurId !== 'non-assigne') {
+                  const l = livreurs.find(drv => drv.id === livreurId);
+                  livreurNom = l ? l.nom : `Livreur Inconnu`;
+                }
+                
+                if (!dispatch[livreurId]) {
+                  dispatch[livreurId] = {
+                    nom: livreurNom,
+                    car1_matin: {},
+                    car2_matin: {},
+                    car_soir: {}
+                  };
+                }
+                
+                const currentQty = dispatch[livreurId][car][item.produitId] || 0;
+                dispatch[livreurId][car][item.produitId] = currentQty + qty;
+              }
+            });
+          });
+        });
+    }
+
+    // 2. Boutique
+    if (programmeActuel?.quantitesBoutique && programmeActuel.quantitesBoutique.length > 0) {
+      const boutiqueId = 'boutique-directe';
+      dispatch[boutiqueId] = {
+        nom: 'Boutique (Vente Directe)',
+        car1_matin: {},
+        car2_matin: {},
+        car_soir: {}
+      };
+
+      programmeActuel.quantitesBoutique.forEach(q => {
+        const repartition = q.repartitionCars || { car1_matin: 0, car2_matin: 0, car_soir: 0 };
+        const cars: ('car1_matin' | 'car2_matin' | 'car_soir')[] = ['car1_matin', 'car2_matin', 'car_soir'];
+        
+        cars.forEach(car => {
+          const qty = Number(repartition[car]) || 0;
+          if (qty > 0) {
+            dispatch[boutiqueId][car][q.produitId] = qty;
+          }
+        });
+      });
+
+      // Si aucune quantité dans la boutique, on l'enlève
+      const totalBoutiqueQty = Object.values(dispatch[boutiqueId].car1_matin).reduce((a, b) => a + b, 0) +
+                               Object.values(dispatch[boutiqueId].car2_matin).reduce((a, b) => a + b, 0) +
+                               Object.values(dispatch[boutiqueId].car_soir).reduce((a, b) => a + b, 0);
+      if (totalBoutiqueQty === 0) {
+        delete dispatch[boutiqueId];
+      }
+    }
+
+    return dispatch;
+  };
+
+  const dispatchParLivreur = calculerDispatchParLivreur();
+
   // Fonction pour générer le document HTML d'impression
   const handleGenerateHTML = () => {
     console.log('🖨️ Bouton impression cliqué');
@@ -163,7 +249,7 @@ export const VueBoulanger: React.FC = () => {
     if (programmeActuel && produits) {
       console.log('✅ Génération du rapport HTML...');
       try {
-        htmlPrintService.generateProductionReportHTML(programmeActuel, produits);
+        htmlPrintService.generateProductionReportHTML(programmeActuel, produits, livreurs, clients);
         console.log('✅ Rapport généré avec succès');
       } catch (error) {
         console.error('❌ Erreur lors de la génération:', error);
@@ -842,6 +928,118 @@ export const VueBoulanger: React.FC = () => {
                 })}
               </div>
             </section>
+
+            {/* Section Dispatching par Livreur (Clients + Boutique) */}
+            {Object.keys(dispatchParLivreur).length > 0 && (
+              <section className="pt-8 border-t border-sand-200" data-section="recap-livreurs">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-full bg-terracotta-100 flex items-center justify-center">
+                    <Icon icon="mdi:account-badge-outline" className="text-xl text-terracotta-600" />
+                  </div>
+                  <h2 className="font-display text-2xl font-semibold text-sand-800">Dispatching par Livreur / Boutique</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4">
+                  {Object.entries(dispatchParLivreur).map(([livreurId, dispatchL]) => {
+                    const hasCar1 = Object.keys(dispatchL.car1_matin).length > 0;
+                    const hasCar2 = Object.keys(dispatchL.car2_matin).length > 0;
+                    const hasSoir = Object.keys(dispatchL.car_soir).length > 0;
+
+                    // Liste de tous les produits uniques pour ce livreur
+                    const tousProduitsIds = Array.from(new Set([
+                      ...Object.keys(dispatchL.car1_matin),
+                      ...Object.keys(dispatchL.car2_matin),
+                      ...Object.keys(dispatchL.car_soir)
+                    ]));
+
+                    return (
+                      <div key={livreurId} className="bg-white border border-sand-200 rounded-xl shadow-sm overflow-hidden print:border print:border-black print:shadow-none print:rounded-none flex flex-col h-full">
+                        <div className="bg-sand-50 p-3 border-b border-sand-200 print:bg-sand-100 print:border-black">
+                          <h3 className="text-base font-semibold text-sand-900 text-center uppercase tracking-wide">
+                            {dispatchL.nom}
+                          </h3>
+                        </div>
+
+                        <div className="p-0 flex-1">
+                          <table className="w-full text-xs">
+                            <thead className="bg-white border-b border-sand-200">
+                              <tr>
+                                <th className="px-3 py-2 text-left font-semibold text-sand-600 print:text-black">Produit</th>
+                                {hasCar1 && <th className="px-2 py-2 text-right font-semibold text-sand-600 print:text-black">C1M</th>}
+                                {hasCar2 && <th className="px-2 py-2 text-right font-semibold text-sand-600 print:text-black">C2M</th>}
+                                {hasSoir && <th className="px-2 py-2 text-right font-semibold text-sand-600 print:text-black">Soir</th>}
+                                <th className="px-3 py-2 text-right font-semibold text-sand-600 print:text-black">Total</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-sand-100">
+                              {tousProduitsIds.map((pId) => {
+                                const produit = produits?.find(p => p.id === pId);
+                                const q1 = dispatchL.car1_matin[pId] || 0;
+                                const q2 = dispatchL.car2_matin[pId] || 0;
+                                const qs = dispatchL.car_soir[pId] || 0;
+                                const totalRow = q1 + q2 + qs;
+
+                                return (
+                                  <tr key={pId} className="hover:bg-sand-50/50">
+                                    <td className="px-3 py-2 text-sand-800 font-medium uppercase truncate max-w-[120px]" title={produit?.nom}>
+                                      {produit?.nom || 'Inconnu'}
+                                    </td>
+                                    {hasCar1 && (
+                                      <td className={`px-2 py-2 text-right ${q1 > 0 ? 'text-sand-900 font-semibold' : 'text-sand-300'}`}>
+                                        {q1 > 0 ? q1 : '-'}
+                                      </td>
+                                    )}
+                                    {hasCar2 && (
+                                      <td className={`px-2 py-2 text-right ${q2 > 0 ? 'text-sand-900 font-semibold' : 'text-sand-300'}`}>
+                                        {q2 > 0 ? q2 : '-'}
+                                      </td>
+                                    )}
+                                    {hasSoir && (
+                                      <td className={`px-2 py-2 text-right ${qs > 0 ? 'text-sand-900 font-semibold' : 'text-sand-300'}`}>
+                                        {qs > 0 ? qs : '-'}
+                                      </td>
+                                    )}
+                                    <td className="px-3 py-2 text-right font-semibold text-sand-900 text-sm">
+                                      {totalRow}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                              <tr className="bg-sand-50 border-t-2 border-sand-200 font-semibold print:border-black print:bg-sand-100">
+                                <td className="px-3 py-2.5 text-left text-sand-900 uppercase text-[10px]">Total</td>
+                                {hasCar1 && (
+                                  <td className="px-2 py-2.5 text-right text-sand-900">
+                                    {Object.values(dispatchL.car1_matin).reduce((a, b) => a + b, 0)}
+                                  </td>
+                                )}
+                                {hasCar2 && (
+                                  <td className="px-2 py-2.5 text-right text-sand-900">
+                                    {Object.values(dispatchL.car2_matin).reduce((a, b) => a + b, 0)}
+                                  </td>
+                                )}
+                                {hasSoir && (
+                                  <td className="px-2 py-2.5 text-right text-sand-900">
+                                    {Object.values(dispatchL.car_soir).reduce((a, b) => a + b, 0)}
+                                  </td>
+                                )}
+                                <td className="px-3 py-2.5 text-right text-sand-900 text-sm">
+                                  {tousProduitsIds.reduce((sum, pId) => {
+                                    const q1 = dispatchL.car1_matin[pId] || 0;
+                                    const q2 = dispatchL.car2_matin[pId] || 0;
+                                    const qs = dispatchL.car_soir[pId] || 0;
+                                    return sum + q1 + q2 + qs;
+                                  }, 0)}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
             {!Array.from(repartitionsClients.entries()).some(([_, repartition]) =>
               (repartition.car1Matin + repartition.car2Matin + repartition.carSoir) > 0) &&

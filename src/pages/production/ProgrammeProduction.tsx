@@ -480,7 +480,7 @@ export const ProgrammeProduction: React.FC = () => {
   const handleTelechargerRapport = async () => {
     if (!programmeActuel) return;
     try {
-      await downloadProductionProgramPDF(programmeActuel);
+      await downloadProductionProgramPDF(programmeActuel, livreurs, clients);
       toast.success('📄 Rapport de production généré !');
     } catch (error) {
       toast.error('❌ Erreur lors de la génération du rapport');

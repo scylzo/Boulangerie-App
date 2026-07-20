@@ -743,7 +743,9 @@ export class HTMLPrintService {
 
   generateProductionReportHTML(
     programme: ProgrammeProduction,
-    produits: Produit[]
+    produits: Produit[],
+    livreurs: Livreur[] = [],
+    clients: Client[] = []
   ): void {
     // Calcul des répartitions clients uniquement (sans boutique)
     const calculerRepartitionsClients = () => {
@@ -1316,6 +1318,163 @@ export class HTMLPrintService {
        `;
     }
     // --- FIN NOUVELLE SECTION ---
+
+    // --- DEBUT NOUVELLE SECTION DISPATCHING PAR LIVREUR ---
+    // Calcul des totaux par livreur
+    const dispatchParLivreur = new Map<string, {
+      nom: string;
+      car1_matin: Map<string, number>;
+      car2_matin: Map<string, number>;
+      car_soir: Map<string, number>;
+    }>();
+
+    // 1. Ajouter les quantités Clients
+    if (programme?.commandesClients) {
+      programme.commandesClients
+        .filter(commande => commande.statut !== 'annulee')
+        .forEach(commande => {
+          const clientObj = clients.find(c => c.id === commande.clientId);
+          commande.produits.forEach(item => {
+            const repartition = item.repartitionCars || { car1_matin: 0, car2_matin: 0, car_soir: 0 };
+            const cars: ('car1_matin' | 'car2_matin' | 'car_soir')[] = ['car1_matin', 'car2_matin', 'car_soir'];
+            
+            cars.forEach(car => {
+              const qty = Number(repartition[car]) || 0;
+              if (qty > 0) {
+                const livreurId = clientObj?.livreursParCar?.[car] || clientObj?.livreurId || 'non-assigne';
+                let livreurNom = 'Non assigné';
+                if (livreurId !== 'non-assigne') {
+                  const l = livreurs.find(drv => drv.id === livreurId);
+                  livreurNom = l ? l.nom : `Livreur Inconnu`;
+                }
+
+                if (!dispatchParLivreur.has(livreurId)) {
+                  dispatchParLivreur.set(livreurId, {
+                    nom: livreurNom,
+                    car1_matin: new Map(),
+                    car2_matin: new Map(),
+                    car_soir: new Map()
+                  });
+                }
+
+                const d = dispatchParLivreur.get(livreurId)!;
+                const mapCar = car === 'car1_matin' ? d.car1_matin : (car === 'car2_matin' ? d.car2_matin : d.car_soir);
+                mapCar.set(item.produitId, (mapCar.get(item.produitId) || 0) + qty);
+              }
+            });
+          });
+        });
+    }
+
+    // 2. Ajouter les quantités Boutique
+    if (programme?.quantitesBoutique && programme.quantitesBoutique.length > 0) {
+      const boutiqueId = 'boutique-directe';
+      dispatchParLivreur.set(boutiqueId, {
+        nom: 'Boutique (Vente Directe)',
+        car1_matin: new Map(),
+        car2_matin: new Map(),
+        car_soir: new Map()
+      });
+
+      const d = dispatchParLivreur.get(boutiqueId)!;
+      programme.quantitesBoutique.forEach(q => {
+        const repartition = q.repartitionCars || { car1_matin: 0, car2_matin: 0, car_soir: 0 };
+        if (repartition.car1_matin > 0) d.car1_matin.set(q.produitId, repartition.car1_matin);
+        if (repartition.car2_matin > 0) d.car2_matin.set(q.produitId, repartition.car2_matin);
+        if (repartition.car_soir > 0) d.car_soir.set(q.produitId, repartition.car_soir);
+      });
+
+      // Si aucune quantité dans la boutique, on l'enlève
+      const totalBoutiqueQty = Array.from(d.car1_matin.values()).reduce((a, b) => a + b, 0) +
+                               Array.from(d.car2_matin.values()).reduce((a, b) => a + b, 0) +
+                               Array.from(d.car_soir.values()).reduce((a, b) => a + b, 0);
+      if (totalBoutiqueQty === 0) {
+        dispatchParLivreur.delete(boutiqueId);
+      }
+    }
+
+    if (dispatchParLivreur.size > 0) {
+      html += `
+          <div class="section" style="margin-top: 15px; padding-top: 8px; border-top: 1px solid #d1d5db; page-break-before: auto;">
+            <div class="section-header" style="background: #111827; color: white; border-left: none; padding: 4px;">
+               <h2 style="color: white; justify-content: center; font-size: 11px; text-align: center;">🚚 Dispatching par Livreur / Boutique</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 8px;">
+      `;
+
+      dispatchParLivreur.forEach((dataL, _livreurId) => {
+        const hasCar1 = dataL.car1_matin.size > 0;
+        const hasCar2 = dataL.car2_matin.size > 0;
+        const hasSoir = dataL.car_soir.size > 0;
+        const tousProduitsIds = Array.from(new Set([
+          ...Array.from(dataL.car1_matin.keys()),
+          ...Array.from(dataL.car2_matin.keys()),
+          ...Array.from(dataL.car_soir.keys())
+        ]));
+
+        html += `
+            <div style="border: 1px solid #000; border-radius: 4px; overflow: hidden; background: white; page-break-inside: avoid; display: flex; flex-direction: column;">
+               <div style="background: #f3f4f6; padding: 4px; text-align: center; border-bottom: 1px solid #000;">
+                 <h3 style="font-size: 9px; font-weight: 700; color: #000; margin: 0; text-transform: uppercase;">${dataL.nom}</h3>
+               </div>
+               <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+                 <thead>
+                   <tr style="background: #eee; border-bottom: 1px solid #000;">
+                     <th style="padding: 2px; text-align: left; font-size: 7.5px; border: none; background: #eee;">Produit</th>
+                     ${hasCar1 ? `<th style="padding: 2px; text-align: center; font-size: 7.5px; width: 15%; border: none; background: #eee;">C1M</th>` : ''}
+                     ${hasCar2 ? `<th style="padding: 2px; text-align: center; font-size: 7.5px; width: 15%; border: none; background: #eee;">C2M</th>` : ''}
+                     ${hasSoir ? `<th style="padding: 2px; text-align: center; font-size: 7.5px; width: 15%; border: none; background: #eee;">Soir</th>` : ''}
+                     <th style="padding: 2px; text-align: right; font-size: 7.5px; width: 18%; border: none; background: #eee;">Total</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+        `;
+
+        tousProduitsIds.forEach(pId => {
+          const produit = produits.find(p => p.id === pId);
+          const q1 = dataL.car1_matin.get(pId) || 0;
+          const q2 = dataL.car2_matin.get(pId) || 0;
+          const qs = dataL.car_soir.get(pId) || 0;
+          const totalRow = q1 + q2 + qs;
+
+          html += `
+                  <tr style="border-bottom: 1px solid #f3f4f6;">
+                    <td style="padding: 3px 2px; color: #000; text-transform: uppercase; border: none;"><strong>${produit?.nom || 'Inconnu'}</strong></td>
+                    ${hasCar1 ? `<td style="padding: 3px 2px; text-align: center; font-weight: ${q1 > 0 ? '700' : 'normal'}; color: ${q1 > 0 ? '#000' : '#ccc'}; border: none;">${q1 > 0 ? q1 : '-'}</td>` : ''}
+                    ${hasCar2 ? `<td style="padding: 3px 2px; text-align: center; font-weight: ${q2 > 0 ? '700' : 'normal'}; color: ${q2 > 0 ? '#000' : '#ccc'}; border: none;">${q2 > 0 ? q2 : '-'}</td>` : ''}
+                    ${hasSoir ? `<td style="padding: 3px 2px; text-align: center; font-weight: ${qs > 0 ? '700' : 'normal'}; color: ${qs > 0 ? '#000' : '#ccc'}; border: none;">${qs > 0 ? qs : '-'}</td>` : ''}
+                    <td style="padding: 3px 2px; text-align: right; font-weight: 700; border: none;">${totalRow}</td>
+                  </tr>
+          `;
+        });
+
+        // Totaux
+        const totalC1 = Array.from(dataL.car1_matin.values()).reduce((a, b) => a + b, 0);
+        const totalC2 = Array.from(dataL.car2_matin.values()).reduce((a, b) => a + b, 0);
+        const totalCS = Array.from(dataL.car_soir.values()).reduce((a, b) => a + b, 0);
+        const totalG = totalC1 + totalC2 + totalCS;
+
+        html += `
+                  <tr style="background: #f9f9f9; font-weight: 700; border-top: 1px solid #000;">
+                    <td style="padding: 4px 2px; text-transform: uppercase; border: none;">Total</td>
+                    ${hasCar1 ? `<td style="padding: 4px 2px; text-align: center; border: none;">${totalC1}</td>` : ''}
+                    ${hasCar2 ? `<td style="padding: 4px 2px; text-align: center; border: none;">${totalC2}</td>` : ''}
+                    ${hasSoir ? `<td style="padding: 4px 2px; text-align: center; border: none;">${totalCS}</td>` : ''}
+                    <td style="padding: 4px 2px; text-align: right; font-size: 9px; border: none;">${totalG}</td>
+                  </tr>
+                 </tbody>
+               </table>
+            </div>
+        `;
+      });
+
+      html += `
+            </div>
+          </div>
+      `;
+    }
+    // --- FIN NOUVELLE SECTION DISPATCHING ---
 
     const currentDate = new Date();
     html += `

@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Facture, RapportJournalier, IndicateursPerformance, ProgrammeProduction, Client } from '../types';
+import type { Facture, RapportJournalier, IndicateursPerformance, ProgrammeProduction, Client, Livreur } from '../types';
 import { formatCurrencyCompact } from './currency';
 import logoUrl from '../assets/logo.png';
 
@@ -706,7 +706,11 @@ export const downloadRapportJournalierPDF = async (rapport: RapportJournalier, i
   }
 };
 
-export const generateProductionProgramPDF = async (programme: ProgrammeProduction) => {
+export const generateProductionProgramPDF = async (
+  programme: ProgrammeProduction,
+  livreurs: Livreur[] = [],
+  clients: Client[] = []
+) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const colors = {
@@ -826,6 +830,170 @@ export const generateProductionProgramPDF = async (programme: ProgrammeProductio
     margin: { left: 15, right: 15 }
   });
 
+  // --- NOUVELLE SECTION DISPATCHING PAR LIVREUR ---
+  // Calcul des totaux par livreur
+  const dispatchParLivreur = new Map<string, {
+    nom: string;
+    car1_matin: Map<string, number>;
+    car2_matin: Map<string, number>;
+    car_soir: Map<string, number>;
+  }>();
+
+  // 1. Ajouter les quantités Clients
+  if (programme?.commandesClients) {
+    programme.commandesClients
+      .filter(commande => commande.statut !== 'annulee')
+      .forEach(commande => {
+        const clientObj = clients.find(c => c.id === commande.clientId);
+        commande.produits.forEach(item => {
+          const repartition = item.repartitionCars || { car1_matin: 0, car2_matin: 0, car_soir: 0 };
+          const cars: ('car1_matin' | 'car2_matin' | 'car_soir')[] = ['car1_matin', 'car2_matin', 'car_soir'];
+          
+          cars.forEach(car => {
+            const qty = Number(repartition[car]) || 0;
+            if (qty > 0) {
+              const livreurId = clientObj?.livreursParCar?.[car] || clientObj?.livreurId || 'non-assigne';
+              let livreurNom = 'Non assigné';
+              if (livreurId !== 'non-assigne') {
+                const l = livreurs.find(drv => drv.id === livreurId);
+                livreurNom = l ? l.nom : `Livreur Inconnu`;
+              }
+
+              if (!dispatchParLivreur.has(livreurId)) {
+                dispatchParLivreur.set(livreurId, {
+                  nom: livreurNom,
+                  car1_matin: new Map(),
+                  car2_matin: new Map(),
+                  car_soir: new Map()
+                });
+              }
+
+              const d = dispatchParLivreur.get(livreurId)!;
+              const mapCar = car === 'car1_matin' ? d.car1_matin : (car === 'car2_matin' ? d.car2_matin : d.car_soir);
+              mapCar.set(item.produitId, (mapCar.get(item.produitId) || 0) + qty);
+            }
+          });
+        });
+      });
+  }
+
+  // 2. Ajouter les quantités Boutique
+  if (programme?.quantitesBoutique && programme.quantitesBoutique.length > 0) {
+    const boutiqueId = 'boutique-directe';
+    dispatchParLivreur.set(boutiqueId, {
+      nom: 'Boutique (Vente Directe)',
+      car1_matin: new Map(),
+      car2_matin: new Map(),
+      car_soir: new Map()
+    });
+
+    const d = dispatchParLivreur.get(boutiqueId)!;
+    programme.quantitesBoutique.forEach(q => {
+      const repartition = q.repartitionCars || { car1_matin: 0, car2_matin: 0, car_soir: 0 };
+      if (repartition.car1_matin > 0) d.car1_matin.set(q.produitId, repartition.car1_matin);
+      if (repartition.car2_matin > 0) d.car2_matin.set(q.produitId, repartition.car2_matin);
+      if (repartition.car_soir > 0) d.car_soir.set(q.produitId, repartition.car_soir);
+    });
+
+    // Si aucune quantité dans la boutique, on l'enlève
+    const totalBoutiqueQty = Array.from(d.car1_matin.values()).reduce((a, b) => a + b, 0) +
+                             Array.from(d.car2_matin.values()).reduce((a, b) => a + b, 0) +
+                             Array.from(d.car_soir.values()).reduce((a, b) => a + b, 0);
+    if (totalBoutiqueQty === 0) {
+      dispatchParLivreur.delete(boutiqueId);
+    }
+  }
+
+  if (dispatchParLivreur.size > 0) {
+    yPos = (doc as any).lastAutoTable.finalY + 12;
+    
+    // Check if we need a new page for header
+    if (yPos > doc.internal.pageSize.height - 35) {
+      doc.addPage();
+      yPos = 20;
+    }
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+    doc.text('DISPATCHING PAR LIVREUR / BOUTIQUE', 15, yPos);
+    yPos += 5;
+
+    dispatchParLivreur.forEach((dataL, _livreurId) => {
+      const hasCar1 = dataL.car1_matin.size > 0;
+      const hasCar2 = dataL.car2_matin.size > 0;
+      const hasSoir = dataL.car_soir.size > 0;
+      const tousProduitsIds = Array.from(new Set([
+        ...Array.from(dataL.car1_matin.keys()),
+        ...Array.from(dataL.car2_matin.keys()),
+        ...Array.from(dataL.car_soir.keys())
+      ]));
+
+      if (tousProduitsIds.length === 0) return;
+
+      // Check page space for the livreur section
+      if (yPos > doc.internal.pageSize.height - 40) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+      doc.text(dataL.nom.toUpperCase(), 15, yPos);
+      yPos += 3;
+
+      const headers = ['Produit'];
+      if (hasCar1) headers.push('Car 1 Matin');
+      if (hasCar2) headers.push('Car 2 Matin');
+      if (hasSoir) headers.push('Car Soir');
+      headers.push('Total');
+
+      const rows = tousProduitsIds.map(pId => {
+        const produit = programme.totauxParProduit.find(p => p.produitId === pId)?.produit || { nom: 'Inconnu' };
+        const q1 = dataL.car1_matin.get(pId) || 0;
+        const q2 = dataL.car2_matin.get(pId) || 0;
+        const qs = dataL.car_soir.get(pId) || 0;
+        const totalRow = q1 + q2 + qs;
+
+        const row = [produit.nom.toUpperCase()];
+        if (hasCar1) row.push(q1 > 0 ? q1.toString() : '-');
+        if (hasCar2) row.push(q2 > 0 ? q2.toString() : '-');
+        if (hasSoir) row.push(qs > 0 ? qs.toString() : '-');
+        row.push(totalRow.toString());
+        return row;
+      });
+
+      const totalC1 = Array.from(dataL.car1_matin.values()).reduce((a, b) => a + b, 0);
+      const totalC2 = Array.from(dataL.car2_matin.values()).reduce((a, b) => a + b, 0);
+      const totalCS = Array.from(dataL.car_soir.values()).reduce((a, b) => a + b, 0);
+      const totalG = totalC1 + totalC2 + totalCS;
+
+      const foot = ['TOTAL'];
+      if (hasCar1) foot.push(totalC1.toString());
+      if (hasCar2) foot.push(totalC2.toString());
+      if (hasSoir) foot.push(totalCS.toString());
+      foot.push(totalG.toString());
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [headers],
+        body: rows,
+        foot: [foot],
+        theme: 'grid',
+        headStyles: { fillColor: [107, 114, 128], fontSize: 7, halign: 'center' },
+        bodyStyles: { fontSize: 7, cellPadding: 1.5 },
+        footStyles: { fillColor: [243, 244, 246], textColor: colors.text as any, fontStyle: 'bold', fontSize: 7, halign: 'center' },
+        columnStyles: {
+          0: { cellWidth: 'auto', halign: 'left' }
+        },
+        margin: { left: 15, right: 15 }
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 8;
+    });
+  }
+
   // Pied de page
   const pageHeight = doc.internal.pageSize.height;
   doc.setFontSize(7);
@@ -835,7 +1003,11 @@ export const generateProductionProgramPDF = async (programme: ProgrammeProductio
   return doc;
 };
 
-export const downloadProductionProgramPDF = async (programme: ProgrammeProduction) => {
+export const downloadProductionProgramPDF = async (
+  programme: ProgrammeProduction,
+  livreurs: Livreur[] = [],
+  clients: Client[] = []
+) => {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   let newWindow: Window | null = null;
   if (isMobile) {
@@ -844,7 +1016,7 @@ export const downloadProductionProgramPDF = async (programme: ProgrammeProductio
   }
 
   try {
-    const doc = await generateProductionProgramPDF(programme);
+    const doc = await generateProductionProgramPDF(programme, livreurs, clients);
     const dateStr = new Date(programme.dateProduction).toISOString().split('T')[0];
     const fileName = `Programme_Production_${dateStr}.pdf`;
     
