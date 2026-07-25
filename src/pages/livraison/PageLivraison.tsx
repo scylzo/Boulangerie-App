@@ -10,9 +10,10 @@ import { htmlPrintService } from '../../services/htmlPrintService';
 import type { CarLivraison } from '../../types';
 import toast from 'react-hot-toast';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
+import { ModalDeficitProduction } from '../../components/production/ModalDeficitProduction';
 
 export const PageLivraison: React.FC = () => {
-  const { commandesClients, chargerProgramme, supprimerCommandesLivreur } = useProductionStore();
+  const { commandesClients, chargerProgramme, supprimerCommandesLivreur, modifierCommandeClient } = useProductionStore();
   const { livreurs, chargerLivreurs } = useLivreurStore();
   const { clients, produits: produitsRef, chargerProduits, chargerClients } = useReferentielStore();
 
@@ -21,6 +22,96 @@ export const PageLivraison: React.FC = () => {
   );
   const [carSelectionne, setCarSelectionne] = useState<CarLivraison | 'tous'>('tous');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalDeficitOpen, setIsModalDeficitOpen] = useState(false);
+  const [selectedDeficitLivreurId, setSelectedDeficitLivreurId] = useState<string | null>(null);
+
+  const handleApplyRedistribution = async (
+    updates: Array<{
+      commandeId: string;
+      produitId: string;
+      carLivraison?: string;
+      nouvelleQuantite: number;
+    }>
+  ) => {
+    // Regrouper les mises à jour par commandeId
+    const updatesByCommande = new Map<string, Array<{ produitId: string; carLivraison?: string; nouvelleQuantite: number }>>();
+
+    updates.forEach(upd => {
+      if (!updatesByCommande.has(upd.commandeId)) {
+        updatesByCommande.set(upd.commandeId, []);
+      }
+      updatesByCommande.get(upd.commandeId)!.push(upd);
+    });
+
+    // Mettre à jour chaque commande concernée
+    updatesByCommande.forEach((updList, commandeId) => {
+      const commande = commandesClients.find(c => c.id === commandeId);
+      if (!commande) return;
+
+      const nouveauxProduits = commande.produits.map(p => {
+        const matches = updList.filter(u => u.produitId === p.produitId);
+        if (matches.length === 0) return p;
+
+        const pCopy = { ...p };
+        if (pCopy.repartitionCars) {
+          const newRep = { ...pCopy.repartitionCars };
+          matches.forEach(m => {
+            if (m.carLivraison && m.carLivraison in newRep) {
+              (newRep as any)[m.carLivraison] = m.nouvelleQuantite;
+            }
+          });
+          pCopy.repartitionCars = newRep;
+          pCopy.quantiteCommandee = (Number(newRep.car1_matin) || 0) + (Number(newRep.car2_matin) || 0) + (Number(newRep.car_soir) || 0);
+        } else {
+          pCopy.quantiteCommandee = matches[0].nouvelleQuantite;
+        }
+
+        return pCopy;
+      });
+
+      modifierCommandeClient(commandeId, { produits: nouveauxProduits });
+    });
+  };
+
+  const handleResetLivreurToInitial = (livreurId: string) => {
+    let count = 0;
+    commandesClients.forEach(cmd => {
+      const client = clients.find(c => c.id === cmd.clientId);
+      if (!client) return;
+
+      const hasDriver = client.livreurId === livreurId || Object.values(client.livreursParCar || {}).includes(livreurId);
+      if (!hasDriver) return;
+
+      if (!client.commandeType || client.commandeType.length === 0) return;
+
+      const nouveauxProduits = cmd.produits.map(p => {
+        const ctItem = client.commandeType?.find(ct => ct.produitId === p.produitId);
+        if (!ctItem) return p;
+
+        const pCopy = { ...p };
+        if (ctItem.repartitionCars) {
+          pCopy.repartitionCars = {
+            car1_matin: Number(ctItem.repartitionCars.car1_matin) || 0,
+            car2_matin: Number(ctItem.repartitionCars.car2_matin) || 0,
+            car_soir: Number(ctItem.repartitionCars.car_soir) || 0,
+          };
+          pCopy.quantiteCommandee = pCopy.repartitionCars.car1_matin + pCopy.repartitionCars.car2_matin + pCopy.repartitionCars.car_soir;
+        } else if (ctItem.quantiteCommandee) {
+          pCopy.quantiteCommandee = Number(ctItem.quantiteCommandee) || p.quantiteCommandee;
+        }
+        return pCopy;
+      });
+
+      modifierCommandeClient(cmd.id, { produits: nouveauxProduits });
+      count++;
+    });
+
+    if (count > 0) {
+      toast.success(`✅ Commandes réinitialisées aux quantités d'origine pour ce livreur !`);
+    } else {
+      toast.error('Aucune commande initiale type trouvée pour ce livreur.');
+    }
+  };
 
   useEffect(() => {
     const initialiser = async () => {
@@ -262,21 +353,33 @@ export const PageLivraison: React.FC = () => {
           </div>
 
           {/* Boutons d'actions globales */}
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <button
+              onClick={() => {
+                setSelectedDeficitLivreurId(null);
+                setIsModalDeficitOpen(true);
+              }}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-terracotta-600 hover:bg-terracotta-700 text-white rounded-lg shadow-2xs transition-all text-xs sm:text-sm font-semibold shrink-0"
+              disabled={commandesOrganisees.length === 0}
+              title="Ajuster les livraisons en cas de déficit de production"
+            >
+              <Icon icon="mdi:lightning-bolt" className="text-base" />
+              <span>Déficit Prod</span>
+            </button>
             <button
               onClick={genererRapportGlobal}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-sand-900 hover:bg-sand-800 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium w-full sm:w-auto"
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-sand-900 hover:bg-sand-800 text-white rounded-lg shadow-2xs transition-all text-xs sm:text-sm font-medium shrink-0"
               disabled={commandesOrganisees.length === 0}
             >
-              <Icon icon="mdi:printer" className="text-base sm:text-lg" />
+              <Icon icon="mdi:printer" className="text-base" />
               <span>Rapport Global</span>
             </button>
             <button
               onClick={handleShareWhatsAppGlobal}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-success-600 hover:bg-success-700 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium w-full sm:w-auto"
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-success-600 hover:bg-success-700 text-white rounded-lg shadow-2xs transition-all text-xs sm:text-sm font-medium shrink-0"
               disabled={commandesOrganisees.length === 0}
             >
-              <Icon icon="mdi:whatsapp" className="text-base sm:text-lg" />
+              <Icon icon="mdi:whatsapp" className="text-base" />
               <span>Partager Tout</span>
             </button>
           </div>
@@ -460,46 +563,66 @@ export const PageLivraison: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Boutons d'actions pour ce livreur */}
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                          <button
-                            onClick={() => genererRapportLivreur(data)}
-                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-sand-900 hover:bg-sand-800 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium flex-1 sm:flex-none"
-                            title="Générer le rapport imprimable pour ce livreur"
-                          >
-                            <Icon icon="mdi:printer" className="text-base" />
-                            <span>Imprimer</span>
-                          </button>
-
-                          <button
-                            onClick={() => handleShareWhatsAppLivreur(data)}
-                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-success-600 hover:bg-success-700 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium flex-1 sm:flex-none"
-                            title="Partager le récapitulatif via WhatsApp"
-                          >
-                            <Icon icon="mdi:whatsapp" className="text-base" />
-                            <span>Partager</span>
-                          </button>
-
-                          {/* Bouton de suppression - uniquement pour les livreurs assignés */}
-                          {data.livreur && (
-                            <ConfirmButton
-                              onConfirm={() => {
-                                supprimerCommandesLivreur(livreurId);
-                                toast.success(`✅ Toutes les commandes de "${data.livreur?.nom}" ont été supprimées définitivement.`);
+                      {/* Boutons d'actions compacts pour ce livreur */}
+                      <div className="flex items-center gap-1.5 flex-wrap shrink-0">
+                        {data.livreur && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setSelectedDeficitLivreurId(livreurId);
+                                setIsModalDeficitOpen(true);
                               }}
-                              title="Supprimer le programme de livraison"
-                              message={`Supprimer définitivement toutes les commandes de "${data.livreur?.nom}" pour le ${dateSelectionnee} ?`}
-                              confirmText="Supprimer définitivement"
-                              cancelText="Annuler"
-                              type="danger"
-                              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-danger-600 hover:bg-danger-700 text-white rounded-lg shadow-sm transition-all text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-terracotta-600 hover:bg-terracotta-700 text-white rounded-lg shadow-2xs transition-all text-xs font-semibold shrink-0"
+                              title="Gérer un déficit de prod pour ce livreur"
                             >
-                              <Icon icon="mdi:delete-forever" className="text-base" />
-                              <span>Supprimer</span>
-                            </ConfirmButton>
-                          )}
-                        </div>
+                              <Icon icon="mdi:lightning-bolt" className="text-sm" />
+                              <span>Déficit</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleResetLivreurToInitial(livreurId)}
+                              className="inline-flex items-center gap-1 px-2 py-1.5 bg-sand-100 hover:bg-sand-200 text-sand-700 border border-sand-300 rounded-lg transition-all text-xs font-medium shrink-0"
+                              title="Rétablir les commandes d'origine (100%)"
+                            >
+                              <Icon icon="mdi:undo-variant" className="text-sm" />
+                              <span>Rétablir</span>
+                            </button>
+                          </>
+                        )}
+
+                        <button
+                          onClick={() => genererRapportLivreur(data)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-sand-900 hover:bg-sand-800 text-white rounded-lg shadow-2xs transition-all text-xs font-medium shrink-0"
+                          title="Générer le rapport imprimable pour ce livreur"
+                        >
+                          <Icon icon="mdi:printer" className="text-sm" />
+                          <span className="hidden sm:inline">Imprimer</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleShareWhatsAppLivreur(data)}
+                          className="inline-flex items-center justify-center p-1.5 bg-success-50 hover:bg-success-100 text-success-700 border border-success-200 rounded-lg transition-all text-xs font-medium shrink-0"
+                          title="Partager via WhatsApp"
+                        >
+                          <Icon icon="mdi:whatsapp" className="text-base" />
+                        </button>
+
+                        {data.livreur && (
+                          <ConfirmButton
+                            onConfirm={() => {
+                              supprimerCommandesLivreur(livreurId);
+                              toast.success(`✅ Toutes les commandes de "${data.livreur?.nom}" ont été supprimées définitivement.`);
+                            }}
+                            title="Supprimer le programme de livraison"
+                            message={`Supprimer définitivement toutes les commandes de "${data.livreur?.nom}" pour le ${dateSelectionnee} ?`}
+                            confirmText="Supprimer définitivement"
+                            cancelText="Annuler"
+                            type="danger"
+                            className="inline-flex items-center justify-center p-1.5 bg-danger-50 hover:bg-danger-100 text-danger-600 border border-danger-200 rounded-lg transition-all text-xs font-medium shrink-0"
+                          >
+                            <Icon icon="mdi:delete-outline" className="text-base" />
+                          </ConfirmButton>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -638,6 +761,20 @@ export const PageLivraison: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal Déficit de Production */}
+      <ModalDeficitProduction
+        isOpen={isModalDeficitOpen}
+        onClose={() => setIsModalDeficitOpen(false)}
+        initialLivreurId={selectedDeficitLivreurId}
+        initialCar={carSelectionne}
+        dateLivraison={dateSelectionnee}
+        commandesClients={commandesClients}
+        livreurs={livreurs}
+        produits={produitsRef}
+        clients={clients}
+        onApplyRedistribution={handleApplyRedistribution}
+      />
     </div>
   );
 };
