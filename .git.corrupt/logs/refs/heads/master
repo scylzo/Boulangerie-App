@@ -1,0 +1,150 @@
+0000000000000000000000000000000000000000 ed3188201e11db9bf9b0fc53e45c8ef5c50524af Scylla Diakite <diakitescylla@gmail.com> 1766937486 +0000	clone: from https://github.com/scylzo/boulangerie-app-fork.git
+ed3188201e11db9bf9b0fc53e45c8ef5c50524af 2fa9b6a1d05825fdc501f84e94ddf61d9c4bd5c3 Scylla Diakite <diakitescylla@gmail.com> 1766937967 +0000	commit: fork staging
+2fa9b6a1d05825fdc501f84e94ddf61d9c4bd5c3 12ea6dc516bc864c40a24d482f80662d4b58723a Scylla Diakite <diakitescylla@gmail.com> 1766939100 +0000	commit: fork staging update
+12ea6dc516bc864c40a24d482f80662d4b58723a b97b1d8919776e8c005a0df2dd97eee4c61247e6 Scylla Diakite <diakitescylla@gmail.com> 1767041256 +0000	commit: updating screens
+b97b1d8919776e8c005a0df2dd97eee4c61247e6 9d9cf5c68b8dc5660a406a7c3aebd28c7f0228f4 Scylla Diakite <diakitescylla@gmail.com> 1767292839 +0000	commit: fix deployment lint issues
+9d9cf5c68b8dc5660a406a7c3aebd28c7f0228f4 9ef8926bf7e5285ab83c3e8228755734b8d75274 Scylla Diakite <diakitescylla@gmail.com> 1767292997 +0000	commit: fix deployment lint issues
+9ef8926bf7e5285ab83c3e8228755734b8d75274 a025ddeb6da7b53c03d3ecfed1c19014dde75414 Scylla Diakite <diakitescylla@gmail.com> 1767300266 +0000	commit: fix boutique switch
+a025ddeb6da7b53c03d3ecfed1c19014dde75414 096cd24dfb546e90b174d027eecd1307d7d1f67e Scylla Diakite <diakitescylla@gmail.com> 1767378675 +0000	commit: fix compta data calculation
+096cd24dfb546e90b174d027eecd1307d7d1f67e a625d3d8b6542c7d431c52d02017e5a457be04f0 Scylla Diakite <diakitescylla@gmail.com> 1767393845 +0000	commit: fix client returns
+a625d3d8b6542c7d431c52d02017e5a457be04f0 f7709dd58974e28de890e5d4b092fae9c01ff45e Scylla Diakite <diakitescylla@gmail.com> 1767395896 +0000	commit: add clients returns filter
+f7709dd58974e28de890e5d4b092fae9c01ff45e 23455900899dc872933cd932ff325516558bf893 Scylla Diakite <diakitescylla@gmail.com> 1767399621 +0000	commit: handle generate rapport
+23455900899dc872933cd932ff325516558bf893 88e56b7078d30272cf38ef15b1d279e1cc8f3104 Scylla Diakite <diakitescylla@gmail.com> 1767612971 +0000	commit: updates features
+88e56b7078d30272cf38ef15b1d279e1cc8f3104 d866c45cf26c815a163d9435416bb9eb71879cc6 Scylla Diakite <diakitescylla@gmail.com> 1768043760 +0000	commit: fix some bugs
+d866c45cf26c815a163d9435416bb9eb71879cc6 558a8e1e5aff0b49b3332904f8a0ed44e32fb70d Scylla Diakite <diakitescylla@gmail.com> 1768201817 +0000	commit: fix:depense screen
+558a8e1e5aff0b49b3332904f8a0ed44e32fb70d 5e186bd66851844d55aad34ae7c3ae47212da5f8 Scylla Diakite <diakitescylla@gmail.com> 1768244299 +0000	commit: fix:billing screen
+5e186bd66851844d55aad34ae7c3ae47212da5f8 fa4400f2218ad7fd1d7ec6e86e96e8833df53be2 Scylla Diakite <diakitescylla@gmail.com> 1768244669 +0000	commit: fix:billing screen
+fa4400f2218ad7fd1d7ec6e86e96e8833df53be2 8e5deea6d3fcb3aee77f6fd556a64c587ec55f75 Scylla Diakite <diakitescylla@gmail.com> 1768292785 +0000	commit: fix store prices
+8e5deea6d3fcb3aee77f6fd556a64c587ec55f75 73b07c7b6b28fd9577f0b36883435de347921d70 Scylla Diakite <diakitescylla@gmail.com> 1768314944 +0000	commit: fix depense rapport
+73b07c7b6b28fd9577f0b36883435de347921d70 2461238fdaccb2250a2e65436d115aca394924e8 Scylla Diakite <diakitescylla@gmail.com> 1768468194 +0000	commit: fix
+2461238fdaccb2250a2e65436d115aca394924e8 6516853a58b3e6f4a9b4ba747426549f697d13be Scylla Diakite <diakitescylla@gmail.com> 1768470285 +0000	commit: fix
+6516853a58b3e6f4a9b4ba747426549f697d13be 85c80111c7a06771645256dcb0834bea60c0e6bd Scylla Diakite <diakitescylla@gmail.com> 1769499961 +0000	commit: fix:auth and redirections feat
+85c80111c7a06771645256dcb0834bea60c0e6bd dabf9f00bb2d59deca7ca009b6d6ab3647a87bb2 Scylla Diakite <diakitescylla@gmail.com> 1769501362 +0000	commit: fix:auth and redirections
+dabf9f00bb2d59deca7ca009b6d6ab3647a87bb2 89a4e4e8acec09b62960f45e6669399c339ea438 Scylla Diakite <diakitescylla@gmail.com> 1769512632 +0000	commit: feat:adding filters on stock module
+89a4e4e8acec09b62960f45e6669399c339ea438 536796be4e2d95ea3e7dd2a74b89a9f297849ab5 Scylla Diakite <diakitescylla@gmail.com> 1769584148 +0000	commit: fix:stock modules
+536796be4e2d95ea3e7dd2a74b89a9f297849ab5 9bdc33131410c23636c1792c1b32293962a0863b Scylla Diakite <diakitescylla@gmail.com> 1769584236 +0000	commit: chore: remove package-lock.json to use yarn only
+9bdc33131410c23636c1792c1b32293962a0863b 4e8e8ab5a0d65f42e414cb14c6f086362bc92f3c Scylla Diakite <diakitescylla@gmail.com> 1769587055 +0000	commit: feat:adding dashboard
+4e8e8ab5a0d65f42e414cb14c6f086362bc92f3c 117c319e575cd42ad5ef78df88c8c50bb03bbe7f Scylla Diakite <diakitescylla@gmail.com> 1769587977 +0000	commit: feat:responsive anhancement
+117c319e575cd42ad5ef78df88c8c50bb03bbe7f 2260184fc9acaab5af79bf879feb019ada656baf Scylla Diakite <diakitescylla@gmail.com> 1769617691 +0000	commit: anhancement
+2260184fc9acaab5af79bf879feb019ada656baf 29e9a6875bb9705f90fb6e6a48f3f2fd5cdda0cf Scylla Diakite <diakitescylla@gmail.com> 1769620570 +0000	commit: pdf rapport daily
+29e9a6875bb9705f90fb6e6a48f3f2fd5cdda0cf 7d103fa1aff1802c6159847e75479eb18cb49c5c Scylla Diakite <diakitescylla@gmail.com> 1769621759 +0000	commit: anhancement
+7d103fa1aff1802c6159847e75479eb18cb49c5c 92dd7979696665b9a39d5103a03a5649d383d3e2 Scylla Diakite <diakitescylla@gmail.com> 1769627549 +0000	commit: anhancement store data
+92dd7979696665b9a39d5103a03a5649d383d3e2 6e7330ba6a096dca7e8f04f5f316c3cd97e741ab Scylla Diakite <diakitescylla@gmail.com> 1769630312 +0000	commit: anhancement store data
+6e7330ba6a096dca7e8f04f5f316c3cd97e741ab 86df6bccb45fa76c148c9b527babf64348a87370 Scylla Diakite <diakitescylla@gmail.com> 1769631344 +0000	commit: product reporting
+86df6bccb45fa76c148c9b527babf64348a87370 727620fc29dc9f585e3a690d1bd6ab9e5897a735 Scylla Diakite <diakitescylla@gmail.com> 1769767029 +0000	commit: fix
+727620fc29dc9f585e3a690d1bd6ab9e5897a735 9b82d4bd26a983198dd217cd152b75dbd042e0ed Scylla Diakite <diakitescylla@gmail.com> 1769767528 +0000	commit: fix input
+9b82d4bd26a983198dd217cd152b75dbd042e0ed 1a38433b7d2cfc52f505b173fcd91dc72ef42a63 Scylla Diakite <diakitescylla@gmail.com> 1769779737 +0000	commit: fix input layout
+1a38433b7d2cfc52f505b173fcd91dc72ef42a63 073cee7274fcde848ac57657c79ba5146c9a4fa2 Scylla Diakite <diakitescylla@gmail.com> 1769780590 +0000	commit: fix input layout
+073cee7274fcde848ac57657c79ba5146c9a4fa2 4ce5b429cf1e6592c6beb8b57d2bf4728566ac75 Scylla Diakite <diakitescylla@gmail.com> 1769791233 +0000	commit: alert feature
+4ce5b429cf1e6592c6beb8b57d2bf4728566ac75 4a1d8c904ee98bd0cb5696b761fcc851e13d96da Scylla Diakite <diakitescylla@gmail.com> 1769794879 +0000	commit: ajout logo
+4a1d8c904ee98bd0cb5696b761fcc851e13d96da fe94e6f97f165484f4f85482e6a048aa2662912f Scylla Diakite <diakitescylla@gmail.com> 1769800317 +0000	commit: adding some improvment
+fe94e6f97f165484f4f85482e6a048aa2662912f eead8f8eff2a5d5d22d194f1f0aff5d450d4bca1 Scylla Diakite <diakitescylla@gmail.com> 1769800601 +0000	commit: adding some improvment fix
+eead8f8eff2a5d5d22d194f1f0aff5d450d4bca1 2a333d8adc8ac99c9aaa834c8d91c36fab5637b6 Scylla Diakite <diakitescylla@gmail.com> 1769802205 +0000	commit: adding some improvment fix 2
+2a333d8adc8ac99c9aaa834c8d91c36fab5637b6 8d3d29b3d95730baf12b4e8c8d34c11f8e8da179 Scylla Diakite <diakitescylla@gmail.com> 1769812692 +0000	commit: adding some improvment fix 3
+8d3d29b3d95730baf12b4e8c8d34c11f8e8da179 6bb55fd9688d1e420a4e49c798c0ab1a0e01d94c Scylla Diakite <diakitescylla@gmail.com> 1769894914 +0000	commit: updates rapport
+6bb55fd9688d1e420a4e49c798c0ab1a0e01d94c 486efb38996a397356e585334eea05f5841d3b98 Scylla Diakite <diakitescylla@gmail.com> 1769901473 +0000	commit: updates rapport classement
+486efb38996a397356e585334eea05f5841d3b98 3af31d423be550dbf9e40d2cc273027f1bfa7563 Scylla Diakite <diakitescylla@gmail.com> 1769902250 +0000	commit: indicateurs de performance
+3af31d423be550dbf9e40d2cc273027f1bfa7563 64bd1ad34c444cafdc72d762b29efc70797c0790 Scylla Diakite <diakitescylla@gmail.com> 1769903104 +0000	commit: fix reporting modal
+64bd1ad34c444cafdc72d762b29efc70797c0790 71364316e6c99bd8c25dff2949bb182a4d7e07b1 Scylla Diakite <diakitescylla@gmail.com> 1769907208 +0000	commit: dashboard rating fix
+71364316e6c99bd8c25dff2949bb182a4d7e07b1 c119083b92e6aeeb61f97536dfa8f5d1b485977d Scylla Diakite <diakitescylla@gmail.com> 1769936814 +0000	commit: dashboard rating fix
+c119083b92e6aeeb61f97536dfa8f5d1b485977d 6296c3791ea5db83b99115f349d472feeb5f8a4a Scylla Diakite <diakitescylla@gmail.com> 1769937133 +0000	commit: dashboard rating fix
+6296c3791ea5db83b99115f349d472feeb5f8a4a 763159b4225277f3a30b571d42e86abf3335132c Scylla Diakite <diakitescylla@gmail.com> 1769937238 +0000	commit: dashboard fix
+763159b4225277f3a30b571d42e86abf3335132c da4e46278b89f8f3661001525930c6e743f98a44 Scylla Diakite <diakitescylla@gmail.com> 1769975672 +0000	commit: dashboard fix resp
+da4e46278b89f8f3661001525930c6e743f98a44 5a0ea1cd9489e49529561ebd7b3832e74dbe5277 Scylla Diakite <diakitescylla@gmail.com> 1769980119 +0000	commit: fix repartition modal
+5a0ea1cd9489e49529561ebd7b3832e74dbe5277 baf1bbc7a3374c1cc9f1004a43e5de46dd0d4ec0 Scylla Diakite <diakitescylla@gmail.com> 1769990706 +0000	commit: fix report data
+baf1bbc7a3374c1cc9f1004a43e5de46dd0d4ec0 0766f5106372f10ae44d1cc67b644ba5490b67bc Scylla Diakite <diakitescylla@gmail.com> 1770050694 +0000	commit: localisation feat
+0766f5106372f10ae44d1cc67b644ba5490b67bc dde44148f5fae1cf6622a29b67b808d702584eac Scylla Diakite <diakitescylla@gmail.com> 1770069126 +0000	commit: update fix
+dde44148f5fae1cf6622a29b67b808d702584eac 2b49cb32d01df562eb2f785653abe0ae71f39fb7 Scylla Diakite <diakitescylla@gmail.com> 1770199171 +0000	commit: bug fix
+2b49cb32d01df562eb2f785653abe0ae71f39fb7 31b93efc1cc7acd2e6e3ebdc383105888bbd6559 Scylla Diakite <diakitescylla@gmail.com> 1770199380 +0000	commit: bug fix 1
+31b93efc1cc7acd2e6e3ebdc383105888bbd6559 61fa403a224f5082dd0cbd181dceab8acf911844 Scylla Diakite <diakitescylla@gmail.com> 1770405632 +0000	commit: bug fix 2
+61fa403a224f5082dd0cbd181dceab8acf911844 b55b5723292e53f93841bebfc51a69ea0c971d14 Scylla Diakite <diakitescylla@gmail.com> 1770407569 +0000	commit: bug fix
+b55b5723292e53f93841bebfc51a69ea0c971d14 93aa393f9b6c1118288c4d260851c9bad8b2a5b1 Scylla Diakite <diakitescylla@gmail.com> 1770431548 +0000	commit: bug fix
+93aa393f9b6c1118288c4d260851c9bad8b2a5b1 2872ece5c969e95214ecd9f4a232dea42a610a0e Scylla Diakite <diakitescylla@gmail.com> 1770487067 +0000	commit: facturation update
+2872ece5c969e95214ecd9f4a232dea42a610a0e 05fb71d19f2a67c5aad2092575965ce95e8f69e5 Scylla Diakite <diakitescylla@gmail.com> 1770489389 +0000	commit: update
+05fb71d19f2a67c5aad2092575965ce95e8f69e5 3bb4cbb12f5e077051dbac5b8f199be4042e2859 Scylla Diakite <diakitescylla@gmail.com> 1771232203 +0000	commit: programme prod update
+3bb4cbb12f5e077051dbac5b8f199be4042e2859 e6777bc62a5e0c30ef4e809cea51156a7257a702 Scylla Diakite <diakitescylla@gmail.com> 1771234857 +0000	commit: update
+e6777bc62a5e0c30ef4e809cea51156a7257a702 77d908bb2facd438d78398b88458eac487e77b13 Scylla Diakite <diakitescylla@gmail.com> 1771234982 +0000	commit: fix
+77d908bb2facd438d78398b88458eac487e77b13 1f6a38f45a2659d2e9f4df558d4a54b3696a2ed5 Scylla Diakite <diakitescylla@gmail.com> 1771235693 +0000	commit: fi
+1f6a38f45a2659d2e9f4df558d4a54b3696a2ed5 d571978ac038c38df89097cdca53e1b93e3e13e5 Scylla Diakite <diakitescylla@gmail.com> 1771803444 +0000	commit: add client proposal doc
+d571978ac038c38df89097cdca53e1b93e3e13e5 75dac7459a82030854d933f5b2762289d5a8e2dd Scylla Diakite <diakitescylla@gmail.com> 1773354856 +0000	commit: handle rendement
+75dac7459a82030854d933f5b2762289d5a8e2dd 8d47ff0c23b6bff3b5d6d5035a1ca6175ab35154 Scylla Diakite <diakitescylla@gmail.com> 1773512797 +0000	commit: handle rotation planning
+8d47ff0c23b6bff3b5d6d5035a1ca6175ab35154 5fd8cde07f53e53fd7db55abe2bfad1fdd0c1bf2 Scylla Diakite <diakitescylla@gmail.com> 1773772742 +0000	commit: fiche produit update
+5fd8cde07f53e53fd7db55abe2bfad1fdd0c1bf2 2d950ba45621d796c1320175a9821a4b2b14abc6 Scylla Diakite <diakitescylla@gmail.com> 1774389068 +0000	commit: update pdf generator
+2d950ba45621d796c1320175a9821a4b2b14abc6 83909a169f7830a2cb0ca8fa657e3738cf809a35 Scylla Diakite <diakitescylla@gmail.com> 1774555602 +0000	commit: handle other quantities
+83909a169f7830a2cb0ca8fa657e3738cf809a35 722b5d8a52c9db8975ce44ef3122665dde7a407f Scylla Diakite <diakitescylla@gmail.com> 1774863259 +0000	commit: handle conso feature
+722b5d8a52c9db8975ce44ef3122665dde7a407f 259b1f785b4a44c9d4fb7b92db52fb2c91e0395f Scylla Diakite <diakitescylla@gmail.com> 1775031070 +0000	commit: fix calcul consommation journaliere
+259b1f785b4a44c9d4fb7b92db52fb2c91e0395f a980deec2d05fb556343f9893d813c2a488eb0fa Scylla Diakite <diakitescylla@gmail.com> 1776974429 +0000	commit: fix and refacto
+a980deec2d05fb556343f9893d813c2a488eb0fa ad11c3cef628ae0b5fb90ba61292367fff49c777 Scylla Diakite <diakitescylla@gmail.com> 1776974786 +0000	commit: fix: remove unused import to fix build error
+ad11c3cef628ae0b5fb90ba61292367fff49c777 2b8085a56a31bac508819e4b90017a121e942737 Scylla Diakite <diakitescylla@gmail.com> 1776974815 +0000	commit: chore: ignore dist folder and remove from repo
+2b8085a56a31bac508819e4b90017a121e942737 ee6a7466a852ef58078e4bdee5193e687310a0e7 Scylla Diakite <diakitescylla@gmail.com> 1777321029 +0000	commit: handle payed bills
+ee6a7466a852ef58078e4bdee5193e687310a0e7 eeec3d366cd7bd4b2d7b8768b878129f1e991b7e Scylla Diakite <diakitescylla@gmail.com> 1777937184 +0000	commit: feat:rapport nombre de retours client
+eeec3d366cd7bd4b2d7b8768b878129f1e991b7e 31a79416452bb151ff1ed2a3d23a2e3f8973437e Scylla Diakite <diakitescylla@gmail.com> 1777938453 +0000	commit: fix:linting issues
+31a79416452bb151ff1ed2a3d23a2e3f8973437e e00eb6e8f974e852084742e7a27bb83b1db5b7de Scylla Diakite <diakitescylla@gmail.com> 1777966326 +0000	commit: fix:correction du bugs saisie des consommations
+e00eb6e8f974e852084742e7a27bb83b1db5b7de 633eb32bf15b32e0e4eb61f6ce86397e940ee4d8 Scylla Diakite <diakitescylla@gmail.com> 1777967676 +0000	commit: fix edit rapport journaliere
+633eb32bf15b32e0e4eb61f6ce86397e940ee4d8 a84132e5fc4362a476fd186d7c131dff9aef95da Scylla Diakite <diakitescylla@gmail.com> 1778151165 +0000	commit: fix facturation feat
+a84132e5fc4362a476fd186d7c131dff9aef95da dd477a607ea436483cc482ed55cef81257262d2a Scylla Diakite <diakitescylla@gmail.com> 1778151433 +0000	commit: fix facturation feat
+dd477a607ea436483cc482ed55cef81257262d2a 76120c17e7b6948d828c86b533dcfea54c8ae677 Scylla Diakite <diakitescylla@gmail.com> 1778154743 +0000	commit: fix facturation reste a payer
+76120c17e7b6948d828c86b533dcfea54c8ae677 88da7c580189ee81e75292fff25bc18d0ec0e2c4 Scylla Diakite <diakitescylla@gmail.com> 1778155741 +0000	commit: fix bills
+88da7c580189ee81e75292fff25bc18d0ec0e2c4 ddd570790bb0bd31658d21d4f766743c2632af1c Scylla Diakite <diakitescylla@gmail.com> 1778535627 +0000	commit: fix facturation module
+ddd570790bb0bd31658d21d4f766743c2632af1c b09927d688bdad627ac68415e1eb1fce67e48bfb Scylla Diakite <diakitescylla@gmail.com> 1779437243 +0000	commit: update delivery feature
+b09927d688bdad627ac68415e1eb1fce67e48bfb 67b41e2d1b347207064bdac22b8b4ef452137d56 Scylla Diakite <diakitescylla@gmail.com> 1779630872 +0000	commit: fix bills duplication issue
+67b41e2d1b347207064bdac22b8b4ef452137d56 126127ba84309c791804448eff308aadde975e5c Scylla Diakite <diakitescylla@gmail.com> 1780584940 +0000	commit: fix ristourne feature
+126127ba84309c791804448eff308aadde975e5c 1ed45188cf6d84787cb9b7f4fb9a07fc33322c01 Scylla Diakite <diakitescylla@gmail.com> 1780586695 +0000	commit: fix ristourne feature pdf dox
+1ed45188cf6d84787cb9b7f4fb9a07fc33322c01 bf24f994d3a1043496cfd03af4ff00ff11ebd8ba Scylla Diakite <diakitescylla@gmail.com> 1780609805 +0000	commit: fix ristourne feat update
+bf24f994d3a1043496cfd03af4ff00ff11ebd8ba 3d41601cd4b5bc6ad81551d834d18858bceea716 Scylla Diakite <diakitescylla@gmail.com> 1780706737 +0000	commit: fix actions buttos colors
+3d41601cd4b5bc6ad81551d834d18858bceea716 108e02353598defe45bc71e6edbf9b11f4447e77 Scylla Diakite <diakitescylla@gmail.com> 1783210023 +0000	merge feat/design-system-artisan: Fast-forward
+108e02353598defe45bc71e6edbf9b11f4447e77 8b926adf7115477b3829a56a415ffc5888d4cc6d Scylla Diakite <diakitescylla@gmail.com> 1783232099 +0000	commit: feat(pos): ticket de caisse plus lisible (police +10px)
+8b926adf7115477b3829a56a415ffc5888d4cc6d 4a0522ea0740b3f992c70800d9ed359f93568bc4 Scylla Diakite <diakitescylla@gmail.com> 1783232638 +0000	commit: feat(pos): sessions de caisse type Odoo (ouverture/clôture + rapport Z)
+4a0522ea0740b3f992c70800d9ed359f93568bc4 070f86b0986301213ad53ac59c5ee89eacc9b52c Scylla Diakite <diakitescylla@gmail.com> 1783233181 +0000	commit: feat(pos): grille triée par popularité (plus vendus en premier)
+070f86b0986301213ad53ac59c5ee89eacc9b52c cb67fc3532c190aa6933666455720d4380f419ed Scylla Diakite <diakitescylla@gmail.com> 1783233802 +0000	commit: fix(pos): montant reçu (espèces) optionnel, non bloquant
+cb67fc3532c190aa6933666455720d4380f419ed ed8fc873587909a64a2dd4380d47c4e24124eec9 Scylla Diakite <diakitescylla@gmail.com> 1783239866 +0000	commit: feat(prod): rappel des produits quotidiens manquants (boutique)
+ed8fc873587909a64a2dd4380d47c4e24124eec9 43972a0cfa594f01951a2d44051863ccafa39124 Scylla Diakite <diakitescylla@gmail.com> 1783240743 +0000	commit: feat(prod): quantités quotidiennes réparties par car (Car1/Car2/Soir)
+43972a0cfa594f01951a2d44051863ccafa39124 6e0f3849582ad7239a9bd15ab59acc4450642607 Scylla Diakite <diakitescylla@gmail.com> 1783241099 +0000	commit: feat(header): recherche globale fonctionnelle (écrans + produits + clients)
+6e0f3849582ad7239a9bd15ab59acc4450642607 23233c3a94988e479ff8a8a1ff8dcba1c6a630a1 Scylla Diakite <diakitescylla@gmail.com> 1783241368 +0000	commit: feat(header): recherche globale ouvre la page cible pré-filtrée
+23233c3a94988e479ff8a8a1ff8dcba1c6a630a1 1bcbe33bb581e2e7206ddb275e453365aedd0f25 Scylla Diakite <diakitescylla@gmail.com> 1783318794 +0000	commit: feat(boutique): modes Classique / Avancé (caisse)
+1bcbe33bb581e2e7206ddb275e453365aedd0f25 763aa597dc84220389d3feb6f4e22cd184ae69cf Scylla Diakite <diakitescylla@gmail.com> 1783319054 +0000	commit: style(boutique): libellé 'Reste midi' → 'Reste' dans les cards
+763aa597dc84220389d3feb6f4e22cd184ae69cf d2286dfb41b26abf1328c570d51e22bb5694b66c Scylla Diakite <diakitescylla@gmail.com> 1783319596 +0000	commit: feat(rotation): 3e assistant (optionnel) par équipe
+d2286dfb41b26abf1328c570d51e22bb5694b66c 7196ed6c28f5ad09358fc05bb2e0d98c39ce5873 Scylla Diakite <diakitescylla@gmail.com> 1783319686 +0000	commit: style(theme): token sand-950 → #0F1828 (sidebar moins sombre, appliqué partout)
+7196ed6c28f5ad09358fc05bb2e0d98c39ce5873 7fba8e321f209891260511c4d44d90664cab6b46 Scylla Diakite <diakitescylla@gmail.com> 1783319878 +0000	commit: feat(rotation): assistants dynamiques (bouton + champ à la volée)
+7fba8e321f209891260511c4d44d90664cab6b46 1b61d1533b1800672f7a8267de759d3dbd1e2aa9 Scylla Diakite <diakitescylla@gmail.com> 1783324258 +0000	commit: fix(compta): exclure 'Carburant Four' des charges + retrait du menu dépenses
+1b61d1533b1800672f7a8267de759d3dbd1e2aa9 d159919a646f78b042f73d0bfdbffb447db2a5c3 Scylla Diakite <diakitescylla@gmail.com> 1783324923 +0000	commit: refactor(depense): retrait de 'Carburant Four' du type CategorieDepense
+d159919a646f78b042f73d0bfdbffb447db2a5c3 575a850c994ec14afac0df1eec3609e71c96112d Scylla Diakite <diakitescylla@gmail.com> 1783335116 +0000	commit: feat(compta): deux vues — Marge économique / Trésorerie (encaissé)
+575a850c994ec14afac0df1eec3609e71c96112d 94b77b3f005add142f3ed13c51408ee899e002ae Scylla Diakite <diakitescylla@gmail.com> 1783365989 +0000	commit: perf(firestore): réduire drastiquement les lectures (quota)
+94b77b3f005add142f3ed13c51408ee899e002ae f045b0d9e7d6b5c49ee6f592f8342740e3b88d6a Scylla Diakite <diakitescylla@gmail.com> 1783370510 +0000	commit: feat(compta): encaissements par moyen de paiement (Espèces/OM/Wave)
+f045b0d9e7d6b5c49ee6f592f8342740e3b88d6a f67d0eff3644f5e31e556f6365d8092fefcba81f Scylla Diakite <diakitescylla@gmail.com> 1783371178 +0000	commit: feat(compta): journal des règlements (encaissements exacts cross-période)
+f67d0eff3644f5e31e556f6365d8092fefcba81f 717ff9e5992d81b7f93eefdd71841f104f3e1c19 Scylla Diakite <diakitescylla@gmail.com> 1783373796 +0000	commit: perf(compta): chargement plus rapide
+717ff9e5992d81b7f93eefdd71841f104f3e1c19 675d647d229da9358261ad4c0ea58f4b400b5091 Scylla Diakite <diakitescylla@gmail.com> 1783377157 +0000	commit: style(compta): libellés KPI plus petits, non tronqués (retour à la ligne)
+675d647d229da9358261ad4c0ea58f4b400b5091 93a06eb99edcc7b88c399a24bdcb28569cb6914c Scylla Diakite <diakitescylla@gmail.com> 1783409544 +0000	commit: feat(ui): police Google Sans auto-hébergée (OFL, sous-ensemble Latin woff2)
+93a06eb99edcc7b88c399a24bdcb28569cb6914c 9e7cd53c250c25e23780aeff199100c0ed39efec Scylla Diakite <diakitescylla@gmail.com> 1783409880 +0000	commit: style(sidebar): logo agrandi (h-9 → h-14)
+9e7cd53c250c25e23780aeff199100c0ed39efec d722ff210cc5467e0c86df0ec3430d02468be30c Scylla Diakite <diakitescylla@gmail.com> 1783410712 +0000	commit: feat(carte): bouton retour + entête épurée (Supervision Géo-Performance)
+d722ff210cc5467e0c86df0ec3430d02468be30c 43b3216e042cf68712060622ffbbd5249cd5c501 Scylla Diakite <diakitescylla@gmail.com> 1783411226 +0000	commit: fix(carte): performance Élite/Alerte calculée sur 30 jours (au lieu du jour)
+43b3216e042cf68712060622ffbbd5249cd5c501 1f717dde3aa1ee332e7794ad95562025a53fccfe Scylla Diakite <diakitescylla@gmail.com> 1783411518 +0000	commit: perf(carte): cache 10 min des invendus/période (anti-relecture)
+1f717dde3aa1ee332e7794ad95562025a53fccfe 4095c5e67ae4ed29676480d7a55d6bf3b59bfe34 Scylla Diakite <diakitescylla@gmail.com> 1783412466 +0000	commit: fix(carte): compteurs Élite/Alerte alignés sur les marqueurs affichés
+4095c5e67ae4ed29676480d7a55d6bf3b59bfe34 c9e853928a8ff0310e14342302fc62d5af06a19e Scylla Diakite <diakitescylla@gmail.com> 1783412827 +0000	commit: feat(carte): légende des couleurs (Élite/Moyen/Alerte/Inconnu) en surimpression
+c9e853928a8ff0310e14342302fc62d5af06a19e 0a2d7af69b062207d96da79314233a6e2e467f7e Scylla Diakite <diakitescylla@gmail.com> 1783413708 +0000	commit: feat(finance): écran Créances clients (aging + débiteurs + relance)
+0a2d7af69b062207d96da79314233a6e2e467f7e 8171ea394b78ce2130bc753156020fa44be37bcc Scylla Diakite <diakitescylla@gmail.com> 1783453744 +0000	commit: refactor(facturation): liste clients épurée en tableau cliquable
+8171ea394b78ce2130bc753156020fa44be37bcc 33b055fcb331212a89f6f3ba51dbba0db71dc14b Scylla Diakite <diakitescylla@gmail.com> 1783455929 +0000	commit: feat(compta): détail des encaissements par moyen de paiement (qui/quand)
+33b055fcb331212a89f6f3ba51dbba0db71dc14b 65ccbf35684b9b52f9e03dd08a29c6139f3c236a Scylla Diakite <diakitescylla@gmail.com> 1783543763 +0000	commit: fix(rapport): respecte le mode boutique (classique = saisie manuelle)
+65ccbf35684b9b52f9e03dd08a29c6139f3c236a de17ab31d2daab7d083901b7e109307bb5c73a1f Scylla Diakite <diakitescylla@gmail.com> 1783552042 +0000	commit: feat(caisse): suppression d'un ticket (admin uniquement + confirmation)
+de17ab31d2daab7d083901b7e109307bb5c73a1f e2e169439194e33c28da7f21551c9fcf09ca5310 Scylla Diakite <diakitescylla@gmail.com> 1783552901 +0000	commit: security(firestore): suppression pos_tickets & users réservée aux admins
+e2e169439194e33c28da7f21551c9fcf09ca5310 42c3e3fc51cf72ba96e3f2284ae1e0cc082f7198 Scylla Diakite <diakitescylla@gmail.com> 1783685627 +0000	commit: feat(produit): catégorie Salé/Sucré (champ séparé) pour suivi des ventes
+42c3e3fc51cf72ba96e3f2284ae1e0cc082f7198 bcefc19c5fe54d1c80ade3e2b68c309809f1cfde Scylla Diakite <diakitescylla@gmail.com> 1783686158 +0000	commit: feat(saveur): page Suivi Salé/Sucré — ventes vs coût d'investissement
+bcefc19c5fe54d1c80ade3e2b68c309809f1cfde 9537520d05cd29216e5d974447989633464d3771 Scylla Diakite <diakitescylla@gmail.com> 1783686582 +0000	commit: feat(nav): entrée 'Suivi Salé / Sucré' dans le menu (section Gestion)
+9537520d05cd29216e5d974447989633464d3771 de5fb153ae0d983ed8dc00de1bfa5fa2b56572a5 Scylla Diakite <diakitescylla@gmail.com> 1783686808 +0000	commit: style(saveur): icônes Iconify (mdi) au lieu d'emojis
+de5fb153ae0d983ed8dc00de1bfa5fa2b56572a5 1d6a4bc6d3d4d8e8ceb79d66b1c38509fea40587 Scylla Diakite <diakitescylla@gmail.com> 1783687525 +0000	commit: style(saveur): champ Note prend l'espace restant du formulaire d'achat
+1d6a4bc6d3d4d8e8ceb79d66b1c38509fea40587 242022d65e568ba6bf3fb35b5ccd5db375a8196c Scylla Diakite <diakitescylla@gmail.com> 1783688120 +0000	commit: feat(saveur): raccourcis période (Ce mois / 3 mois / Depuis le début)
+242022d65e568ba6bf3fb35b5ccd5db375a8196c 527a2328b35f69f7aeb27b38aa03bec3e4050b47 Scylla Diakite <diakitescylla@gmail.com> 1783688401 +0000	commit: fix(saveur): 'Depuis le début' gère le Timestamp Firestore de createdAt
+527a2328b35f69f7aeb27b38aa03bec3e4050b47 df17f2a3e66e3481d979982a2a0e96eb21c52dce Scylla Diakite <diakitescylla@gmail.com> 1783688770 +0000	commit: fix(saveur): 'Depuis le début' se cale sur la 1re vente réelle
+df17f2a3e66e3481d979982a2a0e96eb21c52dce 7c46f8c77a2c9c7657ba433bd59cbb16ba8f56f9 Scylla Diakite <diakitescylla@gmail.com> 1783715224 +0000	commit: feat(saveur): 3e source Livraison (factures) + filtre 'payées seulement'
+7c46f8c77a2c9c7657ba433bd59cbb16ba8f56f9 6972b552c19849834a111759aa78e82c31b164e4 Scylla Diakite <diakitescylla@gmail.com> 1783715964 +0000	commit: fix(saveur): 'Toutes' sans double comptage caisse/boutique
+6972b552c19849834a111759aa78e82c31b164e4 8e4acdfcb07f76b9743bfc9d9210916809f9ce44 Scylla Diakite <diakitescylla@gmail.com> 1783753026 +0000	commit: perf(saveur): cache des agrégats de ventes + premières dates (TTL 3 min)
+8e4acdfcb07f76b9743bfc9d9210916809f9ce44 53791b5680c95bd291e07088e928ce16ed838d42 Scylla Diakite <diakitescylla@gmail.com> 1783753181 +0000	commit: perf(app): code-splitting des routes (React.lazy + Suspense)
+53791b5680c95bd291e07088e928ce16ed838d42 6026ac712a4f3e581eaf67cea2de333109ef520f Scylla Diakite <diakitescylla@gmail.com> 1783933227 +0000	commit: fix(production): commandes d'une autre journée dans le programme
+6026ac712a4f3e581eaf67cea2de333109ef520f b3c7d438edcff937411d99518fc61d4545b38d7a Scylla Diakite <diakitescylla@gmail.com> 1784011718 +0000	commit: fix(rapport): TOTAL dupliqué quand un tableau PDF déborde sur 2 pages
+b3c7d438edcff937411d99518fc61d4545b38d7a 0b63bacedd9902b2e7664392478f165e1a5ba3ad Scylla Diakite <diakitescylla@gmail.com> 1784012726 +0000	commit: chore(firebase): .firebaserc — projet par défaut boulangerie-fork
+0b63bacedd9902b2e7664392478f165e1a5ba3ad c7b0f1b47c4c1bf0c6f2684074a819524b5701f5 Scylla Diakite <diakitescylla@gmail.com> 1784013047 +0000	commit: fix(pos): message d'erreur explicite si suppression refusée (non-admin)
+c7b0f1b47c4c1bf0c6f2684074a819524b5701f5 bf4daf0fd33d02d50dce6d934650311d5ed45a1c Scylla Diakite <diakitescylla@gmail.com> 1784014170 +0000	commit: security(firestore): écriture sur users réservée aux admins
+bf4daf0fd33d02d50dce6d934650311d5ed45a1c 3d63d6d177a4fce022e7d93da76c7e56694b0deb Scylla Diakite <diakitescylla@gmail.com> 1784271682 +0000	commit: fix(ux): loader maintenu tant que les données ne sont pas chargées (Dashboard)
+3d63d6d177a4fce022e7d93da76c7e56694b0deb 6bd9a54d77afd2132b1be8e825ec1fcb674ba87c Scylla Diakite <diakitescylla@gmail.com> 1784272375 +0000	commit: fix(ux): loader maintenu jusqu'au chargement des données (6 pages)
+6bd9a54d77afd2132b1be8e825ec1fcb674ba87c a810fb321ef4267a5601d2d1a4ce2eeaa3ca8cc6 Scylla Diakite <diakitescylla@gmail.com> 1784533881 +0000	commit: amelioration de la vue boulanger
+a810fb321ef4267a5601d2d1a4ce2eeaa3ca8cc6 58e6ca3a01943bbb1c6f2de63667410902637a03 Scylla Diakite <diakitescylla@gmail.com> 1784973267 +0000	commit: dispatch on deficit
