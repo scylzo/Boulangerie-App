@@ -593,6 +593,59 @@ export const VueBoulanger: React.FC = () => {
                 )}
               </div>
 
+              {/* Tableau Récapitulatif par Produit (Matin vs Soir) */}
+              <div className="bg-white border border-sand-200 rounded-xl p-4 sm:p-6 shadow-sm print:border-black print:shadow-none print:rounded-none">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-sand-100 rounded-lg print:bg-sand-200 text-sand-700 print:text-black">
+                    <Icon icon="mdi:clipboard-text-play-outline" className="text-xl" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sand-900 text-sm sm:text-base uppercase tracking-wider">
+                      Total à Produire par Produit (Matin vs Soir)
+                    </h3>
+                    <p className="text-xs text-sand-500">
+                      Quantités globales regroupées par moment de la journée (Clients + Boutique)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-sand-200 text-xs text-sand-500 uppercase font-semibold">
+                        <th className="py-2.5 px-3">Produit</th>
+                        <th className="py-2.5 px-3 text-right">Matin (Car 1 + Car 2)</th>
+                        <th className="py-2.5 px-3 text-right">Soir (Car Soir)</th>
+                        <th className="py-2.5 px-3 text-right">Total Journée</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sand-100 text-sm text-sand-800">
+                      {totauxParProduit.map((item) => {
+                        const matinQty = (item.repartitionCar1Matin || 0) + (item.repartitionCar2Matin || 0);
+                        const soirQty = item.repartitionCarSoir || 0;
+
+                        return (
+                          <tr key={`recap-prod-${item.produitId}`} className="hover:bg-sand-50/50 transition-colors">
+                            <td className="py-3 px-3 font-medium uppercase truncate max-w-[200px]" title={item.produit?.nom}>
+                              {item.produit?.nom || 'Inconnu'}
+                            </td>
+                            <td className={`py-3 px-3 text-right font-semibold ${matinQty > 0 ? 'text-sand-900' : 'text-sand-300'}`}>
+                              {matinQty > 0 ? matinQty : '-'}
+                            </td>
+                            <td className={`py-3 px-3 text-right font-semibold ${soirQty > 0 ? 'text-sand-900' : 'text-sand-300'}`}>
+                              {soirQty > 0 ? soirQty : '-'}
+                            </td>
+                            <td className="py-3 px-3 text-right font-bold text-sand-900 text-base">
+                              {item.totalGlobal}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
               {/* Saisie de la Production Réelle */}
               <div className="bg-white border-2 border-terracotta-100 rounded-xl p-4 shadow-sm print:hidden">
                 <div className="flex items-center gap-3 mb-4">
