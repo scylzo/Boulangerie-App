@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Facture, RapportJournalier, IndicateursPerformance, ProgrammeProduction, Client, Livreur } from '../types';
+import type { Facture, RapportJournalier, IndicateursPerformance, ProgrammeProduction, Client, Livreur, ModePaiement } from '../types';
 import { formatCurrencyCompact } from './currency';
 import logoUrl from '../assets/logo.png';
 
@@ -1657,6 +1657,199 @@ export const downloadReleveFacturesPDF = async (
   } catch (error) {
     if (newWindow) newWindow.close();
     console.error('Erreur PDF Relevé:', error);
+    throw new Error('Impossible de générer le PDF');
+  }
+};
+
+export const generateReleveVersementsPDF = async (
+  client: Client,
+  reglements: { date: Date; mode: ModePaiement; montant: number; reference?: string; numeroFacture?: string }[],
+  dateDebut: Date,
+  dateFin: Date
+) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+
+  const formatMoney = (amount: number) => {
+    return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " FCFA";
+  };
+
+  const getModeLabel = (mode: string) => {
+    switch (mode) {
+      case 'espece': return 'Espèces';
+      case 'om': return 'Orange Money';
+      case 'wave': return 'Wave';
+      case 'cheque': return 'Chèque';
+      case 'virement': return 'Virement';
+      default: return mode;
+    }
+  };
+
+  // Palette Moderne (Bleu pour les versements/paiements)
+  const colors = {
+    primary: [37, 99, 235],    // Blue 600
+    secondary: [107, 114, 128], // Gray 500
+    text: [31, 41, 55],        // Gray 800
+    bgHeader: [239, 246, 255], // Blue 50
+    accent: [59, 130, 246]      // Blue 500
+  };
+
+  // 1. En-tête Moderne style Banner
+  doc.setFillColor(colors.bgHeader[0], colors.bgHeader[1], colors.bgHeader[2]);
+  doc.rect(0, 0, pageWidth, 45, 'F');
+  doc.setDrawColor(191, 219, 254); // Blue 200
+  doc.line(0, 45, pageWidth, 45);
+
+  try {
+    const logoImg = await loadImage(logoUrl);
+    doc.addImage(logoImg, 'PNG', 15, 10, 22, 22);
+  } catch (error) {
+    console.error('Erreur chargement logo', error);
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.text('RELEVÉ DES VERSEMENTS', 45, 22);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.text(`Période du ${dateDebut.toLocaleDateString('fr-FR')} au ${dateFin.toLocaleDateString('fr-FR')}`, 45, 29);
+
+  let yPos = 55;
+
+  // 2. Section Client et Résumé
+  const totalAmount = reglements.reduce((sum, r) => sum + r.montant, 0);
+
+  doc.setFontSize(11);
+  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CLIENT', 15, yPos);
+  
+  doc.setFontSize(14);
+  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.text(client.nom, 15, yPos + 7);
+  
+  doc.setFontSize(10);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.setFont('helvetica', 'normal');
+  if (client.telephone) doc.text(`Tél: ${client.telephone}`, 15, yPos + 13);
+  if (client.adresse) doc.text(client.adresse, 15, yPos + 18);
+
+  // Boîte Résumé (à droite)
+  doc.setFillColor(colors.bgHeader[0], colors.bgHeader[1], colors.bgHeader[2]);
+  doc.setDrawColor(147, 197, 253); // Blue 300
+  doc.roundedRect(120, yPos - 5, 75, 25, 3, 3, 'FD');
+  
+  doc.setFontSize(9);
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.text('Total Versé sur la période:', 125, yPos + 2);
+  
+  doc.setFontSize(16);
+  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  doc.setFont('helvetica', 'bold');
+  doc.text(formatMoney(totalAmount), 190, yPos + 12, { align: 'right' });
+
+  yPos += 30;
+
+  // 3. Tableau des versements
+  doc.setFontSize(10);
+  doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+  doc.text(`DÉTAIL DES VERSEMENTS (${reglements.length})`, 15, yPos);
+
+  const tableData = reglements.map(r => [
+    new Date(r.date).toLocaleDateString('fr-FR'),
+    getModeLabel(r.mode),
+    r.reference || '-',
+    r.numeroFacture || '-',
+    formatMoney(r.montant)
+  ]);
+
+  const primaryColor: [number, number, number] = [colors.primary[0], colors.primary[1], colors.primary[2]];
+  const whiteColor: [number, number, number] = [255, 255, 255];
+
+  autoTable(doc, {
+    startY: yPos + 4,
+    head: [['Date', 'Moyen de paiement', 'Référence', 'N° Facture', 'Montant']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: {
+      fillColor: primaryColor,
+      textColor: whiteColor,
+      fontSize: 8,
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    columnStyles: {
+      0: { cellWidth: 25, halign: 'center' },
+      1: { cellWidth: 35, halign: 'left' },
+      2: { cellWidth: 'auto', fontSize: 8 },
+      3: { cellWidth: 35, halign: 'center' },
+      4: { cellWidth: 35, halign: 'right', fontStyle: 'bold', textColor: primaryColor }
+    },
+    styles: { fontSize: 8, cellPadding: 2 },
+    alternateRowStyles: { fillColor: [250, 250, 250] },
+    margin: { left: 15, right: 15 }
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const currentY = (doc as any).lastAutoTable.finalY + 15;
+
+  // Message de remerciement
+  if (currentY < pageHeight - 30) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+    doc.text('Nous vous remercions pour votre confiance et pour la régularité de vos paiements.', 15, currentY);
+  }
+
+  // Pied de page
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  doc.text(`Document généré le ${new Date().toLocaleString('fr-FR')} - BOULANGERIE ERP`, 15, pageHeight - 10);
+  doc.text('Page 1/1', pageWidth - 25, pageHeight - 10);
+
+  return doc;
+};
+
+export const downloadReleveVersementsPDF = async (
+  client: Client,
+  reglements: { date: Date; mode: ModePaiement; montant: number; reference?: string; numeroFacture?: string }[],
+  dateDebut: Date,
+  dateFin: Date
+) => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  let newWindow: Window | null = null;
+  if (isMobile) {
+    newWindow = window.open('', '_blank');
+    if (newWindow) newWindow.document.write('Génération du PDF en cours...');
+  }
+
+  try {
+    const doc = await generateReleveVersementsPDF(client, reglements, dateDebut, dateFin);
+    const fileName = `Releve_Versements_${client.nom.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    
+    if (isMobile) {
+      const pdfBlob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      if (newWindow) {
+        newWindow.location.href = pdfBlob ? blobUrl : '';
+      } else {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.click();
+      }
+    } else {
+      doc.save(fileName);
+    }
+    return true;
+  } catch (error) {
+    if (newWindow) newWindow.close();
+    console.error('Erreur PDF Relevé Versements:', error);
     throw new Error('Impossible de générer le PDF');
   }
 };

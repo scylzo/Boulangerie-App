@@ -7,6 +7,7 @@ import { FactureDetailsModal } from '../../components/factures/FactureDetailsMod
 import { PaymentModal } from '../../components/factures/PaymentModal';
 import { CalculateurRistourneModal } from '../../components/factures/CalculateurRistourneModal';
 import { ReleveFacturesModal } from '../../components/factures/ReleveFacturesModal';
+import { ReleveVersementsModal } from '../../components/factures/ReleveVersementsModal';
 import { useFacturationStore } from '../../store/facturationStore';
 
 import { useLivraisonStore } from '../../store/livraisonStore';
@@ -77,6 +78,7 @@ export const GestionFactures: React.FC = () => {
   const [showRistourneModal, setShowRistourneModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showReleveModal, setShowReleveModal] = useState(false);
+  const [showVersementsModal, setShowVersementsModal] = useState(false);
   const [releveType, setReleveType] = useState<'impayes' | 'payees'>('impayes');
   const [factureAPayer, setFactureAPayer] = useState<Facture | null>(null);
 
@@ -635,6 +637,18 @@ export const GestionFactures: React.FC = () => {
                 <span className="truncate">Relevé Payés</span>
               </Button>
 
+              <Button
+                onClick={() => {
+                  setShowVersementsModal(true);
+                }}
+                variant="outline"
+                className="border-blue-100 text-blue-700 hover:bg-blue-50 h-9 text-xs sm:text-sm w-full sm:w-auto"
+                size="sm"
+              >
+                <Icon icon="mdi:cash-multiple" className="text-base sm:text-lg mr-2" />
+                <span className="truncate">Relevé Versements</span>
+              </Button>
+
               <div className="flex bg-sand-100 p-1 rounded-lg w-full sm:w-auto">
                 <button
                   onClick={() => setFiltreStatut('tous')}
@@ -1157,6 +1171,14 @@ export const GestionFactures: React.FC = () => {
           client={selectedClient}
           factures={factures.filter(f => f.clientId === selectedClient.id)}
           type={releveType}
+        />
+      )}
+
+      {selectedClient && (
+        <ReleveVersementsModal
+          isOpen={showVersementsModal}
+          onClose={() => setShowVersementsModal(false)}
+          client={selectedClient}
         />
       )}
 

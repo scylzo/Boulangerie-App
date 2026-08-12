@@ -27,6 +27,10 @@ interface FacturationStore {
   marquerPayee: (factureId: string, reglements: Reglement[] | { montant: number, mode: ModePaiement, date?: Date }) => Promise<void>;
   /** Journal des règlements sur une période (par date de règlement, cross-période). */
   getReglementsPeriode: (debut: Date, fin: Date) => Promise<{ mode: ModePaiement; montant: number; date: Date; factureId: string; clientId: string }[]>;
+  /** Obtenir tous les versements (règlements) d'un client donné sur une période. */
+  getReglementsClientPeriode: (clientId: string, debut: Date, fin: Date) => Promise<{ id: string; mode: ModePaiement; montant: number; date: Date; factureId: string; clientId: string; reference?: string }[]>;
+  /** Obtenir toutes les factures d'un client. */
+  getFacturesClient: (clientId: string) => Promise<Facture[]>;
   /** Ventes livraison (factures) par produit sur une période, par date de livraison. */
   getVentesFactureParProduit: (debut: Date, fin: Date, payeesUniquement?: boolean) => Promise<Record<string, { qty: number; valeur: number }>>;
   /** Date (yyyy-mm-dd) de la toute première livraison facturée, ou null. */
@@ -991,6 +995,52 @@ export const useFacturationStore = create<FacturationStore>()(
           });
         } catch (e) {
           console.error('Erreur getReglementsPeriode:', e);
+          return [];
+        }
+      },
+
+      getReglementsClientPeriode: async (clientId: string, debut: Date, fin: Date) => {
+        try {
+          const q = query(collection(db, 'reglements'), where('clientId', '==', clientId));
+          const snap = await getDocs(q);
+          return snap.docs
+            .map(d => {
+              const x = d.data() as any;
+              return {
+                id: d.id,
+                mode: x.mode as ModePaiement,
+                montant: x.montant || 0,
+                date: x.date?.toDate ? x.date.toDate() : new Date(x.date),
+                factureId: x.factureId,
+                clientId: x.clientId,
+                reference: x.reference || null,
+              };
+            })
+            .filter(r => r.date >= debut && r.date <= fin)
+            .sort((a, b) => b.date.getTime() - a.date.getTime());
+        } catch (e) {
+          console.error('Erreur getReglementsClientPeriode:', e);
+          return [];
+        }
+      },
+
+      getFacturesClient: async (clientId: string) => {
+        try {
+          const q = query(collection(db, 'factures'), where('clientId', '==', clientId));
+          const snap = await getDocs(q);
+          return snap.docs.map(doc => {
+            const data = doc.data();
+            return {
+              ...data,
+              id: doc.id,
+              dateLivraison: data.dateLivraison?.toDate ? data.dateLivraison.toDate() : new Date(data.dateLivraison),
+              dateFacture: data.dateFacture?.toDate ? data.dateFacture.toDate() : new Date(data.dateFacture),
+              createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+              updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt)
+            } as Facture;
+          });
+        } catch (e) {
+          console.error("Erreur getFacturesClient:", e);
           return [];
         }
       },

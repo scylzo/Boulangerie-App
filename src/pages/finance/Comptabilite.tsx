@@ -192,12 +192,17 @@ export const Comptabilite: React.FC = () => {
             let caLivraisonEncaisse = 0;
             reglementsPeriode.forEach(r => {
                 if (!r.mode) return;
+                
+                // Option A : Ne garder que les règlements de factures livrées sur cette même période
+                const factureAssociee = factures.find(f => f.id === r.factureId);
+                if (!factureAssociee) return;
+
                 factParMode[r.mode] += r.montant;
                 caLivraisonEncaisse += r.montant;
                 detail[r.mode].push({
                     source: 'livraison',
                     label: nomClient(r.clientId),
-                    ref: 'Règlement facture',
+                    ref: `Règlement facture ${factureAssociee.numeroFacture}`,
                     montant: r.montant,
                     date: r.date,
                 });
@@ -455,11 +460,23 @@ export const Comptabilite: React.FC = () => {
             }
         });
 
-        finalY = (doc as any).lastAutoTable.finalY + 15;
+        finalY = (doc as any).lastAutoTable.finalY + 10;
+        if (estTreso) {
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(120, 120, 120);
+            const explanationText = "* Note : En mode Trésorerie, le montant des \"Livraisons réglées\" n'inclut que les règlements encaissés durant la période pour des factures livrées au cours de cette même période. Les recouvrements de créances/dettes antérieures sont exclus.";
+            const splitText = doc.splitTextToSize(explanationText, 180);
+            doc.text(splitText, 14, finalY);
+            finalY += (splitText.length * 4) + 10;
+        } else {
+            finalY += 5;
+        }
 
         // 3. DÉTAIL DES DÉPENSES
         doc.setFontSize(14);
         doc.setTextColor(192, 57, 43); // Rouge
+        doc.setFont("helvetica", "bold");
         doc.text("3. Détail des Dépenses", 14, finalY);
 
         // Fusionner dépenses classiques et matières premières détaillées
@@ -495,6 +512,68 @@ export const Comptabilite: React.FC = () => {
                 }
             }
         });
+
+        finalY = (doc as any).lastAutoTable.finalY + 15;
+
+        // 4. DÉTAIL DES ENCAISSEMENTS LIVRAISONS (Si Trésorerie)
+        if (estTreso) {
+            const rawReglements: { date: Date; client: string; mode: string; ref: string; montant: number }[] = [];
+            (['espece', 'om', 'wave'] as const).forEach(mode => {
+                const entries = stats.encaissementsDetail[mode] || [];
+                entries.forEach(e => {
+                    if (e.source === 'livraison') {
+                        rawReglements.push({
+                            date: e.date,
+                            client: e.label,
+                            mode: mode === 'espece' ? 'Espèces' : mode === 'om' ? 'Orange Money' : 'Wave',
+                            ref: e.ref || '-',
+                            montant: e.montant
+                        });
+                    }
+                });
+            });
+
+            if (rawReglements.length > 0) {
+                // Trier par date décroissante
+                rawReglements.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+                const listReglements = rawReglements.map(r => [
+                    r.date.toLocaleDateString('fr-FR'),
+                    r.client,
+                    r.mode,
+                    r.ref,
+                    formatPdfCurrency(r.montant)
+                ]);
+
+                // Si on approche de la fin de page, on force un saut de page
+                if (finalY > 220) {
+                    doc.addPage();
+                    finalY = 20;
+                }
+
+                doc.setFontSize(14);
+                doc.setTextColor(41, 128, 185); // Bleu
+                doc.setFont("helvetica", "bold");
+                doc.text("4. Liste des règlements livraisons pris en compte", 14, finalY);
+
+                autoTable(doc, {
+                    startY: finalY + 5,
+                    head: [['Date', 'Client', 'Moyen', 'Facture', 'Montant']],
+                    body: listReglements,
+                    theme: 'grid',
+                    headStyles: { fillColor: [41, 128, 185], halign: 'left' }, // Bleu
+                    columnStyles: {
+                        0: { cellWidth: 25, halign: 'center' },
+                        1: { cellWidth: 'auto' },
+                        2: { cellWidth: 35, halign: 'center' },
+                        3: { cellWidth: 35, halign: 'center' },
+                        4: { cellWidth: 30, halign: 'right' }
+                    }
+                });
+
+                finalY = (doc as any).lastAutoTable.finalY + 15;
+            }
+        }
 
         // --- PIED DE PAGE ---
         const pageCount = (doc as any).internal.getNumberOfPages();
