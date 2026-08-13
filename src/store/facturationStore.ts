@@ -1146,6 +1146,16 @@ export const useFacturationStore = create<FacturationStore>()(
 
           await updateDoc(doc(db, 'factures', factureId), updateData);
 
+          // Supprimer les règlements associés de la collection 'reglements'
+          try {
+            const qRegs = query(collection(db, 'reglements'), where('factureId', '==', factureId));
+            const snapRegs = await getDocs(qRegs);
+            await Promise.all(snapRegs.docs.map(d => deleteDoc(d.ref)));
+            console.log(`🗑️ Règlements associés à la facture annulée ${factureId} supprimés.`);
+          } catch (e) {
+            console.error('Erreur suppression règlements facture annulée:', e);
+          }
+
           set(state => ({
             factures: state.factures.map(f =>
               f.id === factureId ? { ...f, ...updateData } : f
@@ -1177,6 +1187,16 @@ export const useFacturationStore = create<FacturationStore>()(
           }
 
           await deleteDoc(doc(db, 'factures', factureId));
+
+          // Supprimer les règlements associés de la collection 'reglements'
+          try {
+            const qRegs = query(collection(db, 'reglements'), where('factureId', '==', factureId));
+            const snapRegs = await getDocs(qRegs);
+            await Promise.all(snapRegs.docs.map(d => deleteDoc(d.ref)));
+            console.log(`🗑️ Règlements associés à la facture supprimée ${factureId} supprimés.`);
+          } catch (e) {
+            console.error('Erreur suppression règlements facture supprimée:', e);
+          }
 
           set(state => ({
             factures: state.factures.filter(f => f.id !== factureId),

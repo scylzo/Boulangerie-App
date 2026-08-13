@@ -79,15 +79,25 @@ export const ReleveVersementsModal: React.FC<ReleveVersementsModalProps> = ({
         facturesMap.set(f.id, f.numeroFacture);
       });
 
-      // Associer les règlements avec le numéro de facture correspondant
-      const regsAffiche: ReglementAffiche[] = regsRaw.map(r => ({
-        id: r.id,
-        date: r.date,
-        mode: r.mode,
-        montant: r.montant,
-        reference: r.reference,
-        numeroFacture: r.factureId ? facturesMap.get(r.factureId) : undefined
-      }));
+      // Filtrer les règlements pour exclure ceux dont la facture associée est annulée ou introuvable
+      const regsFiltres = regsRaw.filter(r => {
+        if (!r.factureId) return true;
+        const facture = facturesRaw.find(f => f.id === r.factureId);
+        return facture && facture.statut !== 'annulee';
+      });
+
+      // Associer les règlements filtrés avec le numéro de facture correspondant
+      const regsAffiche: ReglementAffiche[] = regsFiltres.map(r => {
+        const facture = r.factureId ? facturesRaw.find(f => f.id === r.factureId) : undefined;
+        return {
+          id: r.id,
+          date: r.date,
+          mode: r.mode,
+          montant: r.montant,
+          reference: r.reference || undefined,
+          numeroFacture: facture?.numeroFacture
+        };
+      });
 
       setReglements(regsAffiche);
     } catch (error) {

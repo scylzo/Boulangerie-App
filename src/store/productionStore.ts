@@ -433,8 +433,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         }
 
         // Bornes UTC pour correspondre au format de stockage (semblable à getProgrammeByDate)
-        const dateStart = new Date(Date.UTC(dateProduction.getFullYear(), dateProduction.getMonth(), dateProduction.getDate(), 0, 0, 0));
-        const dateEnd = new Date(Date.UTC(dateProduction.getFullYear(), dateProduction.getMonth(), dateProduction.getDate(), 23, 59, 59, 999));
+        const dateStart = new Date(Date.UTC(dateProduction.getUTCFullYear(), dateProduction.getUTCMonth(), dateProduction.getUTCDate(), 0, 0, 0));
+        const dateEnd = new Date(Date.UTC(dateProduction.getUTCFullYear(), dateProduction.getUTCMonth(), dateProduction.getUTCDate(), 23, 59, 59, 999));
 
         // Récupérer les commandes existantes dans Firestore pour cette date
         const qOrders = query(

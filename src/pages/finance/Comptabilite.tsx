@@ -193,9 +193,9 @@ export const Comptabilite: React.FC = () => {
             reglementsPeriode.forEach(r => {
                 if (!r.mode) return;
                 
-                // Option A : Ne garder que les règlements de factures livrées sur cette même période
+                // Option A : Ne garder que les règlements de factures livrées sur cette même période (et non annulées)
                 const factureAssociee = factures.find(f => f.id === r.factureId);
-                if (!factureAssociee) return;
+                if (!factureAssociee || factureAssociee.statut === 'annulee') return;
 
                 factParMode[r.mode] += r.montant;
                 caLivraisonEncaisse += r.montant;
