@@ -7,6 +7,8 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { ProduitForm } from '../../components/shared/ProduitForm';
 import { useReferentielStore } from '../../store/referentielStore';
 import { useStockStore } from '../../store/stockStore'; // Import stock store
+import { useLivraisonStore } from '../../store/livraisonStore';
+import { ModalQuotaGlobal } from '../../components/livraison/ModalQuotaGlobal';
 import type { Produit } from '../../types';
 
 export const GestionProduits: React.FC = () => {
@@ -21,8 +23,11 @@ export const GestionProduits: React.FC = () => {
     setProduitEnEdition
   } = useReferentielStore();
 
+  const { parametresLivraison, chargerParametresLivraison } = useLivraisonStore();
+
   const [searchParams] = useSearchParams();
   const [showForm, setShowForm] = useState(false);
+  const [isModalQuotaOpen, setIsModalQuotaOpen] = useState(false);
   const [search, setSearch] = useState(() => searchParams.get('q') || '');
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; produitId: string; produitNom: string }>({
     isOpen: false,
@@ -35,7 +40,8 @@ export const GestionProduits: React.FC = () => {
   useEffect(() => {
     chargerProduits();
     chargerStock();
-  }, [chargerProduits, chargerStock]);
+    chargerParametresLivraison();
+  }, [chargerProduits, chargerStock, chargerParametresLivraison]);
 
   // Préremplir la recherche depuis l'URL (?q=) — ex. depuis la recherche globale
   useEffect(() => {
@@ -129,6 +135,14 @@ export const GestionProduits: React.FC = () => {
               />
             </div>
             <button
+              onClick={() => setIsModalQuotaOpen(true)}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg transition-all shadow-sm text-xs sm:text-sm font-semibold shrink-0"
+              title="Configurer le pourcentage de retour maximum global par défaut"
+            >
+              <Icon icon="mdi:keyboard-return" className="text-base text-amber-700" />
+              <span>Quota Global : {parametresLivraison?.pourcentageRetourGlobalMax !== undefined ? `${parametresLivraison.pourcentageRetourGlobalMax}%` : '10%'}</span>
+            </button>
+            <button
               onClick={() => setShowForm(true)}
               disabled={showForm}
               className="flex items-center justify-center gap-2 px-4 py-2 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-soft text-sm font-medium whitespace-nowrap"
@@ -210,11 +224,22 @@ export const GestionProduits: React.FC = () => {
                           </div>
                           <div className="min-w-0">
                             <div className="font-medium text-sand-900 truncate uppercase">{produit.nom}</div>
-                            {produit.reconduisible && (
-                              <span className="inline-flex items-center gap-1 text-[11px] text-success-600 mt-0.5">
-                                <Icon icon="mdi:recycle" className="text-xs" /> Reconduisible
-                              </span>
-                            )}
+                            <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                              {produit.reconduisible && (
+                                <span className="inline-flex items-center gap-1 text-[11px] text-success-600">
+                                  <Icon icon="mdi:recycle" className="text-xs" /> Reconduisible
+                                </span>
+                              )}
+                              {produit.pourcentageRetourMax !== undefined && produit.pourcentageRetourMax > 0 ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200" title="Taux de retour maximal spécifique à ce produit">
+                                  <Icon icon="mdi:keyboard-return" className="text-xs" /> Retour max : {produit.pourcentageRetourMax}%
+                                </span>
+                              ) : parametresLivraison?.pourcentageRetourGlobalMax !== undefined && parametresLivraison.pourcentageRetourGlobalMax > 0 ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] text-sand-600 bg-sand-100 px-1.5 py-0.2 rounded border border-sand-200" title="Taux de retour global par défaut appliqué à ce produit">
+                                  <Icon icon="mdi:keyboard-return" className="text-xs text-sand-400" /> Retour max : {parametresLivraison.pourcentageRetourGlobalMax}% (défaut)
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -288,6 +313,11 @@ export const GestionProduits: React.FC = () => {
         cancelText="Annuler"
         type="danger"
         position="center"
+      />
+
+      <ModalQuotaGlobal
+        isOpen={isModalQuotaOpen}
+        onClose={() => setIsModalQuotaOpen(false)}
       />
     </div>
   );

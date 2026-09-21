@@ -33,6 +33,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     defCar1: '' as number | '',
     defCar2: '' as number | '',
     defCarSoir: '' as number | '',
+    pourcentageRetourMax: '' as number | '',
     active: true,
     recette: [] as Ingredient[]
   });
@@ -61,6 +62,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         defCar1: produit.quantiteBoutiqueDefautCars?.car1_matin ?? (produit.quantiteBoutiqueDefaut ?? ''),
         defCar2: produit.quantiteBoutiqueDefautCars?.car2_matin ?? '',
         defCarSoir: produit.quantiteBoutiqueDefautCars?.car_soir ?? '',
+        pourcentageRetourMax: produit.pourcentageRetourMax ?? '',
         active: produit.active,
         recette: produit.recette || []
       });
@@ -135,6 +137,9 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         quantiteBoutiqueDefaut: formData.productionQuotidienne
           ? (Number(formData.defCar1) || 0) + (Number(formData.defCar2) || 0) + (Number(formData.defCarSoir) || 0)
           : 0,
+        pourcentageRetourMax: formData.pourcentageRetourMax !== '' && !isNaN(Number(formData.pourcentageRetourMax))
+          ? Number(formData.pourcentageRetourMax)
+          : undefined,
         active: formData.active,
         recette: formData.recette, // Include recipe
         description: '',
@@ -156,6 +161,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           defCar1: '',
           defCar2: '',
           defCarSoir: '',
+          pourcentageRetourMax: '',
           active: true,
           recette: []
         });
@@ -322,6 +328,48 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
                   Les invendus de ce produit peuvent être vendus le lendemain (ex: biscuits, pains spéciaux).
                   Si décoché, les invendus seront considérés comme des pertes (ex: baguettes fraîches, croissants).
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quota de retour maximum autorisé (%) */}
+          <div className="bg-sand-50 border border-sand-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-warning-50 flex items-center justify-center text-warning-600 shrink-0 mt-0.5">
+                <Icon icon="mdi:keyboard-return" className="text-lg" />
+              </div>
+              <div className="flex-1">
+                <label htmlFor="pourcentageRetourMax" className="block text-sm font-medium text-sand-900">
+                  Taux de retour maximum autorisé (%)
+                </label>
+                <p className="text-xs text-sand-600 mt-0.5 mb-2">
+                  Pourcentage maximal d'invendus accepté pour ce produit (ex: 10% pour les baguettes).
+                  Cette valeur servira de limite de référence sur la fiche de livraison de chaque livreur et lors de la saisie des retours.
+                </p>
+                <div className="flex items-center gap-2 max-w-xs">
+                  <Input
+                    id="pourcentageRetourMax"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.5"
+                    value={formData.pourcentageRetourMax}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        setFormData({ ...formData, pourcentageRetourMax: '' });
+                      } else {
+                        const num = parseFloat(val);
+                        setFormData({
+                          ...formData,
+                          pourcentageRetourMax: isNaN(num) ? '' : Math.min(100, Math.max(0, num))
+                        });
+                      }
+                    }}
+                    placeholder="ex: 10"
+                  />
+                  <span className="text-sm font-semibold text-sand-600 shrink-0">%</span>
+                </div>
               </div>
             </div>
           </div>

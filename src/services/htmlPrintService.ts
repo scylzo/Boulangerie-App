@@ -102,6 +102,43 @@ export class HTMLPrintService {
     }
   }
 
+  private calculateMaxRetoursClient(
+    client: Client | undefined,
+    produitsQuantites: Map<string, number>,
+    produitsObj: Map<string, Produit>,
+    pourcentageGlobal?: number
+  ): string {
+    if (!client) return '';
+    const limites: string[] = [];
+
+    produitsQuantites.forEach((quantite, nomProduit) => {
+      if (quantite <= 0) return;
+      const produit = produitsObj.get(nomProduit);
+      if (!produit) return;
+
+      // Priorité 1: Surcharge spécifique au client
+      const tauxSpecifique = client.pourcentagesRetourParProduit?.[produit.id];
+      // Priorité 2: Taux par défaut du produit
+      const tauxDefaut = produit.pourcentageRetourMax;
+      // Priorité 3: Taux global par défaut
+      const taux = (tauxSpecifique !== undefined && tauxSpecifique !== null && Number(tauxSpecifique) > 0)
+        ? Number(tauxSpecifique)
+        : (tauxDefaut !== undefined && tauxDefaut !== null && Number(tauxDefaut) > 0)
+          ? Number(tauxDefaut)
+          : (pourcentageGlobal !== undefined && pourcentageGlobal !== null && Number(pourcentageGlobal) > 0)
+            ? Number(pourcentageGlobal)
+            : 0;
+
+      if (taux > 0) {
+        const maxPieces = Math.round((quantite * taux) / 100);
+        const sigle = this.getSigleProduit(nomProduit);
+        limites.push(`Max: ${maxPieces} ${sigle}`);
+      }
+    });
+
+    return limites.join(' · ');
+  }
+
   private generateStyles(): string {
     return `
       <style>
@@ -302,6 +339,30 @@ export class HTMLPrintService {
           width: 100%;
           height: 12px;
         }
+
+        .retours-cell {
+          min-height: 18px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 1px 0;
+        }
+
+        .retours-quota {
+          font-size: 7.5px;
+          font-weight: 700;
+          color: #1f2937;
+          line-height: 1.1;
+          text-align: left;
+          white-space: nowrap;
+          margin-bottom: 2px;
+        }
+
+        .retours-line {
+          border-bottom: 1px dotted #9ca3af;
+          height: 8px;
+          width: 100%;
+        }
         
         .stats {
             display: flex;
@@ -352,7 +413,8 @@ export class HTMLPrintService {
 
   generateDeliveryReportHTML(
     dataLivreur: DataLivreur,
-    dateSelectionnee: string
+    dateSelectionnee: string,
+    pourcentageGlobal?: number
   ): void {
     const livreurNom = dataLivreur.livreur?.nom || 'Clients non assignés';
     const logoUrl = this.getLogoUrl();
@@ -399,14 +461,19 @@ export class HTMLPrintService {
       const carColor = this.getCarColor(car);
 
       // Grouper les livraisons par client
-      const livraisonsParClient = new Map<string, { client: Client, produits: Map<string, number> }>();
+      const livraisonsParClient = new Map<string, { 
+        client: Client, 
+        produits: Map<string, number>,
+        produitsObj: Map<string, Produit>
+      }>();
 
       livraisons.forEach((livraison) => {
         const clientId = livraison.client?.id || 'inconnu';
         if (!livraisonsParClient.has(clientId)) {
           livraisonsParClient.set(clientId, {
             client: livraison.client,
-            produits: new Map()
+            produits: new Map(),
+            produitsObj: new Map()
           });
         }
         const clientData = livraisonsParClient.get(clientId)!;
@@ -414,6 +481,9 @@ export class HTMLPrintService {
         const quantiteActuelle = clientData.produits.get(produitNom) || 0;
         const nouvelleQuantite = Number(livraison.quantite) || 0;
         clientData.produits.set(produitNom, quantiteActuelle + nouvelleQuantite);
+        if (livraison.produit) {
+          clientData.produitsObj.set(produitNom, livraison.produit);
+        }
       });
 
       // Récupérer tous les produits uniques pour ce car
@@ -438,11 +508,11 @@ export class HTMLPrintService {
       // Ajouter une colonne pour chaque produit
       produitsUniques.forEach((produit) => {
         const sigle = this.getSigleProduit(produit);
-        html += `<th style="text-align: center; width: ${70 / produitsUniques.length}%;" title="${produit}">${sigle}</th>`;
+        html += `<th style="text-align: center; width: ${68 / produitsUniques.length}%;" title="${produit}">${sigle}</th>`;
       });
 
       html += `
-                      <th style="width: 10%;">Retours</th>
+                      <th style="width: 12%;">Retours</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -450,6 +520,8 @@ export class HTMLPrintService {
 
       // Afficher une ligne par client
       Array.from(livraisonsParClient.values()).forEach((clientData) => {
+        const quotaTexte = this.calculateMaxRetoursClient(clientData.client, clientData.produits, clientData.produitsObj, pourcentageGlobal);
+
         html += `
                     <tr>
                       <td><strong>${clientData.client?.nom || 'Client inconnu'}</strong></td>
@@ -466,7 +538,12 @@ export class HTMLPrintService {
         });
 
         html += `
-                      <td><div class="retours-column"></div></td>
+                      <td>
+                        <div class="retours-cell">
+                          ${quotaTexte ? `<div class="retours-quota">${quotaTexte}</div>` : ''}
+                          <div class="retours-line"></div>
+                        </div>
+                      </td>
                     </tr>
         `;
       });
@@ -532,7 +609,8 @@ export class HTMLPrintService {
 
   generateGlobalReportHTML(
     commandesOrganisees: [string, DataLivreur][],
-    dateSelectionnee: string
+    dateSelectionnee: string,
+    pourcentageGlobal?: number
   ): void {
     const totalLivreurs = commandesOrganisees.length;
     const totalLivraisons = commandesOrganisees.reduce((total, [, data]) =>
@@ -607,14 +685,19 @@ export class HTMLPrintService {
         const carColor = this.getCarColor(car);
 
         // Grouper les livraisons par client
-        const livraisonsParClient = new Map<string, { client: Client, produits: Map<string, number> }>();
+        const livraisonsParClient = new Map<string, { 
+          client: Client, 
+          produits: Map<string, number>,
+          produitsObj: Map<string, Produit>
+        }>();
 
         livraisons.forEach((livraison) => {
           const clientId = livraison.client?.id || 'inconnu';
           if (!livraisonsParClient.has(clientId)) {
             livraisonsParClient.set(clientId, {
               client: livraison.client,
-              produits: new Map()
+              produits: new Map(),
+              produitsObj: new Map()
             });
           }
           const clientData = livraisonsParClient.get(clientId)!;
@@ -622,6 +705,9 @@ export class HTMLPrintService {
           const quantiteActuelle = clientData.produits.get(produitNom) || 0;
           const nouvelleQuantite = Number(livraison.quantite) || 0;
           clientData.produits.set(produitNom, quantiteActuelle + nouvelleQuantite);
+          if (livraison.produit) {
+            clientData.produitsObj.set(produitNom, livraison.produit);
+          }
         });
 
         // Récupérer tous les produits uniques pour ce car
@@ -646,11 +732,11 @@ export class HTMLPrintService {
         // Ajouter une colonne pour chaque produit
         produitsUniques.forEach((produit) => {
           const sigle = this.getSigleProduit(produit);
-          html += `<th style="text-align: center; width: ${70 / produitsUniques.length}%;" title="${produit}">${sigle}</th>`;
+          html += `<th style="text-align: center; width: ${68 / produitsUniques.length}%;" title="${produit}">${sigle}</th>`;
         });
 
         html += `
-                      <th style="width: 10%;">Retours</th>
+                      <th style="width: 12%;">Retours</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -658,6 +744,8 @@ export class HTMLPrintService {
 
         // Afficher une ligne par client
         Array.from(livraisonsParClient.values()).forEach((clientData) => {
+          const quotaTexte = this.calculateMaxRetoursClient(clientData.client, clientData.produits, clientData.produitsObj, pourcentageGlobal);
+
           html += `
                     <tr>
                       <td><strong>${clientData.client?.nom || 'Client inconnu'}</strong></td>
@@ -674,7 +762,12 @@ export class HTMLPrintService {
           });
 
           html += `
-                      <td><div class="retours-column"></div></td>
+                      <td>
+                        <div class="retours-cell">
+                          ${quotaTexte ? `<div class="retours-quota">${quotaTexte}</div>` : ''}
+                          <div class="retours-line"></div>
+                        </div>
+                      </td>
                     </tr>
           `;
         });

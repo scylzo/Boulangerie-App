@@ -8,10 +8,13 @@ import { useReferentielStore } from '../../store/referentielStore';
 import { useFacturationStore } from '../../store/facturationStore';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
 import { ScrollToTopBottom } from '../../components/ui/ScrollToTopBottom';
+import { ModalQuotaGlobal } from '../../components/livraison/ModalQuotaGlobal';
 
 export const SaisieRetours: React.FC = () => {
   const {
     invendusClients,
+    parametresLivraison,
+    chargerParametresLivraison,
     chargerInvendusDuJour,
     marquerAucunRetourClient,
     sauvegarderRetoursClient,
@@ -31,6 +34,7 @@ export const SaisieRetours: React.FC = () => {
     new Date().toISOString().split('T')[0]
   );
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalQuotaOpen, setIsModalQuotaOpen] = useState(false);
 
   // État local pour les invendus en cours de saisie
   const [invendusLocaux, setInvendusLocaux] = useState<Record<string, Record<string, number>>>({});
@@ -41,7 +45,8 @@ export const SaisieRetours: React.FC = () => {
         await Promise.all([
           chargerClients(),
           chargerProduits(),
-          chargerProgramme(new Date(dateSelectionnee))
+          chargerProgramme(new Date(dateSelectionnee)),
+          chargerParametresLivraison()
         ]);
         await chargerInvendusDuJour(new Date(dateSelectionnee));
       } catch (error) {
@@ -49,7 +54,7 @@ export const SaisieRetours: React.FC = () => {
       }
     };
     initialiser();
-  }, [dateSelectionnee, chargerClients, chargerProduits, chargerProgramme, chargerInvendusDuJour]);
+  }, [dateSelectionnee, chargerClients, chargerProduits, chargerProgramme, chargerInvendusDuJour, chargerParametresLivraison]);
 
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'with_returns' | 'without_returns'>('all');
@@ -336,7 +341,15 @@ export const SaisieRetours: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <button
+              onClick={() => setIsModalQuotaOpen(true)}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg transition-all shadow-sm text-xs sm:text-sm font-semibold shrink-0"
+              title="Configurer le pourcentage de retour maximum global par défaut"
+            >
+              <Icon icon="mdi:keyboard-return" className="text-base text-amber-700" />
+              <span>Quota Global : {parametresLivraison?.pourcentageRetourGlobalMax !== undefined ? `${parametresLivraison.pourcentageRetourGlobalMax}%` : '10%'}</span>
+            </button>
             <button
               onClick={async () => {
                 const clientsSansRetours = clientsAvecDonnees.filter(c => !clientARetoursCompletes(c.id!));
@@ -653,13 +666,35 @@ export const SaisieRetours: React.FC = () => {
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {client.produits.map((produitLivraison) => (
+                      {client.produits.map((produitLivraison) => {
+                        // Déterminer le quota applicable (Priorité: Client > Produit > Global)
+                        const tauxSpecifique = client.pourcentagesRetourParProduit?.[produitLivraison.produitId];
+                        const tauxDefaut = produitLivraison.produit?.pourcentageRetourMax;
+                        const tauxGlobal = parametresLivraison?.pourcentageRetourGlobalMax;
+
+                        const tauxApplicable = (tauxSpecifique !== undefined && tauxSpecifique !== null && Number(tauxSpecifique) > 0)
+                          ? Number(tauxSpecifique)
+                          : (tauxDefaut !== undefined && tauxDefaut !== null && Number(tauxDefaut) > 0)
+                            ? Number(tauxDefaut)
+                            : (tauxGlobal !== undefined && tauxGlobal !== null && Number(tauxGlobal) > 0)
+                              ? Number(tauxGlobal)
+                              : 0;
+
+                        const aQuota = tauxApplicable > 0;
+                        const maxPiecesAutorisees = aQuota
+                          ? Math.round((produitLivraison.quantiteLivree * tauxApplicable) / 100)
+                          : null;
+
+                        const valInvendusNum = invendusLocaux[client.id!]?.[produitLivraison.produitId] ?? produitLivraison.invendus;
+                        const estDepasse = maxPiecesAutorisees !== null && valInvendusNum > maxPiecesAutorisees;
+
+                        return (
                         <div
                           key={produitLivraison.produitId}
-                          className={`${produitLivraison.invendus > 0 ? 'bg-danger-50 border-danger-100' : 'bg-success-50 border-success-100'} border rounded-xl p-4 hover:shadow-elevated transition-all`}
+                          className={`${estDepasse ? 'bg-amber-50/70 border-amber-300 ring-1 ring-amber-300' : produitLivraison.invendus > 0 ? 'bg-danger-50 border-danger-100' : 'bg-success-50 border-success-100'} border rounded-xl p-4 hover:shadow-elevated transition-all`}
                         >
                           <div className="flex items-center gap-3 mb-4">
-                            <div className={`w-12 h-12 ${produitLivraison.invendus > 0 ? 'bg-danger-500' : 'bg-success-500'} rounded-xl flex items-center justify-center shadow-card`}>
+                            <div className={`w-12 h-12 ${estDepasse ? 'bg-amber-500' : produitLivraison.invendus > 0 ? 'bg-danger-500' : 'bg-success-500'} rounded-xl flex items-center justify-center shadow-card`}>
                               <Icon
                                 icon={getProductIcon(produitLivraison.produit?.nom || '')}
                                 className="text-xl text-white"
@@ -677,7 +712,14 @@ export const SaisieRetours: React.FC = () => {
 
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-sm font-medium text-sand-700 mb-1">Invendus retour:</label>
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="block text-sm font-medium text-sand-700">Invendus retour :</label>
+                                {aQuota && (
+                                  <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${estDepasse ? 'bg-amber-200 text-amber-900' : 'bg-sand-100 text-sand-600'}`} title="Nombre maximal d'invendus toléré selon le quota">
+                                    Quota: {maxPiecesAutorisees} max ({tauxApplicable}%)
+                                  </span>
+                                )}
+                              </div>
                               <input
                                 type="number"
                                 min="0"
@@ -695,9 +737,19 @@ export const SaisieRetours: React.FC = () => {
                                 }
                                 onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                 disabled={clientARetoursCompletes(client.id!)}
-                                className="w-full px-3 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-danger-500 focus:border-transparent disabled:bg-sand-100 disabled:text-sand-500 disabled:cursor-not-allowed"
+                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 disabled:bg-sand-100 disabled:text-sand-500 disabled:cursor-not-allowed ${estDepasse ? 'border-amber-400 bg-amber-50/40 focus:ring-amber-500' : 'border-sand-300 focus:ring-danger-500 focus:border-transparent'}`}
                                 placeholder="0"
                               />
+
+                              {/* Alerte visuelle de dépassement de quota */}
+                              {estDepasse && (
+                                <div className="mt-2 flex items-start gap-1.5 px-2.5 py-1.5 bg-amber-100/80 border border-amber-300 rounded-lg text-amber-900 text-xs animate-fadeIn">
+                                  <Icon icon="mdi:alert-circle" className="text-amber-700 text-base shrink-0 mt-0.5" />
+                                  <div>
+                                    <span className="font-semibold">Alerte quota dépassé :</span> {valInvendusNum} retournés sur un max autorisé de {maxPiecesAutorisees} (+{valInvendusNum - maxPiecesAutorisees} pc).
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
                             <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3">
@@ -718,7 +770,8 @@ export const SaisieRetours: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                      ))}
+                      );
+                      })}
                     </div>
 
                     {/* Résumé client */}
@@ -767,6 +820,12 @@ export const SaisieRetours: React.FC = () => {
         confirmText={confirmModal.confirmText}
         cancelText={confirmModal.cancelText}
         type={confirmModal.type}
+      />
+
+      {/* Modal Quota Global de Retours */}
+      <ModalQuotaGlobal
+        isOpen={isModalQuotaOpen}
+        onClose={() => setIsModalQuotaOpen(false)}
       />
     </div>
   );

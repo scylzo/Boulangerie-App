@@ -33,3 +33,8 @@ export interface InvendusClient {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface ParametresLivraison {
+  pourcentageRetourGlobalMax?: number; // Pourcentage max de retour global par défaut (ex: 10 pour 10%)
+  updatedAt?: Date;
+}

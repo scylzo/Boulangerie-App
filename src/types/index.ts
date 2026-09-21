@@ -15,7 +15,8 @@ export type {
 // Livraison types
 export type {
   LivraisonClient,
-  InvendusClient
+  InvendusClient,
+  ParametresLivraison
 } from './livraison';
 
 // Boutique types

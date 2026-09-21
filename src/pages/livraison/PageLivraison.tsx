@@ -5,17 +5,20 @@ import { Icon } from '@iconify/react';
 import { useProductionStore } from '../../store/productionStore';
 import { useLivreurStore } from '../../store/livreurStore';
 import { useReferentielStore } from '../../store/referentielStore';
+import { useLivraisonStore } from '../../store/livraisonStore';
 import { CARS_LIVRAISON } from '../../types/production';
 import { htmlPrintService } from '../../services/htmlPrintService';
 import type { CarLivraison } from '../../types';
 import toast from 'react-hot-toast';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { ModalDeficitProduction } from '../../components/production/ModalDeficitProduction';
+import { ModalQuotaGlobal } from '../../components/livraison/ModalQuotaGlobal';
 
 export const PageLivraison: React.FC = () => {
   const { commandesClients, chargerProgramme, supprimerCommandesLivreur, modifierCommandeClient } = useProductionStore();
   const { livreurs, chargerLivreurs } = useLivreurStore();
   const { clients, produits: produitsRef, chargerProduits, chargerClients } = useReferentielStore();
+  const { parametresLivraison, chargerParametresLivraison } = useLivraisonStore();
 
   const [dateSelectionnee, setDateSelectionnee] = useState(
     new Date().toISOString().split('T')[0]
@@ -23,6 +26,7 @@ export const PageLivraison: React.FC = () => {
   const [carSelectionne, setCarSelectionne] = useState<CarLivraison | 'tous'>('tous');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalDeficitOpen, setIsModalDeficitOpen] = useState(false);
+  const [isModalQuotaOpen, setIsModalQuotaOpen] = useState(false);
   const [selectedDeficitLivreurId, setSelectedDeficitLivreurId] = useState<string | null>(null);
 
   const handleApplyRedistribution = async (
@@ -119,7 +123,8 @@ export const PageLivraison: React.FC = () => {
         await Promise.all([
           chargerProduits(),
           chargerClients(),
-          chargerLivreurs()
+          chargerLivreurs(),
+          chargerParametresLivraison()
         ]);
         await chargerProgramme(new Date(dateSelectionnee));
       } catch (error) {
@@ -127,7 +132,7 @@ export const PageLivraison: React.FC = () => {
       }
     };
     initialiser();
-  }, [dateSelectionnee, chargerProgramme, chargerProduits, chargerClients, chargerLivreurs]);
+  }, [dateSelectionnee, chargerProgramme, chargerProduits, chargerClients, chargerLivreurs, chargerParametresLivraison]);
 
   // Fonction pour organiser les commandes par livreur et par car
   const organiserCommandesParLivreur = () => {
@@ -153,7 +158,6 @@ export const PageLivraison: React.FC = () => {
               if (!commandesParLivreur.has(livreurId)) {
                 let livreurTrouve = livreurs.find(l => l.id === livreurId);
 
-                // Si on a un ID mais pas de livreur trouvé, créer un objet temporaire
                 if (!livreurTrouve && livreurId !== 'non-assigne') {
                   console.warn(`⚠️ Livreur ID ${livreurId} non trouvé dans la liste pour client ${client?.nom}`);
                   livreurTrouve = {
@@ -166,17 +170,19 @@ export const PageLivraison: React.FC = () => {
                 }
 
                 commandesParLivreur.set(livreurId, {
-                  livreur: livreurTrouve,
-                  commandesParCar: new Map()
+                  livreur: livreurTrouve || null,
+                  commandesParCar: new Map<CarLivraison, any[]>()
                 });
               }
 
               const livreurData = commandesParLivreur.get(livreurId);
 
+              // Trouver ou créer la liste pour ce car
               if (!livreurData.commandesParCar.has(carKey)) {
                 livreurData.commandesParCar.set(carKey, []);
               }
 
+              // Ajouter la commande
               livreurData.commandesParCar.get(carKey).push({
                 commande,
                 client,
@@ -198,7 +204,11 @@ export const PageLivraison: React.FC = () => {
   // Fonctions pour générer les rapports imprimables
   const genererRapportLivreur = (dataLivreur: any) => {
     try {
-      htmlPrintService.generateDeliveryReportHTML(dataLivreur, dateSelectionnee);
+      htmlPrintService.generateDeliveryReportHTML(
+        dataLivreur,
+        dateSelectionnee,
+        parametresLivraison?.pourcentageRetourGlobalMax
+      );
       toast.success('Rapport ouvert dans une nouvelle fenêtre !');
     } catch (error) {
       console.error('Erreur lors de la génération du rapport:', error);
@@ -208,7 +218,11 @@ export const PageLivraison: React.FC = () => {
 
   const genererRapportGlobal = () => {
     try {
-      htmlPrintService.generateGlobalReportHTML(commandesOrganisees, dateSelectionnee);
+      htmlPrintService.generateGlobalReportHTML(
+        commandesOrganisees,
+        dateSelectionnee,
+        parametresLivraison?.pourcentageRetourGlobalMax
+      );
       toast.success('Rapport global ouvert dans une nouvelle fenêtre !');
     } catch (error) {
       console.error('Erreur lors de la génération du rapport:', error);
@@ -354,6 +368,14 @@ export const PageLivraison: React.FC = () => {
 
           {/* Boutons d'actions globales */}
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <button
+              onClick={() => setIsModalQuotaOpen(true)}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg shadow-2xs transition-all text-xs sm:text-sm font-semibold shrink-0"
+              title="Configurer le pourcentage de retour maximum global par défaut"
+            >
+              <Icon icon="mdi:keyboard-return" className="text-base text-amber-700" />
+              <span>Quota Global : {parametresLivraison?.pourcentageRetourGlobalMax !== undefined ? `${parametresLivraison.pourcentageRetourGlobalMax}%` : '10%'}</span>
+            </button>
             <button
               onClick={() => {
                 setSelectedDeficitLivreurId(null);
@@ -774,6 +796,12 @@ export const PageLivraison: React.FC = () => {
         produits={produitsRef}
         clients={clients}
         onApplyRedistribution={handleApplyRedistribution}
+      />
+
+      {/* Modal Quota Global de Retours */}
+      <ModalQuotaGlobal
+        isOpen={isModalQuotaOpen}
+        onClose={() => setIsModalQuotaOpen(false)}
       />
     </div>
   );

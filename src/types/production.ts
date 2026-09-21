@@ -17,6 +17,7 @@ export interface Produit {
   productionQuotidienne?: boolean; // Produit fabriqué tous les jours pour la boutique (rappelé dans le programme)
   quantiteBoutiqueDefaut?: number; // Quantité boutique par défaut totale (= somme des cars)
   quantiteBoutiqueDefautCars?: { car1_matin: number; car2_matin: number; car_soir: number }; // Répartition par défaut sur les cars
+  pourcentageRetourMax?: number; // Pourcentage max de retours acceptés (ex: 10 pour 10%)
   prixUnitaire?: number; // Pour compatibilité avec l'ancien code (à supprimer progressivement)
   recette?: Ingredient[]; // Liste des ingrédients nécessaires
   active: boolean;
@@ -58,6 +59,7 @@ export interface Client {
   estRegulier?: boolean; // Le client commande-t-il tous les jours ?
   modePaiementPreference?: 'espece' | 'om' | 'wave' | 'cheque' | 'virement';
   neTravaillePasDimanche?: boolean; // Le client ne travaille pas le dimanche
+  pourcentagesRetourParProduit?: Record<string, number>; // Surcharges par produit: { [produitId]: pourcentage }
   active: boolean;
   createdAt: Date;
   updatedAt: Date;

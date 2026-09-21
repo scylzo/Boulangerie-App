@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { collection, setDoc, getDocs, query, where, doc, writeBatch, deleteDoc } from 'firebase/firestore';
+import { collection, setDoc, getDoc, getDocs, query, where, doc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import type { LivraisonClient, InvendusClient, Client, Produit } from '../types';
+import type { LivraisonClient, InvendusClient, Client, Produit, ParametresLivraison } from '../types';
 
 // Cache mémoire (session) des invendus sur période — évite les relectures Firestore rapprochées
 let _invendusPeriodeCache: { key: string; at: number; data: InvendusClient[] } | null = null;
@@ -10,9 +10,14 @@ interface LivraisonStore {
   // État
   livraisonsJour: LivraisonClient[];
   invendusClients: InvendusClient[];
+  parametresLivraison: ParametresLivraison | null;
   clients: Client[];
   produits: Produit[];
   isLoading: boolean;
+
+  // Actions Paramètres Livraison
+  chargerParametresLivraison: () => Promise<void>;
+  sauvegarderParametresLivraison: (nouveauxParametres: Partial<ParametresLivraison>) => Promise<void>;
 
   // Actions Livraisons
   chargerLivraisonsDuJour: (date: Date) => Promise<void>;
@@ -43,9 +48,47 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
   // État initial
   livraisonsJour: [],
   invendusClients: [],
+  parametresLivraison: null,
   clients: [],
   produits: [],
   isLoading: false,
+
+  // Actions Paramètres Livraison
+  chargerParametresLivraison: async () => {
+    try {
+      const docRef = doc(db, 'parametres', 'livraison');
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data() as ParametresLivraison;
+        set({ parametresLivraison: data });
+      } else {
+        const paramsDefaut: ParametresLivraison = {
+          pourcentageRetourGlobalMax: 10
+        };
+        await setDoc(docRef, paramsDefaut);
+        set({ parametresLivraison: paramsDefaut });
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des paramètres de livraison:', error);
+    }
+  },
+
+  sauvegarderParametresLivraison: async (nouveauxParametres: Partial<ParametresLivraison>) => {
+    try {
+      const { parametresLivraison } = get();
+      const parametresMisAJour = {
+        ...parametresLivraison,
+        ...nouveauxParametres,
+        updatedAt: new Date()
+      };
+      const docRef = doc(db, 'parametres', 'livraison');
+      await setDoc(docRef, parametresMisAJour, { merge: true });
+      set({ parametresLivraison: parametresMisAJour });
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des paramètres de livraison:', error);
+      throw error;
+    }
+  },
 
   // Actions Livraisons
   chargerLivraisonsDuJour: async (date: Date) => {

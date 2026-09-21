@@ -5,6 +5,7 @@ import { Select } from '../ui/Select';
 import { Card } from '../ui/Card';
 import { Icon } from '@iconify/react';
 import { useLivreurStore } from '../../store/livreurStore';
+import { useReferentielStore } from '../../store/referentielStore';
 
 import type { Client } from '../../types';
 
@@ -22,6 +23,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
   isLoading = false
 }) => {
   const { chargerLivreurs, getLivreursActifs } = useLivreurStore();
+  const { produits, chargerProduits } = useReferentielStore();
 
   const [formData, setFormData] = useState({
     nom: '',
@@ -44,13 +46,15 @@ export const ClientForm: React.FC<ClientFormProps> = ({
     neTravaillePasDimanche: false,
     latitude: '' as string | number,
     longitude: '' as string | number,
+    pourcentagesRetourParProduit: {} as Record<string, number | ''>,
     active: true
   });
 
 
   useEffect(() => {
     chargerLivreurs().catch(console.error);
-  }, [chargerLivreurs]);
+    chargerProduits().catch(console.error);
+  }, [chargerLivreurs, chargerProduits]);
 
   useEffect(() => {
     if (client) {
@@ -75,6 +79,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         neTravaillePasDimanche: client.neTravaillePasDimanche || false,
         latitude: client.latitude ?? '',
         longitude: client.longitude ?? '',
+        pourcentagesRetourParProduit: client.pourcentagesRetourParProduit ? { ...client.pourcentagesRetourParProduit } : {},
         active: client.active
       });
 
@@ -84,13 +89,22 @@ export const ClientForm: React.FC<ClientFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { latitude, longitude, ...rest } = formData;
+      const { latitude, longitude, pourcentagesRetourParProduit, ...rest } = formData;
+
+      // Nettoyer les surcharges de pourcentages de retours
+      const cleanedRetours: Record<string, number> = {};
+      Object.entries(pourcentagesRetourParProduit || {}).forEach(([pId, val]) => {
+        if (val !== '' && !isNaN(Number(val)) && Number(val) >= 0) {
+          cleanedRetours[pId] = Number(val);
+        }
+      });
 
       const clientData: any = {
         ...rest,
         modePaiementPreference: (formData.modePaiementPreference || (null as any)),
         latitude: (formData.latitude !== '' && !isNaN(Number(formData.latitude))) ? Number(formData.latitude) : (null as any),
         longitude: (formData.longitude !== '' && !isNaN(Number(formData.longitude))) ? Number(formData.longitude) : (null as any),
+        ...(Object.keys(cleanedRetours).length > 0 ? { pourcentagesRetourParProduit: cleanedRetours } : {})
       };
 
       if (clientData.livreursParCar) {
@@ -133,6 +147,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           neTravaillePasDimanche: false,
           latitude: '',
           longitude: '',
+          pourcentagesRetourParProduit: {},
           active: true
         });
       }
@@ -415,6 +430,85 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           <p className="text-[10px] text-info-500 italic">
             Note: La position actuelle est plus précise si vous êtes devant le kiosque avec votre téléphone.
           </p>
+        </div>
+
+        {/* Section Quota de retours personnalisés */}
+        <div className="bg-sand-50 p-4 rounded-xl border border-sand-200 space-y-3">
+          <div className="flex items-center gap-2.5 text-sand-800">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <Icon icon="mdi:keyboard-return" className="text-lg" />
+            </div>
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wider block text-sand-900">
+                Politique de retours pour ce client
+              </span>
+              <span className="text-[11px] text-sand-500 font-normal">
+                Définir un pourcentage de retour spécifique pour ce client. Si laissé vide, le taux par défaut du produit s'applique.
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+            {produits.filter(p => p.active).map(prod => {
+              const tauxDefaut = prod.pourcentageRetourMax ?? 0;
+              const valeurActuelle = formData.pourcentagesRetourParProduit[prod.id];
+              const hasCustom = valeurActuelle !== undefined && valeurActuelle !== '';
+
+              return (
+                <div key={prod.id} className={`p-2.5 rounded-lg border transition-all ${hasCustom ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-300' : 'bg-white border-sand-200'}`}>
+                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                    <span className="text-xs font-medium text-sand-900 truncate uppercase" title={prod.nom}>
+                      {prod.nom}
+                    </span>
+                    <span className="text-[10px] text-sand-500 shrink-0">
+                      {tauxDefaut > 0 ? `Défaut: ${tauxDefaut}%` : 'Sans quota'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      placeholder={tauxDefaut > 0 ? `${tauxDefaut}% (défaut)` : 'Défaut'}
+                      value={valeurActuelle ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormData(prev => {
+                          const updated = { ...prev.pourcentagesRetourParProduit };
+                          if (val === '') {
+                            delete updated[prod.id];
+                          } else {
+                            const num = parseFloat(val);
+                            updated[prod.id] = isNaN(num) ? '' : Math.min(100, Math.max(0, num));
+                          }
+                          return { ...prev, pourcentagesRetourParProduit: updated };
+                        });
+                      }}
+                      className="w-full px-2.5 py-1 text-xs border border-sand-300 rounded-md focus:ring-1 focus:ring-terracotta-500 focus:border-terracotta-500 bg-white"
+                    />
+                    <span className="text-xs font-semibold text-sand-600 shrink-0">%</span>
+                    {hasCustom && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => {
+                            const updated = { ...prev.pourcentagesRetourParProduit };
+                            delete updated[prod.id];
+                            return { ...prev, pourcentagesRetourParProduit: updated };
+                          });
+                        }}
+                        className="text-sand-400 hover:text-danger-600 p-0.5"
+                        title="Rétablir le taux par défaut du produit"
+                      >
+                        <Icon icon="mdi:close-circle" className="text-base" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
 
