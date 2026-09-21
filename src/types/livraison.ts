@@ -36,5 +36,6 @@ export interface InvendusClient {
 
 export interface ParametresLivraison {
   pourcentageRetourGlobalMax?: number; // Pourcentage max de retour global par défaut (ex: 10 pour 10%)
+  produitsSoumisAuQuotaIds?: string[]; // IDs des produits soumis au quota
   updatedAt?: Date;
 }

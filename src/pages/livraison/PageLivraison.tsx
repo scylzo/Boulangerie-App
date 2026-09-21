@@ -207,7 +207,8 @@ export const PageLivraison: React.FC = () => {
       htmlPrintService.generateDeliveryReportHTML(
         dataLivreur,
         dateSelectionnee,
-        parametresLivraison?.pourcentageRetourGlobalMax
+        parametresLivraison?.pourcentageRetourGlobalMax,
+        parametresLivraison?.produitsSoumisAuQuotaIds
       );
       toast.success('Rapport ouvert dans une nouvelle fenêtre !');
     } catch (error) {
@@ -221,7 +222,8 @@ export const PageLivraison: React.FC = () => {
       htmlPrintService.generateGlobalReportHTML(
         commandesOrganisees,
         dateSelectionnee,
-        parametresLivraison?.pourcentageRetourGlobalMax
+        parametresLivraison?.pourcentageRetourGlobalMax,
+        parametresLivraison?.produitsSoumisAuQuotaIds
       );
       toast.success('Rapport global ouvert dans une nouvelle fenêtre !');
     } catch (error) {

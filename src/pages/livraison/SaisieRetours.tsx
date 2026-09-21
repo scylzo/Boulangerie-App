@@ -667,16 +667,18 @@ export const SaisieRetours: React.FC = () => {
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                       {client.produits.map((produitLivraison) => {
-                        // Déterminer le quota applicable (Priorité: Client > Produit > Global)
+                        // Déterminer le quota applicable (Priorité: Client > Produit > Global si soumis)
                         const tauxSpecifique = client.pourcentagesRetourParProduit?.[produitLivraison.produitId];
                         const tauxDefaut = produitLivraison.produit?.pourcentageRetourMax;
                         const tauxGlobal = parametresLivraison?.pourcentageRetourGlobalMax;
+                        const produitsSoumis = parametresLivraison?.produitsSoumisAuQuotaIds;
+                        const estSoumisAuQuotaGlobal = !produitsSoumis || produitsSoumis.includes(produitLivraison.produitId);
 
                         const tauxApplicable = (tauxSpecifique !== undefined && tauxSpecifique !== null && Number(tauxSpecifique) > 0)
                           ? Number(tauxSpecifique)
                           : (tauxDefaut !== undefined && tauxDefaut !== null && Number(tauxDefaut) > 0)
                             ? Number(tauxDefaut)
-                            : (tauxGlobal !== undefined && tauxGlobal !== null && Number(tauxGlobal) > 0)
+                            : (estSoumisAuQuotaGlobal && tauxGlobal !== undefined && tauxGlobal !== null && Number(tauxGlobal) > 0)
                               ? Number(tauxGlobal)
                               : 0;
 

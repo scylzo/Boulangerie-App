@@ -103,6 +103,8 @@ export const GestionProduits: React.FC = () => {
     p.nom.toLowerCase().includes(search.toLowerCase().trim())
   );
   const nbActifs = produits.filter(p => p.active).length;
+  const produitsSoumis = parametresLivraison?.produitsSoumisAuQuotaIds;
+  const nbProduitsSoumis = produitsSoumis !== undefined ? produits.filter(p => produitsSoumis.includes(p.id)).length : produits.length;
 
   return (
     <div className="min-h-screen bg-sand-100">
@@ -137,10 +139,10 @@ export const GestionProduits: React.FC = () => {
             <button
               onClick={() => setIsModalQuotaOpen(true)}
               className="flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg transition-all shadow-sm text-xs sm:text-sm font-semibold shrink-0"
-              title="Configurer le pourcentage de retour maximum global par défaut"
+              title="Configurer le pourcentage de retour maximum global et les produits soumis au quota"
             >
               <Icon icon="mdi:keyboard-return" className="text-base text-amber-700" />
-              <span>Quota Global : {parametresLivraison?.pourcentageRetourGlobalMax !== undefined ? `${parametresLivraison.pourcentageRetourGlobalMax}%` : '10%'}</span>
+              <span>Quota Global : {parametresLivraison?.pourcentageRetourGlobalMax !== undefined ? `${parametresLivraison.pourcentageRetourGlobalMax}%` : '10%'} ({nbProduitsSoumis}/{produits.length})</span>
             </button>
             <button
               onClick={() => setShowForm(true)}
@@ -234,11 +236,15 @@ export const GestionProduits: React.FC = () => {
                                 <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200" title="Taux de retour maximal spécifique à ce produit">
                                   <Icon icon="mdi:keyboard-return" className="text-xs" /> Retour max : {produit.pourcentageRetourMax}%
                                 </span>
-                              ) : parametresLivraison?.pourcentageRetourGlobalMax !== undefined && parametresLivraison.pourcentageRetourGlobalMax > 0 ? (
+                              ) : (produitsSoumis === undefined || produitsSoumis.includes(produit.id)) && parametresLivraison?.pourcentageRetourGlobalMax !== undefined && parametresLivraison.pourcentageRetourGlobalMax > 0 ? (
                                 <span className="inline-flex items-center gap-1 text-[11px] text-sand-600 bg-sand-100 px-1.5 py-0.2 rounded border border-sand-200" title="Taux de retour global par défaut appliqué à ce produit">
                                   <Icon icon="mdi:keyboard-return" className="text-xs text-sand-400" /> Retour max : {parametresLivraison.pourcentageRetourGlobalMax}% (défaut)
                                 </span>
-                              ) : null}
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[11px] text-sand-400 bg-sand-50 px-1.5 py-0.2 rounded border border-sand-200" title="Ce produit n'est pas soumis au quota de retours">
+                                  <Icon icon="mdi:minus-circle-outline" className="text-xs text-sand-400" /> Sans quota
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>

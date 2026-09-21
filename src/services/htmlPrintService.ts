@@ -106,7 +106,8 @@ export class HTMLPrintService {
     client: Client | undefined,
     produitsQuantites: Map<string, number>,
     produitsObj: Map<string, Produit>,
-    pourcentageGlobal?: number
+    pourcentageGlobal?: number,
+    produitsSoumisAuQuotaIds?: string[]
   ): string {
     if (!client) return '';
     const limites: string[] = [];
@@ -116,16 +117,19 @@ export class HTMLPrintService {
       const produit = produitsObj.get(nomProduit);
       if (!produit) return;
 
+      // Vérifier si le produit est soumis au quota global
+      const estSoumisAuQuotaGlobal = !produitsSoumisAuQuotaIds || produitsSoumisAuQuotaIds.includes(produit.id);
+
       // Priorité 1: Surcharge spécifique au client
       const tauxSpecifique = client.pourcentagesRetourParProduit?.[produit.id];
       // Priorité 2: Taux par défaut du produit
       const tauxDefaut = produit.pourcentageRetourMax;
-      // Priorité 3: Taux global par défaut
+      // Priorité 3: Taux global par défaut (uniquement si le produit est soumis au quota global)
       const taux = (tauxSpecifique !== undefined && tauxSpecifique !== null && Number(tauxSpecifique) > 0)
         ? Number(tauxSpecifique)
         : (tauxDefaut !== undefined && tauxDefaut !== null && Number(tauxDefaut) > 0)
           ? Number(tauxDefaut)
-          : (pourcentageGlobal !== undefined && pourcentageGlobal !== null && Number(pourcentageGlobal) > 0)
+          : (estSoumisAuQuotaGlobal && pourcentageGlobal !== undefined && pourcentageGlobal !== null && Number(pourcentageGlobal) > 0)
             ? Number(pourcentageGlobal)
             : 0;
 
@@ -414,7 +418,8 @@ export class HTMLPrintService {
   generateDeliveryReportHTML(
     dataLivreur: DataLivreur,
     dateSelectionnee: string,
-    pourcentageGlobal?: number
+    pourcentageGlobal?: number,
+    produitsSoumisAuQuotaIds?: string[]
   ): void {
     const livreurNom = dataLivreur.livreur?.nom || 'Clients non assignés';
     const logoUrl = this.getLogoUrl();
@@ -520,7 +525,7 @@ export class HTMLPrintService {
 
       // Afficher une ligne par client
       Array.from(livraisonsParClient.values()).forEach((clientData) => {
-        const quotaTexte = this.calculateMaxRetoursClient(clientData.client, clientData.produits, clientData.produitsObj, pourcentageGlobal);
+        const quotaTexte = this.calculateMaxRetoursClient(clientData.client, clientData.produits, clientData.produitsObj, pourcentageGlobal, produitsSoumisAuQuotaIds);
 
         html += `
                     <tr>
@@ -610,7 +615,8 @@ export class HTMLPrintService {
   generateGlobalReportHTML(
     commandesOrganisees: [string, DataLivreur][],
     dateSelectionnee: string,
-    pourcentageGlobal?: number
+    pourcentageGlobal?: number,
+    produitsSoumisAuQuotaIds?: string[]
   ): void {
     const totalLivreurs = commandesOrganisees.length;
     const totalLivraisons = commandesOrganisees.reduce((total, [, data]) =>
@@ -744,7 +750,7 @@ export class HTMLPrintService {
 
         // Afficher une ligne par client
         Array.from(livraisonsParClient.values()).forEach((clientData) => {
-          const quotaTexte = this.calculateMaxRetoursClient(clientData.client, clientData.produits, clientData.produitsObj, pourcentageGlobal);
+          const quotaTexte = this.calculateMaxRetoursClient(clientData.client, clientData.produits, clientData.produitsObj, pourcentageGlobal, produitsSoumisAuQuotaIds);
 
           html += `
                     <tr>
