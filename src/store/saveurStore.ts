@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { collection, addDoc, getDocs, deleteDoc, doc, query, where, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export type Saveur = 'sale' | 'sucre';
@@ -20,6 +20,7 @@ interface SaveurStore {
   chargerAchats: (debut: Date, fin: Date) => Promise<void>;
   ajouterAchat: (achat: Omit<SaveurAchat, 'id' | 'createdAt'>) => Promise<void>;
   supprimerAchat: (id: string) => Promise<void>;
+  getPremiereDateAchat: (saveur?: Saveur) => Promise<string | null>;
 }
 
 const jourKey = (d: Date) => d.toISOString().split('T')[0];
@@ -54,5 +55,23 @@ export const useSaveurStore = create<SaveurStore>((set) => ({
   supprimerAchat: async (id: string) => {
     await deleteDoc(doc(db, 'saveur_achats', id));
     set(state => ({ achats: state.achats.filter(a => a.id !== id) }));
+  },
+
+  getPremiereDateAchat: async (saveur?: Saveur) => {
+    try {
+      const q = query(collection(db, 'saveur_achats'), orderBy('date', 'asc'));
+      const snap = await getDocs(q);
+      if (snap.empty) return null;
+      let docs = snap.docs.map(d => d.data() as SaveurAchat);
+      if (saveur) {
+        docs = docs.filter(d => d.saveur === saveur);
+      }
+      if (docs.length === 0) return null;
+      const dates = docs.map(d => d.date).filter(Boolean).sort();
+      return dates[0] || null;
+    } catch (e) {
+      console.error('getPremiereDateAchat:', e);
+      return null;
+    }
   },
 }));

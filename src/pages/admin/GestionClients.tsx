@@ -5,6 +5,7 @@ import { TableLoader } from '../../components/ui/Loader';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { ClientForm } from '../../components/shared/ClientForm';
+import { ClientListReportModal } from '../../components/clients/ClientListReportModal';
 import { useReferentielStore } from '../../store/referentielStore';
 import { useLivreurStore } from '../../store/livreurStore';
 import type { Client } from '../../types';
@@ -23,9 +24,10 @@ export const GestionClients: React.FC = () => {
     setClientEnEdition
   } = useReferentielStore();
 
-  const { chargerLivreurs, getLivreurById } = useLivreurStore();
+  const { livreurs, chargerLivreurs, getLivreurById } = useLivreurStore();
 
   const [showForm, setShowForm] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(() => searchParams.get('q') || '');
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; clientId: string; clientNom: string }>({
@@ -131,6 +133,15 @@ export const GestionClients: React.FC = () => {
                 className="w-full sm:w-44 pl-10 pr-3 py-2 border border-sand-300 rounded-lg bg-white text-sm text-sand-900 focus:ring-2 focus:ring-terracotta-500 focus:border-transparent"
               />
             </div>
+            <button
+              onClick={() => setShowReportModal(true)}
+              disabled={isLoadingClients || clients.length === 0}
+              className="flex items-center justify-center gap-2 px-3.5 py-2 bg-sand-900 hover:bg-sand-800 text-white rounded-lg transition-all text-sm font-medium whitespace-nowrap shadow-sm disabled:opacity-50 active:scale-[0.98]"
+              title="Générer et personnaliser la liste des clients (PDF / CSV)"
+            >
+              <Icon icon="mdi:file-document-edit-outline" className="text-lg text-terracotta-400" />
+              <span className="hidden sm:inline">Générer la liste</span>
+            </button>
             <a
               href="/admin/carte"
               className="flex items-center justify-center gap-2 px-3 py-2 bg-white text-sand-700 hover:bg-sand-50 border border-sand-300 rounded-lg transition-all text-sm font-medium whitespace-nowrap"
@@ -153,6 +164,16 @@ export const GestionClients: React.FC = () => {
 
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
+
+        {/* Modal personnalisable de génération de la liste des clients */}
+        {showReportModal && (
+          <ClientListReportModal
+            isOpen={showReportModal}
+            onClose={() => setShowReportModal(false)}
+            clients={clients}
+            livreurs={livreurs}
+          />
+        )}
 
         {/* Modal d'ajout/modification */}
         {showForm && (

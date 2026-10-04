@@ -104,7 +104,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         modePaiementPreference: (formData.modePaiementPreference || (null as any)),
         latitude: (formData.latitude !== '' && !isNaN(Number(formData.latitude))) ? Number(formData.latitude) : (null as any),
         longitude: (formData.longitude !== '' && !isNaN(Number(formData.longitude))) ? Number(formData.longitude) : (null as any),
-        ...(Object.keys(cleanedRetours).length > 0 ? { pourcentagesRetourParProduit: cleanedRetours } : {})
+        pourcentagesRetourParProduit: cleanedRetours
       };
 
       if (clientData.livreursParCar) {
@@ -434,16 +434,31 @@ export const ClientForm: React.FC<ClientFormProps> = ({
 
         {/* Section Quota de retours personnalisés */}
         <div className="bg-sand-50 p-4 rounded-xl border border-sand-200 space-y-3">
-          <div className="flex items-center gap-2.5 text-sand-800">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+          <div className="flex items-start gap-2.5 text-sand-800">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
               <Icon icon="mdi:keyboard-return" className="text-lg" />
             </div>
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wider block text-sand-900">
-                Politique de retours pour ce client
-              </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider block text-sand-900">
+                  Politique de retours pour ce client
+                </span>
+                {Object.keys(formData.pourcentagesRetourParProduit || {}).some(
+                  (k) => formData.pourcentagesRetourParProduit[k] !== '' && formData.pourcentagesRetourParProduit[k] !== undefined
+                ) && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, pourcentagesRetourParProduit: {} }))}
+                    className="text-xs text-danger-600 hover:text-danger-800 hover:underline flex items-center gap-1 font-medium transition-colors"
+                    title="Supprimer toutes les surcharges et réinitialiser tous les produits aux taux par défaut"
+                  >
+                    <Icon icon="mdi:restore" className="text-sm" />
+                    <span>Tout remettre à Défaut</span>
+                  </button>
+                )}
+              </div>
               <span className="text-[11px] text-sand-500 font-normal">
-                Définir un pourcentage de retour spécifique pour ce client. Si laissé vide, le taux par défaut du produit s'applique.
+                Définir un pourcentage de retour spécifique pour ce client. Si laissé vide (Défaut), le taux général du produit s'applique.
               </span>
             </div>
           </div>
@@ -455,7 +470,14 @@ export const ClientForm: React.FC<ClientFormProps> = ({
               const hasCustom = valeurActuelle !== undefined && valeurActuelle !== '';
 
               return (
-                <div key={prod.id} className={`p-2.5 rounded-lg border transition-all ${hasCustom ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-300' : 'bg-white border-sand-200'}`}>
+                <div
+                  key={prod.id}
+                  className={`p-2.5 rounded-lg border transition-all ${
+                    hasCustom
+                      ? 'bg-amber-50/60 border-amber-300 ring-1 ring-amber-300 shadow-sm'
+                      : 'bg-white border-sand-200'
+                  }`}
+                >
                   <div className="flex items-center justify-between gap-1 mb-1.5">
                     <span className="text-xs font-medium text-sand-900 truncate uppercase" title={prod.nom}>
                       {prod.nom}
@@ -498,10 +520,11 @@ export const ClientForm: React.FC<ClientFormProps> = ({
                             return { ...prev, pourcentagesRetourParProduit: updated };
                           });
                         }}
-                        className="text-sand-400 hover:text-danger-600 p-0.5"
-                        title="Rétablir le taux par défaut du produit"
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-danger-700 bg-white hover:bg-danger-50 border border-danger-200 rounded shadow-xs transition-colors shrink-0"
+                        title="Rétablir à Défaut (supprimer le quota spécifique)"
                       >
-                        <Icon icon="mdi:close-circle" className="text-base" />
+                        <Icon icon="mdi:close" className="text-xs text-danger-500" />
+                        <span>Défaut</span>
                       </button>
                     )}
                   </div>

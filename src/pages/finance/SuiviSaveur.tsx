@@ -8,6 +8,8 @@ import { useFacturationStore } from '../../store/facturationStore';
 import { useSaveurStore, type Saveur } from '../../store/saveurStore';
 import { formatCurrency } from '../../utils/currency';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { Modal } from '../../components/ui/Modal';
+import { genererRapportSaveurPDF, exporterSaveurCSV, type TypeRapportSaveur } from '../../utils/saveurReport';
 
 const SAVEURS: { key: Saveur; label: string; icon: string }[] = [
   { key: 'sale', label: 'Salé', icon: 'mdi:cheese' },
@@ -27,15 +29,15 @@ async function ventesEnCache(cle: string, charger: () => Promise<VentesMap>): Pr
   _ventesCache.set(cle, { t: Date.now(), data });
   return data;
 }
-// Cache des premières dates de vente (stables sur une session).
-let _premieresDates: { t: number; val: string | null } | null = null;
+// Cache de la première date d'activité Salé / Sucré (achats de courses)
+let _premiereDateSaveurCache: { t: number; val: string | null } | null = null;
 
 export const SuiviSaveur: React.FC = () => {
   const { produits, chargerProduits } = useReferentielStore();
-  const { getVentesParProduitPeriode, getPremiereDateVente } = usePosStore();
-  const { getVentesBoutiqueParProduit, getPremiereDateVenteBoutique } = useBoutiqueStore();
-  const { getVentesFactureParProduit, getPremiereDateVenteLivraison } = useFacturationStore();
-  const { achats, chargerAchats, ajouterAchat, supprimerAchat } = useSaveurStore();
+  const { getVentesParProduitPeriode } = usePosStore();
+  const { getVentesBoutiqueParProduit } = useBoutiqueStore();
+  const { getVentesFactureParProduit } = useFacturationStore();
+  const { achats, chargerAchats, ajouterAchat, supprimerAchat, getPremiereDateAchat } = useSaveurStore();
 
   const [periode, setPeriode] = useState(() => {
     const now = new Date();
@@ -54,32 +56,38 @@ export const SuiviSaveur: React.FC = () => {
   }));
   const [saving, setSaving] = useState(false);
   const [achatASupprimer, setAchatASupprimer] = useState<string | null>(null);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [typeRapport, setTypeRapport] = useState<TypeRapportSaveur>('sale');
 
   useEffect(() => { if (produits.length === 0) chargerProduits(); }, [produits.length, chargerProduits]);
 
-  // Vraie première date de vente enregistrée (ticket caisse + vente boutique les plus anciens)
-  const [debutPremiereVente, setDebutPremiereVente] = useState<string | null>(null);
+  // Vraie première date d'achat d'investissement Salé/Sucré (dans saveur_achats)
+  const [debutPremierAchat, setDebutPremierAchat] = useState<string | null>(() => _premiereDateSaveurCache?.val || null);
   useEffect(() => {
     let annule = false;
     (async () => {
-      if (_premieresDates && Date.now() - _premieresDates.t < CACHE_TTL) {
-        if (!annule) setDebutPremiereVente(_premieresDates.val);
+      if (_premiereDateSaveurCache && Date.now() - _premiereDateSaveurCache.t < CACHE_TTL) {
+        if (!annule) setDebutPremierAchat(_premiereDateSaveurCache.val);
         return;
       }
-      const [dPos, dBout, dLiv] = await Promise.all([
-        getPremiereDateVente(), getPremiereDateVenteBoutique(), getPremiereDateVenteLivraison(),
-      ]);
-      const candidats = [dPos, dBout, dLiv].filter((d): d is string => !!d).sort();
-      const val = candidats[0] || null;
-      _premieresDates = { t: Date.now(), val };
-      if (!annule) setDebutPremiereVente(val);
+      const d = await getPremiereDateAchat();
+      _premiereDateSaveurCache = { t: Date.now(), val: d };
+      if (!annule) setDebutPremierAchat(d);
     })();
     return () => { annule = true; };
-  }, [getPremiereDateVente, getPremiereDateVenteBoutique, getPremiereDateVenteLivraison]);
+  }, [getPremiereDateAchat]);
 
-  // Repli : création du plus ancien produit tagué salé/sucré (si aucune vente lue)
+  // Date du plus ancien achat actuellement en mémoire (achats chargés)
+  const plusAncienAchatEnMemoire = useMemo(() => {
+    if (achats.length === 0) return null;
+    const dates = achats.map(a => a.date).filter(Boolean).sort();
+    const d = dates[0] || null;
+    return d && d >= '2026-01-01' ? d : null;
+  }, [achats]);
+
+  // Date du plus ancien produit tagué salé/sucré (exclut les dates d'initialisation de 2025)
   const debutPremierProduit = useMemo(() => {
-    // createdAt peut être une Date, un Timestamp Firestore ({toDate/seconds}) ou une chaîne
     const toDate = (v: any): Date | null => {
       if (!v) return null;
       if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
@@ -93,22 +101,46 @@ export const SuiviSaveur: React.FC = () => {
       .map(p => toDate(p.createdAt))
       .filter((d): d is Date => d !== null);
     if (dates.length === 0) return null;
-    return new Date(Math.min(...dates.map(d => d.getTime()))).toISOString().split('T')[0];
+    const minD = new Date(Math.min(...dates.map(d => d.getTime())));
+    const iso = minD.toISOString().split('T')[0];
+    if (iso < '2026-01-01') return null; // Ignore les résidus de template 2025
+    return iso;
   }, [produits]);
 
-  // Date de départ « Depuis le début » : 1re vente réelle, sinon création du 1er produit tagué
-  const debutDepuisLeDebut = debutPremiereVente || debutPremierProduit;
+  // Date de départ « Depuis le début » :
+  // Priorité absolue au premier achat d'ingrédients / investissements Salé/Sucré,
+  // ou plus ancien achat en mémoire, ou création du 1er produit salé/sucré.
+  // Ne renvoie JAMAIS les factures générales de 2025.
+  const debutDepuisLeDebut = useMemo(() => {
+    const candidats = [debutPremierAchat, plusAncienAchatEnMemoire, debutPremierProduit]
+      .filter((d): d is string => !!d && d >= '2026-01-01')
+      .sort();
+    if (candidats.length > 0) return candidats[0];
+    // Repli de sécurité : 1er du mois en cours
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  }, [debutPremierAchat, plusAncienAchatEnMemoire, debutPremierProduit]);
+
+  const presetChoisiRef = React.useRef<'mois' | '3mois' | 'debut' | null>(null);
 
   const debutPreset = (k: 'mois' | '3mois' | 'debut'): string => {
     const now = new Date();
     if (k === 'mois') return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
     if (k === '3mois') return new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()).toISOString().split('T')[0];
-    return debutDepuisLeDebut || now.toISOString().split('T')[0];
+    return debutDepuisLeDebut;
   };
 
   const appliquerPreset = (k: 'mois' | '3mois' | 'debut') => {
+    presetChoisiRef.current = k;
     setPeriode({ debut: debutPreset(k), fin: new Date().toISOString().split('T')[0] });
   };
+
+  // Synchronise automatiquement periode.debut si le preset 'debut' est actif et que la date réelle est chargée
+  useEffect(() => {
+    if (presetChoisiRef.current === 'debut' && debutDepuisLeDebut) {
+      setPeriode(p => ({ ...p, debut: debutDepuisLeDebut }));
+    }
+  }, [debutDepuisLeDebut]);
 
   const presetActif = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -187,6 +219,60 @@ export const SuiviSaveur: React.FC = () => {
     .map(p => ({ nom: p.nom, ...ventesProduit[p.id] }))
     .sort((a, b) => b.valeur - a.valeur);
 
+  // Totaux globaux
+  const totalVentes = ventesParSaveur.sale.valeur + ventesParSaveur.sucre.valeur;
+  const totalQty = ventesParSaveur.sale.qty + ventesParSaveur.sucre.qty;
+  const totalCout = coutParSaveur.sale + coutParSaveur.sucre;
+  const totalMarge = totalVentes - totalCout;
+  const totalRoi = totalCout > 0 ? (totalMarge / totalCout) * 100 : null;
+
+  const handleGenererPDF = async (choix?: TypeRapportSaveur) => {
+    const typeChoisi = choix || typeRapport;
+    try {
+      setGeneratingPdf(true);
+      await genererRapportSaveurPDF({
+        periode,
+        source,
+        payeesUniquement,
+        typeSelection: typeChoisi,
+        ventesParSaveur,
+        coutParSaveur,
+        produitsSale: produitsDe('sale'),
+        produitsSucre: produitsDe('sucre'),
+        achats,
+      });
+      toast.success('Rapport PDF généré avec succès');
+      setShowReportModal(false);
+    } catch (e) {
+      console.error('Erreur génération rapport PDF:', e);
+      toast.error('Erreur lors de la génération du rapport PDF');
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
+  const handleExporterCSV = (choix?: TypeRapportSaveur) => {
+    const typeChoisi = choix || typeRapport;
+    try {
+      exporterSaveurCSV({
+        periode,
+        source,
+        payeesUniquement,
+        typeSelection: typeChoisi,
+        ventesParSaveur,
+        coutParSaveur,
+        produitsSale: produitsDe('sale'),
+        produitsSucre: produitsDe('sucre'),
+        achats,
+      });
+      toast.success('Export CSV téléchargé');
+      setShowReportModal(false);
+    } catch (e) {
+      console.error('Erreur export CSV:', e);
+      toast.error("Erreur lors de l'export CSV");
+    }
+  };
+
   const ajouter = async () => {
     const montant = parseFloat(form.montant.replace(',', '.')) || 0;
     if (montant <= 0) { toast.error('Montant invalide'); return; }
@@ -210,7 +296,7 @@ export const SuiviSaveur: React.FC = () => {
     <div className="min-h-screen bg-sand-100">
       {/* Header */}
       <div className="bg-white border-b border-sand-200 px-3 sm:px-6 py-3 sm:py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <div className="w-10 h-10 bg-terracotta-50 rounded-xl flex items-center justify-center shrink-0">
               <Icon icon="mdi:scale-balance" className="text-lg sm:text-2xl text-terracotta-600" />
@@ -220,25 +306,69 @@ export const SuiviSaveur: React.FC = () => {
               <p className="text-xs sm:text-sm text-sand-500 truncate">Ventes vs coût d'investissement</p>
             </div>
           </div>
+
           <div className="flex flex-col gap-2 sm:items-end">
-            <div className="flex items-center gap-2">
-              <input type="date" value={periode.debut} max={periode.fin}
-                onChange={(e) => setPeriode(p => ({ ...p, debut: e.target.value }))}
-                className="px-2.5 py-2 border border-sand-300 rounded-lg bg-white text-sm text-sand-900 focus:ring-2 focus:ring-terracotta-500 focus:border-transparent" />
-              <span className="text-sand-400 text-sm">→</span>
-              <input type="date" value={periode.fin} min={periode.debut}
-                onChange={(e) => setPeriode(p => ({ ...p, fin: e.target.value }))}
-                className="px-2.5 py-2 border border-sand-300 rounded-lg bg-white text-sm text-sand-900 focus:ring-2 focus:ring-terracotta-500 focus:border-transparent" />
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <button
+                onClick={() => setShowReportModal(true)}
+                disabled={loading || generatingPdf}
+                className="h-9 inline-flex items-center justify-center gap-2 px-3.5 bg-sand-900 hover:bg-sand-800 text-white rounded-lg text-xs sm:text-sm font-medium transition-all shadow-sm active:scale-[0.98] disabled:opacity-50 shrink-0"
+                title="Générer un rapport (Salé, Sucré ou les deux)"
+              >
+                <Icon
+                  icon={generatingPdf ? 'mdi:loading' : 'mdi:file-pdf-box'}
+                  className={`text-base sm:text-lg text-red-400 ${generatingPdf ? 'animate-spin' : ''}`}
+                />
+                <span>{generatingPdf ? 'Génération…' : 'Générer Rapport'}</span>
+              </button>
+
+              <button
+                onClick={() => setShowReportModal(true)}
+                disabled={loading}
+                className="h-9 inline-flex items-center justify-center gap-1.5 px-3 bg-white border border-sand-300 hover:bg-sand-50 text-sand-700 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm disabled:opacity-50 shrink-0"
+                title="Exporter les données au format CSV (compatible Excel)"
+              >
+                <Icon icon="mdi:file-delimited-outline" className="text-base sm:text-lg text-emerald-600" />
+                <span>Export CSV</span>
+              </button>
+
+              <div className="h-5 w-px bg-sand-200 hidden sm:block mx-0.5" />
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={periode.debut}
+                  max={periode.fin}
+                  onChange={(e) => setPeriode(p => ({ ...p, debut: e.target.value }))}
+                  className="h-9 px-2.5 border border-sand-300 rounded-lg bg-white text-xs sm:text-sm text-sand-900 focus:ring-2 focus:ring-terracotta-500 focus:border-transparent"
+                />
+                <span className="text-sand-400 text-xs sm:text-sm">→</span>
+                <input
+                  type="date"
+                  value={periode.fin}
+                  min={periode.debut}
+                  onChange={(e) => setPeriode(p => ({ ...p, fin: e.target.value }))}
+                  className="h-9 px-2.5 border border-sand-300 rounded-lg bg-white text-xs sm:text-sm text-sand-900 focus:ring-2 focus:ring-terracotta-500 focus:border-transparent"
+                />
+              </div>
             </div>
+
             <div className="flex items-center gap-1.5 flex-wrap">
               {([
                 { k: 'mois', l: 'Ce mois' },
                 { k: '3mois', l: '3 mois' },
                 { k: 'debut', l: 'Depuis le début' },
               ] as { k: 'mois' | '3mois' | 'debut'; l: string }[]).map(p => (
-                <button key={p.k} onClick={() => appliquerPreset(p.k)}
+                <button
+                  key={p.k}
+                  onClick={() => appliquerPreset(p.k)}
                   disabled={p.k === 'debut' && !debutDepuisLeDebut}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${presetActif === p.k ? 'bg-terracotta-600 border-terracotta-600 text-white' : 'bg-white border-sand-200 text-sand-600 hover:bg-sand-50'}`}>
+                  className={`px-2 py-0.5 rounded-lg text-[11px] font-medium border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                    presetActif === p.k
+                      ? 'bg-terracotta-600 border-terracotta-600 text-white'
+                      : 'bg-white border-sand-200 text-sand-600 hover:bg-sand-50'
+                  }`}
+                >
                   {p.l}
                 </button>
               ))}
@@ -282,6 +412,55 @@ export const SuiviSaveur: React.FC = () => {
           </p>
         </div>
 
+        {/* Synthèse globale combinée */}
+        <div className="bg-white rounded-2xl border border-sand-200 shadow-card p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-sand-100">
+            <div className="flex items-center gap-2">
+              <Icon icon="mdi:chart-box-outline" className="text-xl text-terracotta-600" />
+              <h2 className="font-display text-sm sm:text-base font-semibold text-sand-900">
+                Synthèse Globale Salé + Sucré
+              </h2>
+            </div>
+            <div className="text-xs text-sand-500 tabular-nums">
+              Total volume :{' '}
+              {loading ? (
+                <span className="inline-block w-8 h-3.5 bg-sand-200 animate-pulse rounded align-middle" />
+              ) : (
+                <>
+                  <span className="font-semibold text-sand-900">{totalQty}</span> unité{totalQty > 1 ? 's' : ''}
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3.5">
+            <div className="bg-sand-50 rounded-xl p-3 border border-sand-100">
+              <div className="text-[11px] font-medium text-sand-500 mb-0.5">Chiffre d'Affaires</div>
+              <div className="font-display text-base sm:text-lg font-semibold text-sand-900 tabular-nums">
+                {loading ? <div className="h-5 w-20 bg-sand-200 rounded animate-pulse my-0.5" /> : formatCurrency(totalVentes)}
+              </div>
+            </div>
+            <div className="bg-sand-50 rounded-xl p-3 border border-sand-100">
+              <div className="text-[11px] font-medium text-sand-500 mb-0.5">Coûts d'Achats</div>
+              <div className="font-display text-base sm:text-lg font-semibold text-danger-600 tabular-nums">
+                {loading ? <div className="h-5 w-20 bg-sand-200 rounded animate-pulse my-0.5" /> : formatCurrency(totalCout)}
+              </div>
+            </div>
+            <div className="bg-sand-50 rounded-xl p-3 border border-sand-100">
+              <div className="text-[11px] font-medium text-sand-500 mb-0.5">Marge Nette Globale</div>
+              <div className={`font-display text-base sm:text-lg font-semibold tabular-nums ${totalMarge >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                {loading ? <div className="h-5 w-20 bg-sand-200 rounded animate-pulse my-0.5" /> : `${totalMarge >= 0 ? '+' : ''}${formatCurrency(totalMarge)}`}
+              </div>
+            </div>
+            <div className="bg-sand-50 rounded-xl p-3 border border-sand-100">
+              <div className="text-[11px] font-medium text-sand-500 mb-0.5">Rentabilité (ROI)</div>
+              <div className="font-display text-base sm:text-lg font-semibold text-sand-900 tabular-nums">
+                {loading ? <div className="h-5 w-16 bg-sand-200 rounded animate-pulse my-0.5" /> : (totalRoi !== null ? `${totalRoi >= 0 ? '+' : ''}${totalRoi.toFixed(1)} %` : '—')}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Blocs Salé / Sucré */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {SAVEURS.map(s => {
@@ -295,27 +474,42 @@ export const SuiviSaveur: React.FC = () => {
                 <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-sand-200 bg-sand-50">
                   <Icon icon={s.icon} className="text-xl text-terracotta-600" />
                   <h2 className="font-display text-base font-semibold text-sand-900">Produits {s.label}s</h2>
-                  <span className="ml-auto text-xs text-sand-500 tabular-nums">{ventes.qty} vendu(s)</span>
+                  <span className="ml-auto text-xs text-sand-500 tabular-nums">
+                    {loading ? (
+                      <span className="inline-block w-12 h-3 bg-sand-200 animate-pulse rounded" />
+                    ) : (
+                      `${ventes.qty} vendu(s)`
+                    )}
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-3 divide-x divide-sand-200 border-b border-sand-200 tabular-nums">
                   <div className="px-4 py-3">
                     <div className="text-[11px] text-sand-500">Ventes</div>
-                    <div className="font-display text-base sm:text-lg font-semibold text-success-600">{formatCurrency(ventes.valeur)}</div>
+                    <div className="font-display text-base sm:text-lg font-semibold text-success-600">
+                      {loading ? <div className="h-5 w-16 bg-sand-200 rounded animate-pulse my-0.5" /> : formatCurrency(ventes.valeur)}
+                    </div>
                   </div>
                   <div className="px-4 py-3">
                     <div className="text-[11px] text-sand-500">Coût d'achat</div>
-                    <div className="font-display text-base sm:text-lg font-semibold text-danger-600">{formatCurrency(cout)}</div>
+                    <div className="font-display text-base sm:text-lg font-semibold text-danger-600">
+                      {loading ? <div className="h-5 w-16 bg-sand-200 rounded animate-pulse my-0.5" /> : formatCurrency(cout)}
+                    </div>
                   </div>
                   <div className="px-4 py-3">
                     <div className="text-[11px] text-sand-500">Marge {roi !== null && <span className="text-sand-400">({roi >= 0 ? '+' : ''}{roi.toFixed(0)}%)</span>}</div>
-                    <div className={`font-display text-base sm:text-lg font-semibold ${marge >= 0 ? 'text-sand-900' : 'text-danger-600'}`}>{marge >= 0 ? '+' : ''}{formatCurrency(marge)}</div>
+                    <div className={`font-display text-base sm:text-lg font-semibold ${marge >= 0 ? 'text-sand-900' : 'text-danger-600'}`}>
+                      {loading ? <div className="h-5 w-16 bg-sand-200 rounded animate-pulse my-0.5" /> : `${marge >= 0 ? '+' : ''}${formatCurrency(marge)}`}
+                    </div>
                   </div>
                 </div>
 
                 {/* Détail produits */}
                 {loading ? (
-                  <div className="px-5 py-6 text-center text-sm text-sand-400">Calcul…</div>
+                  <div className="py-10 flex flex-col items-center justify-center gap-2.5 text-sand-500">
+                    <Icon icon="mdi:loading" className="text-2xl text-terracotta-600 animate-spin" />
+                    <span className="text-xs text-sand-400 font-medium">Chargement des données…</span>
+                  </div>
                 ) : items.length === 0 ? (
                   <div className="px-5 py-6 text-center text-sm text-sand-400">Aucune vente sur la période.</div>
                 ) : (
@@ -376,7 +570,12 @@ export const SuiviSaveur: React.FC = () => {
           </div>
 
           {/* Liste des achats */}
-          {achats.length === 0 ? (
+          {loading ? (
+            <div className="py-8 flex flex-col items-center justify-center gap-2 text-sand-500">
+              <Icon icon="mdi:loading" className="text-2xl text-terracotta-600 animate-spin" />
+              <span className="text-xs text-sand-400 font-medium">Chargement des achats…</span>
+            </div>
+          ) : achats.length === 0 ? (
             <div className="px-5 py-6 text-center text-sm text-sand-400">Aucun achat saisi sur la période.</div>
           ) : (
             <div className="divide-y divide-sand-100">
@@ -410,6 +609,139 @@ export const SuiviSaveur: React.FC = () => {
         type="danger"
         position="center"
       />
+
+      {/* Modal de génération de rapport avec choix du type */}
+      <Modal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        title="Générer un rapport — Salé / Sucré"
+        size="md"
+      >
+        <div className="p-4 sm:p-6 space-y-5">
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-sand-500 mb-2.5">
+              Type de produits à inclure
+            </label>
+            <div className="space-y-2.5">
+              {[
+                {
+                  id: 'sale' as const,
+                  label: 'Salé uniquement',
+                  badge: 'Par défaut',
+                  desc: 'Ventes de produits salés et tickets de courses salés',
+                  icon: 'mdi:cheese',
+                  color: 'text-amber-700',
+                  bg: 'bg-amber-100',
+                  borderActive: 'border-amber-600 ring-2 ring-amber-500/20 bg-amber-50/50',
+                },
+                {
+                  id: 'sucre' as const,
+                  label: 'Sucré uniquement',
+                  desc: 'Ventes de produits sucrés et tickets de courses sucrés',
+                  icon: 'mdi:cupcake',
+                  color: 'text-indigo-700',
+                  bg: 'bg-indigo-100',
+                  borderActive: 'border-indigo-600 ring-2 ring-indigo-500/20 bg-indigo-50/50',
+                },
+                {
+                  id: 'tous' as const,
+                  label: 'Les deux (Salé & Sucré)',
+                  desc: 'Rapport complet avec comparatif, ventes salées & sucrées et tous les achats',
+                  icon: 'mdi:scale-balance',
+                  color: 'text-sand-800',
+                  bg: 'bg-sand-200',
+                  borderActive: 'border-sand-900 ring-2 ring-sand-900/10 bg-sand-100/60',
+                },
+              ].map((opt) => {
+                const active = typeRapport === opt.id;
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => setTypeRapport(opt.id)}
+                    className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                      active ? opt.borderActive : 'border-sand-200 hover:border-sand-300 hover:bg-sand-50/60'
+                    }`}
+                  >
+                    <div className="pt-0.5">
+                      <input
+                        type="radio"
+                        name="typeRapportSelection"
+                        checked={active}
+                        onChange={() => setTypeRapport(opt.id)}
+                        className="w-4 h-4 text-terracotta-600 focus:ring-terracotta-500 cursor-pointer"
+                      />
+                    </div>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${opt.bg}`}>
+                      <Icon icon={opt.icon} className={`text-lg ${opt.color}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-sand-900">{opt.label}</span>
+                        {opt.badge && (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                            {opt.badge}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-sand-500 mt-0.5 leading-relaxed">{opt.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Rappel paramètres */}
+          <div className="bg-sand-50 rounded-xl p-3 border border-sand-200 text-xs text-sand-600 flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-sand-500">Période :</span>
+              <span className="font-medium text-sand-900">
+                Du {new Date(periode.debut + 'T12:00:00').toLocaleDateString('fr-FR')} au{' '}
+                {new Date(periode.fin + 'T12:00:00').toLocaleDateString('fr-FR')}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sand-500">Canal des ventes :</span>
+              <span className="font-medium text-sand-900 capitalize">
+                {source === 'toutes' ? 'Toutes sources (Comptoir + Livraison)' : source}
+                {payeesUniquement ? ' (factures payées)' : ''}
+              </span>
+            </div>
+          </div>
+
+          {/* Boutons d'action */}
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-3 border-t border-sand-100">
+            <button
+              type="button"
+              onClick={() => setShowReportModal(false)}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-sand-600 hover:bg-sand-100 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={() => handleExporterCSV()}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-sand-300 hover:bg-sand-50 text-sand-800 rounded-xl text-xs sm:text-sm font-medium transition-colors shadow-sm"
+              title="Exporter les données sélectionnées en CSV"
+            >
+              <Icon icon="mdi:file-delimited-outline" className="text-base text-emerald-600" />
+              <span>Export CSV</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleGenererPDF()}
+              disabled={generatingPdf}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-sand-900 hover:bg-sand-800 text-white rounded-xl text-xs sm:text-sm font-medium transition-all shadow-sm active:scale-[0.98] disabled:opacity-50"
+            >
+              <Icon
+                icon={generatingPdf ? 'mdi:loading' : 'mdi:file-pdf-box'}
+                className={`text-base text-red-400 ${generatingPdf ? 'animate-spin' : ''}`}
+              />
+              <span>{generatingPdf ? 'Génération…' : 'Télécharger le PDF'}</span>
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
