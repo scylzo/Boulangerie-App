@@ -9,7 +9,7 @@ import { useSaveurStore, type Saveur } from '../../store/saveurStore';
 import { formatCurrency } from '../../utils/currency';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Modal } from '../../components/ui/Modal';
-import { genererRapportSaveurPDF, exporterSaveurCSV, type TypeRapportSaveur } from '../../utils/saveurReport';
+import { genererRapportSaveurPDF, exporterSaveurCSV, type TypeRapportSaveur, type VenteSaveurDetail } from '../../utils/saveurReport';
 
 const SAVEURS: { key: Saveur; label: string; icon: string }[] = [
   { key: 'sale', label: 'Salé', icon: 'mdi:cheese' },
@@ -33,10 +33,10 @@ async function ventesEnCache(cle: string, charger: () => Promise<VentesMap>): Pr
 let _premiereDateSaveurCache: { t: number; val: string | null } | null = null;
 
 export const SuiviSaveur: React.FC = () => {
-  const { produits, chargerProduits } = useReferentielStore();
-  const { getVentesParProduitPeriode } = usePosStore();
-  const { getVentesBoutiqueParProduit } = useBoutiqueStore();
-  const { getVentesFactureParProduit } = useFacturationStore();
+  const { produits, chargerProduits, clients, chargerClients } = useReferentielStore();
+  const { getVentesParProduitPeriode, getVentesPOSDetaillees } = usePosStore();
+  const { getVentesBoutiqueParProduit, getVentesBoutiqueDetaillees } = useBoutiqueStore();
+  const { getVentesFactureParProduit, getVentesFactureDetaillees } = useFacturationStore();
   const { achats, chargerAchats, ajouterAchat, supprimerAchat, getPremiereDateAchat } = useSaveurStore();
 
   const [periode, setPeriode] = useState(() => {
@@ -61,6 +61,7 @@ export const SuiviSaveur: React.FC = () => {
   const [typeRapport, setTypeRapport] = useState<TypeRapportSaveur>('sale');
 
   useEffect(() => { if (produits.length === 0) chargerProduits(); }, [produits.length, chargerProduits]);
+  useEffect(() => { if (clients.length === 0) chargerClients(); }, [clients.length, chargerClients]);
 
   // Vraie première date d'achat d'investissement Salé/Sucré (dans saveur_achats)
   const [debutPremierAchat, setDebutPremierAchat] = useState<string | null>(() => _premiereDateSaveurCache?.val || null);
@@ -226,10 +227,101 @@ export const SuiviSaveur: React.FC = () => {
   const totalMarge = totalVentes - totalCout;
   const totalRoi = totalCout > 0 ? (totalMarge / totalCout) * 100 : null;
 
+  const recupererVentesDetaillees = async (): Promise<VenteSaveurDetail[]> => {
+    const debut = new Date(periode.debut + 'T00:00:00');
+    const fin = new Date(periode.fin + 'T23:59:59');
+    const modeBoutique = (typeof localStorage !== 'undefined' && localStorage.getItem('cm.boutique.mode')) || 'classique';
+    const avance = modeBoutique !== 'classique';
+    let inclCaisse: boolean, inclBoutique: boolean, inclLivraison: boolean;
+    if (source === 'toutes') {
+      inclLivraison = true;
+      inclCaisse = avance;
+      inclBoutique = !avance;
+    } else {
+      inclCaisse = source === 'caisse';
+      inclBoutique = source === 'boutique';
+      inclLivraison = source === 'livraison';
+    }
+
+    const [posLignes, boutLignes, livLignes] = await Promise.all([
+      inclCaisse ? getVentesPOSDetaillees(debut, fin) : Promise.resolve([]),
+      inclBoutique ? getVentesBoutiqueDetaillees(debut, fin) : Promise.resolve([]),
+      inclLivraison ? getVentesFactureDetaillees(debut, fin, payeesUniquement) : Promise.resolve([]),
+    ]);
+
+    const clientMap = new Map<string, string>();
+    clients.forEach((c) => {
+      const nom = c.prenom ? `${c.prenom} ${c.nom}` : c.nom;
+      if (nom) clientMap.set(c.id, nom);
+    });
+
+    const produitMap = new Map<string, { nom: string; saveur?: Saveur }>();
+    produits.forEach((p) => {
+      produitMap.set(p.id, { nom: p.nom, saveur: p.saveur as Saveur | undefined });
+    });
+
+    const res: VenteSaveurDetail[] = [];
+
+    // Factures (Livraison)
+    livLignes.forEach((l) => {
+      const prod = produitMap.get(l.produitId);
+      const saveur = prod?.saveur;
+      if (saveur !== 'sale' && saveur !== 'sucre') return;
+      const nomCl = clientMap.get(l.clientId) || l.clientNom || 'Client';
+      res.push({
+        date: l.date,
+        clientNom: nomCl,
+        produitNom: prod?.nom || l.nomProduit || 'Article',
+        saveur,
+        quantite: l.quantite,
+        valeur: l.montant,
+        source: 'livraison',
+        numeroFacture: l.numeroFacture,
+      });
+    });
+
+    // POS (Caisse)
+    posLignes.forEach((l) => {
+      const prod = produitMap.get(l.produitId);
+      const saveur = prod?.saveur;
+      if (saveur !== 'sale' && saveur !== 'sucre') return;
+      res.push({
+        date: l.date,
+        clientNom: 'Vente Caisse (Comptoir)',
+        produitNom: prod?.nom || l.nomProduit || 'Article',
+        saveur,
+        quantite: l.quantite,
+        valeur: l.montant,
+        source: 'caisse',
+        numeroFacture: l.numeroFacture,
+      });
+    });
+
+    // Boutique
+    boutLignes.forEach((l) => {
+      const prod = produitMap.get(l.produitId);
+      const saveur = prod?.saveur;
+      if (saveur !== 'sale' && saveur !== 'sucre') return;
+      res.push({
+        date: l.date,
+        clientNom: 'Vente Boutique',
+        produitNom: prod?.nom || l.nomProduit || 'Article',
+        saveur,
+        quantite: l.quantite,
+        valeur: l.montant,
+        source: 'boutique',
+        numeroFacture: l.numeroFacture,
+      });
+    });
+
+    return res;
+  };
+
   const handleGenererPDF = async (choix?: TypeRapportSaveur) => {
     const typeChoisi = choix || typeRapport;
     try {
       setGeneratingPdf(true);
+      const ventesDetaillees = await recupererVentesDetaillees();
       await genererRapportSaveurPDF({
         periode,
         source,
@@ -240,6 +332,7 @@ export const SuiviSaveur: React.FC = () => {
         produitsSale: produitsDe('sale'),
         produitsSucre: produitsDe('sucre'),
         achats,
+        ventesDetaillees,
       });
       toast.success('Rapport PDF généré avec succès');
       setShowReportModal(false);
@@ -251,9 +344,10 @@ export const SuiviSaveur: React.FC = () => {
     }
   };
 
-  const handleExporterCSV = (choix?: TypeRapportSaveur) => {
+  const handleExporterCSV = async (choix?: TypeRapportSaveur) => {
     const typeChoisi = choix || typeRapport;
     try {
+      const ventesDetaillees = await recupererVentesDetaillees();
       exporterSaveurCSV({
         periode,
         source,
@@ -264,6 +358,7 @@ export const SuiviSaveur: React.FC = () => {
         produitsSale: produitsDe('sale'),
         produitsSucre: produitsDe('sucre'),
         achats,
+        ventesDetaillees,
       });
       toast.success('Export CSV téléchargé');
       setShowReportModal(false);
@@ -706,6 +801,10 @@ export const SuiviSaveur: React.FC = () => {
                 {source === 'toutes' ? 'Toutes sources (Comptoir + Livraison)' : source}
                 {payeesUniquement ? ' (factures payées)' : ''}
               </span>
+            </div>
+            <div className="pt-1 border-t border-sand-200/60 flex items-center gap-1.5 text-[11px] text-terracotta-700">
+              <Icon icon="mdi:information-outline" className="text-sm shrink-0" />
+              <span>Inclut la répartition par client et le journal détaillé des ventes avec les dates.</span>
             </div>
           </div>
 

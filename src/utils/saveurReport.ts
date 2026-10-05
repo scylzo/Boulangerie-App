@@ -5,6 +5,17 @@ import type { Saveur } from '../store/saveurStore';
 
 export type TypeRapportSaveur = 'sale' | 'sucre' | 'tous';
 
+export interface VenteSaveurDetail {
+  date: string;
+  clientNom: string;
+  produitNom: string;
+  saveur: Saveur;
+  quantite: number;
+  valeur: number;
+  source?: 'caisse' | 'boutique' | 'livraison' | string;
+  numeroFacture?: string;
+}
+
 export interface SaveurReportData {
   periode: { debut: string; fin: string };
   source: 'caisse' | 'boutique' | 'livraison' | 'toutes';
@@ -21,6 +32,7 @@ export interface SaveurReportData {
     saveur: Saveur;
     note?: string;
   }[];
+  ventesDetaillees?: VenteSaveurDetail[];
 }
 
 const formatDateFR = (d: string) => {
@@ -490,6 +502,219 @@ export async function genererRapportSaveurPDF(data: SaveurReportData) {
   }
 
   // =========================================================================
+  // CALCULS VENTES DÉTAILLÉES (CLIENTS & DATES)
+  // =========================================================================
+  const ventesDetailleesFiltrees = (data.ventesDetaillees || []).filter((v) => {
+    if (type === 'sale') return v.saveur === 'sale';
+    if (type === 'sucre') return v.saveur === 'sucre';
+    return true;
+  }).sort((a, b) => {
+    const compDate = a.date.localeCompare(b.date);
+    if (compDate !== 0) return compDate;
+    return a.clientNom.localeCompare(b.clientNom);
+  });
+
+  const clientMap = new Map<string, { clientNom: string; qty: number; valeur: number; nbVentes: number }>();
+  ventesDetailleesFiltrees.forEach((v) => {
+    const nom = v.clientNom || 'Client non spécifié';
+    const c = clientMap.get(nom) || { clientNom: nom, qty: 0, valeur: 0, nbVentes: 0 };
+    c.qty += v.quantite;
+    c.valeur += v.valeur;
+    c.nbVentes += 1;
+    clientMap.set(nom, c);
+  });
+  const clientsList = Array.from(clientMap.values()).sort((a, b) => b.valeur - a.valeur);
+  const totalClientsQty = ventesDetailleesFiltrees.reduce((acc, v) => acc + v.quantite, 0);
+  const totalClientsVal = ventesDetailleesFiltrees.reduce((acc, v) => acc + v.valeur, 0);
+
+  // =========================================================================
+  // SECTION : RÉPARTITION DES VENTES PAR CLIENT (si renseigné)
+  // =========================================================================
+  if (clientsList.length > 0) {
+    verifierEspace(40);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(24, 24, 27);
+    const titreClients =
+      type === 'sale'
+        ? `${sectionNum}. RÉPARTITION DES VENTES PAR CLIENT — SALÉ (${clientsList.length})`
+        : type === 'sucre'
+        ? `${sectionNum}. RÉPARTITION DES VENTES PAR CLIENT — SUCRÉ (${clientsList.length})`
+        : `${sectionNum}. RÉPARTITION DES VENTES PAR CLIENT (${clientsList.length})`;
+    doc.text(titreClients, 14, currentY);
+    currentY += 4;
+
+    const clientsBody = clientsList.map((c, idx) => {
+      const part = totalClientsVal > 0 ? (c.valeur / totalClientsVal) * 100 : 0;
+      return [
+        (idx + 1).toString(),
+        c.clientNom.toUpperCase(),
+        `${c.qty} u.`,
+        formatPdfCurrency(c.valeur),
+        `${part.toFixed(1)} %`,
+      ];
+    });
+
+    clientsBody.push([
+      '',
+      'TOTAL CLIENTS',
+      `${totalClientsQty} u.`,
+      formatPdfCurrency(totalClientsVal),
+      '100.0 %',
+    ]);
+
+    const clientHeaderColor: [number, number, number] =
+      type === 'sale' ? [180, 83, 9] : type === 'sucre' ? [79, 70, 229] : [24, 24, 27];
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [['#', 'Client / Destination', 'Quantité Vendue', 'Chiffre Ventes', 'Part CA']],
+      body: clientsBody,
+      theme: 'striped',
+      headStyles: {
+        fillColor: clientHeaderColor,
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8,
+        halign: 'left',
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 10 },
+        1: { cellWidth: 90, fontStyle: 'bold' },
+        2: { halign: 'center', cellWidth: 26 },
+        3: { halign: 'right', fontStyle: 'bold', cellWidth: 32 },
+        4: { halign: 'center', cellWidth: 24 },
+      },
+      styles: { fontSize: 8, cellPadding: 2, textColor: [39, 39, 42] },
+      didParseCell: (dataCell) => {
+        if (dataCell.row.index === clientsBody.length - 1 && dataCell.section === 'body') {
+          dataCell.cell.styles.fillColor =
+            type === 'sale' ? [254, 243, 199] : type === 'sucre' ? [224, 231, 255] : [244, 244, 245];
+          dataCell.cell.styles.fontStyle = 'bold';
+        }
+      },
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 9;
+    sectionNum++;
+  }
+
+  // =========================================================================
+  // SECTION : JOURNAL DÉTAILLÉ DES VENTES (PAR DATE & CLIENT)
+  // =========================================================================
+  if (ventesDetailleesFiltrees.length > 0) {
+    verifierEspace(40);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(24, 24, 27);
+    const titreJournalVentes =
+      type === 'sale'
+        ? `${sectionNum}. JOURNAL DÉTAILLÉ DES VENTES PAR DATE & CLIENT — SALÉ (${ventesDetailleesFiltrees.length})`
+        : type === 'sucre'
+        ? `${sectionNum}. JOURNAL DÉTAILLÉ DES VENTES PAR DATE & CLIENT — SUCRÉ (${ventesDetailleesFiltrees.length})`
+        : `${sectionNum}. JOURNAL DÉTAILLÉ DES VENTES PAR DATE & CLIENT (${ventesDetailleesFiltrees.length})`;
+    doc.text(titreJournalVentes, 14, currentY);
+    currentY += 4;
+
+    const headerVentes =
+      type === 'tous'
+        ? [['Date', 'Client', 'Catégorie', 'Désignation Produit', 'Quantité', 'Montant Vente']]
+        : [['Date', 'Client', 'Désignation Produit', 'Quantité', 'Montant Vente']];
+
+    const ventesBody = ventesDetailleesFiltrees.map((v) => {
+      if (type === 'tous') {
+        return [
+          formatDateFR(v.date),
+          v.clientNom,
+          v.saveur === 'sale' ? 'Salé' : 'Sucré',
+          v.produitNom,
+          `${v.quantite} u.`,
+          formatPdfCurrency(v.valeur),
+        ];
+      }
+      return [
+        formatDateFR(v.date),
+        v.clientNom,
+        v.produitNom,
+        `${v.quantite} u.`,
+        formatPdfCurrency(v.valeur),
+      ];
+    });
+
+    if (type === 'tous') {
+      ventesBody.push([
+        'TOTAL',
+        `${clientsList.length} client(s)`,
+        '',
+        `${ventesDetailleesFiltrees.length} vente(s)`,
+        `${totalClientsQty} u.`,
+        formatPdfCurrency(totalClientsVal),
+      ]);
+    } else {
+      ventesBody.push([
+        'TOTAL',
+        `${clientsList.length} client(s)`,
+        `${ventesDetailleesFiltrees.length} vente(s)`,
+        `${totalClientsQty} u.`,
+        formatPdfCurrency(totalClientsVal),
+      ]);
+    }
+
+    const ventesHeaderColor: [number, number, number] =
+      type === 'sale' ? [180, 83, 9] : type === 'sucre' ? [79, 70, 229] : [55, 65, 81];
+
+    autoTable(doc, {
+      startY: currentY,
+      head: headerVentes,
+      body: ventesBody,
+      theme: 'grid',
+      headStyles: {
+        fillColor: ventesHeaderColor,
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8,
+        halign: 'left',
+      },
+      columnStyles:
+        type === 'tous'
+          ? {
+              0: { cellWidth: 22, halign: 'center' },
+              1: { cellWidth: 44, fontStyle: 'bold' },
+              2: { cellWidth: 20, halign: 'center' },
+              3: { cellWidth: 46 },
+              4: { cellWidth: 20, halign: 'center' },
+              5: { cellWidth: 30, halign: 'right', fontStyle: 'bold' },
+            }
+          : {
+              0: { cellWidth: 24, halign: 'center' },
+              1: { cellWidth: 52, fontStyle: 'bold' },
+              2: { cellWidth: 54 },
+              3: { cellWidth: 22, halign: 'center' },
+              4: { cellWidth: 30, halign: 'right', fontStyle: 'bold' },
+            },
+      styles: { fontSize: 8, cellPadding: 2, textColor: [39, 39, 42] },
+      didParseCell: (dataCell) => {
+        if (dataCell.row.index === ventesBody.length - 1 && dataCell.section === 'body') {
+          dataCell.cell.styles.fillColor = [243, 244, 246];
+          dataCell.cell.styles.fontStyle = 'bold';
+        }
+        if (type === 'tous' && dataCell.section === 'body' && dataCell.column.index === 2) {
+          if (dataCell.cell.raw === 'Salé') {
+            dataCell.cell.styles.textColor = [180, 83, 9];
+            dataCell.cell.styles.fontStyle = 'bold';
+          } else if (dataCell.cell.raw === 'Sucré') {
+            dataCell.cell.styles.textColor = [79, 70, 229];
+            dataCell.cell.styles.fontStyle = 'bold';
+          }
+        }
+      },
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 9;
+    sectionNum++;
+  }
+
+  // =========================================================================
   // SECTION : JOURNAL DES ACHATS (FILTRÉ SELON TYPE)
   // =========================================================================
   verifierEspace(40);
@@ -689,6 +914,43 @@ export function exporterSaveurCSV(data: SaveurReportData) {
     data.produitsSucre.forEach((p) => {
       const part = vSucre.valeur > 0 ? (p.valeur / vSucre.valeur) * 100 : 0;
       lines.push(`${escapeCSV(p.nom)};${p.qty};${p.valeur};"${part.toFixed(1)}%"`);
+    });
+    lines.push('');
+  }
+
+  // Ventes détaillées (clients & dates) si présentes
+  const ventesDetailleesFiltrees = (data.ventesDetaillees || []).filter((v) => {
+    if (type === 'sale') return v.saveur === 'sale';
+    if (type === 'sucre') return v.saveur === 'sucre';
+    return true;
+  }).sort((a, b) => a.date.localeCompare(b.date));
+
+  if (ventesDetailleesFiltrees.length > 0) {
+    const clientMap = new Map<string, { clientNom: string; qty: number; valeur: number }>();
+    ventesDetailleesFiltrees.forEach((v) => {
+      const cle = v.clientNom || 'Client non spécifié';
+      const exist = clientMap.get(cle) || { clientNom: cle, qty: 0, valeur: 0 };
+      exist.qty += v.quantite;
+      exist.valeur += v.valeur;
+      clientMap.set(cle, exist);
+    });
+    const clientsList = Array.from(clientMap.values()).sort((a, b) => b.valeur - a.valeur);
+    const totalVal = ventesDetailleesFiltrees.reduce((acc, v) => acc + v.valeur, 0);
+
+    lines.push(`"RÉPARTITION DES VENTES PAR CLIENT"`);
+    lines.push(`"Client";"Quantité vendue";"Chiffre d'Affaires (FCFA)";"Part (%)"`);
+    clientsList.forEach((c) => {
+      const part = totalVal > 0 ? (c.valeur / totalVal) * 100 : 0;
+      lines.push(`${escapeCSV(c.clientNom)};${c.qty};${c.valeur};"${part.toFixed(1)}%"`);
+    });
+    lines.push('');
+
+    lines.push(`"JOURNAL DÉTAILLÉ DES VENTES (PAR DATE & CLIENT)"`);
+    lines.push(`"Date";"Client";"Désignation Produit";"Catégorie";"Quantité";"Montant Vente (FCFA)";"Référence / Source"`);
+    ventesDetailleesFiltrees.forEach((v) => {
+      lines.push(
+        `${escapeCSV(formatDateFR(v.date))};${escapeCSV(v.clientNom)};${escapeCSV(v.produitNom)};${escapeCSV(v.saveur === 'sale' ? 'Salé' : 'Sucré')};${v.quantite};${v.valeur};${escapeCSV(v.numeroFacture || v.source || '')}`
+      );
     });
     lines.push('');
   }

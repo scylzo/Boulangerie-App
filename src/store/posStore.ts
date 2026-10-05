@@ -99,6 +99,19 @@ interface PosStore {
   getClassementProduits: (joursEnArriere?: number) => Promise<Record<string, number>>;
   /** Ventes POS par produit (quantité nette + valeur) sur une période. */
   getVentesParProduitPeriode: (debut: Date, fin: Date) => Promise<Record<string, { qty: number; valeur: number }>>;
+  /** Ventes POS détaillées ligne par ligne avec date. */
+  getVentesPOSDetaillees: (debut: Date, fin: Date) => Promise<Array<{
+    date: string;
+    clientId: string;
+    clientNom: string;
+    numeroFacture: string;
+    produitId: string;
+    nomProduit?: string;
+    quantite: number;
+    prixUnitaire: number;
+    montant: number;
+    statut: string;
+  }>>;
   /** Date (yyyy-mm-dd) du tout premier ticket POS enregistré, ou null. */
   getPremiereDateVente: () => Promise<string | null>;
 }
@@ -336,6 +349,43 @@ export const usePosStore = create<PosStore>((set, get) => ({
       map[l.produitId].valeur += l.quantite * (l.prixUnitaire || 0);
     }));
     return map;
+  },
+
+  getVentesPOSDetaillees: async (debut: Date, fin: Date) => {
+    const tickets = await get().getTicketsPeriode(debut, fin);
+    const lignes: Array<{
+      date: string;
+      clientId: string;
+      clientNom: string;
+      numeroFacture: string;
+      produitId: string;
+      nomProduit?: string;
+      quantite: number;
+      prixUnitaire: number;
+      montant: number;
+      statut: string;
+    }> = [];
+    tickets.forEach(t => {
+      const dateStr = t.date || (t.createdAt ? new Date(t.createdAt).toISOString().split('T')[0] : '');
+      const numTicket = t.numero ? `Ticket #${t.numero}` : 'Ticket Caisse';
+      t.lignes.forEach(l => {
+        if (!l.quantite) return;
+        const pu = l.prixUnitaire || 0;
+        lignes.push({
+          date: dateStr,
+          clientId: 'comptoir',
+          clientNom: 'Vente Caisse (Comptoir)',
+          numeroFacture: numTicket,
+          produitId: l.produitId,
+          nomProduit: (l as any).nomProduit || (l as any).nom,
+          quantite: l.quantite,
+          prixUnitaire: pu,
+          montant: l.quantite * pu,
+          statut: 'payee',
+        });
+      });
+    });
+    return lignes;
   },
 
   getRetoursDeTicket: async (ticketOrigineId: string) => {

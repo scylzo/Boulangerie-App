@@ -54,6 +54,19 @@ interface BoutiqueStore {
   chargerVentes: (date: Date) => Promise<void>;
   getVentesPeriode: (dateDebut: Date, dateFin: Date) => Promise<number>;
   getVentesBoutiqueParProduit: (dateDebut: Date, dateFin: Date) => Promise<Record<string, { qty: number; valeur: number }>>;
+  /** Ventes boutique détaillées ligne par ligne avec date. */
+  getVentesBoutiqueDetaillees: (dateDebut: Date, dateFin: Date) => Promise<Array<{
+    date: string;
+    clientId: string;
+    clientNom: string;
+    numeroFacture: string;
+    produitId: string;
+    nomProduit?: string;
+    quantite: number;
+    prixUnitaire: number;
+    montant: number;
+    statut: string;
+  }>>;
   getPremiereDateVenteBoutique: () => Promise<string | null>;
 
   // Setters
@@ -1010,6 +1023,59 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
       });
     } catch (e) { console.error('getVentesBoutiqueParProduit:', e); }
     return res;
+  },
+
+  getVentesBoutiqueDetaillees: async (dateDebut: Date, dateFin: Date) => {
+    const lignes: Array<{
+      date: string;
+      clientId: string;
+      clientNom: string;
+      numeroFacture: string;
+      produitId: string;
+      nomProduit?: string;
+      quantite: number;
+      prixUnitaire: number;
+      montant: number;
+      statut: string;
+    }> = [];
+    try {
+      const q = query(collection(db, 'shopSales'), where('date', '>=', dateToTimestamp(dateDebut)), where('date', '<=', dateToTimestamp(dateFin)));
+      const snapshot = await getDocs(q);
+      if (get().produits.length === 0) await get().chargerProduits();
+      const catalogue = get().produits;
+      snapshot.docs.forEach(docu => {
+        const data = docu.data() as VentesBoutique;
+        let dateStr = '';
+        const d: any = data.date;
+        if (d?.toDate) dateStr = d.toDate().toISOString().split('T')[0];
+        else if (typeof d?.seconds === 'number') dateStr = new Date(d.seconds * 1000).toISOString().split('T')[0];
+        else if (d instanceof Date) dateStr = d.toISOString().split('T')[0];
+        else if (typeof d === 'string') dateStr = d.split('T')[0];
+
+        data.produits.forEach(p => {
+          const qty = p.venduTotal || 0;
+          if (qty <= 0) return;
+          let prix = p.produit?.prixBoutique || p.produit?.prixUnitaire || 0;
+          if (!prix) {
+            const inCat = catalogue.find(cp => cp.id === p.produitId);
+            prix = inCat?.prixBoutique || inCat?.prixUnitaire || 0;
+          }
+          lignes.push({
+            date: dateStr,
+            clientId: 'boutique',
+            clientNom: 'Vente Boutique',
+            numeroFacture: `Boutique ${dateStr}`,
+            produitId: p.produitId,
+            nomProduit: p.produit?.nom,
+            quantite: qty,
+            prixUnitaire: prix,
+            montant: qty * prix,
+            statut: 'payee',
+          });
+        });
+      });
+    } catch (e) { console.error('getVentesBoutiqueDetaillees:', e); }
+    return lignes;
   },
 
   getPremiereDateVenteBoutique: async () => {

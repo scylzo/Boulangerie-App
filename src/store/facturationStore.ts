@@ -33,6 +33,19 @@ interface FacturationStore {
   getFacturesClient: (clientId: string) => Promise<Facture[]>;
   /** Ventes livraison (factures) par produit sur une période, par date de livraison. */
   getVentesFactureParProduit: (debut: Date, fin: Date, payeesUniquement?: boolean) => Promise<Record<string, { qty: number; valeur: number }>>;
+  /** Ventes livraison détaillées ligne par ligne avec date et client. */
+  getVentesFactureDetaillees: (debut: Date, fin: Date, payeesUniquement?: boolean) => Promise<Array<{
+    date: string;
+    clientId: string;
+    clientNom: string;
+    numeroFacture: string;
+    produitId: string;
+    nomProduit?: string;
+    quantite: number;
+    prixUnitaire: number;
+    montant: number;
+    statut: string;
+  }>>;
   /** Date (yyyy-mm-dd) de la toute première livraison facturée, ou null. */
   getPremiereDateVenteLivraison: () => Promise<string | null>;
   /** Alimente le journal 'reglements' à partir des règlements existants sur les factures (idempotent). */
@@ -1071,6 +1084,70 @@ export const useFacturationStore = create<FacturationStore>()(
           console.error('getVentesFactureParProduit:', e);
         }
         return res;
+      },
+
+      getVentesFactureDetaillees: async (debut: Date, fin: Date, payeesUniquement = false) => {
+        const lignes: Array<{
+          date: string;
+          clientId: string;
+          clientNom: string;
+          numeroFacture: string;
+          produitId: string;
+          nomProduit?: string;
+          quantite: number;
+          prixUnitaire: number;
+          montant: number;
+          statut: string;
+        }> = [];
+        try {
+          const q = query(
+            collection(db, 'factures'),
+            where('dateLivraison', '>=', debut),
+            where('dateLivraison', '<=', fin)
+          );
+          const snap = await getDocs(q);
+          snap.docs.forEach(d => {
+            const f = d.data() as any;
+            if (f.statut === 'annulee' || f.statut === 'brouillon') return;
+            if (payeesUniquement && f.statut !== 'payee') return;
+
+            let dateStr = '';
+            const dl = f.dateLivraison;
+            if (dl?.toDate && typeof dl.toDate === 'function') {
+              dateStr = dl.toDate().toISOString().split('T')[0];
+            } else if (typeof dl?.seconds === 'number') {
+              dateStr = new Date(dl.seconds * 1000).toISOString().split('T')[0];
+            } else if (dl instanceof Date) {
+              dateStr = isNaN(dl.getTime()) ? '' : dl.toISOString().split('T')[0];
+            } else if (typeof dl === 'string') {
+              dateStr = dl.split('T')[0];
+            }
+
+            const clientNom = f.client?.nomCommercial || f.client?.nom || f.clientNom || '';
+
+            (f.lignes || []).forEach((l: any) => {
+              const qty = l.quantiteFacturee || 0;
+              if (qty <= 0) return;
+              const pu = l.prixUnitaire || 0;
+              const montant = l.montantLigne != null ? l.montantLigne : qty * pu;
+              lignes.push({
+                date: dateStr,
+                clientId: f.clientId || '',
+                clientNom,
+                numeroFacture: f.numeroFacture || d.id,
+                produitId: l.produitId,
+                nomProduit: l.produit?.nom || l.nomProduit,
+                quantite: qty,
+                prixUnitaire: pu,
+                montant,
+                statut: f.statut || '',
+              });
+            });
+          });
+        } catch (e) {
+          console.error('getVentesFactureDetaillees:', e);
+        }
+        return lignes;
       },
 
       getPremiereDateVenteLivraison: async () => {
