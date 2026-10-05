@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { TableLoader } from '../../components/ui/Loader';
@@ -9,6 +9,7 @@ import { useReferentielStore } from '../../store/referentielStore';
 import { useStockStore } from '../../store/stockStore'; // Import stock store
 import { useLivraisonStore } from '../../store/livraisonStore';
 import { ModalQuotaGlobal } from '../../components/livraison/ModalQuotaGlobal';
+import { determinerSaveur, estSamoussa } from '../../utils/saveurUtils';
 import type { Produit } from '../../types';
 
 export const GestionProduits: React.FC = () => {
@@ -29,11 +30,34 @@ export const GestionProduits: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [isModalQuotaOpen, setIsModalQuotaOpen] = useState(false);
   const [search, setSearch] = useState(() => searchParams.get('q') || '');
+  const [filtreSaveur, setFiltreSaveur] = useState<'tous' | 'sale' | 'sucre' | 'sans'>('tous');
+  const [creantSamoussa, setCreantSamoussa] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; produitId: string; produitNom: string }>({
     isOpen: false,
     produitId: '',
     produitNom: ''
   });
+
+  const samoussaExiste = produits.some(p => estSamoussa(p.nom));
+
+  const handleCreerSamoussaRapide = async () => {
+    setCreantSamoussa(true);
+    try {
+      await ajouterProduit({
+        nom: 'Samoussa',
+        saveur: 'sale',
+        categorie: 'viennoiserie',
+        unite: 'piece',
+        prixBoutique: 250,
+        prixClient: 200,
+        active: true,
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCreantSamoussa(false);
+    }
+  };
 
   const { chargerDonnees: chargerStock } = useStockStore();
 
@@ -88,6 +112,7 @@ export const GestionProduits: React.FC = () => {
   // Fonction pour obtenir l'icône du produit basé sur son nom
   const getProductIcon = (productName: string): string => {
     const name = productName?.toLowerCase() || '';
+    if (name.includes('samoussa') || name.includes('samossa') || name.includes('samosa') || name.includes('pastel') || name.includes('fataya')) return 'mdi:triangle-outline';
     if (name.includes('baguette')) return 'mdi:baguette';
     if (name.includes('pain')) return 'mdi:bread-slice';
     if (name.includes('croissant')) return 'mdi:croissant';
@@ -99,12 +124,41 @@ export const GestionProduits: React.FC = () => {
     return 'mdi:food-variant';
   };
 
-  const produitsFiltres = produits.filter(p =>
-    p.nom.toLowerCase().includes(search.toLowerCase().trim())
-  );
-  const nbActifs = produits.filter(p => p.active).length;
+  const statsProduits = useMemo(() => {
+    let actifs = 0;
+    let sales = 0;
+    let sucres = 0;
+    let soumis = 0;
+    const quotaIds = parametresLivraison?.produitsSoumisAuQuotaIds;
+    const quotaSet = quotaIds !== undefined ? new Set(quotaIds) : null;
+
+    for (let i = 0; i < produits.length; i++) {
+      const p = produits[i];
+      if (p.active) actifs++;
+      const sav = determinerSaveur(p.saveur, p.nom);
+      if (sav === 'sale') sales++;
+      else if (sav === 'sucre') sucres++;
+      if (!quotaSet || quotaSet.has(p.id)) soumis++;
+    }
+
+    return { nbActifs: actifs, nbSales: sales, nbSucres: sucres, nbProduitsSoumis: soumis };
+  }, [produits, parametresLivraison?.produitsSoumisAuQuotaIds]);
+
+  const { nbActifs, nbSales, nbSucres, nbProduitsSoumis } = statsProduits;
   const produitsSoumis = parametresLivraison?.produitsSoumisAuQuotaIds;
-  const nbProduitsSoumis = produitsSoumis !== undefined ? produits.filter(p => produitsSoumis.includes(p.id)).length : produits.length;
+
+  const produitsFiltres = useMemo(() => {
+    const term = search.toLowerCase().trim();
+    return produits.filter(p => {
+      if (term && !p.nom.toLowerCase().includes(term)) return false;
+      if (filtreSaveur === 'tous') return true;
+      const saveur = determinerSaveur(p.saveur, p.nom);
+      if (filtreSaveur === 'sale') return saveur === 'sale';
+      if (filtreSaveur === 'sucre') return saveur === 'sucre';
+      if (filtreSaveur === 'sans') return !p.saveur;
+      return true;
+    });
+  }, [produits, search, filtreSaveur]);
 
   return (
     <div className="min-h-screen bg-sand-100">
@@ -157,7 +211,54 @@ export const GestionProduits: React.FC = () => {
       </div>
 
       {/* Contenu principal */}
-      <div className="max-w-7xl mx-auto p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4">
+
+        {/* Alerte Samoussa absent */}
+        {!samoussaExiste && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                <Icon icon="mdi:cheese" className="text-xl" />
+              </div>
+              <div>
+                <div className="font-semibold text-sm text-sand-900">Le produit « Samoussa » n'est pas encore dans votre catalogue</div>
+                <div className="text-xs text-sand-600">Ajoutez-le dès maintenant pour activer son suivi dans l'onglet Salé / Sucré.</div>
+              </div>
+            </div>
+            <button
+              onClick={handleCreerSamoussaRapide}
+              disabled={creantSamoussa}
+              className="inline-flex items-center gap-2 px-3.5 py-2 bg-terracotta-600 hover:bg-terracotta-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all shrink-0 cursor-pointer disabled:opacity-50"
+            >
+              <Icon icon={creantSamoussa ? "mdi:loading" : "mdi:plus"} className={`text-base ${creantSamoussa ? 'animate-spin' : ''}`} />
+              <span>Créer le produit Samoussa (Salé)</span>
+            </button>
+          </div>
+        )}
+
+        {/* Filtres par Saveur (Tous / Salé / Sucré) */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-medium text-sand-500 mr-1">Filtrer par saveur :</span>
+          {([
+            { key: 'tous', label: `Tous (${produits.length})` },
+            { key: 'sale', label: `Salé (${nbSales})`, icon: 'mdi:cheese' },
+            { key: 'sucre', label: `Sucré (${nbSucres})`, icon: 'mdi:cupcake' },
+            { key: 'sans', label: `Sans saveur (${produits.filter(p => !p.saveur).length})` },
+          ] as { key: typeof filtreSaveur; label: string; icon?: string }[]).map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setFiltreSaveur(tab.key)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                filtreSaveur === tab.key
+                  ? 'bg-terracotta-600 border-terracotta-600 text-white shadow-sm'
+                  : 'bg-white border-sand-200 text-sand-600 hover:bg-sand-50'
+              }`}
+            >
+              {tab.icon && <Icon icon={tab.icon} className="text-sm" />}
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
 
         {/* Modal d'ajout/modification */}
         {showForm && (
@@ -206,6 +307,7 @@ export const GestionProduits: React.FC = () => {
                   <tr className="text-left text-[11px] uppercase tracking-wide text-sand-500 border-b border-sand-200 bg-sand-50">
                     <th className="font-semibold px-4 py-3">Produit</th>
                     <th className="font-semibold px-4 py-3">Catégorie</th>
+                    <th className="font-semibold px-4 py-3">Saveur (Suivi)</th>
                     <th className="font-semibold px-4 py-3 text-right">Prix client</th>
                     <th className="font-semibold px-4 py-3 text-right">Prix boutique</th>
                     <th className="font-semibold px-4 py-3">Statut</th>
@@ -257,6 +359,73 @@ export const GestionProduits: React.FC = () => {
                         ) : (
                           <span className="text-sand-400">—</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {(() => {
+                          const savEff = determinerSaveur(produit.saveur, produit.nom);
+                          if (savEff === 'sale') {
+                            return (
+                              <div className="inline-flex items-center gap-1">
+                                <span
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200"
+                                  title={produit.saveur === 'sale' ? 'Configuré comme Salé' : 'Détecté comme Salé d\'après le nom'}
+                                >
+                                  <Icon icon="mdi:cheese" className="text-xs" />
+                                  <span>Salé</span>
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => modifierProduit(produit.id, { saveur: 'aucun' })}
+                                  className="p-1 rounded hover:bg-danger-50 text-sand-400 hover:text-danger-600 transition-colors cursor-pointer"
+                                  title="Retirer la saveur (mettre sans saveur)"
+                                >
+                                  <Icon icon="mdi:close" className="text-xs" />
+                                </button>
+                              </div>
+                            );
+                          }
+                          if (savEff === 'sucre') {
+                            return (
+                              <div className="inline-flex items-center gap-1">
+                                <span
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200"
+                                  title={produit.saveur === 'sucre' ? 'Configuré comme Sucré' : 'Détecté comme Sucré d\'après le nom'}
+                                >
+                                  <Icon icon="mdi:cupcake" className="text-xs" />
+                                  <span>Sucré</span>
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => modifierProduit(produit.id, { saveur: 'aucun' })}
+                                  className="p-1 rounded hover:bg-danger-50 text-sand-400 hover:text-danger-600 transition-colors cursor-pointer"
+                                  title="Retirer la saveur (mettre sans saveur)"
+                                >
+                                  <Icon icon="mdi:close" className="text-xs" />
+                                </button>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => modifierProduit(produit.id, { saveur: 'sale' })}
+                                className="px-1.5 py-0.5 text-[11px] rounded bg-sand-100 hover:bg-amber-100 text-sand-600 hover:text-amber-800 border border-sand-200 transition-colors cursor-pointer"
+                                title="Définir comme Salé"
+                              >
+                                + Salé
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => modifierProduit(produit.id, { saveur: 'sucre' })}
+                                className="px-1.5 py-0.5 text-[11px] rounded bg-sand-100 hover:bg-indigo-100 text-sand-600 hover:text-indigo-800 border border-sand-200 transition-colors cursor-pointer"
+                                title="Définir comme Sucré"
+                              >
+                                + Sucré
+                              </button>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-4 py-3 text-right text-sand-700">
                         {produit.prixClient ? `${produit.prixClient.toLocaleString('fr-FR')} F` : <span className="text-sand-400">—</span>}

@@ -5,6 +5,7 @@ import { Card } from '../ui/Card';
 import { useStockStore } from '../../store/stockStore'; // Import stock store
 import type { Produit, Ingredient } from '../../types';
 import { Icon } from '@iconify/react'; // Import Iconify
+import { determinerSaveur } from '../../utils/saveurUtils';
 
 interface ProduitFormProps {
   produit?: Produit | null;
@@ -27,7 +28,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     prixClient: '' as number | '',
     prixBoutique: '' as number | '',
     categorie: 'boulangerie' as 'boulangerie' | 'viennoiserie',
-    saveur: '' as '' | 'sale' | 'sucre',
+    saveur: '' as '' | 'sale' | 'sucre' | 'aucun',
     reconduisible: false,
     productionQuotidienne: false,
     defCar1: '' as number | '',
@@ -56,7 +57,9 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         prixClient: produit.prixClient || '',
         prixBoutique: produit.prixBoutique || '',
         categorie: produit.categorie || 'boulangerie',
-        saveur: produit.saveur || '',
+        saveur: (produit.saveur === 'sale' || produit.saveur === 'sucre' || produit.saveur === 'aucun')
+          ? produit.saveur
+          : '',
         reconduisible: produit.reconduisible || false,
         productionQuotidienne: produit.productionQuotidienne || false,
         defCar1: produit.quantiteBoutiqueDefautCars?.car1_matin ?? (produit.quantiteBoutiqueDefaut ?? ''),
@@ -128,7 +131,7 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
         prixClient: Number(formData.prixClient) || 0,
         prixBoutique: Number(formData.prixBoutique) || 0,
         categorie: formData.categorie,
-        ...(formData.saveur ? { saveur: formData.saveur } : {}),
+        saveur: (formData.saveur === 'sale' || formData.saveur === 'sucre' ? formData.saveur : 'aucun') as 'sale' | 'sucre' | 'aucun',
         reconduisible: formData.reconduisible,
         productionQuotidienne: formData.productionQuotidienne,
         quantiteBoutiqueDefautCars: formData.productionQuotidienne
@@ -209,8 +212,16 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           <Input
             label="Nom du produit *"
             value={formData.nom}
-            onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-            placeholder="ex: Baguette sénégalaise"
+            onChange={(e) => {
+              const val = e.target.value;
+              const autoSaveur = !produit && !formData.saveur ? determinerSaveur(undefined, val) : undefined;
+              setFormData({
+                ...formData,
+                nom: val,
+                ...(autoSaveur ? { saveur: autoSaveur } : {})
+              });
+            }}
+            placeholder="ex: Baguette sénégalaise, Samoussa..."
             required
           />
 
@@ -288,26 +299,31 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
             </label>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {([
-                { val: '', label: 'Aucun', icon: 'mdi:minus-circle-outline' },
+                { val: 'aucun', label: 'Aucun', icon: 'mdi:minus-circle-outline' },
                 { val: 'sale', label: 'Salé', icon: 'mdi:cheese' },
                 { val: 'sucre', label: 'Sucré', icon: 'mdi:cupcake' },
-              ] as { val: '' | 'sale' | 'sucre'; label: string; icon: string }[]).map((s) => (
-                <label
-                  key={s.val || 'none'}
-                  className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-all ${formData.saveur === s.val ? 'bg-terracotta-50 border-terracotta-200 ring-1 ring-terracotta-500' : 'bg-white border-sand-200 hover:bg-sand-50'}`}
-                >
-                  <input
-                    type="radio"
-                    className="sr-only"
-                    name="saveur"
-                    value={s.val}
-                    checked={formData.saveur === s.val}
-                    onChange={() => setFormData({ ...formData, saveur: s.val })}
-                  />
-                  <Icon icon={s.icon} className={`text-lg ${formData.saveur === s.val ? 'text-terracotta-600' : 'text-sand-400'}`} />
-                  <span className="text-sm font-medium text-sand-900">{s.label}</span>
-                </label>
-              ))}
+              ] as { val: 'aucun' | 'sale' | 'sucre'; label: string; icon: string }[]).map((s) => {
+                const isSelected = s.val === 'aucun'
+                  ? (!formData.saveur || formData.saveur === 'aucun')
+                  : formData.saveur === s.val;
+                return (
+                  <label
+                    key={s.val}
+                    className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-all ${isSelected ? 'bg-terracotta-50 border-terracotta-200 ring-1 ring-terracotta-500' : 'bg-white border-sand-200 hover:bg-sand-50'}`}
+                  >
+                    <input
+                      type="radio"
+                      className="sr-only"
+                      name="saveur"
+                      value={s.val}
+                      checked={isSelected}
+                      onChange={() => setFormData({ ...formData, saveur: s.val })}
+                    />
+                    <Icon icon={s.icon} className={`text-lg ${isSelected ? 'text-terracotta-600' : 'text-sand-400'}`} />
+                    <span className="text-sm font-medium text-sand-900">{s.label}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
 

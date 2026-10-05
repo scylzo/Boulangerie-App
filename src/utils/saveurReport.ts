@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import logoUrl from '../assets/logo.png';
 import type { Saveur } from '../store/saveurStore';
+import { determinerSaveur } from './saveurUtils';
 
 export type TypeRapportSaveur = 'sale' | 'sucre' | 'tous';
 
@@ -368,20 +369,21 @@ export async function genererRapportSaveurPDF(data: SaveurReportData) {
   sectionNum++;
 
   // =========================================================================
-  // SECTION : DÉTAIL DES VENTES SALÉES (si inclus)
+  // SECTION : DÉTAIL DES VENTES SALÉES (si inclus - uniquement les produits vendus)
   // =========================================================================
   if (inclureSale) {
+    const prodsSaleVendus = data.produitsSale.filter((p) => p.qty > 0);
     verifierEspace(40);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10.5);
     doc.setTextColor(24, 24, 27);
-    doc.text(`${sectionNum}. DÉTAIL DES VENTES SALÉES (${data.produitsSale.length} article${data.produitsSale.length > 1 ? 's' : ''})`, 14, currentY);
+    doc.text(`${sectionNum}. DÉTAIL DES VENTES SALÉES (${prodsSaleVendus.length} article${prodsSaleVendus.length > 1 ? 's' : ''})`, 14, currentY);
     currentY += 4;
 
     const saleBody =
-      data.produitsSale.length === 0
+      prodsSaleVendus.length === 0
         ? [['—', 'Aucune vente de produit salé sur la période', '0 u.', '0 F', '0.0 %']]
-        : data.produitsSale.map((p, idx) => {
+        : prodsSaleVendus.map((p, idx) => {
             const part = vSale.valeur > 0 ? (p.valeur / vSale.valeur) * 100 : 0;
             return [
               (idx + 1).toString(),
@@ -392,7 +394,7 @@ export async function genererRapportSaveurPDF(data: SaveurReportData) {
             ];
           });
 
-    if (data.produitsSale.length > 0) {
+    if (prodsSaleVendus.length > 0) {
       saleBody.push([
         '',
         'SOUS-TOTAL SALÉ',
@@ -423,7 +425,7 @@ export async function genererRapportSaveurPDF(data: SaveurReportData) {
       },
       styles: { fontSize: 8, cellPadding: 2, textColor: [39, 39, 42] },
       didParseCell: (dataCell) => {
-        if (data.produitsSale.length > 0 && dataCell.row.index === saleBody.length - 1 && dataCell.section === 'body') {
+        if (prodsSaleVendus.length > 0 && dataCell.row.index === saleBody.length - 1 && dataCell.section === 'body') {
           dataCell.cell.styles.fillColor = [254, 243, 199];
           dataCell.cell.styles.fontStyle = 'bold';
         }
@@ -435,20 +437,21 @@ export async function genererRapportSaveurPDF(data: SaveurReportData) {
   }
 
   // =========================================================================
-  // SECTION : DÉTAIL DES VENTES SUCRÉES (si inclus)
+  // SECTION : DÉTAIL DES VENTES SUCRÉES (si inclus - uniquement les produits vendus)
   // =========================================================================
   if (inclureSucre) {
+    const prodsSucreVendus = data.produitsSucre.filter((p) => p.qty > 0);
     verifierEspace(40);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10.5);
     doc.setTextColor(24, 24, 27);
-    doc.text(`${sectionNum}. DÉTAIL DES VENTES SUCRÉES (${data.produitsSucre.length} article${data.produitsSucre.length > 1 ? 's' : ''})`, 14, currentY);
+    doc.text(`${sectionNum}. DÉTAIL DES VENTES SUCRÉES (${prodsSucreVendus.length} article${prodsSucreVendus.length > 1 ? 's' : ''})`, 14, currentY);
     currentY += 4;
 
     const sucreBody =
-      data.produitsSucre.length === 0
+      prodsSucreVendus.length === 0
         ? [['—', 'Aucune vente de produit sucré sur la période', '0 u.', '0 F', '0.0 %']]
-        : data.produitsSucre.map((p, idx) => {
+        : prodsSucreVendus.map((p, idx) => {
             const part = vSucre.valeur > 0 ? (p.valeur / vSucre.valeur) * 100 : 0;
             return [
               (idx + 1).toString(),
@@ -459,7 +462,7 @@ export async function genererRapportSaveurPDF(data: SaveurReportData) {
             ];
           });
 
-    if (data.produitsSucre.length > 0) {
+    if (prodsSucreVendus.length > 0) {
       sucreBody.push([
         '',
         'SOUS-TOTAL SUCRÉ',
@@ -490,7 +493,7 @@ export async function genererRapportSaveurPDF(data: SaveurReportData) {
       },
       styles: { fontSize: 8, cellPadding: 2, textColor: [39, 39, 42] },
       didParseCell: (dataCell) => {
-        if (data.produitsSucre.length > 0 && dataCell.row.index === sucreBody.length - 1 && dataCell.section === 'body') {
+        if (prodsSucreVendus.length > 0 && dataCell.row.index === sucreBody.length - 1 && dataCell.section === 'body') {
           dataCell.cell.styles.fillColor = [224, 231, 255];
           dataCell.cell.styles.fontStyle = 'bold';
         }
@@ -505,8 +508,9 @@ export async function genererRapportSaveurPDF(data: SaveurReportData) {
   // CALCULS VENTES DÉTAILLÉES (CLIENTS & DATES)
   // =========================================================================
   const ventesDetailleesFiltrees = (data.ventesDetaillees || []).filter((v) => {
-    if (type === 'sale') return v.saveur === 'sale';
-    if (type === 'sucre') return v.saveur === 'sucre';
+    const sav = determinerSaveur(v.saveur, v.produitNom);
+    if (type === 'sale') return sav === 'sale';
+    if (type === 'sucre') return sav === 'sucre';
     return true;
   }).sort((a, b) => {
     const compDate = a.date.localeCompare(b.date);
@@ -896,32 +900,43 @@ export function exporterSaveurCSV(data: SaveurReportData) {
   }
   lines.push('');
 
-  // 2. Détail Salé si inclus
+  // 2. Détail Salé si inclus (uniquement les produits vendus)
   if (inclureSale) {
-    lines.push(`"VENTES DÉTAILLÉES — PRODUITS SALÉS"`);
+    const prodsSaleVendus = data.produitsSale.filter((p) => p.qty > 0);
+    lines.push(`"VENTES DÉTAILLÉES — PRODUITS SALÉS (${prodsSaleVendus.length} article${prodsSaleVendus.length > 1 ? 's' : ''})"`);
     lines.push(`"Produit";"Quantité vendue";"Montant Ventes (FCFA)";"Part dans le Salé (%)"`);
-    data.produitsSale.forEach((p) => {
-      const part = vSale.valeur > 0 ? (p.valeur / vSale.valeur) * 100 : 0;
-      lines.push(`${escapeCSV(p.nom)};${p.qty};${p.valeur};"${part.toFixed(1)}%"`);
-    });
+    if (prodsSaleVendus.length === 0) {
+      lines.push(`"Aucune vente de produit salé sur la période";0;0;"0.0%"`);
+    } else {
+      prodsSaleVendus.forEach((p) => {
+        const part = vSale.valeur > 0 ? (p.valeur / vSale.valeur) * 100 : 0;
+        lines.push(`${escapeCSV(p.nom)};${p.qty};${p.valeur};"${part.toFixed(1)}%"`);
+      });
+    }
     lines.push('');
   }
 
-  // 3. Détail Sucré si inclus
+  // 3. Détail Sucré si inclus (uniquement les produits vendus)
   if (inclureSucre) {
-    lines.push(`"VENTES DÉTAILLÉES — PRODUITS SUCRÉS"`);
+    const prodsSucreVendus = data.produitsSucre.filter((p) => p.qty > 0);
+    lines.push(`"VENTES DÉTAILLÉES — PRODUITS SUCRÉS (${prodsSucreVendus.length} article${prodsSucreVendus.length > 1 ? 's' : ''})"`);
     lines.push(`"Produit";"Quantité vendue";"Montant Ventes (FCFA)";"Part dans le Sucré (%)"`);
-    data.produitsSucre.forEach((p) => {
-      const part = vSucre.valeur > 0 ? (p.valeur / vSucre.valeur) * 100 : 0;
-      lines.push(`${escapeCSV(p.nom)};${p.qty};${p.valeur};"${part.toFixed(1)}%"`);
-    });
+    if (prodsSucreVendus.length === 0) {
+      lines.push(`"Aucune vente de produit sucré sur la période";0;0;"0.0%"`);
+    } else {
+      prodsSucreVendus.forEach((p) => {
+        const part = vSucre.valeur > 0 ? (p.valeur / vSucre.valeur) * 100 : 0;
+        lines.push(`${escapeCSV(p.nom)};${p.qty};${p.valeur};"${part.toFixed(1)}%"`);
+      });
+    }
     lines.push('');
   }
 
   // Ventes détaillées (clients & dates) si présentes
   const ventesDetailleesFiltrees = (data.ventesDetaillees || []).filter((v) => {
-    if (type === 'sale') return v.saveur === 'sale';
-    if (type === 'sucre') return v.saveur === 'sucre';
+    const sav = determinerSaveur(v.saveur, v.produitNom);
+    if (type === 'sale') return sav === 'sale';
+    if (type === 'sucre') return sav === 'sucre';
     return true;
   }).sort((a, b) => a.date.localeCompare(b.date));
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useReferentielStore } from '../../store/referentielStore';
@@ -10,6 +10,7 @@ import { formatCurrency } from '../../utils/currency';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Modal } from '../../components/ui/Modal';
 import { genererRapportSaveurPDF, exporterSaveurCSV, type TypeRapportSaveur, type VenteSaveurDetail } from '../../utils/saveurReport';
+import { determinerSaveur, estSamoussa, normaliserTexte } from '../../utils/saveurUtils';
 
 const SAVEURS: { key: Saveur; label: string; icon: string }[] = [
   { key: 'sale', label: 'Salé', icon: 'mdi:cheese' },
@@ -33,11 +34,53 @@ async function ventesEnCache(cle: string, charger: () => Promise<VentesMap>): Pr
 let _premiereDateSaveurCache: { t: number; val: string | null } | null = null;
 
 export const SuiviSaveur: React.FC = () => {
-  const { produits, chargerProduits, clients, chargerClients } = useReferentielStore();
+  const { produits, chargerProduits, clients, chargerClients, ajouterProduit, modifierProduit } = useReferentielStore();
   const { getVentesParProduitPeriode, getVentesPOSDetaillees } = usePosStore();
   const { getVentesBoutiqueParProduit, getVentesBoutiqueDetaillees } = useBoutiqueStore();
   const { getVentesFactureParProduit, getVentesFactureDetaillees } = useFacturationStore();
   const { achats, chargerAchats, ajouterAchat, supprimerAchat, getPremiereDateAchat } = useSaveurStore();
+
+  const [creantSamoussa, setCreantSamoussa] = useState(false);
+  const syncedProductIdsRef = useRef<Set<string>>(new Set());
+
+  // Auto-synchronisation protégée : ne s'exécute qu'une seule fois par produit non synchronisé
+  // pour éliminer toute boucle ou requête Firestore redondante.
+  useEffect(() => {
+    if (produits.length === 0) return;
+    const aMettreAJour = produits.filter(p => !p.saveur && !syncedProductIdsRef.current.has(p.id));
+    if (aMettreAJour.length === 0) return;
+
+    aMettreAJour.forEach(p => {
+      syncedProductIdsRef.current.add(p.id);
+      const auto = determinerSaveur(undefined, p.nom);
+      if (auto) {
+        modifierProduit(p.id, { saveur: auto }).catch(err => {
+          console.warn('Auto-saveur sync failed for', p.nom, err);
+        });
+      }
+    });
+  }, [produits, modifierProduit]);
+
+  const handleCreerSamoussa = async () => {
+    setCreantSamoussa(true);
+    try {
+      await ajouterProduit({
+        nom: 'Samoussa',
+        saveur: 'sale',
+        categorie: 'viennoiserie',
+        unite: 'piece',
+        prixBoutique: 250,
+        prixClient: 200,
+        active: true,
+      });
+      toast.success('Produit Samoussa ajouté avec succès au catalogue Salé !');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erreur lors de la création du produit Samoussa');
+    } finally {
+      setCreantSamoussa(false);
+    }
+  };
 
   const [periode, setPeriode] = useState(() => {
     const now = new Date();
@@ -48,7 +91,7 @@ export const SuiviSaveur: React.FC = () => {
   });
   const [source, setSource] = useState<'caisse' | 'boutique' | 'livraison' | 'toutes'>('toutes');
   const [payeesUniquement, setPayeesUniquement] = useState(false);
-  const [ventesProduit, setVentesProduit] = useState<Record<string, { qty: number; valeur: number }>>({});
+  const [ventesBrutes, setVentesBrutes] = useState<{ pos: VentesMap; bout: VentesMap; liv: VentesMap }>({ pos: {}, bout: {}, liv: {} });
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState<{ montant: string; saveur: Saveur; date: string; note: string }>(() => ({
@@ -98,7 +141,7 @@ export const SuiviSaveur: React.FC = () => {
       return isNaN(d.getTime()) ? null : d;
     };
     const dates = produits
-      .filter(p => p.saveur === 'sale' || p.saveur === 'sucre')
+      .filter(p => determinerSaveur(p.saveur, p.nom) === 'sale' || determinerSaveur(p.saveur, p.nom) === 'sucre')
       .map(p => toDate(p.createdAt))
       .filter((d): d is Date => d !== null);
     if (dates.length === 0) return null;
@@ -163,13 +206,15 @@ export const SuiviSaveur: React.FC = () => {
       // En mode Boutique « Avancé », shopSales est alimenté depuis la caisse (POS) :
       // additionner Caisse + Boutique doublerait. « Toutes » prend donc UN SEUL
       // canal comptoir selon le mode (POS si avancé, boutique si classique) + livraison.
+      // Correction : la Caisse POS doit TOUJOURS être incluse dans Toutes pour ne pas
+      // masquer les ventes comptoir enregistrées en caisse.
       const modeBoutique = (typeof localStorage !== 'undefined' && localStorage.getItem('cm.boutique.mode')) || 'classique';
       const avance = modeBoutique !== 'classique';
       let inclCaisse: boolean, inclBoutique: boolean, inclLivraison: boolean;
       if (source === 'toutes') {
         inclLivraison = true;
-        inclCaisse = avance;      // comptoir = caisse en avancé
-        inclBoutique = !avance;   // comptoir = boutique en classique
+        inclCaisse = true;        // Toujours inclure la caisse (POS)
+        inclBoutique = !avance;   // Boutique uniquement si pas en mode avancé (pour éviter doublon POS)
       } else {
         inclCaisse = source === 'caisse';
         inclBoutique = source === 'boutique';
@@ -181,32 +226,64 @@ export const SuiviSaveur: React.FC = () => {
         inclBoutique ? ventesEnCache(`bout:${dk}:${fk}`, () => getVentesBoutiqueParProduit(debut, fin)) : Promise.resolve(vide),
         inclLivraison ? ventesEnCache(`liv:${dk}:${fk}:${payeesUniquement}`, () => getVentesFactureParProduit(debut, fin, payeesUniquement)) : Promise.resolve(vide),
       ]);
-      const combined: Record<string, { qty: number; valeur: number }> = {};
-      [pos, bout, liv].forEach(src => {
-        Object.entries(src).forEach(([id, v]) => {
-          if (!combined[id]) combined[id] = { qty: 0, valeur: 0 };
-          combined[id].qty += v.qty;
-          combined[id].valeur += v.valeur;
-        });
-      });
+      setVentesBrutes({ pos, bout, liv });
       await chargerAchats(debut, fin);
-      if (!annule) { setVentesProduit(combined); setLoading(false); }
+      if (!annule) { setLoading(false); }
     })();
     return () => { annule = true; };
   }, [periode.debut, periode.fin, source, payeesUniquement, getVentesParProduitPeriode, getVentesBoutiqueParProduit, getVentesFactureParProduit, chargerAchats]);
 
-  const saveurDe = (id: string): Saveur | undefined => produits.find(p => p.id === id)?.saveur as Saveur | undefined;
+  // Index rapide des produits en mémoire (recherche en O(1) sans recalcul de normalisation)
+  const produitsIndex = useMemo(() => {
+    const byId = new Map<string, typeof produits[0]>();
+    const byNomNorm = new Map<string, typeof produits[0]>();
+    produits.forEach(p => {
+      byId.set(p.id, p);
+      if (p.nom) byNomNorm.set(normaliserTexte(p.nom), p);
+    });
+    return { byId, byNomNorm };
+  }, [produits]);
+
+  const trouverProduit = useCallback((idOrNom: string) => {
+    if (!idOrNom) return undefined;
+    const direct = produitsIndex.byId.get(idOrNom);
+    if (direct) return direct;
+    return produitsIndex.byNomNorm.get(normaliserTexte(idOrNom));
+  }, [produitsIndex]);
+
+  // Agrégat des ventes par produit : calculé en mémoire en temps quasi-nul (< 1 ms),
+  // sans jamais refaire d'appel réseau vers Firestore quand les produits changent !
+  const ventesProduit = useMemo(() => {
+    const combined: Record<string, { qty: number; valeur: number }> = {};
+    [ventesBrutes.pos, ventesBrutes.bout, ventesBrutes.liv].forEach(src => {
+      Object.entries(src).forEach(([idOrNom, v]) => {
+        const prod = trouverProduit(idOrNom);
+        const targetKey = prod ? prod.id : idOrNom;
+        if (!combined[targetKey]) combined[targetKey] = { qty: 0, valeur: 0 };
+        combined[targetKey].qty += v.qty;
+        combined[targetKey].valeur += v.valeur;
+      });
+    });
+    return combined;
+  }, [ventesBrutes, trouverProduit]);
+
+  const saveurDe = useCallback((idOrNom: string): Saveur | undefined => {
+    const prod = trouverProduit(idOrNom);
+    if (prod) {
+      return determinerSaveur(prod.saveur, prod.nom);
+    }
+    return determinerSaveur(undefined, idOrNom);
+  }, [trouverProduit]);
 
   // Agrégat ventes par saveur
   const ventesParSaveur = useMemo(() => {
     const agg: Record<Saveur, { qty: number; valeur: number }> = { sale: { qty: 0, valeur: 0 }, sucre: { qty: 0, valeur: 0 } };
-    Object.entries(ventesProduit).forEach(([id, v]) => {
-      const s = saveurDe(id);
+    Object.entries(ventesProduit).forEach(([idOrNom, v]) => {
+      const s = saveurDe(idOrNom);
       if (s === 'sale' || s === 'sucre') { agg[s].qty += v.qty; agg[s].valeur += v.valeur; }
     });
     return agg;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ventesProduit, produits]);
+  }, [ventesProduit, saveurDe]);
 
   // Coût d'investissement par saveur (journal d'achats)
   const coutParSaveur = useMemo(() => {
@@ -215,10 +292,30 @@ export const SuiviSaveur: React.FC = () => {
     return agg;
   }, [achats]);
 
-  const produitsDe = (s: Saveur) => produits
-    .filter(p => p.saveur === s && ventesProduit[p.id] && ventesProduit[p.id].qty !== 0)
-    .map(p => ({ nom: p.nom, ...ventesProduit[p.id] }))
-    .sort((a, b) => b.valeur - a.valeur);
+  const produitsDe = useCallback((s: Saveur) => {
+    // 1. Tous les produits du catalogue qui correspondent à cette saveur
+    const prods = produits.filter(p => determinerSaveur(p.saveur, p.nom) === s);
+
+    // Mappe avec les ventes (ou 0 si aucune vente sur la période)
+    const list: Array<{ id?: string; nom: string; qty: number; valeur: number }> = prods.map(p => {
+      const v = ventesProduit[p.id] || { qty: 0, valeur: 0 };
+      return { id: p.id, nom: p.nom, qty: v.qty, valeur: v.valeur };
+    });
+
+    // 2. Inclut également d'éventuelles ventes orphelines ayant cette saveur
+    Object.entries(ventesProduit).forEach(([idOrNom, v]) => {
+      if (v.qty === 0) return;
+      const dejaPresent = list.some(item => item.id === idOrNom || normaliserTexte(item.nom) === normaliserTexte(idOrNom));
+      if (!dejaPresent) {
+        const sav = saveurDe(idOrNom);
+        if (sav === s) {
+          list.push({ id: idOrNom, nom: idOrNom, qty: v.qty, valeur: v.valeur });
+        }
+      }
+    });
+
+    return list.sort((a, b) => b.valeur - a.valeur || a.nom.localeCompare(b.nom));
+  }, [produits, ventesProduit, saveurDe]);
 
   // Totaux globaux
   const totalVentes = ventesParSaveur.sale.valeur + ventesParSaveur.sucre.valeur;
@@ -235,7 +332,7 @@ export const SuiviSaveur: React.FC = () => {
     let inclCaisse: boolean, inclBoutique: boolean, inclLivraison: boolean;
     if (source === 'toutes') {
       inclLivraison = true;
-      inclCaisse = avance;
+      inclCaisse = true;
       inclBoutique = !avance;
     } else {
       inclCaisse = source === 'caisse';
@@ -257,15 +354,17 @@ export const SuiviSaveur: React.FC = () => {
 
     const produitMap = new Map<string, { nom: string; saveur?: Saveur }>();
     produits.forEach((p) => {
-      produitMap.set(p.id, { nom: p.nom, saveur: p.saveur as Saveur | undefined });
+      const sav = determinerSaveur(p.saveur, p.nom);
+      produitMap.set(p.id, { nom: p.nom, saveur: sav });
+      produitMap.set(normaliserTexte(p.nom), { nom: p.nom, saveur: sav });
     });
 
     const res: VenteSaveurDetail[] = [];
 
     // Factures (Livraison)
     livLignes.forEach((l) => {
-      const prod = produitMap.get(l.produitId);
-      const saveur = prod?.saveur;
+      const prod = produitMap.get(l.produitId) || produitMap.get(normaliserTexte(l.nomProduit || l.produitId));
+      const saveur = prod?.saveur || determinerSaveur(undefined, l.nomProduit || l.produitId);
       if (saveur !== 'sale' && saveur !== 'sucre') return;
       const nomCl = clientMap.get(l.clientId) || l.clientNom || 'Client';
       res.push({
@@ -282,8 +381,8 @@ export const SuiviSaveur: React.FC = () => {
 
     // POS (Caisse)
     posLignes.forEach((l) => {
-      const prod = produitMap.get(l.produitId);
-      const saveur = prod?.saveur;
+      const prod = produitMap.get(l.produitId) || produitMap.get(normaliserTexte(l.nomProduit || l.produitId));
+      const saveur = prod?.saveur || determinerSaveur(undefined, l.nomProduit || l.produitId);
       if (saveur !== 'sale' && saveur !== 'sucre') return;
       res.push({
         date: l.date,
@@ -299,8 +398,8 @@ export const SuiviSaveur: React.FC = () => {
 
     // Boutique
     boutLignes.forEach((l) => {
-      const prod = produitMap.get(l.produitId);
-      const saveur = prod?.saveur;
+      const prod = produitMap.get(l.produitId) || produitMap.get(normaliserTexte(l.nomProduit || l.produitId));
+      const saveur = prod?.saveur || determinerSaveur(undefined, l.nomProduit || l.produitId);
       if (saveur !== 'sale' && saveur !== 'sucre') return;
       res.push({
         date: l.date,
@@ -329,8 +428,8 @@ export const SuiviSaveur: React.FC = () => {
         typeSelection: typeChoisi,
         ventesParSaveur,
         coutParSaveur,
-        produitsSale: produitsDe('sale'),
-        produitsSucre: produitsDe('sucre'),
+        produitsSale: produitsDe('sale').filter(p => p.qty > 0),
+        produitsSucre: produitsDe('sucre').filter(p => p.qty > 0),
         achats,
         ventesDetaillees,
       });
@@ -355,8 +454,8 @@ export const SuiviSaveur: React.FC = () => {
         typeSelection: typeChoisi,
         ventesParSaveur,
         coutParSaveur,
-        produitsSale: produitsDe('sale'),
-        produitsSucre: produitsDe('sucre'),
+        produitsSale: produitsDe('sale').filter(p => p.qty > 0),
+        produitsSucre: produitsDe('sucre').filter(p => p.qty > 0),
         achats,
         ventesDetaillees,
       });
@@ -599,6 +698,25 @@ export const SuiviSaveur: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Bannière d'aide pour Samoussa si absent du catalogue */}
+                {s.key === 'sale' && !produits.some(p => estSamoussa(p.nom)) && (
+                  <div className="mx-4 my-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs">
+                    <div className="flex items-center gap-2 text-amber-900">
+                      <Icon icon="mdi:information-outline" className="text-base text-amber-700 shrink-0" />
+                      <span>Le produit <b>Samoussa</b> n'est pas encore présent dans le catalogue.</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCreerSamoussa}
+                      disabled={creantSamoussa}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-terracotta-600 hover:bg-terracotta-700 text-white rounded-lg font-medium text-xs shadow-sm transition-all shrink-0 cursor-pointer disabled:opacity-50"
+                    >
+                      <Icon icon={creantSamoussa ? "mdi:loading" : "mdi:plus"} className={`text-sm ${creantSamoussa ? 'animate-spin' : ''}`} />
+                      <span>Ajouter Samoussa au catalogue Salé</span>
+                    </button>
+                  </div>
+                )}
+
                 {/* Détail produits */}
                 {loading ? (
                   <div className="py-10 flex flex-col items-center justify-center gap-2.5 text-sand-500">
@@ -606,12 +724,19 @@ export const SuiviSaveur: React.FC = () => {
                     <span className="text-xs text-sand-400 font-medium">Chargement des données…</span>
                   </div>
                 ) : items.length === 0 ? (
-                  <div className="px-5 py-6 text-center text-sm text-sand-400">Aucune vente sur la période.</div>
+                  <div className="px-5 py-6 text-center text-sm text-sand-400">Aucun produit {s.label.toLowerCase()} sur la période.</div>
                 ) : (
                   <div className="divide-y divide-sand-100">
                     {items.map((it, i) => (
                       <div key={i} className="flex items-center gap-3 px-5 py-2.5">
-                        <span className="min-w-0 flex-1 text-sm text-sand-800 truncate uppercase">{it.nom}</span>
+                        <span className="min-w-0 flex-1 text-sm text-sand-800 truncate uppercase flex items-center gap-2">
+                          {it.nom}
+                          {it.qty === 0 && (
+                            <span className="text-[10px] normal-case px-1.5 py-0.5 rounded bg-sand-100 text-sand-500 font-normal">
+                              0 vente
+                            </span>
+                          )}
+                        </span>
                         <span className="text-xs text-sand-500 tabular-nums shrink-0">{it.qty} u.</span>
                         <span className="text-sm font-medium text-sand-900 tabular-nums shrink-0 w-24 text-right">{formatCurrency(it.valeur)}</span>
                       </div>
