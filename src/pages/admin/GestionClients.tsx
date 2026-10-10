@@ -248,6 +248,18 @@ export const GestionClients: React.FC = () => {
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-md ring-1 ring-inset ${client.active ? 'bg-success-50 text-success-700 ring-success-100' : 'bg-sand-100 text-sand-500 ring-sand-200'}`}>
                           {client.active ? 'Actif' : 'Inactif'}
                         </span>
+                        {client.commandeType && client.commandeType.length > 0 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-md bg-info-50 text-info-700 ring-1 ring-inset ring-info-200" title="Commande type Semaine configurée">
+                            <Icon icon="mdi:calendar-today" className="text-xs" />
+                            CT Semaine ({client.commandeType.reduce((s, p) => s + (Number(p.quantiteCommandee) || 0), 0)}p)
+                          </span>
+                        )}
+                        {client.commandeTypeWeekend && client.commandeTypeWeekend.length > 0 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200" title="Commande type Week-end configurée">
+                            <Icon icon="mdi:calendar-weekend" className="text-xs" />
+                            CT WE ({client.commandeTypeWeekend.reduce((s, p) => s + (Number(p.quantiteCommandee) || 0), 0)}p)
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

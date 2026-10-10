@@ -83,19 +83,40 @@ export const estHorsHeures = (): boolean => {
   return !estHeuresMatin() && !estHeuresSoir();
 };
 
+// Helper de conversion date sûre (évite les décalages UTC sur les chaînes 'YYYY-MM-DD')
+export const parseDateSafe = (date: Date | string): Date => {
+  if (date instanceof Date) return date;
+  if (typeof date === 'string') {
+    const parts = date.split('T')[0].split('-');
+    if (parts.length === 3) {
+      return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
+    }
+    return new Date(date);
+  }
+  return new Date();
+};
+
 // Jours de la semaine
-export const estWeekend = (date: Date): boolean => {
-  const jour = date.getDay();
+export const estWeekend = (date: Date | string): boolean => {
+  const jour = parseDateSafe(date).getDay();
   return jour === 0 || jour === 6; // Dimanche = 0, Samedi = 6
 };
 
-export const estJourOuvre = (date: Date): boolean => {
+export const estDimanche = (date: Date | string): boolean => {
+  return parseDateSafe(date).getDay() === 0;
+};
+
+export const estSamedi = (date: Date | string): boolean => {
+  return parseDateSafe(date).getDay() === 6;
+};
+
+export const estJourOuvre = (date: Date | string): boolean => {
   return !estWeekend(date);
 };
 
-export const obtenirNomJour = (date: Date): string => {
+export const obtenirNomJour = (date: Date | string): string => {
   const jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-  return jours[date.getDay()];
+  return jours[parseDateSafe(date).getDay()];
 };
 
 // Plage de dates

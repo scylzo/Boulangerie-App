@@ -6,6 +6,7 @@ import { Select } from '../ui/Select';
 
 import type { Produit, Client, CommandeClient } from '../../types';
 import { useProductionStore } from '../../store'; // Import store
+import { estWeekend } from '../../utils/dateUtils';
 import toast from 'react-hot-toast';
 
 interface CommandeClientFormProps {
@@ -115,45 +116,74 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
     }
   }, [commande]);
 
-  // Ajouter la fonction sauvegarderCommandeType depuis le store
-  const { sauvegarderCommandeType } = useProductionStore();
+  // Ajouter les fonctions de sauvegarde commande type depuis le store
+  const { sauvegarderCommandeType, sauvegarderCommandeTypeWeekend } = useProductionStore();
 
-  // Auto-fill commande type
+  // Helper pour formater les produits depuis une commande type
+  const formaterProduitsDepuisType = (source: Array<any>, client: Client) => {
+    return source.map(p => {
+      let prix = p.prixUnitaire;
+      if (!prix) {
+        const productInfo = produits.find(prod => prod.id === p.produitId);
+        prix = client.typeClient === 'boutique' ? productInfo?.prixBoutique : productInfo?.prixClient;
+      }
+
+      let repartition = p.repartitionCars;
+      if (!repartition && p.quantiteCommandee > 0) {
+        repartition = {
+          car1_matin: p.quantiteCommandee,
+          car2_matin: '',
+          car_soir: ''
+        };
+      }
+
+      return {
+        ...p,
+        prixUnitaire: prix || 0,
+        repartitionCars: repartition || { car1_matin: '', car2_matin: '', car_soir: '' }
+      };
+    });
+  };
+
+  // Auto-fill commande type (prend en compte le week-end)
   useEffect(() => {
     if (selectedClientId && mode === 'create' && produitsCommandes.length === 0) {
       const client = clients.find(c => c.id === selectedClientId);
-      if (client?.commandeType && client.commandeType.length > 0) {
-        setProduitsCommandes(client.commandeType.map(p => {
-          // 1. Récupération du prix (Si 0 ou manquant, on prend le prix actuel du catalogue)
-          let prix = p.prixUnitaire;
-          if (!prix) {
-            const productInfo = produits.find(prod => prod.id === p.produitId);
-            // Si boutique, prix boutique. Sinon, prix client.
-            prix = client.typeClient === 'boutique' ? productInfo?.prixBoutique : productInfo?.prixClient;
-          }
+      if (!client) return;
 
-          // 2. Migration / Fallback : Si pas de répartition mais une quantité totale (vieux format)
-          let repartition = p.repartitionCars;
-          if (!repartition && p.quantiteCommandee > 0) {
-            repartition = {
-              car1_matin: p.quantiteCommandee,
-              car2_matin: '',
-              car_soir: ''
-            };
-          }
+      const isWE = estWeekend(dateLivraison);
+      const hasWE = Boolean(client.commandeTypeWeekend && client.commandeTypeWeekend.length > 0);
+      const source = (isWE && hasWE) ? client.commandeTypeWeekend : client.commandeType;
 
-          return {
-            ...p,
-            prixUnitaire: prix || 0,
-            repartitionCars: repartition || { car1_matin: '', car2_matin: '', car_soir: '' }
-          };
-        }));
-        toast.success("📋 Commande type chargée !");
+      if (source && source.length > 0) {
+        setProduitsCommandes(formaterProduitsDepuisType(source, client));
+        if (isWE && hasWE) {
+          toast.success("📋 Commande type Week-end (WE) chargée !");
+        } else if (isWE) {
+          toast("ℹ️ Commande type Semaine chargée (pas de commande type WE spécifique enregistrée)", { icon: 'ℹ️' });
+        } else {
+          toast.success("📋 Commande type chargée !");
+        }
       }
     }
-  }, [selectedClientId]);
+  }, [selectedClientId, dateLivraison]);
 
-  const handleSauvegarderType = async () => {
+  // Chargement manuel rapide de la commande type
+  const handleChargerTypeManuel = (type: 'semaine' | 'weekend') => {
+    const client = clients.find(c => c.id === selectedClientId);
+    if (!client) return;
+
+    const source = type === 'weekend' ? client.commandeTypeWeekend : client.commandeType;
+    if (!source || source.length === 0) {
+      toast.error(`Aucune commande type ${type === 'weekend' ? 'Week-end' : 'Semaine'} enregistrée pour ce client.`);
+      return;
+    }
+
+    setProduitsCommandes(formaterProduitsDepuisType(source, client));
+    toast.success(`📋 Commande type ${type === 'weekend' ? 'Week-end' : 'Semaine'} appliquée !`);
+  };
+
+  const handleSauvegarderType = async (cible: 'semaine' | 'weekend' = 'semaine') => {
     if (!selectedClientId || produitsCommandes.length === 0) return;
     try {
       // Nettoyer les données avant sauvegarde
@@ -167,8 +197,13 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
         }
       }));
 
-      await sauvegarderCommandeType(selectedClientId, produitsClean);
-      toast.success("💾 Commande type sauvegardée pour ce client !");
+      if (cible === 'weekend') {
+        await sauvegarderCommandeTypeWeekend(selectedClientId, produitsClean);
+        toast.success("💾 Commande type Week-end (WE) sauvegardée pour ce client !");
+      } else {
+        await sauvegarderCommandeType(selectedClientId, produitsClean);
+        toast.success("💾 Commande type Semaine sauvegardée pour ce client !");
+      }
     } catch (error) {
       toast.error("Erreur lors de la sauvegarde de la commande type");
     }
@@ -436,6 +471,60 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
           return null;
         })()}
 
+        {/* Bannière d'aide & alerte spécifique Week-end */}
+        {(() => {
+          if (!selectedClientId) return null;
+          const client = clients.find(c => c.id === selectedClientId);
+          if (!client) return null;
+          const isWE = estWeekend(dateLivraison);
+          if (!isWE) return null;
+
+          const hasWE = Boolean(client.commandeTypeWeekend && client.commandeTypeWeekend.length > 0);
+          const totalWE = client.commandeTypeWeekend?.reduce((sum, p) => sum + (Number(p.quantiteCommandee) || 0), 0) || 0;
+          const totalSemaine = client.commandeType?.reduce((sum, p) => sum + (Number(p.quantiteCommandee) || 0), 0) || 0;
+
+          return (
+            <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${hasWE ? 'bg-terracotta-50 border-terracotta-200 text-terracotta-900' : 'bg-warning-50 border-warning-200 text-warning-900'}`}>
+              <div className="flex items-start gap-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${hasWE ? 'bg-terracotta-500 text-white' : 'bg-warning-500 text-white'}`}>
+                  <Icon icon={hasWE ? "mdi:calendar-weekend" : "mdi:alert-circle"} className="text-xl" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold">
+                    {hasWE ? `Commande du Week-end (Configurée : ${totalWE} pains)` : `Commande du Week-end (Aucune commande WE configurée)`}
+                  </h4>
+                  <p className="text-xs mt-0.5 opacity-90">
+                    {hasWE
+                      ? `Ce client a une commande spécifique pour le week-end (${totalWE} pains vs ${totalSemaine} en semaine).`
+                      : `Ce client n'a pas encore de commande type week-end. Ajustez les quantités puis enregistrez comme "Commande type Week-end" pour ne plus l'oublier.`
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {hasWE && (
+                  <button
+                    type="button"
+                    onClick={() => handleChargerTypeManuel('weekend')}
+                    className="px-2.5 py-1.5 bg-terracotta-600 hover:bg-terracotta-700 text-white rounded-lg text-xs font-medium shadow-sm transition-all"
+                  >
+                    Recharger type WE
+                  </button>
+                )}
+                {client.commandeType && client.commandeType.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleChargerTypeManuel('semaine')}
+                    className="px-2.5 py-1.5 bg-white hover:bg-sand-50 text-sand-800 border border-sand-300 rounded-lg text-xs font-medium shadow-sm transition-all"
+                  >
+                    Charger type Semaine
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Choix du type de prix */}
         <div className="flex items-center space-x-3 p-4 bg-warning-50 border border-warning-100 rounded-lg">
           <label className="flex items-center cursor-pointer">
@@ -668,25 +757,58 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
           </Button>
         </div>
 
-        {/* Bouton Commande Type (visible seulement en création/édition si des produits sont présents) */}
-        {mode !== 'editSpecific' && produitsCommandes.length > 0 && selectedClientId && (
-          <div className="bg-info-50 border border-info-100 rounded-lg p-4 mb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-semibold text-info-600">Commande Type</h4>
-                <p className="text-xs text-info-600">Sauvegarder cette configuration pour ce client ?</p>
+        {/* Section Sauvegarde Commandes Types (Semaine & Week-end) */}
+        {mode !== 'editSpecific' && produitsCommandes.length > 0 && selectedClientId && (() => {
+          const client = clients.find(c => c.id === selectedClientId);
+          const isWE = estWeekend(dateLivraison);
+          const totalCourant = produitsCommandes.reduce((sum, p) => sum + (Number(p.quantiteCommandee) || 0), 0);
+          const totalSemaine = client?.commandeType?.reduce((sum, p) => sum + (Number(p.quantiteCommandee) || 0), 0);
+          const totalWE = client?.commandeTypeWeekend?.reduce((sum, p) => sum + (Number(p.quantiteCommandee) || 0), 0);
+
+          return (
+            <div className="bg-sand-50 border border-sand-200 rounded-xl p-4 mb-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-sand-900">Enregistrer comme Commande Type</h4>
+                    {isWE && (
+                      <span className="px-2 py-0.5 bg-terracotta-100 text-terracotta-700 text-[11px] font-semibold rounded-full">
+                        Mode Week-end
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-sand-600 mt-1">
+                    Quantité actuelle : <strong>{totalCourant} pains</strong>.
+                    {totalSemaine !== undefined && ` · Semaine enregistrée : ${totalSemaine} pains`}
+                    {totalWE !== undefined && ` · Week-end enregistré : ${totalWE} pains`}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSauvegarderType('semaine')}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-sand-100 text-sand-800 border border-sand-300 rounded-lg transition-all shadow-sm text-xs font-medium"
+                    title="Sauvegarder cette commande comme modèle par défaut pour la semaine"
+                  >
+                    <Icon icon="mdi:calendar-today" className="text-base text-info-600" />
+                    <span>Sauvegarder type Semaine</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSauvegarderType('weekend')}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 text-white rounded-lg transition-all shadow-sm text-xs font-semibold ${isWE ? 'bg-terracotta-600 hover:bg-terracotta-700 ring-2 ring-terracotta-300' : 'bg-sand-900 hover:bg-sand-800'}`}
+                    title="Sauvegarder cette commande comme modèle pour le week-end (samedi / dimanche)"
+                  >
+                    <Icon icon="mdi:calendar-weekend" className="text-base" />
+                    <span>Sauvegarder type Week-end (WE)</span>
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={handleSauvegarderType}
-                className="flex items-center gap-2 px-4 py-2 bg-info-600 hover:bg-info-600 text-white rounded-lg transition-all shadow-sm hover:shadow-elevated text-sm font-medium"
-              >
-                <Icon icon="mdi:content-save-settings" className="text-lg" />
-                Définir comme commande type
-              </button>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </form>
     </div>
   );

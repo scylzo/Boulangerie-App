@@ -56,6 +56,16 @@ export interface Client {
       car_soir: number | string;
     };
   }>;
+  commandeTypeWeekend?: Array<{
+    produitId: string;
+    quantiteCommandee: number;
+    prixUnitaire?: number; // Optionnel, car le prix peut évoluer
+    repartitionCars?: {
+      car1_matin: number | string;
+      car2_matin: number | string;
+      car_soir: number | string;
+    };
+  }>;
   estRegulier?: boolean; // Le client commande-t-il tous les jours ?
   modePaiementPreference?: 'espece' | 'om' | 'wave' | 'cheque' | 'virement';
   neTravaillePasDimanche?: boolean; // Le client ne travaille pas le dimanche

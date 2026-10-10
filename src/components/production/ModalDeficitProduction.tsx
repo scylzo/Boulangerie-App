@@ -11,6 +11,7 @@ import {
   type RedistributionMethod
 } from '../../utils/redistributionEngine';
 import toast from 'react-hot-toast';
+import { estWeekend } from '../../utils/dateUtils';
 
 interface ModalDeficitProductionProps {
   isOpen: boolean;
@@ -108,8 +109,10 @@ export const ModalDeficitProduction: React.FC<ModalDeficitProductionProps> = ({
                 inputsByProduit.set(p.produitId, []);
               }
 
-              // Déterminer la quantité initiale originale depuis la commandeType du client si disponible
-              const ctItem = client.commandeType?.find(ct => ct.produitId === p.produitId);
+              // Déterminer la quantité initiale originale depuis la commandeType (ou commandeTypeWeekend) du client si disponible
+              const isWE = estWeekend(dateLivraison);
+              const ctSource = (isWE && client.commandeTypeWeekend?.length) ? client.commandeTypeWeekend : client.commandeType;
+              const ctItem = ctSource?.find(ct => ct.produitId === p.produitId);
               let qteInitialeOrigine = qte;
               if (ctItem?.repartitionCars && (ctItem.repartitionCars as any)[carKey] !== undefined) {
                 const val = Number((ctItem.repartitionCars as any)[carKey]);
@@ -135,7 +138,9 @@ export const ModalDeficitProduction: React.FC<ModalDeficitProductionProps> = ({
               inputsByProduit.set(p.produitId, []);
             }
 
-            const ctItem = client.commandeType?.find(ct => ct.produitId === p.produitId);
+            const isWE = estWeekend(dateLivraison);
+            const ctSource = (isWE && client.commandeTypeWeekend?.length) ? client.commandeTypeWeekend : client.commandeType;
+            const ctItem = ctSource?.find(ct => ct.produitId === p.produitId);
             let qteInitialeOrigine = p.quantiteCommandee;
             if (ctItem?.quantiteCommandee) {
               const val = Number(ctItem.quantiteCommandee);

@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { ModalDeficitProduction } from '../../components/production/ModalDeficitProduction';
 import { ModalQuotaGlobal } from '../../components/livraison/ModalQuotaGlobal';
+import { estWeekend } from '../../utils/dateUtils';
 
 export const PageLivraison: React.FC = () => {
   const { commandesClients, chargerProgramme, supprimerCommandesLivreur, modifierCommandeClient } = useProductionStore();
@@ -86,10 +87,12 @@ export const PageLivraison: React.FC = () => {
       const hasDriver = client.livreurId === livreurId || Object.values(client.livreursParCar || {}).includes(livreurId);
       if (!hasDriver) return;
 
-      if (!client.commandeType || client.commandeType.length === 0) return;
+      const isWE = estWeekend(cmd.dateLivraison || dateSelectionnee);
+      const ctSource = (isWE && client.commandeTypeWeekend?.length) ? client.commandeTypeWeekend : client.commandeType;
+      if (!ctSource || ctSource.length === 0) return;
 
       const nouveauxProduits = cmd.produits.map(p => {
-        const ctItem = client.commandeType?.find(ct => ct.produitId === p.produitId);
+        const ctItem = ctSource.find(ct => ct.produitId === p.produitId);
         if (!ctItem) return p;
 
         const pCopy = { ...p };

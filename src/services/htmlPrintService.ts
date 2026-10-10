@@ -1163,54 +1163,6 @@ export class HTMLPrintService {
           </div>
     `;
 
-    // Section récapitulative : Total à produire par produit (Matin vs Soir)
-    if (programme.totauxParProduit && programme.totauxParProduit.length > 0) {
-      html += `
-          <div class="section" style="page-break-inside: avoid; margin-bottom: 15px;">
-            <div class="section-header" style="background: #111827; color: white; padding: 3px 6px;">
-              <h2>📋 Total à Produire par Produit (Matin vs Soir)</h2>
-            </div>
-            <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; font-size: 10px; margin-bottom: 10px;">
-              <thead>
-                <tr style="background: #f3f4f6; border-bottom: 2px solid #000;">
-                  <th style="padding: 5px 8px; text-align: left; font-weight: 700; border-right: 1px solid #000; text-transform: uppercase;">Produit</th>
-                  <th style="padding: 5px 8px; text-align: right; font-weight: 700; border-right: 1px solid #000; text-transform: uppercase;">Matin (Car 1 + Car 2)</th>
-                  <th style="padding: 5px 8px; text-align: right; font-weight: 700; border-right: 1px solid #000; text-transform: uppercase;">Soir (Car Soir)</th>
-                  <th style="padding: 5px 8px; text-align: right; font-weight: 700; text-transform: uppercase;">Total Journée</th>
-                </tr>
-              </thead>
-              <tbody>
-      `;
-
-      programme.totauxParProduit.forEach(item => {
-        const matinQty = (item.repartitionCar1Matin || 0) + (item.repartitionCar2Matin || 0);
-        const soirQty = item.repartitionCarSoir || 0;
-        const produit = produits.find(p => p.id === item.produitId);
-
-        html += `
-                <tr style="border-bottom: 1px solid #000;">
-                  <td style="padding: 5px 8px; font-weight: bold; text-transform: uppercase; border-right: 1px solid #000;">
-                    ${produit?.nom || 'Inconnu'}
-                  </td>
-                  <td style="padding: 5px 8px; text-align: right; font-weight: bold; border-right: 1px solid #000; color: ${matinQty > 0 ? '#000' : '#ccc'};">
-                    ${matinQty > 0 ? matinQty : '-'}
-                  </td>
-                  <td style="padding: 5px 8px; text-align: right; font-weight: bold; border-right: 1px solid #000; color: ${soirQty > 0 ? '#000' : '#ccc'};">
-                    ${soirQty > 0 ? soirQty : '-'}
-                  </td>
-                  <td style="padding: 5px 8px; text-align: right; font-weight: bold; font-size: 11px; background: #f9fafb;">
-                    ${item.totalGlobal}
-                  </td>
-                </tr>
-        `;
-      });
-
-      html += `
-              </tbody>
-            </table>
-          </div>
-      `;
-    }
 
     // Section Production Clients - Matin
     if (produitsMatin.length > 0) {

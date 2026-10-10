@@ -594,7 +594,7 @@ export const VueBoulanger: React.FC = () => {
               </div>
 
               {/* Tableau Récapitulatif par Produit (Matin vs Soir) */}
-              <div className="bg-white border border-sand-200 rounded-xl p-4 sm:p-6 shadow-sm print:border-black print:shadow-none print:rounded-none">
+              <div className="bg-white border border-sand-200 rounded-xl p-4 sm:p-6 shadow-sm print:hidden">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-sand-100 rounded-lg print:bg-sand-200 text-sand-700 print:text-black">
                     <Icon icon="mdi:clipboard-text-play-outline" className="text-xl" />
