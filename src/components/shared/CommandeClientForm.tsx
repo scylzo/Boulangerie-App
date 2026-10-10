@@ -491,11 +491,11 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold">
-                    {hasWE ? `Commande du Week-end (Configurée : ${totalWE} pains)` : `Commande du Week-end (Aucune commande WE configurée)`}
+                    {hasWE ? `Commande du Week-end (Configurée : ${totalWE} produit${totalWE && totalWE > 1 ? 's' : ''})` : `Commande du Week-end (Aucune commande WE configurée)`}
                   </h4>
                   <p className="text-xs mt-0.5 opacity-90">
                     {hasWE
-                      ? `Ce client a une commande spécifique pour le week-end (${totalWE} pains vs ${totalSemaine} en semaine).`
+                      ? `Ce client a une commande spécifique pour le week-end (${totalWE} produit${totalWE && totalWE > 1 ? 's' : ''} vs ${totalSemaine} en semaine).`
                       : `Ce client n'a pas encore de commande type week-end. Ajustez les quantités puis enregistrez comme "Commande type Week-end" pour ne plus l'oublier.`
                     }
                   </p>
@@ -778,9 +778,9 @@ export const CommandeClientForm: React.FC<CommandeClientFormProps> = ({
                     )}
                   </div>
                   <p className="text-xs text-sand-600 mt-1">
-                    Quantité actuelle : <strong>{totalCourant} pains</strong>.
-                    {totalSemaine !== undefined && ` · Semaine enregistrée : ${totalSemaine} pains`}
-                    {totalWE !== undefined && ` · Week-end enregistré : ${totalWE} pains`}
+                    Quantité actuelle : <strong>{totalCourant} {totalCourant > 1 ? 'produits' : 'produit'}</strong>.
+                    {totalSemaine !== undefined && ` · Semaine enregistrée : ${totalSemaine} produit${totalSemaine > 1 ? 's' : ''}`}
+                    {totalWE !== undefined && ` · Week-end enregistré : ${totalWE} produit${totalWE > 1 ? 's' : ''}`}
                   </p>
                 </div>
 

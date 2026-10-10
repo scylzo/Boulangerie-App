@@ -920,7 +920,7 @@ export const ProgrammeProduction: React.FC = () => {
                 <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                   ongletActif === 'synthese' ? 'bg-terracotta-100 text-terracotta-700' : 'bg-sand-100 text-sand-600'
                 }`}>
-                  {programmeActuel.totauxParProduit.reduce((sum, p) => sum + p.totalGlobal, 0)} pains
+                  {programmeActuel.totauxParProduit.reduce((sum, p) => sum + p.totalGlobal, 0)} produits
                 </span>
               )}
             </button>
@@ -1100,7 +1100,7 @@ export const ProgrammeProduction: React.FC = () => {
                   const isDepliee = Boolean(commandesDepliees[commande.id]);
                   const alertSunday = isSunday && client?.neTravaillePasDimanche;
 
-                  const totalPainsCommande = commande.produits.reduce((sum, p) => sum + (Number(p.quantiteCommandee) || 0), 0);
+                  const totalArticlesCommande = commande.produits.reduce((sum, p) => sum + (Number(p.quantiteCommandee) || 0), 0);
                   const totalMontantCommande = commande.produits.reduce((sum, p) => sum + (p.prixUnitaire || 0) * (Number(p.quantiteCommandee) || 0), 0);
 
                   // Cars cumulés pour cette commande
@@ -1111,7 +1111,7 @@ export const ProgrammeProduction: React.FC = () => {
                   // Modèle WE infos
                   const hasWE = Boolean(client?.commandeTypeWeekend && client.commandeTypeWeekend.length > 0);
                   const totalWE = client?.commandeTypeWeekend?.reduce((sum, p) => sum + (Number(p.quantiteCommandee) || 0), 0);
-                  const correspondWE = hasWE && totalPainsCommande === totalWE;
+                  const correspondWE = hasWE && totalArticlesCommande === totalWE;
 
                   return (
                     <div
@@ -1165,7 +1165,7 @@ export const ProgrammeProduction: React.FC = () => {
                                   correspondWE ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                                 }`}>
                                   <Icon icon={correspondWE ? "mdi:check-decagram" : "mdi:alert-circle-outline"} className="text-xs" />
-                                  {correspondWE ? `Modèle WE (${totalWE}p)` : `Diffère WE (${totalPainsCommande}/${totalWE}p)`}
+                                  {correspondWE ? `Modèle WE (${totalWE} prod.)` : `Diffère WE (${totalArticlesCommande}/${totalWE} prod.)`}
                                 </span>
                               )}
 
@@ -1212,7 +1212,7 @@ export const ProgrammeProduction: React.FC = () => {
                           {/* Quantité & Montant */}
                           <div className="text-right tabular-nums">
                             <span className="font-bold text-sm text-sand-900">
-                              {totalPainsCommande} pains
+                              {totalArticlesCommande} {totalArticlesCommande > 1 ? 'produits' : 'produit'}
                             </span>
                             <span className="text-xs text-sand-500 ml-1.5">
                               ({totalMontantCommande.toLocaleString('fr-FR')} F)
@@ -1261,7 +1261,7 @@ export const ProgrammeProduction: React.FC = () => {
                           {isWE && hasWE && !correspondWE && commande.statut !== 'annulee' && (
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 bg-amber-50 border border-amber-300 rounded-lg text-xs shadow-2xs">
                               <span className="text-amber-900 font-medium">
-                                Ce client prend habituellement <strong>{totalWE} pains le week-end</strong> (actuellement {totalPainsCommande} pains).
+                                Ce client prend habituellement <strong>{totalWE} produit{(totalWE ?? 0) > 1 ? 's' : ''} le week-end</strong> (actuellement {totalArticlesCommande} {totalArticlesCommande > 1 ? 'produits' : 'produit'}).
                               </span>
                               <button
                                 type="button"
@@ -1269,7 +1269,7 @@ export const ProgrammeProduction: React.FC = () => {
                                 className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded shadow-2xs self-end sm:self-auto transition-colors"
                               >
                                 <Icon icon="mdi:lightning-bolt" className="text-xs" />
-                                <span>Appliquer modèle WE ({totalWE}p)</span>
+                                <span>Appliquer modèle WE ({totalWE} prod.)</span>
                               </button>
                             </div>
                           )}
@@ -1384,7 +1384,7 @@ export const ProgrammeProduction: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <span><strong>{commandesClients.length}</strong> commande(s)</span>
                     <span>·</span>
-                    <span><strong>{totalArticlesClients}</strong> pains au total</span>
+                    <span><strong>{totalArticlesClients}</strong> {totalArticlesClients > 1 ? 'produits' : 'produit'} au total</span>
                   </div>
                   <div className="text-sm font-bold text-sand-900">
                     Montant total : {totalMontantClients.toLocaleString('fr-FR')} FCFA

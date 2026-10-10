@@ -305,7 +305,7 @@ export const ModalDeficitProduction: React.FC<ModalDeficitProductionProps> = ({
                 Gestion Déficit de Production
               </h2>
               <p className="text-xs text-sand-300">
-                Redistribution intelligente des pains disponible par livreur
+                Redistribution intelligente des produits disponibles par livreur
               </p>
             </div>
           </div>
