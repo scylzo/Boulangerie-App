@@ -122,34 +122,62 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
     reader.readAsDataURL(file);
   };
 
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+
+    const nomTrimmed = formData.nom.trim();
+    if (!nomTrimmed) {
+      setErrorMessage("Veuillez renseigner le nom du produit.");
+      return;
+    }
+
+    const pClient = Number(formData.prixClient);
+    const pBoutique = Number(formData.prixBoutique);
+
+    if (formData.prixClient === '' || isNaN(pClient) || pClient < 0) {
+      setErrorMessage("Veuillez renseigner un prix client valide (supérieur ou égal à 0).");
+      return;
+    }
+
+    if (formData.prixBoutique === '' || isNaN(pBoutique) || pBoutique < 0) {
+      setErrorMessage("Veuillez renseigner un prix boutique valide (supérieur ou égal à 0).");
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      const produitData = {
-        nom: formData.nom,
+      const produitData: any = {
+        nom: nomTrimmed,
         imageUrl: formData.imageUrl || '',
-        prixClient: Number(formData.prixClient) || 0,
-        prixBoutique: Number(formData.prixBoutique) || 0,
+        prixClient: pClient,
+        prixBoutique: pBoutique,
         categorie: formData.categorie,
         saveur: (formData.saveur === 'sale' || formData.saveur === 'sucre' ? formData.saveur : 'aucun') as 'sale' | 'sucre' | 'aucun',
-        reconduisible: formData.reconduisible,
-        productionQuotidienne: formData.productionQuotidienne,
+        reconduisible: Boolean(formData.reconduisible),
+        productionQuotidienne: Boolean(formData.productionQuotidienne),
         quantiteBoutiqueDefautCars: formData.productionQuotidienne
           ? { car1_matin: Number(formData.defCar1) || 0, car2_matin: Number(formData.defCar2) || 0, car_soir: Number(formData.defCarSoir) || 0 }
           : { car1_matin: 0, car2_matin: 0, car_soir: 0 },
         quantiteBoutiqueDefaut: formData.productionQuotidienne
           ? (Number(formData.defCar1) || 0) + (Number(formData.defCar2) || 0) + (Number(formData.defCarSoir) || 0)
           : 0,
-        pourcentageRetourMax: formData.pourcentageRetourMax !== '' && !isNaN(Number(formData.pourcentageRetourMax))
-          ? Number(formData.pourcentageRetourMax)
-          : undefined,
-        active: formData.active,
-        recette: formData.recette, // Include recipe
+        active: Boolean(formData.active),
+        recette: formData.recette || [],
         description: '',
         unite: 'piece' as const,
-        prixUnitaire: Number(formData.prixBoutique) || 0 // Legacy
+        prixUnitaire: pBoutique
       };
+
+      if (formData.pourcentageRetourMax !== '' && !isNaN(Number(formData.pourcentageRetourMax))) {
+        produitData.pourcentageRetourMax = Number(formData.pourcentageRetourMax);
+      }
+
       await onSave(produitData);
+
       // Reset form if adding new
       if (!produit) {
         setFormData({
@@ -169,8 +197,11 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           recette: []
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la sauvegarde:', error);
+      setErrorMessage(error?.message || "Une erreur est survenue lors de l'enregistrement du produit.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -180,6 +211,12 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
       subtitle="Remplissez les informations du produit"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
+        {errorMessage && (
+          <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+            <Icon icon="mdi:alert-circle" className="text-xl shrink-0 text-danger-500" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
         <div className="space-y-4">
           <h4 className="font-medium text-sand-900 border-b pb-2">Informations Générales</h4>
 
@@ -555,8 +592,8 @@ export const ProduitForm: React.FC<ProduitFormProps> = ({
           </Button>
           <Button
             type="submit"
-            isLoading={isLoading}
-            disabled={!formData.nom.trim() || !formData.prixClient || !formData.prixBoutique || Number(formData.prixClient) <= 0 || Number(formData.prixBoutique) <= 0}
+            isLoading={isLoading || submitting}
+            disabled={!formData.nom.trim() || formData.prixClient === '' || formData.prixBoutique === ''}
           >
             {produit ? 'Enregistrer les modifications' : 'Créer le produit'}
           </Button>

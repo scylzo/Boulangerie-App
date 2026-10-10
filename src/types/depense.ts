@@ -17,6 +17,7 @@ export interface Depense {
     montant: number; // En FCFA
     categorie: CategorieDepense;
     description: string;
+    intrant?: string; // Nom de l'intrant spécifique (ex: Farine, Levure, Huile, etc.)
     fournisseur?: string; // Nom du fournisseur ou station service
     moyenPaiement?: 'Especes' | 'Mobile Money' | 'Virement' | 'Cheque';
     userId: string; // Autheur de la saisie

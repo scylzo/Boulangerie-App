@@ -37,12 +37,40 @@ export const collectionsRef = {
 };
 
 // Utilitaires pour la conversion Date <-> Timestamp
-export const dateToTimestamp = (date: Date): Timestamp => {
-  return Timestamp.fromDate(date);
+export const dateToTimestamp = (date: any): Timestamp => {
+  if (!date) return Timestamp.now();
+  if (date instanceof Timestamp) return date;
+  if (typeof date.toMillis === 'function') return date;
+  if (typeof date.toDate === 'function') return Timestamp.fromDate(date.toDate());
+  if (date instanceof Date) return isNaN(date.getTime()) ? Timestamp.now() : Timestamp.fromDate(date);
+  const parsed = new Date(date);
+  return isNaN(parsed.getTime()) ? Timestamp.now() : Timestamp.fromDate(parsed);
 };
 
-export const timestampToDate = (timestamp: Timestamp): Date => {
-  return timestamp.toDate();
+export const timestampToDate = (timestamp: any): Date => {
+  if (!timestamp) return new Date();
+  if (timestamp instanceof Date) return timestamp;
+  if (typeof timestamp.toDate === 'function') return timestamp.toDate();
+  if (typeof timestamp.toMillis === 'function') return new Date(timestamp.toMillis());
+  if (timestamp && typeof timestamp.seconds === 'number') return new Date(timestamp.seconds * 1000);
+  const parsed = new Date(timestamp);
+  return isNaN(parsed.getTime()) ? new Date() : parsed;
+};
+
+// Nettoyage récursif des champs undefined (interdits par Firestore)
+const cleanUndefined = (data: any): any => {
+  if (data === null || data === undefined) return data;
+  if (Array.isArray(data)) return data.map(cleanUndefined);
+  if (typeof data === 'object' && !(data instanceof Date)) {
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) {
+        cleaned[key] = cleanUndefined(value);
+      }
+    }
+    return cleaned;
+  }
+  return data;
 };
 
 // Fonctions CRUD génériques
@@ -50,7 +78,8 @@ export const firestoreService = {
   // CREATE
   async create<T extends Record<string, any>>(collectionName: keyof typeof collectionsRef, data: T) {
     const colRef = collectionsRef[collectionName];
-    return await addDoc(colRef, data);
+    const cleaned = cleanUndefined(data);
+    return await addDoc(colRef, cleaned);
   },
 
   // READ
@@ -87,7 +116,8 @@ export const firestoreService = {
   // UPDATE
   async update(collectionName: keyof typeof collectionsRef, id: string, data: Partial<any>) {
     const docRef = doc(collectionsRef[collectionName], id);
-    return await updateDoc(docRef, data);
+    const cleaned = cleanUndefined(data);
+    return await updateDoc(docRef, cleaned);
   },
 
   // DELETE

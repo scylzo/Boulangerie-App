@@ -26,22 +26,23 @@ const CATEGORIES: CategorieDepense[] = [
 ];
 
 export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData }) => {
-  const { ajouterDepense, modifierDepense } = useDepenseStore();
+  const { ajouterDepense, modifierDepense, depenses } = useDepenseStore();
   const { user } = useAuthStore();
-  const { fournisseurs, chargerDonnees } = useStockStore();
+  const { fournisseurs, matieres, chargerDonnees } = useStockStore();
 
-  // Charger les fournisseurs si nécessaire
+  // Charger les fournisseurs et matières si nécessaire
   React.useEffect(() => {
-    if (fournisseurs.length === 0) {
+    if (fournisseurs.length === 0 || matieres.length === 0) {
       chargerDonnees();
     }
-  }, [fournisseurs.length, chargerDonnees]);
+  }, [fournisseurs.length, matieres.length, chargerDonnees]);
 
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    categorie: initialData?.categorie || 'Carburant Véhicule' as CategorieDepense,
+    categorie: initialData?.categorie || ('Carburant Véhicule' as CategorieDepense),
     montant: initialData?.montant.toString() || '',
     description: initialData?.description || '',
+    intrant: initialData?.intrant || '',
     fournisseur: initialData?.fournisseur || '',
     date: initialData ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     dateDebutUsage: initialData?.dateDebutUsage ? new Date(initialData.dateDebutUsage).toISOString().split('T')[0] : '',
@@ -49,10 +50,28 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
   });
 
   const [showManualInput, setShowManualInput] = useState(false);
+  const [showManualIntrant, setShowManualIntrant] = useState(false);
+
+  // Liste de suggestions d'intrants (matières du stock + intrants déjà saisis)
+  const intrantsOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    matieres.forEach(m => {
+      if (m.nom?.trim()) set.add(m.nom.trim());
+    });
+    depenses.forEach(d => {
+      if (d.intrant?.trim()) set.add(d.intrant.trim());
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+  }, [matieres, depenses]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (formData.categorie === 'Intrants' && !formData.intrant.trim()) {
+      alert("Veuillez spécifier le nom de l'intrant (ex: Farine, Levure, etc.).");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -60,6 +79,7 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
         categorie: formData.categorie,
         montant: Number(formData.montant),
         description: formData.description,
+        intrant: formData.intrant.trim() || undefined,
         fournisseur: formData.fournisseur || undefined,
         date: new Date(formData.date),
         dateDebutUsage: formData.dateDebutUsage ? new Date(formData.dateDebutUsage) : undefined,
@@ -116,6 +136,87 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
               ))}
             </select>
           </div>
+
+          {/* Champ Intrant : Spécifier le nom de l'intrant */}
+          {(formData.categorie === 'Intrants' || formData.intrant !== '') && (
+            <div className="bg-amber-50/70 p-3.5 rounded-xl border border-amber-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-semibold text-amber-900">
+                  Nom de l'intrant {formData.categorie === 'Intrants' && <span className="text-danger-500">*</span>}
+                </label>
+                {formData.categorie !== 'Intrants' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, intrant: '' });
+                      setShowManualIntrant(false);
+                    }}
+                    className="text-xs text-sand-500 hover:text-danger-600 underline"
+                  >
+                    Retirer l'intrant
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-amber-700">
+                Sélectionnez un intrant du stock ou saisissez manuellement son nom.
+              </p>
+              <div>
+                <select
+                  value={
+                    showManualIntrant
+                      ? 'autre'
+                      : intrantsOptions.includes(formData.intrant)
+                      ? formData.intrant
+                      : formData.intrant
+                      ? 'autre'
+                      : ''
+                  }
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val === 'autre') {
+                      setShowManualIntrant(true);
+                      setFormData({ ...formData, intrant: '' });
+                    } else {
+                      setShowManualIntrant(false);
+                      setFormData({ ...formData, intrant: val });
+                    }
+                  }}
+                  className="w-full p-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none bg-white text-sm"
+                >
+                  <option value="">-- Sélectionner un intrant existant --</option>
+                  {intrantsOptions.map(nom => (
+                    <option key={nom} value={nom}>
+                      {nom}
+                    </option>
+                  ))}
+                  <option value="autre">Autre (Saisie manuelle)</option>
+                </select>
+              </div>
+              {(showManualIntrant || (formData.intrant !== '' && !intrantsOptions.includes(formData.intrant))) && (
+                <input
+                  type="text"
+                  required={formData.categorie === 'Intrants'}
+                  value={formData.intrant}
+                  onChange={e => setFormData({ ...formData, intrant: e.target.value })}
+                  className="w-full p-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none text-sm bg-white"
+                  placeholder="Ex: Farine T55, Levure fraîche, Sucre roux..."
+                  autoFocus={showManualIntrant && formData.intrant === ''}
+                />
+              )}
+            </div>
+          )}
+
+          {formData.categorie !== 'Intrants' && formData.intrant === '' && (
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => setShowManualIntrant(true)}
+                className="text-xs text-amber-700 hover:text-amber-800 font-medium hover:underline inline-flex items-center gap-1"
+              >
+                + Associer à un intrant spécifique (optionnel)
+              </button>
+            </div>
+          )}
 
           {/* Champs Période d'usage (Conditionnel) */}
           {['Carburant Four', 'Loyer', 'Électricité', 'Eau', 'Intrants'].includes(formData.categorie) && (

@@ -49,12 +49,14 @@ export const ProgrammeProduction: React.FC = () => {
     nettoyerListeners,
     envoyerAuBoulanger,
     ajouterCommandeClient,
+    ajouterCommandesClientsMultiples,
     modifierCommandeClient,
     supprimerCommandeClient,
     annulerCommandeClient,
     annulerCommandeAvecRedistribution,
     supprimerProduitDeCommande,
     ajouterQuantiteBoutique,
+    ajouterQuantitesBoutiqueMultiples,
     supprimerQuantiteBoutique,
     chargerProduits,
     chargerClients,
@@ -370,9 +372,9 @@ export const ProgrammeProduction: React.FC = () => {
 
   // Ajouter toutes les commandes types d'un clic
   const handleAjouterToutesCommandesTypes = () => {
-    let ajoutes = 0;
     const isWENow = estWeekend(dateSelectionnee);
     const dateLiv = new Date(dateSelectionnee + 'T12:00:00');
+    const commandesAAjouter: Array<Omit<CommandeClient, 'id' | 'createdAt' | 'updatedAt'>> = [];
 
     clientsManquants.forEach(client => {
       const hasWE = Boolean(client.commandeTypeWeekend && client.commandeTypeWeekend.length > 0);
@@ -402,18 +404,18 @@ export const ProgrammeProduction: React.FC = () => {
         };
       });
 
-      ajouterCommandeClient({
+      commandesAAjouter.push({
         clientId: client.id,
         dateCommande: new Date(),
         dateLivraison: dateLiv,
         statut: 'prevue',
         produits: produitsClean
       });
-      ajoutes++;
     });
 
-    if (ajoutes > 0) {
-      toast.success(`${ajoutes} commande(s) type(s) ajoutée(s)`);
+    if (commandesAAjouter.length > 0) {
+      ajouterCommandesClientsMultiples(commandesAAjouter);
+      toast.success(`${commandesAAjouter.length} commande(s) type(s) ajoutée(s)`);
     } else {
       toast.error('Aucune commande type disponible');
     }
@@ -701,18 +703,35 @@ export const ProgrammeProduction: React.FC = () => {
   };
 
   const ajouterQuotidiensManquants = () => {
+    const aAjouter: any[] = [];
+
     quotidiensManquants.forEach((p) => {
-      const cars = p.quantiteBoutiqueDefautCars || { car1_matin: p.quantiteBoutiqueDefaut || 0, car2_matin: 0, car_soir: 0 };
-      const total = (cars.car1_matin || 0) + (cars.car2_matin || 0) + (cars.car_soir || 0);
-      ajouterQuantiteBoutique({
+      let c1 = Number(p.quantiteBoutiqueDefautCars?.car1_matin) || 0;
+      let c2 = Number(p.quantiteBoutiqueDefautCars?.car2_matin) || 0;
+      let cs = Number(p.quantiteBoutiqueDefautCars?.car_soir) || 0;
+      let total = c1 + c2 + cs;
+
+      // Si la répartition par car donne 0 mais qu'une quantité boutique par défaut existe
+      if (total === 0 && (Number(p.quantiteBoutiqueDefaut) || 0) > 0) {
+        total = Number(p.quantiteBoutiqueDefaut) || 0;
+        c1 = total;
+      }
+
+      aAjouter.push({
         produitId: p.id,
         produit: p,
         quantite: total,
-        repartitionCars: { car1_matin: cars.car1_matin || 0, car2_matin: cars.car2_matin || 0, car_soir: cars.car_soir || 0 },
+        repartitionCars: {
+          car1_matin: c1,
+          car2_matin: c2,
+          car_soir: cs,
+        },
       });
     });
-    if (quotidiensManquants.length > 0) {
-      toast.success(`${quotidiensManquants.length} produit(s) quotidien(s) ajouté(s)`);
+
+    if (aAjouter.length > 0) {
+      ajouterQuantitesBoutiqueMultiples(aAjouter);
+      toast.success(`${aAjouter.length} produit(s) quotidien(s) ajouté(s)`);
     }
   };
 
@@ -1422,7 +1441,7 @@ export const ProgrammeProduction: React.FC = () => {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-2xs shrink-0 self-start sm:self-auto transition-colors"
                 >
                   <Icon icon="mdi:plus" className="text-base" />
-                  <span>Ajouter les manquants</span>
+                  <span>Tout ajouter ({quotidiensManquants.length})</span>
                 </button>
               </div>
             )}

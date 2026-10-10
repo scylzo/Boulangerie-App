@@ -199,7 +199,10 @@ export const GestionProduits: React.FC = () => {
               <span>Quota Global : {parametresLivraison?.pourcentageRetourGlobalMax !== undefined ? `${parametresLivraison.pourcentageRetourGlobalMax}%` : '10%'} ({nbProduitsSoumis}/{produits.length})</span>
             </button>
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+                setProduitEnEdition(null);
+                setShowForm(true);
+              }}
               disabled={showForm}
               className="flex items-center justify-center gap-2 px-4 py-2 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-soft text-sm font-medium whitespace-nowrap"
             >
@@ -292,7 +295,10 @@ export const GestionProduits: React.FC = () => {
               Commencez par ajouter vos premiers produits de boulangerie pour constituer votre catalogue
             </p>
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+                setProduitEnEdition(null);
+                setShowForm(true);
+              }}
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-lg transition-all shadow-soft text-sm font-medium"
             >
               <Icon icon="mdi:plus" className="text-lg" />

@@ -53,9 +53,11 @@ interface ProductionStore {
   validerProduction: () => Promise<void>; // Action pour déduire les stocks
   marquerCommeModifie: () => void; // Marquer le programme comme modifié après envoi
   nettoyerListeners: () => void; // Nettoyer les listeners
+  declencherAutoSauvegarde: () => void;
 
   // Actions Commandes Clients
   ajouterCommandeClient: (commande: Omit<CommandeClient, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  ajouterCommandesClientsMultiples: (commandes: Array<Omit<CommandeClient, 'id' | 'createdAt' | 'updatedAt'>>) => void;
   modifierCommandeClient: (id: string, commande: Partial<CommandeClient>) => void;
   supprimerCommandeClient: (id: string) => void;
   supprimerCommandesLivreur: (livreurId: string) => void;
@@ -69,6 +71,7 @@ interface ProductionStore {
 
   // Actions Quantités Boutique
   ajouterQuantiteBoutique: (quantite: QuantiteBoutique) => void;
+  ajouterQuantitesBoutiqueMultiples: (quantites: QuantiteBoutique[]) => void;
   modifierQuantiteBoutique: (produitId: string, quantite: number) => void;
   supprimerQuantiteBoutique: (produitId: string) => void;
 
@@ -131,6 +134,11 @@ const commandesDuJour = (commandes: any[], dateProduction: any): CommandeClient[
   return gardees;
 };
 
+// Gestion de l'auto-sauvegarde avec debounce et mutex pour éviter les écritures concurrentes et les doublons
+let autoSaveTimeout: any = null;
+let isSavingInProgress = false;
+let pendingSaveRequested = false;
+
 export const useProductionStore = create<ProductionStore>((set, get) => ({
   // État initial
   programmeActuel: null,
@@ -142,6 +150,31 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
   // Listeners
   programListener: null,
+
+  declencherAutoSauvegarde: () => {
+    if (autoSaveTimeout) {
+      clearTimeout(autoSaveTimeout);
+    }
+    autoSaveTimeout = setTimeout(async () => {
+      autoSaveTimeout = null;
+      if (isSavingInProgress) {
+        pendingSaveRequested = true;
+        return;
+      }
+      isSavingInProgress = true;
+      try {
+        await get().sauvegarderProgramme();
+      } catch (error) {
+        console.warn('Auto-sauvegarde échouée:', error);
+      } finally {
+        isSavingInProgress = false;
+        if (pendingSaveRequested) {
+          pendingSaveRequested = false;
+          get().declencherAutoSauvegarde();
+        }
+      }
+    }, 250);
+  },
 
   // État des formulaires
   showCommandeForm: false,
@@ -226,6 +259,14 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         if (contamine) get().calculerTotauxParProduit();
         console.log('📋 Programme chargé avec', cmdsJour.length, 'commandes');
       } else {
+        const { programmeActuel: existingProg } = get();
+        // Ne jamais écraser un programme existant en mémoire qui a des données par un programme vide
+        if (existingProg && ((existingProg.commandesClients && existingProg.commandesClients.length > 0) || (existingProg.quantitesBoutique && existingProg.quantitesBoutique.length > 0))) {
+          console.warn('⚠️ Aucun programme retourné par la requête mais des données existent en mémoire, conservation de l\'état actuel');
+          set({ isLoading: false });
+          return;
+        }
+
         // Aucun programme trouvé, créer un nouveau programme automatiquement pour cette date
         console.log('❌ Aucun programme trouvé, création automatique...');
 
@@ -505,15 +546,10 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     if (!programmeActuel) return;
 
     try {
-      // 1. Sauvegarder d'abord
       await get().sauvegarderProgramme();
-
-      // 2. Recharger ensuite pour récupérer les données fraîches
-      await get().chargerProgramme(programmeActuel.dateProduction);
-
-      console.log('✅ Programme sauvegardé et rechargé pour éviter les conflits');
+      console.log('✅ Programme sauvegardé avec succès');
     } catch (error) {
-      console.error('Erreur lors de sauvegarde+rechargement:', error);
+      console.error('Erreur lors de la sauvegarde:', error);
       throw error;
     }
   },
@@ -598,37 +634,34 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       updatedAt: new Date(),
     };
 
-    set((state) => ({
-      commandesClients: [...state.commandesClients, nouvelleCommande]
-    }));
+    set((state) => {
+      const allCmds = [...state.commandesClients, nouvelleCommande];
+      return {
+        commandesClients: allCmds,
+        programmeActuel: state.programmeActuel ? {
+          ...state.programmeActuel,
+          commandesClients: allCmds
+        } : null
+      };
+    });
 
-    // Recalculer et auto-sauvegarder immédiatement après l'ajout
+    get().marquerCommeModifie();
+    get().calculerTotauxParProduit();
+    get().declencherAutoSauvegarde();
+
+    // Trigger facturation (non bloquant)
     setTimeout(async () => {
-      get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
-      get().calculerTotauxParProduit();
-      // Auto-sauvegarde avec rechargement pour éviter les conflits
-      get().sauvegarderEtRecharger().catch(error => {
-        console.warn('Auto-sauvegarde échouée:', error);
-      });
-
-      // --- AUTO-GENERATION FACTURE (DRAFT) ---
       try {
         const { programmeActuel } = get();
         if (programmeActuel && nouvelleCommande) {
-          // Importer le store de facturation dynamiquement pour éviter les cycles si possible, ou utiliser getState
-          // Note: On utilise require ou import en haut mais ici on suppose que useFacturationStore est dispo
-          // import { useFacturationStore } from './facturationStore';
           const facturationModule = await import('./facturationStore') as any;
           const useFacturationStore = facturationModule.useFacturationStore;
           if (useFacturationStore) {
             const dateLivraison = new Date(nouvelleCommande.dateLivraison);
-            // On passe TOUTES les commandes de ce programme pour cette date, pour être sûr
             const allCommandes = get().commandesClients.filter(c =>
               new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString() &&
               c.statut !== 'annulee'
             );
-
-            // On appelle la génération. Note: les retours sont vides pour l'instant (draft)
             console.log('🔄 Auto-génération de facture brouillon pour la commande...');
             useFacturationStore.getState().genererFacturesDepuisLivraisons(dateLivraison, allCommandes, [])
               .catch((err: any) => console.error('Erreur auto-gen facture:', err));
@@ -637,26 +670,80 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       } catch (e) {
         console.warn('Non bloquant: Erreur trigger facturation', e);
       }
-      // ----------------------------------------
+    }, 100);
+  },
 
+  ajouterCommandesClientsMultiples: (commandes) => {
+    if (!commandes || commandes.length === 0) return;
+
+    const nouvelles = commandes.map((c, idx) => ({
+      ...c,
+      id: `cmd_${Date.now()}_${idx}`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+
+    set((state) => {
+      const allCmds = [...state.commandesClients, ...nouvelles];
+      return {
+        commandesClients: allCmds,
+        programmeActuel: state.programmeActuel ? {
+          ...state.programmeActuel,
+          commandesClients: allCmds
+        } : null
+      };
+    });
+
+    get().marquerCommeModifie();
+    get().calculerTotauxParProduit();
+    get().declencherAutoSauvegarde();
+
+    // Trigger facturation (non bloquant)
+    setTimeout(async () => {
+      try {
+        const { programmeActuel } = get();
+        if (programmeActuel && nouvelles.length > 0) {
+          const facturationModule = await import('./facturationStore') as any;
+          const useFacturationStore = facturationModule.useFacturationStore;
+          if (useFacturationStore) {
+            const dateLivraison = new Date(nouvelles[0].dateLivraison);
+            const allCommandes = get().commandesClients.filter(c =>
+              new Date(c.dateLivraison).toDateString() === dateLivraison.toDateString() &&
+              c.statut !== 'annulee'
+            );
+            console.log('🔄 Auto-génération de factures brouillon pour les commandes en lot...');
+            useFacturationStore.getState().genererFacturesDepuisLivraisons(dateLivraison, allCommandes, [])
+              .catch((err: any) => console.error('Erreur auto-gen facture:', err));
+          }
+        }
+      } catch (e) {
+        console.warn('Non bloquant: Erreur trigger facturation', e);
+      }
     }, 100);
   },
 
   modifierCommandeClient: (id, modifications) => {
-    set((state) => ({
-      commandesClients: state.commandesClients.map(cmd =>
+    set((state) => {
+      const newCmds = state.commandesClients.map(cmd =>
         cmd.id === id
           ? { ...cmd, ...modifications, updatedAt: new Date() }
           : cmd
-      )
-    }));
-    // Recalculer et auto-sauvegarder après la modification
-    setTimeout(async () => {
-      get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
-      get().calculerTotauxParProduit();
-      get().sauvegarderEtRecharger().catch(console.warn);
+      );
+      return {
+        commandesClients: newCmds,
+        programmeActuel: state.programmeActuel ? {
+          ...state.programmeActuel,
+          commandesClients: newCmds
+        } : null
+      };
+    });
 
-      // --- AUTO-UPDATE FACTURE (DRAFT) ---
+    get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
+    get().calculerTotauxParProduit();
+    get().declencherAutoSauvegarde();
+
+    // --- AUTO-UPDATE FACTURE (DRAFT) ---
+    setTimeout(async () => {
       try {
         const commandeModifiee = get().commandesClients.find(c => c.id === id);
         if (commandeModifiee) {
@@ -669,9 +756,6 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
               c.statut !== 'annulee'
             );
             console.log('🔄 Auto-update de facture brouillon suite modif commande...');
-            // On passe [] pour les retours, ce qui va garder les retours existants s'ils sont gérés intelligemment dans le store facturation
-            // ou simplement regénérer le "brouillon" basé sur la commande.
-            // IMPORTANT: genererFacturesDepuisLivraisons dans facturationStore doit être robuste.
             useFacturationStore.getState().genererFacturesDepuisLivraisons(dateLivraison, allCommandes, [])
               .catch((err: any) => console.error('Erreur auto-update facture:', err));
           }
@@ -679,21 +763,27 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       } catch (e) {
         console.warn('Non bloquant: Erreur trigger facturation update', e);
       }
-      // ----------------------------------------
     }, 100);
   },
 
   supprimerCommandeClient: (id) => {
-    set((state) => ({
-      commandesClients: state.commandesClients.filter(cmd => cmd.id !== id)
-    }));
-    // Recalculer et sauvegarder immédiatement après la suppression
-    setTimeout(async () => {
-      get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
-      get().calculerTotauxParProduit();
-      get().sauvegarderEtRecharger().catch(console.warn);
+    set((state) => {
+      const newCmds = state.commandesClients.filter(cmd => cmd.id !== id);
+      return {
+        commandesClients: newCmds,
+        programmeActuel: state.programmeActuel ? {
+          ...state.programmeActuel,
+          commandesClients: newCmds
+        } : null
+      };
+    });
 
-      // --- AUTO-UPDATE FACTURE ---
+    get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
+    get().calculerTotauxParProduit();
+    get().declencherAutoSauvegarde();
+
+    // --- AUTO-UPDATE FACTURE ---
+    setTimeout(async () => {
       try {
         const { programmeActuel } = get();
         if (programmeActuel) {
@@ -1051,46 +1141,88 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         q => q.produitId === quantite.produitId
       );
 
+      let newQuantites: QuantiteBoutique[];
       if (existingIndex >= 0) {
-        // Mettre à jour la quantité existante
-        const newQuantites = [...state.quantitesBoutique];
+        newQuantites = [...state.quantitesBoutique];
         newQuantites[existingIndex] = quantite;
-        return { quantitesBoutique: newQuantites };
       } else {
-        // Ajouter nouvelle quantité
-        return {
-          quantitesBoutique: [...state.quantitesBoutique, quantite]
-        };
+        newQuantites = [...state.quantitesBoutique, quantite];
       }
+
+      return {
+        quantitesBoutique: newQuantites,
+        programmeActuel: state.programmeActuel ? {
+          ...state.programmeActuel,
+          quantitesBoutique: newQuantites
+        } : null
+      };
     });
     get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
     get().calculerTotauxParProduit();
-    // Sauvegarder automatiquement en base
-    setTimeout(() => get().sauvegarderEtRecharger().catch(console.error), 0);
+    get().declencherAutoSauvegarde();
+  },
+
+  ajouterQuantitesBoutiqueMultiples: (quantites) => {
+    if (!quantites || quantites.length === 0) return;
+
+    set((state) => {
+      const newQuantites = [...state.quantitesBoutique];
+      quantites.forEach((quantite) => {
+        const existingIndex = newQuantites.findIndex(q => q.produitId === quantite.produitId);
+        if (existingIndex >= 0) {
+          newQuantites[existingIndex] = quantite;
+        } else {
+          newQuantites.push(quantite);
+        }
+      });
+
+      return {
+        quantitesBoutique: newQuantites,
+        programmeActuel: state.programmeActuel ? {
+          ...state.programmeActuel,
+          quantitesBoutique: newQuantites
+        } : null
+      };
+    });
+    get().marquerCommeModifie();
+    get().calculerTotauxParProduit();
+    get().declencherAutoSauvegarde();
   },
 
   modifierQuantiteBoutique: (produitId, quantite) => {
-    set((state) => ({
-      quantitesBoutique: state.quantitesBoutique.map(q =>
+    set((state) => {
+      const newQuantites = state.quantitesBoutique.map(q =>
         q.produitId === produitId
           ? { ...q, quantite }
           : q
-      )
-    }));
-    get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
+      );
+      return {
+        quantitesBoutique: newQuantites,
+        programmeActuel: state.programmeActuel ? {
+          ...state.programmeActuel,
+          quantitesBoutique: newQuantites
+        } : null
+      };
+    });
+    get().marquerCommeModifie();
     get().calculerTotauxParProduit();
-    // Sauvegarder automatiquement en base
-    setTimeout(() => get().sauvegarderEtRecharger().catch(console.error), 0);
+    get().declencherAutoSauvegarde();
   },
 
   supprimerQuantiteBoutique: (produitId) => {
-    set((state) => ({
-      quantitesBoutique: state.quantitesBoutique.filter(q => q.produitId !== produitId)
-    }));
-    get().marquerCommeModifie(); // Marquer comme modifié si déjà envoyé
+    set((state) => {
+      const newQuantites = state.quantitesBoutique.filter(q => q.produitId !== produitId);
+      return {
+        quantitesBoutique: newQuantites,
+        programmeActuel: state.programmeActuel ? {
+          ...state.programmeActuel,
+          quantitesBoutique: newQuantites
+        } : null
+      };
+    });
+    get().marquerCommeModifie();
     get().calculerTotauxParProduit();
-    // Sauvegarder automatiquement en base
-    setTimeout(() => get().sauvegarderEtRecharger().catch(console.error), 0);
+    get().declencherAutoSauvegarde();
   },
 
   // Actions Production Réelle
@@ -1117,7 +1249,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     // Recalculer les totaux pour mettre à jour l'affichage
     get().calculerTotauxParProduit();
     // Sauvegarder
-    setTimeout(() => get().sauvegarderEtRecharger().catch(console.error), 0);
+    get().declencherAutoSauvegarde();
   },
 
   // Actions Calculs

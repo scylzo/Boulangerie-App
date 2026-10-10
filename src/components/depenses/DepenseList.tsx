@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDepenseStore } from '../../store/depenseStore';
-import { Trash2, Calendar, Tag, CreditCard, Building2, Edit2 } from 'lucide-react';
+import { Trash2, Calendar, Tag, CreditCard, Building2, Edit2, Package } from 'lucide-react';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import type { Depense } from '../../types/depense';
@@ -114,12 +114,20 @@ export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, onDeleteStock,
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-sand-900 font-medium">{depense.description}</div>
-                    {depense.fournisseur && (
-                      <div className="flex items-center text-xs text-sand-500 mt-1">
-                        <Building2 size={12} className="mr-1" />
-                        {depense.fournisseur}
-                      </div>
-                    )}
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      {depense.intrant && (
+                        <span className="inline-flex items-center text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-medium">
+                          <Package size={12} className="mr-1 text-amber-600" />
+                          {depense.intrant}
+                        </span>
+                      )}
+                      {depense.fournisseur && (
+                        <div className="flex items-center text-xs text-sand-500">
+                          <Building2 size={12} className="mr-1" />
+                          {depense.fournisseur}
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-sand-900">
                     {depense.montant.toLocaleString()} FCFA
