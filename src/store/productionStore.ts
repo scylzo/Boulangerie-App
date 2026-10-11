@@ -16,6 +16,7 @@ interface ProductionStore {
   produits: Produit[];
   clients: Client[];
   isLoading: boolean;
+  isSaving: boolean;
 
   // Listener unsubscribe functions
   programListener: (() => void) | null;
@@ -189,6 +190,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   produits: [],
   clients: [],
   isLoading: false,
+  isSaving: false,
 
   // Listeners
   programListener: null,
@@ -204,12 +206,14 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         return;
       }
       isSavingInProgress = true;
+      set({ isSaving: true });
       try {
         await get().sauvegarderProgramme();
       } catch (error) {
         console.warn('Auto-sauvegarde échouée:', error);
       } finally {
         isSavingInProgress = false;
+        set({ isSaving: false });
         if (pendingSaveRequested) {
           pendingSaveRequested = false;
           get().declencherAutoSauvegarde();
@@ -464,7 +468,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     const { programmeActuel, commandesClients, quantitesBoutique } = get();
     if (!programmeActuel) return;
 
-    set({ isLoading: true });
+    set({ isSaving: true });
     try {
       // Garde-fou : ne jamais persister une commande d'une autre journée
       const cmdsJour = commandesDuJour(commandesClients, programmeActuel.dateProduction);
@@ -601,8 +605,9 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
-      set({ isLoading: false });
       throw error;
+    } finally {
+      set({ isLoading: false, isSaving: false });
     }
   },
 

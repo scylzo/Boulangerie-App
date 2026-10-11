@@ -69,7 +69,8 @@ export const ProgrammeProduction: React.FC = () => {
     resetFormulaireCommande,
     validerProduction,
     sauvegarderCommandeTypeWeekend,
-    isLoading
+    isLoading,
+    isSaving
   } = useProductionStore();
 
   const { livreurs, chargerLivreurs } = useLivreurStore();
@@ -752,8 +753,8 @@ export const ProgrammeProduction: React.FC = () => {
     return quantitesBoutique.reduce((t, q) => t + (Number(q.quantite) || 0), 0);
   }, [quantitesBoutique]);
 
-  if (chargementInitial) {
-    return <PageLoader message="Chargement du programme…" />;
+  if (chargementInitial || (!programmeActuel && isLoading)) {
+    return <PageLoader message="Chargement du programme de production…" />;
   }
 
   // Formatage de date
@@ -799,6 +800,22 @@ export const ProgrammeProduction: React.FC = () => {
                       </span>
                     );
                   })()}
+
+                  {/* Indicateur d'enregistrement */}
+                  {isSaving && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs animate-pulse">
+                      <Icon icon="mdi:loading" className="animate-spin text-xs text-amber-600" />
+                      <span>Enregistrement…</span>
+                    </span>
+                  )}
+
+                  {/* Indicateur d'actualisation */}
+                  {isLoading && !isSaving && programmeActuel && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium bg-sand-100 text-sand-600 border border-sand-200 animate-pulse">
+                      <Icon icon="mdi:loading" className="animate-spin text-xs text-terracotta-500" />
+                      <span>Actualisation…</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Contrôle de Date inline & compact */}
@@ -1737,7 +1754,7 @@ export const ProgrammeProduction: React.FC = () => {
           mode={modeFormulaire}
           onSave={handleSauvegarderCommande}
           onCancel={handleAnnulerFormulaire}
-          isLoading={isLoading}
+          isLoading={isLoading || isSaving}
           formulaireState={formulaireCommande}
           onUpdateFormulaire={updateFormulaireCommande}
         />
@@ -1759,7 +1776,7 @@ export const ProgrammeProduction: React.FC = () => {
             client={clients.find(c => c.id === commandeEnEdition.clientId)!}
             onSave={handleSauvegarderProduitSpecifique}
             onCancel={handleAnnulerModificationProduit}
-            isLoading={isLoading}
+            isLoading={isLoading || isSaving}
           />
         </Modal>
       )}
@@ -1800,7 +1817,7 @@ export const ProgrammeProduction: React.FC = () => {
         onConfirm={handleConfirmRedistribution}
         commande={commandeARedistribuer}
         clients={clients}
-        isLoading={isLoading}
+        isLoading={isLoading || isSaving}
       />
 
       {/* Modal de Confirmation */}
@@ -1814,6 +1831,14 @@ export const ProgrammeProduction: React.FC = () => {
         cancelText={confirmModal.cancelText}
         type={confirmModal.type}
       />
+
+      {/* Indicateur flottant lors de l'enregistrement */}
+      {isSaving && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 bg-sand-900/90 text-white text-xs font-semibold rounded-full shadow-elevated backdrop-blur-md border border-white/10 pointer-events-none transition-all duration-300">
+          <Icon icon="mdi:loading" className="animate-spin text-base text-amber-400" />
+          <span>Enregistrement des modifications…</span>
+        </div>
+      )}
     </div>
   );
 };
