@@ -772,18 +772,18 @@ export const ProgrammeProduction: React.FC = () => {
           TOP BAR & HEADER UNIFIÉ
       ========================================================================== */}
       <header className="bg-white border-b border-sand-200 sticky top-0 z-20 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 py-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 py-2.5 sm:py-3">
             
             {/* Titre & Sélecteur de date */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="w-9 h-9 rounded-lg bg-terracotta-50 text-terracotta-600 flex items-center justify-center shrink-0">
-                <Icon icon="mdi:bread-slice-outline" className="text-xl" />
+            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-terracotta-50 text-terracotta-600 flex items-center justify-center shrink-0">
+                <Icon icon="mdi:bread-slice-outline" className="text-lg sm:text-xl" />
               </div>
               
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-bold text-sand-900 leading-tight">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-base sm:text-lg font-bold text-sand-900 leading-tight truncate">
                     Programme de production
                   </h1>
                   {programmeActuel && (() => {
@@ -793,7 +793,7 @@ export const ProgrammeProduction: React.FC = () => {
                       : st === 'envoye' ? { bg: 'bg-sky-50 text-sky-700 border-sky-200', icon: 'mdi:send-check', label: 'Envoyé au four' }
                       : { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: 'mdi:check-decagram', label: 'Validé' };
                     return (
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${cfg.bg}`}>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold border ${cfg.bg}`}>
                         <Icon icon={cfg.icon} className="text-xs" />
                         {cfg.label}
                       </span>
@@ -802,7 +802,7 @@ export const ProgrammeProduction: React.FC = () => {
                 </div>
 
                 {/* Contrôle de Date inline & compact */}
-                <div className="flex items-center gap-1.5 mt-1 text-xs text-sand-600">
+                <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs text-sand-600">
                   <div className="inline-flex items-center bg-sand-50 rounded-md border border-sand-200 p-0.5">
                     <button
                       onClick={() => handleDecalerDate(-1)}
@@ -815,7 +815,7 @@ export const ProgrammeProduction: React.FC = () => {
                       type="date"
                       value={dateSelectionnee}
                       onChange={(e) => setDateSelectionnee(e.target.value)}
-                      className="bg-transparent border-0 text-xs font-semibold text-sand-900 focus:ring-0 px-1 py-0.5 cursor-pointer"
+                      className="bg-transparent border-0 text-xs font-semibold text-sand-900 focus:ring-0 px-1 py-0.5 cursor-pointer max-w-[125px]"
                     />
                     <button
                       onClick={() => handleDecalerDate(1)}
@@ -836,10 +836,10 @@ export const ProgrammeProduction: React.FC = () => {
                   )}
 
                   <span className="text-sand-400">·</span>
-                  <span className="capitalize font-medium text-sand-800">{dateFormatee}</span>
+                  <span className="capitalize font-medium text-sand-800 text-xs">{dateFormatee}</span>
 
                   {isWE && (
-                    <span className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100/70 text-amber-900 font-bold text-[10px] rounded">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-100/70 text-amber-900 font-bold text-[10px] rounded">
                       <Icon icon="mdi:calendar-weekend" className="text-xs text-amber-700" />
                       Week-end
                     </span>
@@ -849,12 +849,12 @@ export const ProgrammeProduction: React.FC = () => {
             </div>
 
             {/* Actions du haut */}
-            <div className="flex items-center gap-2 self-start md:self-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap w-full md:w-auto justify-start md:justify-end">
               {programmeActuel && (
                 <button
                   onClick={handleTelechargerRapport}
                   disabled={isLoading}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-sand-300 hover:bg-sand-50 text-sand-700 rounded-lg text-xs font-medium transition-colors shadow-2xs"
+                  className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-white border border-sand-300 hover:bg-sand-50 text-sand-700 rounded-lg text-xs font-medium transition-colors shadow-2xs flex-1 sm:flex-initial"
                   title="Télécharger le rapport de production"
                 >
                   <Icon icon="mdi:file-pdf-box" className="text-base text-danger-500" />
@@ -866,10 +866,10 @@ export const ProgrammeProduction: React.FC = () => {
                 <button
                   onClick={handleEnvoyerAuBoulanger}
                   disabled={isLoading}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-1.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs flex-1 sm:flex-initial text-center"
                 >
                   <Icon icon="mdi:send-outline" className="text-sm" />
-                  <span>{programmeActuel.statut === 'brouillon' ? 'Envoyer au boulanger' : 'Renvoyer au boulanger'}</span>
+                  <span>{programmeActuel.statut === 'brouillon' ? 'Envoyer au four' : 'Renvoyer au four'}</span>
                 </button>
               )}
 
@@ -877,7 +877,7 @@ export const ProgrammeProduction: React.FC = () => {
                 <button
                   onClick={handleValiderProduction}
                   disabled={isLoading}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs flex-1 sm:flex-initial"
                 >
                   <Icon icon="mdi:check-decagram" className="text-sm" />
                   <span>Clôturer</span>
@@ -888,12 +888,12 @@ export const ProgrammeProduction: React.FC = () => {
           </div>
 
           {/* =========================================================================
-              BARRE D'ONGLETS SOBRES & PROFESSIONNELS
+              BARRE D'ONGLETS SOBRES & PROFESSIONNELS AVEC SCROLL SUR MOBILE
           ========================================================================== */}
-          <div className="flex border-t border-sand-200 gap-1 pt-1 -mb-px">
+          <div className="flex border-t border-sand-200 gap-1 pt-1 -mb-px overflow-x-auto no-scrollbar scroll-smooth">
             <button
               onClick={() => setOngletActif('clients')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all ${
+              className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap shrink-0 ${
                 ongletActif === 'clients'
                   ? 'border-terracotta-500 text-terracotta-600 bg-terracotta-50/40'
                   : 'border-transparent text-sand-600 hover:text-sand-900 hover:border-sand-300'
@@ -910,7 +910,7 @@ export const ProgrammeProduction: React.FC = () => {
 
             <button
               onClick={() => setOngletActif('boutique')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all ${
+              className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap shrink-0 ${
                 ongletActif === 'boutique'
                   ? 'border-terracotta-500 text-terracotta-600 bg-terracotta-50/40'
                   : 'border-transparent text-sand-600 hover:text-sand-900 hover:border-sand-300'
@@ -927,7 +927,7 @@ export const ProgrammeProduction: React.FC = () => {
 
             <button
               onClick={() => setOngletActif('synthese')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all ${
+              className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap shrink-0 ${
                 ongletActif === 'synthese'
                   ? 'border-terracotta-500 text-terracotta-600 bg-terracotta-50/40'
                   : 'border-transparent text-sand-600 hover:text-sand-900 hover:border-sand-300'
@@ -939,7 +939,7 @@ export const ProgrammeProduction: React.FC = () => {
                 <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                   ongletActif === 'synthese' ? 'bg-terracotta-100 text-terracotta-700' : 'bg-sand-100 text-sand-600'
                 }`}>
-                  {programmeActuel.totauxParProduit.reduce((sum, p) => sum + p.totalGlobal, 0)} produits
+                  {programmeActuel.totauxParProduit.reduce((sum, p) => sum + p.totalGlobal, 0)} <span className="hidden sm:inline">produits</span>
                 </span>
               )}
             </button>
@@ -951,7 +951,7 @@ export const ProgrammeProduction: React.FC = () => {
       {/* =========================================================================
           CONTENU DE L'ONGLET ACTIF
       ========================================================================== */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-5">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 pt-3 sm:pt-5">
 
         {/* -------------------------------------------------------------------------
             ONGLET 1 : COMMANDES CLIENTS
@@ -961,21 +961,21 @@ export const ProgrammeProduction: React.FC = () => {
             
             {/* Alerte discrète pour clients réguliers / WE manquants */}
             {clientsManquants.length > 0 && (
-              <div className="bg-amber-50/90 border border-amber-200 rounded-xl p-3.5 shadow-2xs">
-                <div className="flex items-start justify-between gap-2">
+              <div className="bg-amber-50/90 border border-amber-200 rounded-xl p-3 sm:p-3.5 shadow-2xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2">
                     <Icon icon={isWE ? "mdi:calendar-weekend" : "mdi:alert-circle-outline"} className="text-amber-600 text-lg shrink-0" />
                     <div>
                       <span className="text-xs sm:text-sm font-bold text-amber-900">
                         {clientsManquants.length} client{clientsManquants.length > 1 ? 's' : ''} attendu{clientsManquants.length > 1 ? 's' : ''} non encore commandé{clientsManquants.length > 1 ? 's' : ''}
                       </span>
-                      <span className="text-xs text-amber-700 ml-1.5 hidden sm:inline">
+                      <span className="text-xs text-amber-700 ml-1.5 hidden md:inline">
                         (cliquez sur un nom pour ajouter directement sa commande)
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
                     {clientsManquants.some(c => (isWE && c.commandeTypeWeekend?.length) || c.commandeType?.length) && (
                       <button
                         type="button"
@@ -989,6 +989,7 @@ export const ProgrammeProduction: React.FC = () => {
                       type="button"
                       onClick={() => setAlerteManquantsOuverte(!alerteManquantsOuverte)}
                       className="p-1 text-amber-700 hover:text-amber-900 rounded"
+                      aria-label="Afficher ou masquer la liste"
                     >
                       <Icon icon={alerteManquantsOuverte ? "mdi:chevron-up" : "mdi:chevron-down"} className="text-base" />
                     </button>
@@ -996,7 +997,7 @@ export const ProgrammeProduction: React.FC = () => {
                 </div>
 
                 {alerteManquantsOuverte && (
-                  <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2 border-t border-amber-200/60">
+                  <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2 border-t border-amber-200/60 max-h-56 overflow-y-auto">
                     {clientsManquants.map(client => {
                       const hasWE = isWE && Boolean(client.commandeTypeWeekend && client.commandeTypeWeekend.length > 0);
                       const qteWE = client.commandeTypeWeekend?.reduce((s, p) => s + (Number(p.quantiteCommandee) || 0), 0);
@@ -1005,22 +1006,22 @@ export const ProgrammeProduction: React.FC = () => {
                       return (
                         <div
                           key={client.id}
-                          className="inline-flex items-center rounded-lg border border-amber-300 bg-white shadow-2xs overflow-hidden"
+                          className="inline-flex items-center max-w-full rounded-lg border border-amber-300 bg-white shadow-2xs overflow-hidden"
                         >
                           <button
                             type="button"
                             onClick={() => handleAjouterCommandeRapide(client)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-sand-800 hover:bg-amber-50 transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-sand-800 hover:bg-amber-50 transition-colors truncate"
                             title={hasWE ? `Ajouter modèle WE (${qteWE}p)` : `Ajouter modèle semaine (${qteSem}p)`}
                           >
-                            <span>{client.nom}</span>
+                            <span className="truncate">{client.nom}</span>
                             {hasWE && (
-                              <span className="px-1.5 py-0.2 bg-amber-100 text-amber-800 font-bold text-[10px] rounded">
+                              <span className="px-1.5 py-0.2 bg-amber-100 text-amber-800 font-bold text-[10px] rounded shrink-0">
                                 WE: {qteWE}p
                               </span>
                             )}
                             {!hasWE && qteSem !== undefined && qteSem > 0 && (
-                              <span className="px-1.5 py-0.2 bg-sand-100 text-sand-700 text-[10px] rounded">
+                              <span className="px-1.5 py-0.2 bg-sand-100 text-sand-700 text-[10px] rounded shrink-0">
                                 {qteSem}p
                               </span>
                             )}
@@ -1028,7 +1029,7 @@ export const ProgrammeProduction: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleAjouterCommande(client.id)}
-                            className="px-1.5 py-1 text-sand-400 hover:text-sand-700 hover:bg-sand-100 border-l border-amber-200"
+                            className="px-1.5 py-1 text-sand-400 hover:text-sand-700 hover:bg-sand-100 border-l border-amber-200 shrink-0"
                             title="Personnaliser avant d'ajouter"
                           >
                             <Icon icon="mdi:pencil-outline" className="text-xs" />
@@ -1042,8 +1043,8 @@ export const ProgrammeProduction: React.FC = () => {
             )}
 
             {/* Barre d'outils et recherche */}
-            <div className="bg-white rounded-xl border border-sand-200 p-3 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="relative w-full sm:w-80">
+            <div className="bg-white rounded-xl border border-sand-200 p-2.5 sm:p-3 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
+              <div className="relative w-full sm:w-72 md:w-80">
                 <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 -translate-y-1/2 text-sand-400 text-base" />
                 <input
                   type="text"
@@ -1062,9 +1063,9 @@ export const ProgrammeProduction: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                 {commandesClients.length > 0 && (
-                  <div className="flex items-center gap-1.5 text-xs text-sand-500">
+                  <div className="flex items-center gap-1 text-xs text-sand-500">
                     <button
                       onClick={toutDeplier}
                       className="px-2 py-1 hover:bg-sand-100 text-sand-600 rounded font-medium transition-colors"
@@ -1084,7 +1085,7 @@ export const ProgrammeProduction: React.FC = () => {
                 <button
                   onClick={() => handleAjouterCommande()}
                   disabled={showCommandeForm}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-2xs"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-2xs shrink-0"
                 >
                   <Icon icon="mdi:plus" className="text-base" />
                   <span>Nouvelle commande</span>
@@ -1094,7 +1095,7 @@ export const ProgrammeProduction: React.FC = () => {
 
             {/* Liste compacte sous forme d'accordéons */}
             {commandesFiltrees.length === 0 ? (
-              <div className="bg-white rounded-xl border border-sand-200 p-10 text-center">
+              <div className="bg-white rounded-xl border border-sand-200 p-8 sm:p-10 text-center">
                 <div className="w-12 h-12 bg-sand-100 text-sand-400 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Icon icon="mdi:clipboard-text-outline" className="text-2xl" />
                 </div>
@@ -1205,23 +1206,23 @@ export const ProgrammeProduction: React.FC = () => {
                         </div>
 
                         {/* Voitures, Quantité & Actions */}
-                        <div className="flex items-center justify-between md:justify-end gap-3 sm:gap-4 shrink-0 pl-9 md:pl-0">
+                        <div className="flex flex-wrap items-center justify-between md:justify-end gap-2.5 sm:gap-4 shrink-0 pl-8 sm:pl-9 md:pl-0 pt-1 md:pt-0 border-t border-sand-200/50 md:border-t-0">
                           {/* Badges de répartition voitures */}
-                          <div className="flex items-center gap-1.5 flex-wrap">
+                          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                             {car1Total > 0 && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold rounded">
+                              <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold rounded">
                                 <Icon icon="mdi:truck" className="text-xs text-amber-600" />
                                 <span>Car 1: {car1Total}</span>
                               </span>
                             )}
                             {car2Total > 0 && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-sky-50 text-sky-800 border border-sky-200 text-[10px] font-bold rounded">
+                              <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-sky-50 text-sky-800 border border-sky-200 text-[10px] font-bold rounded">
                                 <Icon icon="mdi:truck-outline" className="text-xs text-sky-600" />
                                 <span>Car 2: {car2Total}</span>
                               </span>
                             )}
                             {carSTotal > 0 && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-terracotta-50 text-terracotta-800 border border-terracotta-200 text-[10px] font-bold rounded">
+                              <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-terracotta-50 text-terracotta-800 border border-terracotta-200 text-[10px] font-bold rounded">
                                 <Icon icon="mdi:truck-fast" className="text-xs text-terracotta-600" />
                                 <span>Soir: {carSTotal}</span>
                               </span>
@@ -1229,42 +1230,46 @@ export const ProgrammeProduction: React.FC = () => {
                           </div>
 
                           {/* Quantité & Montant */}
-                          <div className="text-right tabular-nums">
-                            <span className="font-bold text-sm text-sand-900">
+                          <div className="text-left sm:text-right tabular-nums">
+                            <span className="font-bold text-xs sm:text-sm text-sand-900">
                               {totalArticlesCommande} {totalArticlesCommande > 1 ? 'produits' : 'produit'}
                             </span>
-                            <span className="text-xs text-sand-500 ml-1.5">
+                            <span className="text-[11px] sm:text-xs text-sand-500 ml-1.5">
                               ({totalMontantCommande.toLocaleString('fr-FR')} F)
                             </span>
                           </div>
 
                           {/* Actions rapides sur la commande */}
-                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                             <button
                               onClick={() => handleImprimerBonLivraison(commande)}
-                              className="p-1.5 text-sand-500 hover:text-sky-600 hover:bg-sky-50 rounded transition-colors"
+                              className="p-1 sm:p-1.5 text-sand-500 hover:text-sky-600 hover:bg-sky-50 rounded transition-colors"
                               title="Imprimer bon de livraison"
+                              aria-label="Imprimer bon de livraison"
                             >
                               <Icon icon="mdi:file-document-outline" className="text-base" />
                             </button>
                             <button
                               onClick={() => handleAjouterCommande(commande.clientId)}
-                              className="p-1.5 text-sand-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                              className="p-1 sm:p-1.5 text-sand-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
                               title="Ajouter des produits à cette commande"
+                              aria-label="Ajouter des produits"
                             >
                               <Icon icon="mdi:plus" className="text-base" />
                             </button>
                             <button
                               onClick={() => handleAnnulerCommande(commande.id)}
-                              className="p-1.5 text-sand-500 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                              className="p-1 sm:p-1.5 text-sand-500 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
                               title="Annuler la commande"
+                              aria-label="Annuler la commande"
                             >
                               <Icon icon="mdi:ban" className="text-base" />
                             </button>
                             <button
                               onClick={() => handleSupprimerCommande(commande.id)}
-                              className="p-1.5 text-sand-500 hover:text-danger-600 hover:bg-danger-50 rounded transition-colors"
+                              className="p-1 sm:p-1.5 text-sand-500 hover:text-danger-600 hover:bg-danger-50 rounded transition-colors"
                               title="Supprimer la commande"
+                              aria-label="Supprimer la commande"
                             >
                               <Icon icon="mdi:delete-outline" className="text-base" />
                             </button>
@@ -1275,7 +1280,7 @@ export const ProgrammeProduction: React.FC = () => {
 
                       {/* Détail Déplié (Accordéon Ouvert - Zone Distincte & Visuelle) */}
                       {isDepliee && (
-                        <div className="bg-sand-50/80 p-3.5 sm:p-5 space-y-3.5">
+                        <div className="bg-sand-50/80 p-2.5 sm:p-4 md:p-5 space-y-3 sm:space-y-3.5">
                           {/* Alertes et actions rapides WE */}
                           {isWE && hasWE && !correspondWE && commande.statut !== 'annulee' && (
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 bg-amber-50 border border-amber-300 rounded-lg text-xs shadow-2xs">
@@ -1318,79 +1323,81 @@ export const ProgrammeProduction: React.FC = () => {
                             </span>
                           </div>
 
-                          {/* Tableau valorisé des produits */}
+                          {/* Tableau valorisé des produits - AVEC OVERFLOW HORIZONTAL SÉCURISÉ */}
                           <div className="bg-white rounded-xl border border-sand-200 shadow-2xs overflow-hidden">
-                            <table className="w-full text-xs">
-                              <thead>
-                                <tr className="bg-sand-100/70 border-b border-sand-200 text-left text-sand-600 font-bold uppercase text-[10px] tracking-wider">
-                                  <th className="px-3.5 py-2.5">Produit</th>
-                                  <th className="px-3.5 py-2.5 text-center">Quantité</th>
-                                  <th className="px-3.5 py-2.5 text-right">Prix unit.</th>
-                                  <th className="px-3.5 py-2.5 text-right">Sous-total</th>
-                                  <th className="px-3.5 py-2.5">Livraison</th>
-                                  <th className="px-3.5 py-2.5 text-right w-16">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-sand-100 tabular-nums">
-                                {commande.produits.map((item, index) => {
-                                  const produit = produits.find(p => p.id === item.produitId);
-                                  const c1 = Number(item.repartitionCars?.car1_matin) || 0;
-                                  const c2 = Number(item.repartitionCars?.car2_matin) || 0;
-                                  const cs = Number(item.repartitionCars?.car_soir) || 0;
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-xs min-w-[520px]">
+                                <thead>
+                                  <tr className="bg-sand-100/70 border-b border-sand-200 text-left text-sand-600 font-bold uppercase text-[10px] tracking-wider">
+                                    <th className="px-3 sm:px-3.5 py-2.5">Produit</th>
+                                    <th className="px-3 sm:px-3.5 py-2.5 text-center">Quantité</th>
+                                    <th className="px-3 sm:px-3.5 py-2.5 text-right">Prix unit.</th>
+                                    <th className="px-3 sm:px-3.5 py-2.5 text-right">Sous-total</th>
+                                    <th className="px-3 sm:px-3.5 py-2.5">Livraison</th>
+                                    <th className="px-3 sm:px-3.5 py-2.5 text-right w-16">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-sand-100 tabular-nums">
+                                  {commande.produits.map((item, index) => {
+                                    const produit = produits.find(p => p.id === item.produitId);
+                                    const c1 = Number(item.repartitionCars?.car1_matin) || 0;
+                                    const c2 = Number(item.repartitionCars?.car2_matin) || 0;
+                                    const cs = Number(item.repartitionCars?.car_soir) || 0;
 
-                                  return (
-                                    <tr key={index} className="hover:bg-sand-50/70 transition-colors">
-                                      <td className="px-3.5 py-2.5 font-semibold text-sand-900">
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-6 h-6 rounded bg-sand-100 flex items-center justify-center shrink-0">
-                                            <Icon icon={getProductIcon(produit?.nom || '')} className="text-sm text-sand-600" />
+                                    return (
+                                      <tr key={index} className="hover:bg-sand-50/70 transition-colors">
+                                        <td className="px-3 sm:px-3.5 py-2.5 font-semibold text-sand-900">
+                                          <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded bg-sand-100 flex items-center justify-center shrink-0">
+                                              <Icon icon={getProductIcon(produit?.nom || '')} className="text-sm text-sand-600" />
+                                            </div>
+                                            <span className="uppercase">{produit?.nom || 'Produit inconnu'}</span>
                                           </div>
-                                          <span className="uppercase">{produit?.nom || 'Produit inconnu'}</span>
-                                        </div>
-                                      </td>
-                                      <td className="px-3.5 py-2.5 text-center font-bold text-sand-950">
-                                        <span className="inline-block px-2 py-0.5 rounded bg-sand-100 text-sand-800">
-                                          {item.quantiteCommandee}
-                                        </span>
-                                      </td>
-                                      <td className="px-3.5 py-2.5 text-right text-sand-600">
-                                        {(item.prixUnitaire || 0).toLocaleString('fr-FR')} F
-                                      </td>
-                                      <td className="px-3.5 py-2.5 text-right font-bold text-sand-900">
-                                        {((item.prixUnitaire || 0) * item.quantiteCommandee).toLocaleString('fr-FR')} F
-                                      </td>
-                                      <td className="px-3.5 py-2.5">
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                          {c1 > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-amber-50 text-amber-800 rounded border border-amber-200">Car 1: {c1}</span>}
-                                          {c2 > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-sky-50 text-sky-800 rounded border border-sky-200">Car 2: {c2}</span>}
-                                          {cs > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-terracotta-50 text-terracotta-800 rounded border border-terracotta-200">Soir: {cs}</span>}
-                                        </div>
-                                      </td>
-                                      <td className="px-3.5 py-2.5 text-right">
-                                        <div className="flex items-center justify-end gap-1">
-                                          <button
-                                            type="button"
-                                            onClick={() => handleModifierProduitSpecifique(commande.id, index)}
-                                            className="p-1 text-sand-400 hover:text-sand-800 hover:bg-sand-100 rounded transition-colors"
-                                            title="Modifier ce produit"
-                                          >
-                                            <Icon icon="mdi:pencil-outline" className="text-base" />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleSupprimerProduitDeCommande(commande.id, index)}
-                                            className="p-1 text-sand-400 hover:text-danger-600 hover:bg-danger-50 rounded transition-colors"
-                                            title="Supprimer ce produit"
-                                          >
-                                            <Icon icon="mdi:close" className="text-base" />
-                                          </button>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
+                                        </td>
+                                        <td className="px-3 sm:px-3.5 py-2.5 text-center font-bold text-sand-950">
+                                          <span className="inline-block px-2 py-0.5 rounded bg-sand-100 text-sand-800">
+                                            {item.quantiteCommandee}
+                                          </span>
+                                        </td>
+                                        <td className="px-3 sm:px-3.5 py-2.5 text-right text-sand-600">
+                                          {(item.prixUnitaire || 0).toLocaleString('fr-FR')} F
+                                        </td>
+                                        <td className="px-3 sm:px-3.5 py-2.5 text-right font-bold text-sand-900">
+                                          {((item.prixUnitaire || 0) * item.quantiteCommandee).toLocaleString('fr-FR')} F
+                                        </td>
+                                        <td className="px-3 sm:px-3.5 py-2.5">
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            {c1 > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-amber-50 text-amber-800 rounded border border-amber-200">Car 1: {c1}</span>}
+                                            {c2 > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-sky-50 text-sky-800 rounded border border-sky-200">Car 2: {c2}</span>}
+                                            {cs > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 bg-terracotta-50 text-terracotta-800 rounded border border-terracotta-200">Soir: {cs}</span>}
+                                          </div>
+                                        </td>
+                                        <td className="px-3 sm:px-3.5 py-2.5 text-right">
+                                          <div className="flex items-center justify-end gap-1">
+                                            <button
+                                              type="button"
+                                              onClick={() => handleModifierProduitSpecifique(commande.id, index)}
+                                              className="p-1 text-sand-400 hover:text-sand-800 hover:bg-sand-100 rounded transition-colors"
+                                              title="Modifier ce produit"
+                                            >
+                                              <Icon icon="mdi:pencil-outline" className="text-base" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleSupprimerProduitDeCommande(commande.id, index)}
+                                              className="p-1 text-sand-400 hover:text-danger-600 hover:bg-danger-50 rounded transition-colors"
+                                              title="Supprimer ce produit"
+                                            >
+                                              <Icon icon="mdi:close" className="text-base" />
+                                            </button>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -1399,13 +1406,13 @@ export const ProgrammeProduction: React.FC = () => {
                 })}
 
                 {/* Barre de synthèse compacte du bas */}
-                <div className="bg-sand-100 border border-sand-200 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-sand-700">
-                  <div className="flex items-center gap-3">
+                <div className="bg-sand-100 border border-sand-200 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2.5 text-xs text-sand-700">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                     <span><strong>{commandesClients.length}</strong> commande(s)</span>
                     <span>·</span>
                     <span><strong>{totalArticlesClients}</strong> {totalArticlesClients > 1 ? 'produits' : 'produit'} au total</span>
                   </div>
-                  <div className="text-sm font-bold text-sand-900">
+                  <div className="text-xs sm:text-sm font-bold text-sand-900">
                     Montant total : {totalMontantClients.toLocaleString('fr-FR')} FCFA
                   </div>
                 </div>
@@ -1447,7 +1454,7 @@ export const ProgrammeProduction: React.FC = () => {
             )}
 
             {/* En-tête de la section boutique */}
-            <div className="bg-white rounded-xl border border-sand-200 p-3 shadow-xs flex items-center justify-between gap-3">
+            <div className="bg-white rounded-xl border border-sand-200 p-2.5 sm:p-3 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-bold text-sand-900">
                   Produits envoyés en boutique
@@ -1460,7 +1467,7 @@ export const ProgrammeProduction: React.FC = () => {
               <button
                 onClick={() => setShowQuantiteBoutiqueForm(true)}
                 disabled={showQuantiteBoutiqueForm}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-2xs"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-2xs shrink-0"
               >
                 <Icon icon="mdi:plus" className="text-base" />
                 <span>Ajouter un produit</span>
@@ -1469,7 +1476,7 @@ export const ProgrammeProduction: React.FC = () => {
 
             {/* Grille des produits boutique */}
             {quantitesBoutique.length === 0 ? (
-              <div className="bg-white rounded-xl border border-sand-200 p-10 text-center">
+              <div className="bg-white rounded-xl border border-sand-200 p-8 sm:p-10 text-center">
                 <div className="w-12 h-12 bg-sand-100 text-sand-400 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Icon icon="mdi:storefront-outline" className="text-2xl" />
                 </div>
@@ -1498,7 +1505,7 @@ export const ProgrammeProduction: React.FC = () => {
                   return (
                     <div
                       key={item.produitId}
-                      className="bg-white border border-sand-200 rounded-xl p-3.5 hover:border-sand-300 shadow-2xs transition-all flex flex-col justify-between"
+                      className="bg-white border border-sand-200 rounded-xl p-3 sm:p-3.5 hover:border-sand-300 shadow-2xs transition-all flex flex-col justify-between"
                     >
                       <div>
                         <div className="flex items-start justify-between gap-2 mb-2">
@@ -1576,49 +1583,49 @@ export const ProgrammeProduction: React.FC = () => {
             {/* KPI Cards Sobres (Linear / Odoo style) */}
             {programmeActuel?.totauxParProduit && programmeActuel.totauxParProduit.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="bg-white border border-sand-200 rounded-xl p-3.5 shadow-2xs">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                  <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-3.5 shadow-2xs">
                     <div className="flex items-center justify-between text-sand-500 mb-1">
-                      <span className="text-[11px] font-semibold uppercase tracking-wide">Car 1 Matin</span>
-                      <Icon icon="mdi:truck" className="text-amber-600 text-lg" />
+                      <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide truncate">Car 1 Matin</span>
+                      <Icon icon="mdi:truck" className="text-amber-600 text-base sm:text-lg shrink-0" />
                     </div>
-                    <div className="text-xl sm:text-2xl font-bold text-sand-900 tabular-nums">
+                    <div className="text-lg sm:text-2xl font-bold text-sand-900 tabular-nums">
                       {programmeActuel.totauxParProduit.reduce((sum, p) => sum + (p.repartitionCar1Matin || 0), 0)}
                     </div>
-                    <div className="text-[10px] text-sand-400 mt-0.5">Tournée 06:00 - 10:00</div>
+                    <div className="text-[10px] text-sand-400 mt-0.5 truncate">06:00 - 10:00</div>
                   </div>
 
-                  <div className="bg-white border border-sand-200 rounded-xl p-3.5 shadow-2xs">
+                  <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-3.5 shadow-2xs">
                     <div className="flex items-center justify-between text-sand-500 mb-1">
-                      <span className="text-[11px] font-semibold uppercase tracking-wide">Car 2 Matin</span>
-                      <Icon icon="mdi:truck-outline" className="text-sky-600 text-lg" />
+                      <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide truncate">Car 2 Matin</span>
+                      <Icon icon="mdi:truck-outline" className="text-sky-600 text-base sm:text-lg shrink-0" />
                     </div>
-                    <div className="text-xl sm:text-2xl font-bold text-sand-900 tabular-nums">
+                    <div className="text-lg sm:text-2xl font-bold text-sand-900 tabular-nums">
                       {programmeActuel.totauxParProduit.reduce((sum, p) => sum + (p.repartitionCar2Matin || 0), 0)}
                     </div>
-                    <div className="text-[10px] text-sand-400 mt-0.5">Tournée 08:00 - 12:00</div>
+                    <div className="text-[10px] text-sand-400 mt-0.5 truncate">08:00 - 12:00</div>
                   </div>
 
-                  <div className="bg-white border border-sand-200 rounded-xl p-3.5 shadow-2xs">
+                  <div className="bg-white border border-sand-200 rounded-xl p-3 sm:p-3.5 shadow-2xs">
                     <div className="flex items-center justify-between text-sand-500 mb-1">
-                      <span className="text-[11px] font-semibold uppercase tracking-wide">Car Soir</span>
-                      <Icon icon="mdi:truck-fast" className="text-terracotta-600 text-lg" />
+                      <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide truncate">Car Soir</span>
+                      <Icon icon="mdi:truck-fast" className="text-terracotta-600 text-base sm:text-lg shrink-0" />
                     </div>
-                    <div className="text-xl sm:text-2xl font-bold text-sand-900 tabular-nums">
+                    <div className="text-lg sm:text-2xl font-bold text-sand-900 tabular-nums">
                       {programmeActuel.totauxParProduit.reduce((sum, p) => sum + (p.repartitionCarSoir || 0), 0)}
                     </div>
-                    <div className="text-[10px] text-sand-400 mt-0.5">Tournée 15:00 - 19:00</div>
+                    <div className="text-[10px] text-sand-400 mt-0.5 truncate">15:00 - 19:00</div>
                   </div>
 
-                  <div className="bg-sand-900 text-white rounded-xl p-3.5 shadow-xs">
+                  <div className="bg-sand-900 text-white rounded-xl p-3 sm:p-3.5 shadow-xs">
                     <div className="flex items-center justify-between text-sand-300 mb-1">
-                      <span className="text-[11px] font-semibold uppercase tracking-wide">Total Général</span>
-                      <Icon icon="mdi:bread-slice" className="text-amber-400 text-lg" />
+                      <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide truncate">Total Général</span>
+                      <Icon icon="mdi:bread-slice" className="text-amber-400 text-base sm:text-lg shrink-0" />
                     </div>
-                    <div className="text-xl sm:text-2xl font-bold text-white tabular-nums">
+                    <div className="text-lg sm:text-2xl font-bold text-white tabular-nums">
                       {programmeActuel.totauxParProduit.reduce((sum, p) => sum + p.totalGlobal, 0)}
                     </div>
-                    <div className="text-[10px] text-sand-400 mt-0.5">Toutes tournées confondues</div>
+                    <div className="text-[10px] text-sand-400 mt-0.5 truncate">Toutes tournées</div>
                   </div>
                 </div>
 
