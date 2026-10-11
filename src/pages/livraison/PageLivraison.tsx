@@ -16,7 +16,7 @@ import { ModalQuotaGlobal } from '../../components/livraison/ModalQuotaGlobal';
 import { estWeekend } from '../../utils/dateUtils';
 
 export const PageLivraison: React.FC = () => {
-  const { commandesClients, chargerProgramme, supprimerCommandesLivreur, modifierCommandeClient } = useProductionStore();
+  const { commandesClients, chargerProgramme, supprimerCommandesLivreur, modifierCommandeClient, clients: prodClients, produits: prodProduits } = useProductionStore();
   const { livreurs, chargerLivreurs } = useLivreurStore();
   const { clients, produits: produitsRef, chargerProduits, chargerClients } = useReferentielStore();
   const { parametresLivraison, chargerParametresLivraison } = useLivraisonStore();
@@ -144,60 +144,77 @@ export const PageLivraison: React.FC = () => {
   // Fonction pour organiser les commandes par livreur et par car
   const organiserCommandesParLivreur = () => {
     const commandesParLivreur = new Map();
+    const clientsDisponibles = clients && clients.length > 0 ? clients : prodClients || [];
+    const produitsDisponibles = produitsRef && produitsRef.length > 0 ? produitsRef : prodProduits || [];
 
     commandesClients.forEach(commande => {
-      const client = clients.find(c => c.id === commande.clientId);
+      const client = clientsDisponibles.find(c => c.id === commande.clientId);
 
       if (!client) {
         console.warn(`⚠️ Client non trouvé pour commande:`, {
           commandeClientId: commande.clientId,
-          clientsDisponibles: clients.map(c => ({ id: c.id, nom: c.nom }))
+          clientsDisponibles: clientsDisponibles.map(c => ({ id: c.id, nom: c.nom }))
         });
       }
 
       commande.produits.forEach(produit => {
-        if (produit.repartitionCars) {
-          Object.entries(produit.repartitionCars).forEach(([car, quantite]) => {
-            if (quantite && quantite > 0) {
-              const carKey = car as CarLivraison;
-              const livreurId = client?.livreursParCar?.[carKey] || client?.livreurId || 'non-assigne';
+        const repartition = produit.repartitionCars;
+        const repartitionValide = repartition && (
+          (Number(repartition.car1_matin) || 0) > 0 ||
+          (Number(repartition.car2_matin) || 0) > 0 ||
+          (Number(repartition.car_soir) || 0) > 0
+        );
 
-              if (!commandesParLivreur.has(livreurId)) {
-                let livreurTrouve = livreurs.find(l => l.id === livreurId);
+        const ajouterAuCar = (carKey: CarLivraison, quantite: number) => {
+          if (!quantite || quantite <= 0) return;
+          const livreurId = client?.livreursParCar?.[carKey] || client?.livreurId || 'non-assigne';
 
-                if (!livreurTrouve && livreurId !== 'non-assigne') {
-                  console.warn(`⚠️ Livreur ID ${livreurId} non trouvé dans la liste pour client ${client?.nom}`);
-                  livreurTrouve = {
-                    id: livreurId,
-                    nom: `Livreur (ID: ${livreurId.substring(0, 6)}...)`,
-                    active: true,
-                    createdAt: new Date(),
-                    updatedAt: new Date()
-                  } as any;
-                }
+          if (!commandesParLivreur.has(livreurId)) {
+            let livreurTrouve = livreurs.find(l => l.id === livreurId);
 
-                commandesParLivreur.set(livreurId, {
-                  livreur: livreurTrouve || null,
-                  commandesParCar: new Map<CarLivraison, any[]>()
-                });
-              }
-
-              const livreurData = commandesParLivreur.get(livreurId);
-
-              // Trouver ou créer la liste pour ce car
-              if (!livreurData.commandesParCar.has(carKey)) {
-                livreurData.commandesParCar.set(carKey, []);
-              }
-
-              // Ajouter la commande
-              livreurData.commandesParCar.get(carKey).push({
-                commande,
-                client,
-                produit: produitsRef.find(p => p.id === produit.produitId),
-                quantite: quantite
-              });
+            if (!livreurTrouve && livreurId !== 'non-assigne') {
+              console.warn(`⚠️ Livreur ID ${livreurId} non trouvé dans la liste pour client ${client?.nom}`);
+              livreurTrouve = {
+                id: livreurId,
+                nom: `Livreur (ID: ${livreurId.substring(0, 6)}...)`,
+                active: true,
+                createdAt: new Date(),
+                updatedAt: new Date()
+              } as any;
             }
+
+            commandesParLivreur.set(livreurId, {
+              livreur: livreurTrouve || null,
+              commandesParCar: new Map<CarLivraison, any[]>()
+            });
+          }
+
+          const livreurData = commandesParLivreur.get(livreurId);
+
+          // Trouver ou créer la liste pour ce car
+          if (!livreurData.commandesParCar.has(carKey)) {
+            livreurData.commandesParCar.set(carKey, []);
+          }
+
+          // Ajouter la commande
+          livreurData.commandesParCar.get(carKey).push({
+            commande,
+            client,
+            produit: produitsDisponibles.find(p => p.id === produit.produitId),
+            quantite: quantite
           });
+        };
+
+        if (repartitionValide) {
+          Object.entries(repartition).forEach(([car, quantite]) => {
+            ajouterAuCar(car as CarLivraison, Number(quantite) || 0);
+          });
+          // Fallback : si la commande n'a pas de répartition explicite par car,
+          // on utilise le car configuré pour le client ou car1_matin
+          const carDefaut: CarLivraison =
+            (client?.livreursParCar?.car2_matin && !client?.livreursParCar?.car1_matin) ? 'car2_matin' :
+            (client?.livreursParCar?.car_soir && !client?.livreursParCar?.car1_matin) ? 'car_soir' : 'car1_matin';
+          ajouterAuCar(carDefaut, Number(produit.quantiteCommandee) || 0);
         }
       });
     });
@@ -359,11 +376,11 @@ export const PageLivraison: React.FC = () => {
   };
 
   const toggleLivreur = (id: string) => {
-    setLivreursDeplies(prev => ({ ...prev, [id]: !prev[id] }));
+    setLivreursDeplies(prev => ({ ...prev, [id]: !(prev[id] ?? true) }));
   };
 
   const toggleCar = (carKey: string) => {
-    setCarsDeplies(prev => ({ ...prev, [carKey]: !prev[carKey] }));
+    setCarsDeplies(prev => ({ ...prev, [carKey]: !(prev[carKey] ?? true) }));
   };
 
   const toutDeplier = () => {

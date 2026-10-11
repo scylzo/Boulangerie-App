@@ -134,6 +134,7 @@ export const VueBoulanger: React.FC = () => {
     programmeActuel.commandesClients
       .filter(commande => commande.statut !== 'annulee')
       .forEach(commande => {
+        const clientObj = clients.find(c => c.id === commande.clientId);
         commande.produits.forEach(item => {
           const current = repartitionsClients.get(item.produitId) || {
             car1Matin: 0,
@@ -141,9 +142,20 @@ export const VueBoulanger: React.FC = () => {
             carSoir: 0
           };
 
-          const car1Matin = Number(item.repartitionCars?.car1_matin) || 0;
-          const car2Matin = Number(item.repartitionCars?.car2_matin) || 0;
-          const carSoir = Number(item.repartitionCars?.car_soir) || 0;
+          let car1Matin = Number(item.repartitionCars?.car1_matin) || 0;
+          let car2Matin = Number(item.repartitionCars?.car2_matin) || 0;
+          let carSoir = Number(item.repartitionCars?.car_soir) || 0;
+
+          // Si aucune répartition explicite par car mais quantiteCommandee > 0
+          if (car1Matin === 0 && car2Matin === 0 && carSoir === 0 && (Number(item.quantiteCommandee) || 0) > 0) {
+            const carDefaut: 'car1_matin' | 'car2_matin' | 'car_soir' =
+              (clientObj?.livreursParCar?.car2_matin && !clientObj?.livreursParCar?.car1_matin) ? 'car2_matin' :
+              (clientObj?.livreursParCar?.car_soir && !clientObj?.livreursParCar?.car1_matin) ? 'car_soir' : 'car1_matin';
+            const qte = Number(item.quantiteCommandee) || 0;
+            if (carDefaut === 'car2_matin') car2Matin = qte;
+            else if (carDefaut === 'car_soir') carSoir = qte;
+            else car1Matin = qte;
+          }
 
           repartitionsClients.set(item.produitId, {
             car1Matin: current.car1Matin + car1Matin,
@@ -174,11 +186,31 @@ export const VueBoulanger: React.FC = () => {
         .forEach(commande => {
           const clientObj = clients.find(c => c.id === commande.clientId);
           commande.produits.forEach(item => {
-            const repartition = item.repartitionCars || { car1_matin: 0, car2_matin: 0, car_soir: 0 };
+            let repartition = item.repartitionCars;
+            const hasRepartition = repartition && (
+              (Number(repartition.car1_matin) || 0) > 0 ||
+              (Number(repartition.car2_matin) || 0) > 0 ||
+              (Number(repartition.car_soir) || 0) > 0
+            );
+
+            if (!hasRepartition && (Number(item.quantiteCommandee) || 0) > 0) {
+              const carDefaut: 'car1_matin' | 'car2_matin' | 'car_soir' =
+                (clientObj?.livreursParCar?.car2_matin && !clientObj?.livreursParCar?.car1_matin) ? 'car2_matin' :
+                (clientObj?.livreursParCar?.car_soir && !clientObj?.livreursParCar?.car1_matin) ? 'car_soir' : 'car1_matin';
+              const qte = Number(item.quantiteCommandee) || 0;
+              repartition = {
+                car1_matin: carDefaut === 'car1_matin' ? qte : 0,
+                car2_matin: carDefaut === 'car2_matin' ? qte : 0,
+                car_soir: carDefaut === 'car_soir' ? qte : 0
+              };
+            } else if (!repartition) {
+              repartition = { car1_matin: 0, car2_matin: 0, car_soir: 0 };
+            }
+
             const cars: ('car1_matin' | 'car2_matin' | 'car_soir')[] = ['car1_matin', 'car2_matin', 'car_soir'];
             
             cars.forEach(car => {
-              const qty = Number(repartition[car]) || 0;
+              const qty = Number(repartition![car]) || 0;
               if (qty > 0) {
                 const livreurId = clientObj?.livreursParCar?.[car] || clientObj?.livreurId || 'non-assigne';
                 let livreurNom = 'Non assigné';

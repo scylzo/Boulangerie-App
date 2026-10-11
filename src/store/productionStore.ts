@@ -105,28 +105,70 @@ interface ProductionStore {
   debugTotaux: () => void;
 }
 
-// Deux dates tombent-elles le même jour calendaire ? (tolère Date, Timestamp, string)
+// Extraction sécurisée de la date calendaire YYYY-MM-DD
+export const extraireDateCalendaire = (v: any): string | null => {
+  if (!v) return null;
+  if (typeof v === 'string') {
+    const match = v.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) return match[1];
+  }
+  const d = v instanceof Date ? v : (typeof v.toDate === 'function' ? v.toDate() : new Date(v));
+  if (isNaN(d.getTime())) return null;
+
+  // Si l'heure est exactement 00:00:00 UTC (format standard de stockage des dates UTC)
+  if (d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0) {
+    return d.toISOString().slice(0, 10);
+  }
+
+  // Sinon utiliser la date locale du client YYYY-MM-DD
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+// Deux dates tombent-elles le même jour calendaire ? (tolère Date, Timestamp, string et décalages UTC/local)
 const memeJour = (a: any, b: any): boolean => {
-  const toD = (v: any): Date | null => {
-    if (!v) return null;
-    if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
-    if (typeof v.toDate === 'function') return v.toDate();
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? null : d;
+  const ka = extraireDateCalendaire(a);
+  const kb = extraireDateCalendaire(b);
+  if (!ka || !kb) return false;
+  if (ka === kb) return true;
+
+  // Tolérance fuseaux horaires : vérifier les représentations UTC et locales
+  const getKeys = (v: any): string[] => {
+    if (!v) return [];
+    if (typeof v === 'string') {
+      const match = v.match(/^(\d{4}-\d{2}-\d{2})/);
+      return match ? [match[1]] : [];
+    }
+    const d = v instanceof Date ? v : (typeof v.toDate === 'function' ? v.toDate() : new Date(v));
+    if (isNaN(d.getTime())) return [];
+    const utcK = d.toISOString().slice(0, 10);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const locK = `${y}-${m}-${day}`;
+    return [utcK, locK];
   };
-  const da = toD(a), db = toD(b);
-  if (!da || !db) return false;
-  return da.toDateString() === db.toDateString();
+
+  const keysA = getKeys(a);
+  const keysB = getKeys(b);
+  return keysA.some(k => keysB.includes(k));
 };
 
 /**
  * Ne garde que les commandes livrées le jour du programme.
- * Empêche les commandes d'une autre journée (ex: la veille, restées en mémoire
- * lors d'un changement de date) de polluer le programme et de gonfler les
- * quantités à produire.
+ * Empêche les commandes d'une autre journée de polluer le programme.
  */
 const commandesDuJour = (commandes: any[], dateProduction: any): CommandeClient[] => {
-  const gardees = (commandes || []).filter(c => memeJour(c.dateLivraison, dateProduction));
+  if (!commandes || commandes.length === 0) return [];
+  if (!dateProduction) return commandes;
+
+  const gardees = (commandes || []).filter(c => {
+    // Si la commande n'a pas de date de livraison spécifiée, on la conserve car elle fait partie du document
+    if (!c.dateLivraison) return true;
+    return memeJour(c.dateLivraison, dateProduction);
+  });
   const ecartees = (commandes || []).length - gardees.length;
   if (ecartees > 0) {
     console.warn(`⚠️ ${ecartees} commande(s) d'une autre journée écartée(s) du programme du ${new Date(dateProduction).toLocaleDateString('fr-FR')}`);
@@ -260,9 +302,10 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         console.log('📋 Programme chargé avec', cmdsJour.length, 'commandes');
       } else {
         const { programmeActuel: existingProg } = get();
-        // Ne jamais écraser un programme existant en mémoire qui a des données par un programme vide
-        if (existingProg && ((existingProg.commandesClients && existingProg.commandesClients.length > 0) || (existingProg.quantitesBoutique && existingProg.quantitesBoutique.length > 0))) {
-          console.warn('⚠️ Aucun programme retourné par la requête mais des données existent en mémoire, conservation de l\'état actuel');
+        // Ne jamais écraser un programme existant en mémoire pour CETTE MÊME DATE qui a des données
+        const memeJourDate = existingProg ? memeJour(existingProg.dateProduction, date) : false;
+        if (existingProg && memeJourDate && ((existingProg.commandesClients && existingProg.commandesClients.length > 0) || (existingProg.quantitesBoutique && existingProg.quantitesBoutique.length > 0))) {
+          console.warn('⚠️ Aucun programme retourné par la requête mais des données existent en mémoire pour ce même jour, conservation de l\'état actuel');
           set({ isLoading: false });
           return;
         }
