@@ -209,6 +209,7 @@ export const PageLivraison: React.FC = () => {
           Object.entries(repartition).forEach(([car, quantite]) => {
             ajouterAuCar(car as CarLivraison, Number(quantite) || 0);
           });
+        } else {
           // Fallback : si la commande n'a pas de répartition explicite par car,
           // on utilise le car configuré pour le client ou car1_matin
           const carDefaut: CarLivraison =
@@ -1032,7 +1033,7 @@ export const PageLivraison: React.FC = () => {
                           // Total pièces pour ce car
                           const totalPiecesCar = livraisons.reduce((s: number, l: any) => s + (Number(l.quantite) || 0), 0);
 
-                          // Grouper les livraisons par client
+                          // Grouper les livraisons par client et agréger les mêmes produits
                           const livraisonsParClient = new Map<string, { client: any; produits: Array<{ produit: any; quantite: number }> }>();
                           livraisons.forEach((livraison: any) => {
                             const clientId = livraison.client?.id || 'inconnu';
@@ -1042,10 +1043,17 @@ export const PageLivraison: React.FC = () => {
                                 produits: []
                               });
                             }
-                            livraisonsParClient.get(clientId)!.produits.push({
-                              produit: livraison.produit,
-                              quantite: Number(livraison.quantite) || 0
-                            });
+                            const clientEntry = livraisonsParClient.get(clientId)!;
+                            const prodId = livraison.produit?.id || livraison.produit?.nom || 'inconnu';
+                            const existProd = clientEntry.produits.find(p => (p.produit?.id || p.produit?.nom) === prodId);
+                            if (existProd) {
+                              existProd.quantite += Number(livraison.quantite) || 0;
+                            } else {
+                              clientEntry.produits.push({
+                                produit: livraison.produit,
+                                quantite: Number(livraison.quantite) || 0
+                              });
+                            }
                           });
 
                           const clientsFiltres = Array.from(livraisonsParClient.values()).filter(clientData =>
