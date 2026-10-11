@@ -42,6 +42,9 @@ export const dateToTimestamp = (date: any): Timestamp => {
   if (date instanceof Timestamp) return date;
   if (typeof date.toMillis === 'function') return date;
   if (typeof date.toDate === 'function') return Timestamp.fromDate(date.toDate());
+  if (typeof date === 'object' && typeof date.seconds === 'number') {
+    return new Timestamp(date.seconds, date.nanoseconds || 0);
+  }
   if (date instanceof Date) return isNaN(date.getTime()) ? Timestamp.now() : Timestamp.fromDate(date);
   const parsed = new Date(date);
   return isNaN(parsed.getTime()) ? Timestamp.now() : Timestamp.fromDate(parsed);
@@ -60,8 +63,16 @@ export const timestampToDate = (timestamp: any): Date => {
 // Nettoyage récursif des champs undefined (interdits par Firestore)
 const cleanUndefined = (data: any): any => {
   if (data === null || data === undefined) return data;
+  if (data instanceof Date) return data;
+  if (data instanceof Timestamp) return data;
+  if (typeof data === 'object' && typeof data.toMillis === 'function') return data;
+  if (typeof data === 'object' && typeof data.isEqual === 'function' && 'seconds' in data) return data;
+  // Si c'est un Timestamp sérialisé sans prototype, le restaurer en vrai Timestamp Firestore
+  if (typeof data === 'object' && typeof data.seconds === 'number' && typeof data.nanoseconds === 'number') {
+    return new Timestamp(data.seconds, data.nanoseconds);
+  }
   if (Array.isArray(data)) return data.map(cleanUndefined);
-  if (typeof data === 'object' && !(data instanceof Date)) {
+  if (typeof data === 'object') {
     const cleaned: Record<string, any> = {};
     for (const [key, value] of Object.entries(data)) {
       if (value !== undefined) {
@@ -131,9 +142,15 @@ export const firestoreService = {
 export const businessQueries = {
   // Programmes de production
   async getProgrammeByDate(date: Date) {
-    // Créer les bornes en UTC pour correspondre au format de stockage (YYYY-MM-DDT00:00:00.000Z)
-    const dateStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0));
-    const dateEnd = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+    const dStr = (date instanceof Date && !isNaN(date.getTime()))
+      ? (date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0
+          ? date.toISOString().slice(0, 10)
+          : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`)
+      : (typeof date === 'string' ? (date as string).slice(0, 10) : new Date().toISOString().slice(0, 10));
+
+    const [y, m, d] = dStr.split('-').map(Number);
+    const dateStart = new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0));
+    const dateEnd = new Date(Date.UTC(y, m - 1, d, 23, 59, 59, 999));
 
     return await firestoreService.getByQuery('productionPrograms', [
       where('dateProduction', '>=', dateToTimestamp(dateStart)),
@@ -201,10 +218,15 @@ export const businessQueries = {
 export const realTimeListeners = {
   // Listener pour les programmes de production par date
   subscribeToProgram(date: Date, callback: (programs: any[]) => void) {
-    // Mêmes bornes UTC que getProgrammeByDate : dateProduction est stockée à
-    // minuit UTC (les dates 'YYYY-MM-DD' sont parsées en UTC par new Date()).
-    const dateStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0));
-    const dateEnd = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+    const dStr = (date instanceof Date && !isNaN(date.getTime()))
+      ? (date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0
+          ? date.toISOString().slice(0, 10)
+          : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`)
+      : (typeof date === 'string' ? (date as string).slice(0, 10) : new Date().toISOString().slice(0, 10));
+
+    const [y, m, d] = dStr.split('-').map(Number);
+    const dateStart = new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0));
+    const dateEnd = new Date(Date.UTC(y, m - 1, d, 23, 59, 59, 999));
 
     const q = query(
       collectionsRef.productionPrograms,

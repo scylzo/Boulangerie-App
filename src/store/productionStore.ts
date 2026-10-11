@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import type { ProgrammeProduction, CommandeClient, QuantiteBoutique, Produit, Client, RedistributionData } from '../types';
 import { firestoreService, businessQueries, realTimeListeners, dateToTimestamp, timestampToDate } from '../firebase/collections';
 import { db } from '../firebase/config';
-import type { Timestamp } from 'firebase/firestore';
+import { Timestamp } from 'firebase/firestore';
 
 
 
@@ -235,8 +235,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   // Actions Programme
 
   creerNouveauProgramme: (date: Date) => {
-    // La date passée EST la date de production
-    const dateProduction = new Date(date);
+    const cal = extraireDateCalendaire(date);
+    const dateProduction = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(date);
 
     const nouveauProgramme: ProgrammeProduction = {
       id: `prog_${Date.now()}`,
@@ -313,8 +313,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         // Aucun programme trouvé, créer un nouveau programme automatiquement pour cette date
         console.log('❌ Aucun programme trouvé, création automatique...');
 
-        // La date passée EST la date de production
-        const dateProduction = new Date(date);
+        const cal = extraireDateCalendaire(date);
+        const dateProduction = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(date);
 
         const nouveauProgramme: ProgrammeProduction = {
           id: `prog_${Date.now()}`,
@@ -364,7 +364,19 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
       if (programmes.length > 0) {
         console.log('✅ Programme existant trouvé via listener, chargement...');
-        const programme = programmes[0] as any;
+
+        // Trier pour donner priorité au programme qui contient des données ou le plus récent
+        const progsTries = [...programmes].sort((a: any, b: any) => {
+          const aCount = (a.commandesClients?.length || 0) + (a.quantitesBoutique?.length || 0);
+          const bCount = (b.commandesClients?.length || 0) + (b.quantitesBoutique?.length || 0);
+          if (aCount !== bCount) return bCount - aCount; // Priorité absolue aux données
+
+          const timeA = a.updatedAt?.toDate ? a.updatedAt.toDate().getTime() : new Date(a.updatedAt || 0).getTime();
+          const timeB = b.updatedAt?.toDate ? b.updatedAt.toDate().getTime() : new Date(b.updatedAt || 0).getTime();
+          return timeB - timeA;
+        });
+
+        const programme = progsTries[0] as any;
 
         // Convertir les timestamps en dates
         const programmeConverti: ProgrammeProduction = {
@@ -396,11 +408,21 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
         console.log('🔄 Programme synchronisé avec', cmdsJour.length, 'commandes');
       } else {
+        const { programmeActuel: existingProg } = get();
+        // Ne jamais écraser un programme existant en mémoire pour CETTE MÊME DATE qui a des données
+        // ou si une sauvegarde est en cours
+        const memeJourDate = existingProg ? memeJour(existingProg.dateProduction, date) : false;
+        if (isSavingInProgress || (existingProg && memeJourDate && ((existingProg.commandesClients && existingProg.commandesClients.length > 0) || (existingProg.quantitesBoutique && existingProg.quantitesBoutique.length > 0)))) {
+          console.warn('⚠️ Aucun programme retourné par la requête mais des données existent en mémoire pour ce même jour (ou sauvegarde en cours), conservation de l\'état actuel');
+          set({ isLoading: false });
+          return;
+        }
+
         // Aucun programme trouvé, créer un nouveau programme
         console.log('❌ Aucun programme trouvé via listener, création automatique...');
 
-        // La date passée EST la date de production
-        const dateProduction = new Date(date);
+        const cal = extraireDateCalendaire(date);
+        const dateProduction = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(date);
 
         const nouveauProgramme: ProgrammeProduction = {
           id: `prog_${Date.now()}`,
@@ -447,16 +469,18 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       // Garde-fou : ne jamais persister une commande d'une autre journée
       const cmdsJour = commandesDuJour(commandesClients, programmeActuel.dateProduction);
 
+      const cal = extraireDateCalendaire(programmeActuel.dateProduction);
+      const dateProductionNorm = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(programmeActuel.dateProduction);
+
       const programmeAEnregistrer = {
         ...programmeActuel,
         commandesClients: cmdsJour,
         quantitesBoutique,
-        dateProduction: dateToTimestamp(programmeActuel.dateProduction),
+        dateProduction: dateToTimestamp(dateProductionNorm),
         dateCreation: dateToTimestamp(programmeActuel.dateCreation),
         createdAt: dateToTimestamp(programmeActuel.createdAt),
         updatedAt: dateToTimestamp(new Date())
       };
-
 
       const cleanData = (data: any): any => {
         if (data === undefined) return null;
@@ -464,6 +488,10 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         if (data instanceof Date) return data;
         // Garder les Timestamp Firestore
         if (typeof data === 'object' && typeof data.toMillis === 'function') return data;
+        if (typeof data === 'object' && typeof data.isEqual === 'function' && 'seconds' in data) return data;
+        if (typeof data === 'object' && typeof data.seconds === 'number' && typeof data.nanoseconds === 'number') {
+          return new Timestamp(data.seconds, data.nanoseconds);
+        }
 
         if (Array.isArray(data)) {
           return data.map(cleanData);
@@ -472,8 +500,6 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           const res: any = {};
           for (const k in data) {
             const val = cleanData(data[k]);
-            // On garde les propriétés même si null, mais pas si undefined originalement ? 
-            // Firestore accepte null. On a transformé undefined en null au début.
             res[k] = val;
           }
           return res;
@@ -508,18 +534,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       try {
         const { writeBatch, doc, query, where, getDocs, collection } = await import('firebase/firestore');
         
-        let dateProduction: Date;
-        if (programmeActuel.dateProduction instanceof Date) {
-          dateProduction = programmeActuel.dateProduction;
-        } else if (programmeActuel.dateProduction && typeof (programmeActuel.dateProduction as any).toDate === 'function') {
-          dateProduction = (programmeActuel.dateProduction as any).toDate();
-        } else {
-          dateProduction = new Date(programmeActuel.dateProduction);
-        }
-
-        // Bornes UTC pour correspondre au format de stockage (semblable à getProgrammeByDate)
-        const dateStart = new Date(Date.UTC(dateProduction.getUTCFullYear(), dateProduction.getUTCMonth(), dateProduction.getUTCDate(), 0, 0, 0));
-        const dateEnd = new Date(Date.UTC(dateProduction.getUTCFullYear(), dateProduction.getUTCMonth(), dateProduction.getUTCDate(), 23, 59, 59, 999));
+        const dateStart = new Date(Date.UTC(dateProductionNorm.getUTCFullYear(), dateProductionNorm.getUTCMonth(), dateProductionNorm.getUTCDate(), 0, 0, 0));
+        const dateEnd = new Date(Date.UTC(dateProductionNorm.getUTCFullYear(), dateProductionNorm.getUTCMonth(), dateProductionNorm.getUTCDate(), 23, 59, 59, 999));
 
         // Récupérer les commandes existantes dans Firestore pour cette date
         const qOrders = query(
@@ -547,17 +563,23 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           }
         }
 
+        const toIso = (v: any) => {
+          if (!v) return new Date().toISOString();
+          if (typeof v === 'string') return v;
+          if (v instanceof Date) return v.toISOString();
+          if (typeof v.toDate === 'function') return v.toDate().toISOString();
+          if (typeof v.toMillis === 'function') return new Date(v.toMillis()).toISOString();
+          if (typeof v.seconds === 'number') return new Date(v.seconds * 1000).toISOString();
+          return new Date(v).toISOString();
+        };
+
         // 2. Ajouter/mettre à jour les commandes actuelles
         for (const cmd of commandesClients) {
           const cmdRef = doc(db, 'clientOrders', cmd.id);
-          // Conversion explicite des dates pour éviter les erreurs
-          const dateLivStr = typeof cmd.dateLivraison === 'string' ? cmd.dateLivraison : (cmd.dateLivraison as Date).toISOString();
-          const dateCmdStr = typeof cmd.dateCommande === 'string' ? cmd.dateCommande : (cmd.dateCommande as Date).toISOString();
-
           const cmdData = {
             ...cmd,
-            dateLivraison: dateToTimestamp(new Date(dateLivStr)),
-            dateCommande: dateToTimestamp(new Date(dateCmdStr)),
+            dateLivraison: dateToTimestamp(new Date(toIso(cmd.dateLivraison))),
+            dateCommande: dateToTimestamp(new Date(toIso(cmd.dateCommande))),
             updatedAt: dateToTimestamp(new Date())
           };
 
