@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { collection, setDoc, getDoc, getDocs, query, where, doc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { LivraisonClient, InvendusClient, Client, Produit, ParametresLivraison } from '../types';
+import { addToSyncQueue, flushSyncQueue } from '../utils/syncQueue';
 
 // Cache mémoire (session) des invendus sur période — évite les relectures Firestore rapprochées
 let _invendusPeriodeCache: { key: string; at: number; data: InvendusClient[] } | null = null;
@@ -106,6 +107,9 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
   },
 
   chargerInvendusDuJour: async (date: Date) => {
+    // Tenter de vider la file d'attente si le quota est revenu
+    flushSyncQueue().catch(() => {});
+
     set({ isLoading: true });
     const dateStr = date.toISOString().split('T')[0];
     try {
@@ -403,6 +407,10 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
       console.log('☁️ "Aucun retour" synchronisé sur Firestore');
     } catch (error: any) {
       console.warn('⚠️ Quota Firestore ou réseau inaccessible lors du marquage sans retour (conservé en local):', error?.message || error);
+      addToSyncQueue({
+        type: 'retour',
+        data: { docId, retourClient: retourVide }
+      });
     }
   },
 
@@ -446,6 +454,10 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
       console.log('☁️ Retours client synchronisés sur Firestore');
     } catch (error: any) {
       console.warn('⚠️ Quota Firestore ou réseau inaccessible lors de la sauvegarde des retours (conservé en local):', error?.message || error);
+      addToSyncQueue({
+        type: 'retour',
+        data: { docId, retourClient }
+      });
     }
   },
 
@@ -501,6 +513,21 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
       console.log('☁️ Batch "aucun retour" synchronisé sur Firestore');
     } catch (error: any) {
       console.warn('⚠️ Quota Firestore ou réseau inaccessible lors du batch sans retour (conservé en local):', error?.message || error);
+      clientIds.forEach(clientId => {
+        const docId = `retours_${clientId}_${dateStr}`;
+        const retourVide: InvendusClient = {
+          clientId,
+          dateLivraison: date,
+          produits: [],
+          retoursCompletes: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        addToSyncQueue({
+          type: 'retour',
+          data: { docId, retourClient: retourVide }
+        });
+      });
     }
   },
 

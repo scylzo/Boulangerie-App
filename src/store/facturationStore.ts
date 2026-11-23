@@ -4,6 +4,7 @@ import { collection, updateDoc, doc, setDoc, deleteDoc, getDoc, getDocs, query, 
 import { realTimeListeners } from '../firebase/collections';
 import { db } from '../firebase/config';
 import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient, Client, Reglement, ModePaiement } from '../types';
+import { addToSyncQueue, flushSyncQueue } from '../utils/syncQueue';
 
 
 interface FacturationStore {
@@ -744,6 +745,9 @@ export const useFacturationStore = create<FacturationStore>()(
       },
 
       chargerFactures: async (dateDebut?: Date, dateFin?: Date, background: boolean = false) => {
+        // Tenter de vider la file d'attente si le quota est revenu
+        flushSyncQueue().catch(() => {});
+
         if (!background) set({ isLoading: true });
 
         try {
@@ -1008,6 +1012,15 @@ export const useFacturationStore = create<FacturationStore>()(
             console.log(`☁️ Règlement synchronisé avec succès sur Firestore`);
           } catch (err: any) {
             console.warn(`⚠️ Quota Firestore ou réseau inaccessible lors du règlement (conservé en local):`, err?.message || err);
+            addToSyncQueue({
+              type: 'paiement_facture',
+              data: {
+                factureId,
+                updateData,
+                nouveauxReglements,
+                clientId: facture.clientId
+              }
+            });
           }
 
         } catch (error) {
