@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 import type { ProgrammeProduction, CommandeClient, QuantiteBoutique, Produit, Client, RedistributionData } from '../types';
 import { firestoreService, businessQueries, realTimeListeners, dateToTimestamp, timestampToDate } from '../firebase/collections';
-import { db } from '../firebase/config';
+import { db, activerModeSecours } from '../firebase/config';
 import { Timestamp } from 'firebase/firestore';
 import { useStockStore } from './stockStore';
 
@@ -209,9 +209,12 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       isSavingInProgress = true;
       set({ isSaving: true });
       try {
-        await get().sauvegarderProgramme();
+        await Promise.race([
+          get().sauvegarderProgramme(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout auto-sauvegarde')), 4500))
+        ]);
       } catch (error) {
-        console.warn('Auto-sauvegarde échouée:', error);
+        console.warn('Auto-sauvegarde différée ou quota:', error);
       } finally {
         isSavingInProgress = false;
         set({ isSaving: false });
@@ -220,7 +223,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           get().declencherAutoSauvegarde();
         }
       }
-    }, 250);
+    }, 300);
   },
 
   // État des formulaires
@@ -514,100 +517,125 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
 
       const dataToSaveSafe = cleanData(programmeAEnregistrer);
 
-      if (programmeActuel.id.startsWith('prog_')) {
-        // Nouveau programme, l'ajouter
-        const { id: _, ...dataContent } = dataToSaveSafe;
-        const docRef = await firestoreService.create('productionPrograms', dataContent);
+      // 1. Sauvegarde locale immédiate (LocalStorage) pour zéro blocage
+      const calKey = cal || dateProductionNorm.toISOString().split('T')[0];
+      try {
+        localStorage.setItem(`boulangerie_programme_${calKey}`, JSON.stringify(programmeAEnregistrer));
+      } catch (_) {}
 
-        set((state) => ({
-          programmeActuel: state.programmeActuel ? {
-            ...state.programmeActuel,
-            id: docRef.id
-          } : null,
-          isLoading: false
-        }));
-      } else {
-        // Programme existant, le mettre à jour
-        const { id, ...dataContent } = dataToSaveSafe;
-        await firestoreService.update('productionPrograms', id, dataContent);
-        set({ isLoading: false });
+      // 2. Sauvegarde Firestore protégée par un timeout strict
+      try {
+        if (programmeActuel.id.startsWith('prog_')) {
+          // Nouveau programme, l'ajouter
+          const { id: _, ...dataContent } = dataToSaveSafe;
+          const docRef = await Promise.race([
+            firestoreService.create('productionPrograms', dataContent),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3500))
+          ]);
+
+          set((state) => ({
+            programmeActuel: state.programmeActuel ? {
+              ...state.programmeActuel,
+              id: (docRef as any).id
+            } : null,
+            isLoading: false
+          }));
+        } else {
+          // Programme existant, le mettre à jour
+          const { id, ...dataContent } = dataToSaveSafe;
+          await Promise.race([
+            firestoreService.update('productionPrograms', id, dataContent),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3500))
+          ]);
+          set({ isLoading: false });
+        }
+      } catch (err: any) {
+        console.warn('⚠️ Programme sauvegardé en local (Firestore inaccessible ou quota):', err?.message || err);
+        if (err?.code === 'resource-exhausted') {
+          activerModeSecours().catch(() => {});
+        }
       }
 
       // --- SYNC: Sauvegarder les commandes dans la collection 'clientOrders' ---
-      // Cela permet à la facturation de les trouver indépendamment du programme
-      console.log('🔄 Sync des commandes vers clientOrders...');
       try {
         const { writeBatch, doc, query, where, getDocs, collection } = await import('firebase/firestore');
         
         const dateStart = new Date(Date.UTC(dateProductionNorm.getUTCFullYear(), dateProductionNorm.getUTCMonth(), dateProductionNorm.getUTCDate(), 0, 0, 0));
         const dateEnd = new Date(Date.UTC(dateProductionNorm.getUTCFullYear(), dateProductionNorm.getUTCMonth(), dateProductionNorm.getUTCDate(), 23, 59, 59, 999));
 
-        // Récupérer les commandes existantes dans Firestore pour cette date
-        const qOrders = query(
-          collection(db, 'clientOrders'),
-          where('dateLivraison', '>=', dateToTimestamp(dateStart)),
-          where('dateLivraison', '<=', dateToTimestamp(dateEnd))
-        );
-        const snapOrders = await getDocs(qOrders);
-        const existingOrderIds = snapOrders.docs.map(doc => doc.id);
+        const syncJob = async () => {
+          // Récupérer les commandes existantes dans Firestore pour cette date
+          const qOrders = query(
+            collection(db, 'clientOrders'),
+            where('dateLivraison', '>=', dateToTimestamp(dateStart)),
+            where('dateLivraison', '<=', dateToTimestamp(dateEnd))
+          );
+          const snapOrders = await getDocs(qOrders);
+          const existingOrderIds = snapOrders.docs.map(doc => doc.id);
 
-        const currentOrderIds = new Set(commandesClients.map(c => c.id));
-        const orderIdsToDelete = existingOrderIds.filter(id => !currentOrderIds.has(id));
+          const currentOrderIds = new Set(commandesClients.map(c => c.id));
+          const orderIdsToDelete = existingOrderIds.filter(id => !currentOrderIds.has(id));
 
-        let batch = writeBatch(db);
-        let count = 0;
+          let batch = writeBatch(db);
+          let count = 0;
 
-        // 1. Supprimer les commandes qui ne sont plus dans le programme
-        for (const orderId of orderIdsToDelete) {
-          batch.delete(doc(db, 'clientOrders', orderId));
-          count++;
-          if (count >= 450) {
-            await batch.commit();
-            batch = writeBatch(db);
-            count = 0;
+          // 1. Supprimer les commandes qui ne sont plus dans le programme
+          for (const orderId of orderIdsToDelete) {
+            batch.delete(doc(db, 'clientOrders', orderId));
+            count++;
+            if (count >= 450) {
+              await batch.commit();
+              batch = writeBatch(db);
+              count = 0;
+            }
           }
-        }
 
-        const toIso = (v: any) => {
-          if (!v) return new Date().toISOString();
-          if (typeof v === 'string') return v;
-          if (v instanceof Date) return v.toISOString();
-          if (typeof v.toDate === 'function') return v.toDate().toISOString();
-          if (typeof v.toMillis === 'function') return new Date(v.toMillis()).toISOString();
-          if (typeof v.seconds === 'number') return new Date(v.seconds * 1000).toISOString();
-          return new Date(v).toISOString();
-        };
-
-        // 2. Ajouter/mettre à jour les commandes actuelles
-        for (const cmd of commandesClients) {
-          const cmdRef = doc(db, 'clientOrders', cmd.id);
-          const cmdData = {
-            ...cmd,
-            dateLivraison: dateToTimestamp(new Date(toIso(cmd.dateLivraison))),
-            dateCommande: dateToTimestamp(new Date(toIso(cmd.dateCommande))),
-            updatedAt: dateToTimestamp(new Date())
+          const toIso = (v: any) => {
+            if (!v) return new Date().toISOString();
+            if (typeof v === 'string') return v;
+            if (v instanceof Date) return v.toISOString();
+            if (typeof v.toDate === 'function') return v.toDate().toISOString();
+            if (typeof v.toMillis === 'function') return new Date(v.toMillis()).toISOString();
+            if (typeof v.seconds === 'number') return new Date(v.seconds * 1000).toISOString();
+            return new Date(v).toISOString();
           };
 
-          batch.set(cmdRef, cmdData, { merge: true });
-          count++;
+          // 2. Ajouter/mettre à jour les commandes actuelles
+          for (const cmd of commandesClients) {
+            const cmdRef = doc(db, 'clientOrders', cmd.id);
+            const cmdData = {
+              ...cmd,
+              dateLivraison: dateToTimestamp(new Date(toIso(cmd.dateLivraison))),
+              dateCommande: dateToTimestamp(new Date(toIso(cmd.dateCommande))),
+              updatedAt: dateToTimestamp(new Date())
+            };
 
-          if (count >= 450) {
-            await batch.commit();
-            batch = writeBatch(db);
-            count = 0;
+            batch.set(cmdRef, cmdData, { merge: true });
+            count++;
+
+            if (count >= 450) {
+              await batch.commit();
+              batch = writeBatch(db);
+              count = 0;
+            }
           }
-        }
-        if (count > 0) await batch.commit();
-        console.log('✅ Commandes synchronisées avec succès');
+          if (count > 0) await batch.commit();
+          console.log('✅ Commandes synchronisées avec succès');
+        };
+
+        await Promise.race([
+          syncJob(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout sync clientOrders')), 3000))
+        ]);
       } catch (err) {
-        console.error("Erreur sync commandes:", err);
+        console.warn("Sync clientOrders différée (quota ou réseau):", err);
       }
       // -----------------------------------------------------------------------
 
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      throw error;
+      console.warn('Sauvegarde programme traitée en local:', error);
     } finally {
+      isSavingInProgress = false;
       set({ isLoading: false, isSaving: false });
     }
   },
