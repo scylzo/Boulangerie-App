@@ -217,7 +217,7 @@ export const businessQueries = {
 // Fonctions de listener en temps réel
 export const realTimeListeners = {
   // Listener pour les programmes de production par date
-  subscribeToProgram(date: Date, callback: (programs: any[]) => void) {
+  subscribeToProgram(date: Date, callback: (programs: any[]) => void, onError?: (error: any) => void) {
     const dStr = (date instanceof Date && !isNaN(date.getTime()))
       ? (date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0
           ? date.toISOString().slice(0, 10)
@@ -242,6 +242,7 @@ export const realTimeListeners = {
       callback(programs);
     }, (error) => {
       console.error('❌ Erreur listener programme:', error);
+      if (onError) onError(error);
     });
   },
 

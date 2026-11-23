@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 
 export interface PendingSyncItem {
   id: string;
-  type: 'retour' | 'paiement_facture';
+  type: 'retour' | 'paiement_facture' | 'programme_production';
   createdAt: number;
   data: any;
 }
@@ -29,6 +29,7 @@ export const addToSyncQueue = (item: Omit<PendingSyncItem, 'id' | 'createdAt'>):
       if (q.type === item.type) {
         if (item.type === 'retour' && q.data?.docId === item.data?.docId) return false;
         if (item.type === 'paiement_facture' && q.data?.factureId === item.data?.factureId) return false;
+        if (item.type === 'programme_production' && q.data?.id === item.data?.id) return false;
       }
       return true;
     });
@@ -117,6 +118,17 @@ export const flushSyncQueue = async (): Promise<{ successCount: number; remainin
           removeFromSyncQueue(item.id);
           successCount++;
           console.log(`☁️ Paiement facture ${factureId} synchronisé sur Firestore`);
+        } else if (item.type === 'programme_production') {
+          const { id: progId, data: progData } = item.data;
+          if (progId && progData) {
+            const docRef = doc(db, 'productionPrograms', progId);
+            await setDoc(docRef, progData, { merge: true });
+            removeFromSyncQueue(item.id);
+            successCount++;
+            console.log(`☁️ Programme de production ${progId} synchronisé sur Firestore`);
+          } else {
+            removeFromSyncQueue(item.id);
+          }
         }
       } catch (err: any) {
         if (err?.code === 'resource-exhausted' || err?.message?.includes('Quota exceeded')) {

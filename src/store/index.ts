@@ -1,5 +1,5 @@
 export { useAuthStore } from './authStore';
-export { useProductionStore } from './productionStore';
+export { useProductionStore, extraireDateCalendaire, restaurerProgrammeLocalStorage, parseDateAny } from './productionStore';
 export { useLivraisonStore } from './livraisonStore';
 export { useBoutiqueStore } from './boutiqueStore';
 export { useRapportStore } from './rapportStore';

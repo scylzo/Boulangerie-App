@@ -5,6 +5,7 @@ import { firestoreService, businessQueries, realTimeListeners, dateToTimestamp, 
 import { db, activerModeSecours } from '../firebase/config';
 import { Timestamp } from 'firebase/firestore';
 import { useStockStore } from './stockStore';
+import { addToSyncQueue } from '../utils/syncQueue';
 
 
 
@@ -129,6 +130,66 @@ export const extraireDateCalendaire = (v: any): string | null => {
   return `${y}-${m}-${day}`;
 };
 
+export const parseDateAny = (d: any): Date => {
+  if (!d) return new Date();
+  if (d instanceof Date) return d;
+  if (typeof d.toDate === 'function') return d.toDate();
+  if (typeof d.toMillis === 'function') return new Date(d.toMillis());
+  if (typeof d.seconds === 'number') return new Date(d.seconds * 1000);
+  const parsed = new Date(d);
+  return isNaN(parsed.getTime()) ? new Date() : parsed;
+};
+
+export const cleanData = (data: any): any => {
+  if (data === undefined) return null;
+  if (data === null) return null;
+  if (data instanceof Date) return data;
+  if (typeof data === 'object' && typeof data.toMillis === 'function') return data;
+  if (typeof data === 'object' && typeof data.isEqual === 'function' && 'seconds' in data) return data;
+  if (typeof data === 'object' && typeof data.seconds === 'number' && typeof data.nanoseconds === 'number') {
+    return new Timestamp(data.seconds, data.nanoseconds);
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(cleanData);
+  }
+  if (typeof data === 'object') {
+    const res: any = {};
+    for (const k in data) {
+      res[k] = cleanData(data[k]);
+    }
+    return res;
+  }
+  return data;
+};
+
+export const restaurerProgrammeLocalStorage = (calKey: string): ProgrammeProduction | null => {
+  try {
+    const raw = localStorage.getItem(`boulangerie_programme_${calKey}`);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    return {
+      ...p,
+      dateProduction: parseDateAny(p.dateProduction),
+      dateCreation: parseDateAny(p.dateCreation),
+      createdAt: parseDateAny(p.createdAt),
+      updatedAt: parseDateAny(p.updatedAt),
+      commandesClients: (p.commandesClients || []).map((cmd: any) => ({
+        ...cmd,
+        dateCommande: parseDateAny(cmd.dateCommande),
+        dateLivraison: parseDateAny(cmd.dateLivraison),
+        createdAt: parseDateAny(cmd.createdAt),
+        updatedAt: parseDateAny(cmd.updatedAt),
+      })),
+      quantitesBoutique: p.quantitesBoutique || [],
+      totauxParProduit: p.totauxParProduit || [],
+    };
+  } catch (e) {
+    console.warn(`Erreur lecture cache local programme ${calKey}:`, e);
+    return null;
+  }
+};
+
 // Deux dates tombent-elles le même jour calendaire ? (tolère Date, Timestamp, string et décalages UTC/local)
 const memeJour = (a: any, b: any): boolean => {
   const ka = extraireDateCalendaire(a);
@@ -243,13 +304,28 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   // Actions Programme
 
   creerNouveauProgramme: (date: Date) => {
-    const cal = extraireDateCalendaire(date);
-    const dateProduction = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(date);
+    const calKey = extraireDateCalendaire(date) || (date instanceof Date ? date.toISOString().split('T')[0] : String(date));
+    
+    // Vérifier si un programme existe déjà dans le cache local
+    const localExistant = restaurerProgrammeLocalStorage(calKey);
+    if (localExistant && ((localExistant.commandesClients && localExistant.commandesClients.length > 0) || (localExistant.quantitesBoutique && localExistant.quantitesBoutique.length > 0) || localExistant.statut === 'envoye')) {
+      console.log('📦 Programme déjà présent dans le cache local, restauration au lieu de créer un brouillon vide');
+      set({
+        programmeActuel: localExistant,
+        commandesClients: localExistant.commandesClients || [],
+        quantitesBoutique: localExistant.quantitesBoutique || [],
+        isLoading: false
+      });
+      get().calculerTotauxParProduit();
+      return;
+    }
+
+    const dateProduction = new Date(calKey + 'T00:00:00.000Z');
 
     const nouveauProgramme: ProgrammeProduction = {
       id: `prog_${Date.now()}`,
       dateProduction: dateProduction,
-      dateCreation: new Date(), // Date réelle de création (maintenant)
+      dateCreation: new Date(),
       statut: 'brouillon',
       commandesClients: [],
       quantitesBoutique: [],
@@ -261,73 +337,97 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     set({
       programmeActuel: nouveauProgramme,
       commandesClients: [],
-      quantitesBoutique: []
+      quantitesBoutique: [],
+      isLoading: false
     });
 
-    // Calculer les totaux (vides au départ)
-    get().calculerTotauxParProduit();
+    try {
+      localStorage.setItem(`boulangerie_programme_${calKey}`, JSON.stringify(nouveauProgramme));
+    } catch (_) {}
 
-    console.log('✨ Nouveau programme créé pour', date.toLocaleDateString('fr-FR'));
+    get().calculerTotauxParProduit();
+    console.log('✨ Nouveau programme créé pour', calKey);
   },
 
   chargerProgramme: async (date: Date) => {
-    console.log('📅 Chargement programme pour date:', date);
-    set({ isLoading: true });
-    try {
-      const programmes = await businessQueries.getProgrammeByDate(date);
-      console.log('🔍 Programmes trouvés dans Firebase:', programmes.length);
+    const calKey = extraireDateCalendaire(date) || (date instanceof Date ? date.toISOString().split('T')[0] : String(date));
+    console.log('📅 Chargement programme pour date:', calKey);
 
-      if (programmes.length > 0) {
-        console.log('✅ Programme existant trouvé, chargement...');
+    // 1. Priorité absolue : charger immédiatement depuis le cache local (0ms latence)
+    const localProg = restaurerProgrammeLocalStorage(calKey);
+    if (localProg) {
+      set({
+        programmeActuel: localProg,
+        commandesClients: localProg.commandesClients || [],
+        quantitesBoutique: localProg.quantitesBoutique || [],
+        isLoading: false
+      });
+      get().calculerTotauxParProduit();
+      console.log('📦 Programme restauré immédiatement depuis le cache local pour', calKey);
+    } else {
+      set({ isLoading: true });
+    }
+
+    try {
+      const programmes = await Promise.race([
+        businessQueries.getProgrammeByDate(date),
+        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
+      ]);
+
+      console.log('🔍 Programmes trouvés dans Firebase:', (programmes || []).length);
+
+      if (programmes && programmes.length > 0) {
         const programme = programmes[0] as any;
-        // Convertir les timestamps en dates
         const programmeConverti: ProgrammeProduction = {
           ...programme,
-          dateProduction: programme.dateProduction instanceof Date ? programme.dateProduction : timestampToDate(programme.dateProduction as Timestamp),
-          dateCreation: programme.dateCreation instanceof Date ? programme.dateCreation : timestampToDate(programme.dateCreation as Timestamp),
-          createdAt: programme.createdAt instanceof Date ? programme.createdAt : timestampToDate(programme.createdAt as Timestamp),
-          updatedAt: programme.updatedAt instanceof Date ? programme.updatedAt : timestampToDate(programme.updatedAt as Timestamp),
-          // Convertir les dates dans les commandes clients
+          dateProduction: parseDateAny(programme.dateProduction),
+          dateCreation: parseDateAny(programme.dateCreation),
+          createdAt: parseDateAny(programme.createdAt),
+          updatedAt: parseDateAny(programme.updatedAt),
           commandesClients: (programme.commandesClients || []).map((cmd: any) => ({
             ...cmd,
-            dateCommande: cmd.dateCommande instanceof Date ? cmd.dateCommande : timestampToDate(cmd.dateCommande as Timestamp),
-            dateLivraison: cmd.dateLivraison instanceof Date ? cmd.dateLivraison : timestampToDate(cmd.dateLivraison as Timestamp),
-            createdAt: cmd.createdAt instanceof Date ? cmd.createdAt : timestampToDate(cmd.createdAt as Timestamp),
-            updatedAt: cmd.updatedAt instanceof Date ? cmd.updatedAt : timestampToDate(cmd.updatedAt as Timestamp),
+            dateCommande: parseDateAny(cmd.dateCommande),
+            dateLivraison: parseDateAny(cmd.dateLivraison),
+            createdAt: parseDateAny(cmd.createdAt),
+            updatedAt: parseDateAny(cmd.updatedAt),
           })),
         };
 
         const cmdsJour = commandesDuJour(programmeConverti.commandesClients, programmeConverti.dateProduction);
-        const contamine = cmdsJour.length !== (programmeConverti.commandesClients || []).length;
-        set({
-          programmeActuel: { ...programmeConverti, commandesClients: cmdsJour },
-          commandesClients: cmdsJour,
-          quantitesBoutique: programmeConverti.quantitesBoutique || [],
-          isLoading: false
-        });
-        // Les totaux stockés incluaient les commandes parasites : on les recalcule.
-        if (contamine) get().calculerTotauxParProduit();
-        console.log('📋 Programme chargé avec', cmdsJour.length, 'commandes');
-      } else {
+
+        // Ne remplacer la version locale que si la version distante est plus récente
+        const remoteTime = programmeConverti.updatedAt.getTime();
+        const localTime = localProg ? localProg.updatedAt.getTime() : 0;
+
+        if (!localProg || remoteTime >= localTime) {
+          set({
+            programmeActuel: { ...programmeConverti, commandesClients: cmdsJour },
+            commandesClients: cmdsJour,
+            quantitesBoutique: programmeConverti.quantitesBoutique || [],
+            isLoading: false
+          });
+          get().calculerTotauxParProduit();
+          try {
+            localStorage.setItem(`boulangerie_programme_${calKey}`, JSON.stringify(get().programmeActuel));
+          } catch (_) {}
+          console.log('☁️ Programme synchronisé depuis Firebase');
+        } else {
+          console.log('🛡️ Version locale conservée (plus récente que Firebase)');
+        }
+      } else if (!localProg) {
+        // Vraiment aucun programme trouvé : créer automatiquement un nouveau programme
         const { programmeActuel: existingProg } = get();
-        // Ne jamais écraser un programme existant en mémoire pour CETTE MÊME DATE qui a des données
         const memeJourDate = existingProg ? memeJour(existingProg.dateProduction, date) : false;
         if (existingProg && memeJourDate && ((existingProg.commandesClients && existingProg.commandesClients.length > 0) || (existingProg.quantitesBoutique && existingProg.quantitesBoutique.length > 0))) {
-          console.warn('⚠️ Aucun programme retourné par la requête mais des données existent en mémoire pour ce même jour, conservation de l\'état actuel');
           set({ isLoading: false });
           return;
         }
 
-        // Aucun programme trouvé, créer un nouveau programme automatiquement pour cette date
-        console.log('❌ Aucun programme trouvé, création automatique...');
-
-        const cal = extraireDateCalendaire(date);
-        const dateProduction = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(date);
-
+        const dateProduction = new Date(calKey + 'T00:00:00.000Z');
         const nouveauProgramme: ProgrammeProduction = {
           id: `prog_${Date.now()}`,
-          dateProduction: dateProduction,
-          dateCreation: new Date(), // Date réelle de création (maintenant)
+          dateProduction,
+          dateCreation: new Date(),
           statut: 'brouillon',
           commandesClients: [],
           quantitesBoutique: [],
@@ -342,42 +442,85 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           quantitesBoutique: [],
           isLoading: false
         });
-
-        console.log('✨ Nouveau programme créé automatiquement pour', date.toLocaleDateString('fr-FR'));
+        get().calculerTotauxParProduit();
+      } else {
+        set({ isLoading: false });
       }
-    } catch (error) {
-      console.error('Erreur lors du chargement du programme:', error);
-      set({ isLoading: false });
-      throw error;
+    } catch (error: any) {
+      console.warn('⚠️ Requête Firebase programme ignorée (mode local actif ou quota):', error?.message || error);
+      if (error?.code === 'resource-exhausted') {
+        activerModeSecours().catch(() => {});
+      }
+      // Si nous n'avions pas de programme chargé, s'assurer que le local ou un brouillon est actif
+      if (!get().programmeActuel) {
+        const fallbackLocal = restaurerProgrammeLocalStorage(calKey);
+        if (fallbackLocal) {
+          set({
+            programmeActuel: fallbackLocal,
+            commandesClients: fallbackLocal.commandesClients || [],
+            quantitesBoutique: fallbackLocal.quantitesBoutique || [],
+            isLoading: false
+          });
+          get().calculerTotauxParProduit();
+        } else {
+          const dateProduction = new Date(calKey + 'T00:00:00.000Z');
+          const nouveauProgramme: ProgrammeProduction = {
+            id: `prog_${Date.now()}`,
+            dateProduction,
+            dateCreation: new Date(),
+            statut: 'brouillon',
+            commandesClients: [],
+            quantitesBoutique: [],
+            totauxParProduit: [],
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          set({
+            programmeActuel: nouveauProgramme,
+            commandesClients: [],
+            quantitesBoutique: [],
+            isLoading: false
+          });
+          get().calculerTotauxParProduit();
+        }
+      } else {
+        set({ isLoading: false });
+      }
     }
   },
 
   chargerProgrammeAvecListener: (date: Date) => {
-    console.log('📡 Configuration listener temps réel pour:', date);
+    const calKey = extraireDateCalendaire(date) || (date instanceof Date ? date.toISOString().split('T')[0] : String(date));
+    console.log('📡 Configuration listener temps réel pour:', calKey);
 
-    // Nettoyer le listener précédent s'il existe
     const { programListener } = get();
     if (programListener) {
       programListener();
     }
 
-    // Vider l'état AVANT l'arrivée du snapshot : sinon les commandes de la date
-    // précédente restent en mémoire et peuvent être écrites dans le programme
-    // de la nouvelle date (sauvegarderProgramme sort si programmeActuel est null).
-    set({ isLoading: true, programmeActuel: null, commandesClients: [], quantitesBoutique: [] });
+    // Charger immédiatement le programme local s'il existe pour zéro latence
+    const localProg = restaurerProgrammeLocalStorage(calKey);
+    if (localProg) {
+      set({
+        programmeActuel: localProg,
+        commandesClients: localProg.commandesClients || [],
+        quantitesBoutique: localProg.quantitesBoutique || [],
+        isLoading: false
+      });
+      get().calculerTotauxParProduit();
+      console.log('📦 Programme pré-chargé depuis cache local pour listener');
+    } else {
+      set({ isLoading: true, programmeActuel: null, commandesClients: [], quantitesBoutique: [] });
+    }
 
-    // Configurer le nouveau listener
     const unsubscribe = realTimeListeners.subscribeToProgram(date, (programmes) => {
       console.log('🔄 Mise à jour temps réel - programmes reçus:', programmes.length);
 
       if (programmes.length > 0) {
-        console.log('✅ Programme existant trouvé via listener, chargement...');
-
-        // Trier pour donner priorité au programme qui contient des données ou le plus récent
         const progsTries = [...programmes].sort((a: any, b: any) => {
           const aCount = (a.commandesClients?.length || 0) + (a.quantitesBoutique?.length || 0);
           const bCount = (b.commandesClients?.length || 0) + (b.quantitesBoutique?.length || 0);
-          if (aCount !== bCount) return bCount - aCount; // Priorité absolue aux données
+          if (aCount !== bCount) return bCount - aCount;
 
           const timeA = a.updatedAt?.toDate ? a.updatedAt.toDate().getTime() : new Date(a.updatedAt || 0).getTime();
           const timeB = b.updatedAt?.toDate ? b.updatedAt.toDate().getTime() : new Date(b.updatedAt || 0).getTime();
@@ -385,57 +528,51 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         });
 
         const programme = progsTries[0] as any;
-
-        // Convertir les timestamps en dates
         const programmeConverti: ProgrammeProduction = {
           ...programme,
-          dateProduction: programme.dateProduction instanceof Date ? programme.dateProduction : timestampToDate(programme.dateProduction as Timestamp),
-          dateCreation: programme.dateCreation instanceof Date ? programme.dateCreation : timestampToDate(programme.dateCreation as Timestamp),
-          createdAt: programme.createdAt instanceof Date ? programme.createdAt : timestampToDate(programme.createdAt as Timestamp),
-          updatedAt: programme.updatedAt instanceof Date ? programme.updatedAt : timestampToDate(programme.updatedAt as Timestamp),
-          // Convertir les dates dans les commandes clients
+          dateProduction: parseDateAny(programme.dateProduction),
+          dateCreation: parseDateAny(programme.dateCreation),
+          createdAt: parseDateAny(programme.createdAt),
+          updatedAt: parseDateAny(programme.updatedAt),
           commandesClients: (programme.commandesClients || []).map((cmd: any) => ({
             ...cmd,
-            dateCommande: cmd.dateCommande instanceof Date ? cmd.dateCommande : timestampToDate(cmd.dateCommande as Timestamp),
-            dateLivraison: cmd.dateLivraison instanceof Date ? cmd.dateLivraison : timestampToDate(cmd.dateLivraison as Timestamp),
-            createdAt: cmd.createdAt instanceof Date ? cmd.createdAt : timestampToDate(cmd.createdAt as Timestamp),
-            updatedAt: cmd.updatedAt instanceof Date ? cmd.updatedAt : timestampToDate(cmd.updatedAt as Timestamp),
+            dateCommande: parseDateAny(cmd.dateCommande),
+            dateLivraison: parseDateAny(cmd.dateLivraison),
+            createdAt: parseDateAny(cmd.createdAt),
+            updatedAt: parseDateAny(cmd.updatedAt),
           })),
         };
 
         const cmdsJour = commandesDuJour(programmeConverti.commandesClients, programmeConverti.dateProduction);
-        const contamine = cmdsJour.length !== (programmeConverti.commandesClients || []).length;
-        set({
-          programmeActuel: { ...programmeConverti, commandesClients: cmdsJour },
-          commandesClients: cmdsJour,
-          quantitesBoutique: programmeConverti.quantitesBoutique || [],
-          isLoading: false
-        });
-        // Les totaux stockés incluaient les commandes parasites : on les recalcule.
-        if (contamine) get().calculerTotauxParProduit();
+        const currentLocal = restaurerProgrammeLocalStorage(calKey);
+        const localTime = currentLocal ? currentLocal.updatedAt.getTime() : 0;
+        const remoteTime = programmeConverti.updatedAt.getTime();
 
-        console.log('🔄 Programme synchronisé avec', cmdsJour.length, 'commandes');
+        if (!currentLocal || remoteTime >= localTime) {
+          set({
+            programmeActuel: { ...programmeConverti, commandesClients: cmdsJour },
+            commandesClients: cmdsJour,
+            quantitesBoutique: programmeConverti.quantitesBoutique || [],
+            isLoading: false
+          });
+          get().calculerTotauxParProduit();
+          try {
+            localStorage.setItem(`boulangerie_programme_${calKey}`, JSON.stringify(get().programmeActuel));
+          } catch (_) {}
+        }
       } else {
         const { programmeActuel: existingProg } = get();
-        // Ne jamais écraser un programme existant en mémoire pour CETTE MÊME DATE qui a des données
-        // ou si une sauvegarde est en cours
         const memeJourDate = existingProg ? memeJour(existingProg.dateProduction, date) : false;
         if (isSavingInProgress || (existingProg && memeJourDate && ((existingProg.commandesClients && existingProg.commandesClients.length > 0) || (existingProg.quantitesBoutique && existingProg.quantitesBoutique.length > 0)))) {
-          console.warn('⚠️ Aucun programme retourné par la requête mais des données existent en mémoire pour ce même jour (ou sauvegarde en cours), conservation de l\'état actuel');
           set({ isLoading: false });
           return;
         }
 
-        // Aucun programme trouvé, créer un nouveau programme
-        console.log('❌ Aucun programme trouvé via listener, création automatique...');
-
-        const cal = extraireDateCalendaire(date);
-        const dateProduction = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(date);
-
+        const dateProduction = new Date(calKey + 'T00:00:00.000Z');
         const nouveauProgramme: ProgrammeProduction = {
           id: `prog_${Date.now()}`,
-          dateProduction: dateProduction,
-          dateCreation: new Date(), // Date réelle de création (maintenant)
+          dateProduction,
+          dateCreation: new Date(),
           statut: 'brouillon',
           commandesClients: [],
           quantitesBoutique: [],
@@ -450,8 +587,27 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           quantitesBoutique: [],
           isLoading: false
         });
-
-        console.log('✨ Nouveau programme créé automatiquement via listener pour', date.toLocaleDateString('fr-FR'));
+      }
+    }, (error) => {
+      console.warn('❌ Erreur listener programme (sécurisé):', error?.message || error);
+      if (error?.code === 'resource-exhausted') {
+        activerModeSecours().catch(() => {});
+      }
+      if (!get().programmeActuel) {
+        const localFallback = restaurerProgrammeLocalStorage(calKey);
+        if (localFallback) {
+          set({
+            programmeActuel: localFallback,
+            commandesClients: localFallback.commandesClients || [],
+            quantitesBoutique: localFallback.quantitesBoutique || [],
+            isLoading: false
+          });
+          get().calculerTotauxParProduit();
+        } else {
+          set({ isLoading: false });
+        }
+      } else {
+        set({ isLoading: false });
       }
     });
 
@@ -490,31 +646,6 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         updatedAt: dateToTimestamp(new Date())
       };
 
-      const cleanData = (data: any): any => {
-        if (data === undefined) return null;
-        if (data === null) return null;
-        if (data instanceof Date) return data;
-        // Garder les Timestamp Firestore
-        if (typeof data === 'object' && typeof data.toMillis === 'function') return data;
-        if (typeof data === 'object' && typeof data.isEqual === 'function' && 'seconds' in data) return data;
-        if (typeof data === 'object' && typeof data.seconds === 'number' && typeof data.nanoseconds === 'number') {
-          return new Timestamp(data.seconds, data.nanoseconds);
-        }
-
-        if (Array.isArray(data)) {
-          return data.map(cleanData);
-        }
-        if (typeof data === 'object') {
-          const res: any = {};
-          for (const k in data) {
-            const val = cleanData(data[k]);
-            res[k] = val;
-          }
-          return res;
-        }
-        return data;
-      };
-
       const dataToSaveSafe = cleanData(programmeAEnregistrer);
 
       // 1. Sauvegarde locale immédiate (LocalStorage) pour zéro blocage
@@ -523,14 +654,23 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         localStorage.setItem(`boulangerie_programme_${calKey}`, JSON.stringify(programmeAEnregistrer));
       } catch (_) {}
 
-      // 2. Sauvegarde Firestore protégée par un timeout strict
+      // 2. File d'attente automatique de synchronisation pour Firebase
+      addToSyncQueue({
+        type: 'programme_production',
+        data: {
+          id: programmeActuel.id,
+          data: dataToSaveSafe
+        }
+      });
+
+      // 3. Sauvegarde Firestore directe protégée par un timeout strict (2000ms max)
       try {
         if (programmeActuel.id.startsWith('prog_')) {
           // Nouveau programme, l'ajouter
           const { id: _, ...dataContent } = dataToSaveSafe;
           const docRef = await Promise.race([
             firestoreService.create('productionPrograms', dataContent),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3500))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
           ]);
 
           set((state) => ({
@@ -545,7 +685,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           const { id, ...dataContent } = dataToSaveSafe;
           await Promise.race([
             firestoreService.update('productionPrograms', id, dataContent),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3500))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
           ]);
           set({ isLoading: false });
         }
@@ -556,34 +696,34 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         }
       }
 
-      // --- SYNC: Sauvegarder les commandes dans la collection 'clientOrders' ---
-      try {
-        const { writeBatch, doc, query, where, getDocs, collection } = await import('firebase/firestore');
-        
-        const dateStart = new Date(Date.UTC(dateProductionNorm.getUTCFullYear(), dateProductionNorm.getUTCMonth(), dateProductionNorm.getUTCDate(), 0, 0, 0));
-        const dateEnd = new Date(Date.UTC(dateProductionNorm.getUTCFullYear(), dateProductionNorm.getUTCMonth(), dateProductionNorm.getUTCDate(), 23, 59, 59, 999));
+      // --- SYNC en tâche de fond non bloquante : collection 'clientOrders' ---
+      (async () => {
+        try {
+          const { writeBatch, doc, query, where, getDocs, collection } = await import('firebase/firestore');
+          const dateStart = new Date(Date.UTC(dateProductionNorm.getUTCFullYear(), dateProductionNorm.getUTCMonth(), dateProductionNorm.getUTCDate(), 0, 0, 0));
+          const dateEnd = new Date(Date.UTC(dateProductionNorm.getUTCFullYear(), dateProductionNorm.getUTCMonth(), dateProductionNorm.getUTCDate(), 23, 59, 59, 999));
 
-        const syncJob = async () => {
-          // Récupérer les commandes existantes dans Firestore pour cette date
           const qOrders = query(
             collection(db, 'clientOrders'),
             where('dateLivraison', '>=', dateToTimestamp(dateStart)),
             where('dateLivraison', '<=', dateToTimestamp(dateEnd))
           );
-          const snapOrders = await getDocs(qOrders);
-          const existingOrderIds = snapOrders.docs.map(doc => doc.id);
+          const snapOrders = await Promise.race([
+            getDocs(qOrders),
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error('timeout orders')), 2000))
+          ]);
 
+          const existingOrderIds = snapOrders.docs.map((d: any) => d.id);
           const currentOrderIds = new Set(commandesClients.map(c => c.id));
-          const orderIdsToDelete = existingOrderIds.filter(id => !currentOrderIds.has(id));
+          const orderIdsToDelete = existingOrderIds.filter((id: any) => !currentOrderIds.has(id));
 
           let batch = writeBatch(db);
           let count = 0;
 
-          // 1. Supprimer les commandes qui ne sont plus dans le programme
           for (const orderId of orderIdsToDelete) {
             batch.delete(doc(db, 'clientOrders', orderId));
             count++;
-            if (count >= 450) {
+            if (count >= 400) {
               await batch.commit();
               batch = writeBatch(db);
               count = 0;
@@ -600,7 +740,6 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
             return new Date(v).toISOString();
           };
 
-          // 2. Ajouter/mettre à jour les commandes actuelles
           for (const cmd of commandesClients) {
             const cmdRef = doc(db, 'clientOrders', cmd.id);
             const cmdData = {
@@ -609,28 +748,17 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
               dateCommande: dateToTimestamp(new Date(toIso(cmd.dateCommande))),
               updatedAt: dateToTimestamp(new Date())
             };
-
             batch.set(cmdRef, cmdData, { merge: true });
             count++;
-
-            if (count >= 450) {
+            if (count >= 400) {
               await batch.commit();
               batch = writeBatch(db);
               count = 0;
             }
           }
           if (count > 0) await batch.commit();
-          console.log('✅ Commandes synchronisées avec succès');
-        };
-
-        await Promise.race([
-          syncJob(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout sync clientOrders')), 3000))
-        ]);
-      } catch (err) {
-        console.warn("Sync clientOrders différée (quota ou réseau):", err);
-      }
-      // -----------------------------------------------------------------------
+        } catch (_) {}
+      })();
 
     } catch (error) {
       console.warn('Sauvegarde programme traitée en local:', error);
@@ -740,25 +868,53 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
   },
 
   envoyerAuBoulanger: async () => {
-    const { programmeActuel } = get();
+    const { programmeActuel, commandesClients, quantitesBoutique } = get();
     if (!programmeActuel) return;
 
     try {
+      const cmdsJour = commandesDuJour(commandesClients, programmeActuel.dateProduction);
+      const cal = extraireDateCalendaire(programmeActuel.dateProduction);
+      const dateProductionNorm = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(programmeActuel.dateProduction);
+      const calKey = cal || dateProductionNorm.toISOString().split('T')[0];
+
       const programmeEnvoye = {
         ...programmeActuel,
+        commandesClients: cmdsJour,
+        quantitesBoutique,
+        dateProduction: dateProductionNorm,
         statut: 'envoye' as const,
         updatedAt: new Date()
       };
 
-      // Sauvegarder d'abord localement
-      set({ programmeActuel: programmeEnvoye });
+      // 1. Sauvegarder d'abord immédiatement dans le store
+      set({ programmeActuel: programmeEnvoye, commandesClients: cmdsJour });
+      get().calculerTotauxParProduit();
 
-      // Puis sauvegarder vers Firebase
+      // 2. Persister immédiatement dans le localStorage
+      try {
+        localStorage.setItem(`boulangerie_programme_${calKey}`, JSON.stringify(programmeEnvoye));
+      } catch (_) {}
+
+      // 3. Ajouter à la file d'attente de synchronisation
+      addToSyncQueue({
+        type: 'programme_production',
+        data: {
+          id: programmeEnvoye.id,
+          data: cleanData({
+            ...programmeEnvoye,
+            dateProduction: dateToTimestamp(dateProductionNorm),
+            dateCreation: dateToTimestamp(programmeEnvoye.dateCreation),
+            createdAt: dateToTimestamp(programmeEnvoye.createdAt),
+            updatedAt: dateToTimestamp(programmeEnvoye.updatedAt)
+          })
+        }
+      });
+
+      // 4. Puis déclencher la sauvegarde sans bloquer
       await get().sauvegarderProgramme();
 
     } catch (error) {
-      console.error('Erreur lors de l\'envoi:', error);
-      throw error;
+      console.warn('Envoi au boulanger traité en local:', error);
     }
   },
 

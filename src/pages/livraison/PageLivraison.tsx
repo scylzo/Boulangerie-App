@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 
-import { useProductionStore } from '../../store/productionStore';
+import { useProductionStore, extraireDateCalendaire } from '../../store/productionStore';
 import { useLivreurStore } from '../../store/livreurStore';
 import { useReferentielStore } from '../../store/referentielStore';
 import { useLivraisonStore } from '../../store/livraisonStore';
@@ -21,9 +21,14 @@ export const PageLivraison: React.FC = () => {
   const { clients, produits: produitsRef, chargerProduits, chargerClients } = useReferentielStore();
   const { parametresLivraison, chargerParametresLivraison } = useLivraisonStore();
 
-  const [dateSelectionnee, setDateSelectionnee] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [dateSelectionnee, setDateSelectionnee] = useState(() => {
+    const curDate = useProductionStore.getState().programmeActuel?.dateProduction;
+    if (curDate) {
+      const cal = extraireDateCalendaire(curDate);
+      if (cal) return cal;
+    }
+    return new Date().toISOString().split('T')[0];
+  });
   const [carSelectionne, setCarSelectionne] = useState<CarLivraison | 'tous'>('tous');
   const [livreurSelectionne, setLivreurSelectionne] = useState<string>('tous');
   const [searchTerm, setSearchTerm] = useState('');

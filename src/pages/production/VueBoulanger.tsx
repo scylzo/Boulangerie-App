@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
-import { useProductionStore } from '../../store';
+import { useProductionStore, extraireDateCalendaire } from '../../store';
 import { useLivreurStore } from '../../store/livreurStore';
 import { htmlPrintService } from '../../services/htmlPrintService';
 import { ModalValidationProduction } from '../../components/production/ModalValidationProduction';
@@ -111,7 +111,14 @@ export const VueBoulanger: React.FC = () => {
   const [showValidationModal, setShowValidationModal] = useState(false);
   const { programmeActuel, chargerProgramme, chargerProduits, produits, setQuantiteProduite, clients, chargerClients } = useProductionStore();
   const { livreurs, chargerLivreurs } = useLivreurStore();
-  const [dateSelectionnee, setDateSelectionnee] = useState(new Date().toISOString().split('T')[0]);
+  const [dateSelectionnee, setDateSelectionnee] = useState(() => {
+    const curDate = useProductionStore.getState().programmeActuel?.dateProduction;
+    if (curDate) {
+      const cal = extraireDateCalendaire(curDate);
+      if (cal) return cal;
+    }
+    return new Date().toISOString().split('T')[0];
+  });
 
   // Chargement initial des données
   useEffect(() => {
