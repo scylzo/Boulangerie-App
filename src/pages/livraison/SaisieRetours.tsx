@@ -172,11 +172,10 @@ export const SaisieRetours: React.FC = () => {
 
       if (confirmation) {
         await marquerAucunRetourClient(clientId, new Date(dateSelectionnee));
-        await chargerInvendusDuJour(new Date(dateSelectionnee));
 
-        // Mettre à jour la facture (silencieusement)
+        // Mettre à jour la facture (silencieusement en arrière-plan)
         const invendusUpdated = useLivraisonStore.getState().invendusClients;
-        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error(err));
+        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.warn('Mise à jour facture silencieuse:', err));
 
         toast.success(`✅ Aucun retour confirmé pour ${client?.nom || 'le client'}`);
       }
@@ -286,11 +285,10 @@ export const SaisieRetours: React.FC = () => {
         }));
 
         await sauvegarderRetoursClient(clientId, new Date(dateSelectionnee), produitsAvecRetours);
-        await chargerInvendusDuJour(new Date(dateSelectionnee));
 
-        // Mettre à jour la facture IMMÉDIATEMENT
+        // Mettre à jour la facture (silencieusement en arrière-plan)
         const invendusUpdated = useLivraisonStore.getState().invendusClients;
-        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error("Erreur update facture", err));
+        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.warn("Mise à jour facture silencieuse:", err));
 
         // Réinitialiser l'état local pour ce client
         setInvendusLocaux(prev => {

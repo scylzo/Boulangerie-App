@@ -327,7 +327,14 @@ export const useFacturationStore = create<FacturationStore>()(
                   updates.validatedAt = new Date();
                 }
 
-                await updateDoc(doc(db, 'factures', factureExistante.id), updates);
+                try {
+                  await Promise.race([
+                    updateDoc(doc(db, 'factures', factureExistante.id), updates),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
+                  ]);
+                } catch (e) {
+                  console.warn('Mise à jour facture Firestore ignorée (quota ou réseau):', e);
+                }
 
                 // Mise à jour state local
                 misesAJour.push({
@@ -371,7 +378,14 @@ export const useFacturationStore = create<FacturationStore>()(
                   client: clientClean
                   // ... autres champs
                 };
-                await setDoc(doc(db, 'factures', nouvelleFacture.id), factureFirebase, { merge: true });
+                try {
+                  await Promise.race([
+                    setDoc(doc(db, 'factures', nouvelleFacture.id), factureFirebase, { merge: true }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
+                  ]);
+                } catch (e) {
+                  console.warn('Création facture Firestore ignorée (quota ou réseau):', e);
+                }
                 nouvelles.push(nouvelleFacture);
               }
             }
@@ -949,36 +963,7 @@ export const useFacturationStore = create<FacturationStore>()(
           const resteAEncasser = Math.max(0, montantAttendu - (facture.montantRegle || 0));
           const surplus = Math.max(0, nouveauVersement - resteAEncasser);
 
-          if (surplus > 0) {
-            const clientRef = doc(db, 'clients', facture.clientId);
-            const clientDoc = await getDoc(clientRef);
-            if (clientDoc.exists()) {
-              const soldeActuel = clientDoc.data().solde || 0;
-              const nouveauSolde = soldeActuel + surplus;
-              await updateDoc(clientRef, { solde: nouveauSolde });
-              console.log(`💰 Avoir généré: +${surplus} FCFA (Nouveau solde: ${nouveauSolde})`);
-            }
-          }
-
-          await updateDoc(doc(db, 'factures', factureId), updateData);
-
-          // Journal des règlements (collection interrogeable par date de règlement).
-          // Id déterministe -> écriture idempotente (pas de doublon si rejoué).
-          try {
-            await Promise.all(nouveauxReglements.map(r =>
-              setDoc(doc(db, 'reglements', `${factureId}_${r.id}`), {
-                factureId,
-                clientId: facture.clientId,
-                mode: r.mode,
-                montant: r.montant,
-                date: r.date,
-                reference: (r as any).reference || null,
-              })
-            ));
-          } catch (e) {
-            console.error('Erreur journal règlements:', e);
-          }
-
+          // 1. Mise à jour immédiate de l'état local (optimistic)
           set(state => ({
             factures: state.factures.map(f =>
               f.id === factureId ? { ...f, ...updateData } : f
@@ -987,6 +972,43 @@ export const useFacturationStore = create<FacturationStore>()(
               ? { ...state.factureActive, ...updateData }
               : state.factureActive
           }));
+          console.log(`✅ Règlement enregistré en local pour facture: ${facture.numeroFacture || factureId}`);
+
+          // 2. Synchronisation Firebase protégée avec timeout et tolérance quota
+          try {
+            if (surplus > 0) {
+              const clientRef = doc(db, 'clients', facture.clientId);
+              getDoc(clientRef).then(clientDoc => {
+                if (clientDoc.exists()) {
+                  const soldeActuel = clientDoc.data().solde || 0;
+                  const nouveauSolde = soldeActuel + surplus;
+                  updateDoc(clientRef, { solde: nouveauSolde }).catch(e => console.warn("Erreur mise à jour avoir client:", e));
+                  console.log(`💰 Avoir généré: +${surplus} FCFA (Nouveau solde: ${nouveauSolde})`);
+                }
+              }).catch(e => console.warn("Erreur lecture client pour avoir:", e));
+            }
+
+            await Promise.race([
+              updateDoc(doc(db, 'factures', factureId), updateData),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
+            ]);
+
+            // Journal des règlements (non bloquant)
+            Promise.allSettled(nouveauxReglements.map(r =>
+              setDoc(doc(db, 'reglements', `${factureId}_${r.id}`), {
+                factureId,
+                clientId: facture.clientId,
+                mode: r.mode,
+                montant: r.montant,
+                date: r.date,
+                reference: (r as any).reference || null,
+              })
+            )).catch(() => {});
+
+            console.log(`☁️ Règlement synchronisé avec succès sur Firestore`);
+          } catch (err: any) {
+            console.warn(`⚠️ Quota Firestore ou réseau inaccessible lors du règlement (conservé en local):`, err?.message || err);
+          }
 
         } catch (error) {
           console.error('❌ Erreur lors du marquage du paiement:', error);

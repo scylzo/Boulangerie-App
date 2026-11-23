@@ -107,8 +107,8 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
 
   chargerInvendusDuJour: async (date: Date) => {
     set({ isLoading: true });
+    const dateStr = date.toISOString().split('T')[0];
     try {
-      const dateStr = date.toISOString().split('T')[0];
       console.log(`🔄 Chargement des invendus pour ${dateStr}...`);
 
       // Chercher tous les retours clients pour cette date
@@ -128,23 +128,55 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
           const data = doc.data();
           return {
             ...data,
-            dateLivraison: data.dateLivraison.toDate(),
-            createdAt: data.createdAt.toDate(),
-            updatedAt: data.updatedAt.toDate(),
+            dateLivraison: data.dateLivraison?.toDate ? data.dateLivraison.toDate() : new Date(data.dateLivraison),
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
           } as InvendusClient;
         });
 
-        set({ invendusClients: invendusData });
+        try {
+          localStorage.setItem(`boulangerie_retours_${dateStr}`, JSON.stringify(invendusData));
+        } catch (_) {}
+
+        set({ invendusClients: invendusData, isLoading: false });
         console.log(`✅ ${invendusData.length} retours clients chargés depuis Firebase`);
       } else {
+        // Vérifier si des retours sont en stockage local
+        const local = localStorage.getItem(`boulangerie_retours_${dateStr}`);
+        if (local) {
+          try {
+            const parsed = JSON.parse(local).map((inv: any) => ({
+              ...inv,
+              dateLivraison: new Date(inv.dateLivraison),
+              createdAt: new Date(inv.createdAt),
+              updatedAt: new Date(inv.updatedAt),
+            }));
+            set({ invendusClients: parsed, isLoading: false });
+            console.log(`📦 ${parsed.length} retours clients restaurés depuis le stockage local`);
+            return;
+          } catch (_) {}
+        }
         console.log(`ℹ️ Aucun retour client trouvé pour cette date`);
-        set({ invendusClients: [] });
+        set({ invendusClients: [], isLoading: false });
       }
-
-      set({ isLoading: false });
     } catch (error) {
+      // Secours en cas de quota Firestore dépassé
+      const local = localStorage.getItem(`boulangerie_retours_${dateStr}`);
+      if (local) {
+        try {
+          const parsed = JSON.parse(local).map((inv: any) => ({
+            ...inv,
+            dateLivraison: new Date(inv.dateLivraison),
+            createdAt: new Date(inv.createdAt),
+            updatedAt: new Date(inv.updatedAt),
+          }));
+          set({ invendusClients: parsed, isLoading: false });
+          console.log(`📦 ${parsed.length} retours clients restaurés depuis le stockage local (secours quota)`);
+          return;
+        } catch (_) {}
+      }
       set({ isLoading: false });
-      console.error(`❌ Erreur lors du chargement des invendus:`, error);
+      console.warn(`⚠️ Erreur lors du chargement des invendus (quota ou réseau):`, error);
     }
   },
 
@@ -332,142 +364,143 @@ export const useLivraisonStore = create<LivraisonStore>((set, get) => ({
   },
 
   marquerAucunRetourClient: async (clientId: string, date: Date) => {
-    set({ isLoading: true });
+    const dateStr = date.toISOString().split('T')[0];
+    const docId = `retours_${clientId}_${dateStr}`;
 
-    try {
-      console.log('✅ Marquage "aucun retour" pour client:', clientId, 'date:', date.toISOString().split('T')[0]);
+    const retourVide: InvendusClient = {
+      clientId,
+      dateLivraison: date,
+      produits: [], // Aucun produit avec retours
+      retoursCompletes: true, // Marqué comme complété
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
 
-      // Créer une entrée retour vide pour ce client
-      const dateStr = date.toISOString().split('T')[0];
-      const docId = `retours_${clientId}_${dateStr}`;
-
-      const retourVide: InvendusClient = {
-        clientId,
-        dateLivraison: date,
-        produits: [], // Aucun produit avec retours
-        retoursCompletes: true, // Marqué comme complété
-        createdAt: new Date(),
-        updatedAt: new Date()
+    // 1. Mettre à jour immédiatement le state local et le stockage de secours
+    set(state => {
+      const invendusFiltered = state.invendusClients.filter(inv =>
+        !(inv.clientId === clientId && (inv.dateLivraison?.toDateString?.() === date.toDateString() || new Date(inv.dateLivraison).toDateString() === date.toDateString()))
+      );
+      const updated = [...invendusFiltered, retourVide];
+      try {
+        localStorage.setItem(`boulangerie_retours_${dateStr}`, JSON.stringify(updated));
+      } catch (_) {}
+      return {
+        invendusClients: updated,
+        isLoading: false
       };
+    });
 
-      // Sauvegarder dans Firebase
+    console.log('✅ "Aucun retour" appliqué localement pour client:', clientId);
+
+    // 2. Synchronisation Firebase avec tolérance quota & timeout
+    try {
       const docRef = doc(db, 'clientReturns', docId);
-      await setDoc(docRef, retourVide, { merge: true });
-
-      // Mettre à jour le state local
-      set(state => {
-        // Supprimer l'ancien enregistrement s'il existe
-        const invendusFiltered = state.invendusClients.filter(inv =>
-          !(inv.clientId === clientId && inv.dateLivraison.toDateString() === date.toDateString())
-        );
-
-        // Ajouter le nouveau retour vide
-        return {
-          invendusClients: [...invendusFiltered, retourVide],
-          isLoading: false
-        };
-      });
-
-      console.log('✅ "Aucun retour" marqué avec succès');
-    } catch (error) {
-      set({ isLoading: false });
-      console.error('❌ Erreur lors du marquage "aucun retour":', error);
-      throw error;
+      await Promise.race([
+        setDoc(docRef, retourVide, { merge: true }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
+      ]);
+      console.log('☁️ "Aucun retour" synchronisé sur Firestore');
+    } catch (error: any) {
+      console.warn('⚠️ Quota Firestore ou réseau inaccessible lors du marquage sans retour (conservé en local):', error?.message || error);
     }
   },
 
   sauvegarderRetoursClient: async (clientId: string, date: Date, produits: Array<{ produitId: string; produit: any; quantiteLivree: number; invendus: number; vendu: number }>) => {
-    set({ isLoading: true });
+    const dateStr = date.toISOString().split('T')[0];
+    const docId = `retours_${clientId}_${dateStr}`;
 
-    try {
-      console.log('💾 Sauvegarde des retours pour client:', clientId, 'date:', date.toISOString().split('T')[0]);
+    const retourClient: InvendusClient = {
+      clientId,
+      dateLivraison: date,
+      produits: produits,
+      retoursCompletes: true, // Marqué comme complété pour la facturation
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
 
-      // Créer l'entrée retour pour ce client
-      const dateStr = date.toISOString().split('T')[0];
-      const docId = `retours_${clientId}_${dateStr}`;
-
-      const retourClient: InvendusClient = {
-        clientId,
-        dateLivraison: date,
-        produits: produits,
-        retoursCompletes: true, // Marqué comme complété pour la facturation
-        createdAt: new Date(),
-        updatedAt: new Date()
+    // 1. Mettre à jour immédiatement le state local et le stockage de secours
+    set(state => {
+      const invendusFiltered = state.invendusClients.filter(inv =>
+        !(inv.clientId === clientId && (inv.dateLivraison?.toDateString?.() === date.toDateString() || new Date(inv.dateLivraison).toDateString() === date.toDateString()))
+      );
+      const updated = [...invendusFiltered, retourClient];
+      try {
+        localStorage.setItem(`boulangerie_retours_${dateStr}`, JSON.stringify(updated));
+      } catch (_) {}
+      return {
+        invendusClients: updated,
+        isLoading: false
       };
+    });
 
-      // Sauvegarder dans Firebase
+    console.log('✅ Retours client sauvegardés localement avec succès');
+
+    // 2. Synchronisation Firebase avec tolérance quota & timeout
+    try {
       const docRef = doc(db, 'clientReturns', docId);
-      await setDoc(docRef, retourClient, { merge: true });
-
-      // Mettre à jour le state local
-      set(state => {
-        // Supprimer l'ancien enregistrement s'il existe
-        const invendusFiltered = state.invendusClients.filter(inv =>
-          !(inv.clientId === clientId && inv.dateLivraison.toDateString() === date.toDateString())
-        );
-
-        // Ajouter le nouveau retour
-        return {
-          invendusClients: [...invendusFiltered, retourClient],
-          isLoading: false
-        };
-      });
-
-      console.log('✅ Retours client sauvegardés et finalisés avec succès');
-    } catch (error) {
-      set({ isLoading: false });
-      console.error('❌ Erreur lors de la sauvegarde des retours client:', error);
-      throw error;
+      await Promise.race([
+        setDoc(docRef, retourClient, { merge: true }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
+      ]);
+      console.log('☁️ Retours client synchronisés sur Firestore');
+    } catch (error: any) {
+      console.warn('⚠️ Quota Firestore ou réseau inaccessible lors de la sauvegarde des retours (conservé en local):', error?.message || error);
     }
   },
 
   marquerTousSansRetour: async (clientIds: string[], date: Date) => {
-    set({ isLoading: true });
-    try {
-      console.log('🚀 Marquage groupé "aucun retour" pour', clientIds.length, 'clients');
-      const dateStr = date.toISOString().split('T')[0];
-      const batch = writeBatch(db);
-      const nouveauxRetours: InvendusClient[] = [];
+    const dateStr = date.toISOString().split('T')[0];
+    const nouveauxRetours: InvendusClient[] = clientIds.map(clientId => ({
+      clientId,
+      dateLivraison: date,
+      produits: [],
+      retoursCompletes: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }));
 
-      // Préparer les opérations batch
+    // 1. Mettre à jour immédiatement le state local
+    set(state => {
+      const invendusFiltered = state.invendusClients.filter(inv =>
+        !(clientIds.includes(inv.clientId) && (inv.dateLivraison?.toDateString?.() === date.toDateString() || new Date(inv.dateLivraison).toDateString() === date.toDateString()))
+      );
+      const updated = [...invendusFiltered, ...nouveauxRetours];
+      try {
+        localStorage.setItem(`boulangerie_retours_${dateStr}`, JSON.stringify(updated));
+      } catch (_) {}
+      return {
+        invendusClients: updated,
+        isLoading: false
+      };
+    });
+
+    console.log(`✅ Marquage groupé "aucun retour" appliqué localement pour ${clientIds.length} clients`);
+
+    // 2. Synchronisation Firebase en arrière-plan
+    try {
+      const batch = writeBatch(db);
       clientIds.forEach(clientId => {
         const docId = `retours_${clientId}_${dateStr}`;
         const docRef = doc(db, 'clientReturns', docId);
-
         const retourVide: InvendusClient = {
           clientId,
           dateLivraison: date,
-          produits: [], // Aucun produit avec retours
+          produits: [],
           retoursCompletes: true,
           createdAt: new Date(),
           updatedAt: new Date()
         };
-
         batch.set(docRef, retourVide, { merge: true });
-        nouveauxRetours.push(retourVide);
       });
 
-      // Exécuter le batch
-      await batch.commit();
-
-      // Mettre à jour l'état local
-      set(state => {
-        // Supprimer les anciens enregistrements pour ces clients à cette date
-        const invendusFiltered = state.invendusClients.filter(inv =>
-          !(clientIds.includes(inv.clientId) && inv.dateLivraison.toDateString() === date.toDateString())
-        );
-
-        return {
-          invendusClients: [...invendusFiltered, ...nouveauxRetours],
-          isLoading: false
-        };
-      });
-
-      console.log('✅ Batch "Aucun retour" exécuté avec succès');
-    } catch (error) {
-      set({ isLoading: false });
-      console.error('❌ Erreur lors du batch "aucun retour":', error);
-      throw error;
+      await Promise.race([
+        batch.commit(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+      ]);
+      console.log('☁️ Batch "aucun retour" synchronisé sur Firestore');
+    } catch (error: any) {
+      console.warn('⚠️ Quota Firestore ou réseau inaccessible lors du batch sans retour (conservé en local):', error?.message || error);
     }
   },
 
