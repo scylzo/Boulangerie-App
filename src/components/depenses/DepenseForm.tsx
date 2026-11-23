@@ -3,7 +3,7 @@ import { useDepenseStore } from '../../store/depenseStore';
 import { useStockStore } from '../../store/stockStore';
 import { useAuthStore } from '../../store';
 import type { CategorieDepense, Depense } from '../../types/depense';
-import { X, Plus, Loader2, Save } from 'lucide-react';
+import { X, Plus, Loader2, Save, ChevronDown, ChevronUp, Fuel, Users, Zap, Droplet, Wrench, Snowflake, Package } from 'lucide-react';
 
 interface DepenseFormProps {
   onDesc: () => void;
@@ -13,7 +13,6 @@ interface DepenseFormProps {
 const CATEGORIES: CategorieDepense[] = [
   'Carburant Véhicule',
   'Carburant Moto',
-  // 'Carburant Four' retiré du menu : à saisir en 'Intrants' (géré via le stock)
   'Électricité',
   'Eau',
   'Loyer',
@@ -25,12 +24,21 @@ const CATEGORIES: CategorieDepense[] = [
   'Divers'
 ];
 
+const QUICK_CATEGORIES: { id: CategorieDepense; label: string; icon: React.ReactNode }[] = [
+  { id: 'Carburant Véhicule', label: 'Carburant', icon: <Fuel size={15} /> },
+  { id: 'Salaires', label: 'Salaires & Avances', icon: <Users size={15} /> },
+  { id: 'Électricité', label: 'Électricité', icon: <Zap size={15} /> },
+  { id: 'Eau', label: 'Eau', icon: <Droplet size={15} /> },
+  { id: 'Entretien', label: 'Entretien', icon: <Wrench size={15} /> },
+  { id: 'Intrants', label: 'Glace / Intrants', icon: <Snowflake size={15} /> },
+  { id: 'Divers', label: 'Divers', icon: <Package size={15} /> },
+];
+
 export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData }) => {
   const { ajouterDepense, modifierDepense, depenses } = useDepenseStore();
   const { user } = useAuthStore();
   const { fournisseurs, matieres, chargerDonnees } = useStockStore();
 
-  // Charger les fournisseurs et matières si nécessaire
   React.useEffect(() => {
     if (fournisseurs.length === 0 || matieres.length === 0) {
       chargerDonnees();
@@ -38,9 +46,11 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
   }, [fournisseurs.length, matieres.length, chargerDonnees]);
 
   const [loading, setLoading] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [formData, setFormData] = useState({
     categorie: initialData?.categorie || ('Carburant Véhicule' as CategorieDepense),
-    montant: initialData?.montant.toString() || '',
+    montant: initialData?.montant ? initialData.montant.toString() : '',
+    moyenPaiement: initialData?.moyenPaiement || ('Especes' as 'Especes' | 'Mobile Money' | 'Virement' | 'Cheque'),
     description: initialData?.description || '',
     intrant: initialData?.intrant || '',
     fournisseur: initialData?.fournisseur || '',
@@ -55,6 +65,11 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
   // Liste de suggestions d'intrants (matières du stock + intrants déjà saisis)
   const intrantsOptions = React.useMemo(() => {
     const set = new Set<string>();
+    // Priorité aux classiques boulangerie
+    set.add('Glace');
+    set.add('Levure');
+    set.add('Sel');
+    set.add('Améliorant');
     matieres.forEach(m => {
       if (m.nom?.trim()) set.add(m.nom.trim());
     });
@@ -69,7 +84,7 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
     if (!user) return;
 
     if (formData.categorie === 'Intrants' && !formData.intrant.trim()) {
-      alert("Veuillez spécifier le nom de l'intrant (ex: Farine, Levure, etc.).");
+      alert("Veuillez spécifier le nom de l'intrant (ex: Glace, Levure, etc.).");
       return;
     }
 
@@ -78,7 +93,8 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
       const commonData = {
         categorie: formData.categorie,
         montant: Number(formData.montant),
-        description: formData.description,
+        moyenPaiement: formData.moyenPaiement,
+        description: formData.description.trim() || `${formData.categorie}${formData.intrant ? ` - ${formData.intrant}` : ''}`,
         intrant: formData.intrant.trim() || undefined,
         fournisseur: formData.fournisseur || undefined,
         date: new Date(formData.date),
@@ -103,46 +119,73 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-elevated w-full max-w-md my-8 flex flex-col max-h-[90vh]">
-        <div className="px-6 py-4 border-b border-sand-100 flex justify-between items-center bg-sand-50 flex-shrink-0">
-          <h3 className="font-display text-xl font-semibold">{initialData ? 'Modifier la Dépense' : 'Nouvelle Dépense'}</h3>
-          <button onClick={onDesc} className="text-sand-400 hover:text-sand-600">
-            <X size={24} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-elevated w-full max-w-lg my-6 flex flex-col max-h-[92vh] overflow-hidden">
+        {/* En-tête */}
+        <div className="px-5 py-4 border-b border-sand-100 flex justify-between items-center bg-sand-50/80 shrink-0">
+          <div>
+            <h3 className="font-display text-lg sm:text-xl font-bold text-sand-900">
+              {initialData ? 'Modifier la Dépense' : 'Enregistrer une Dépense'}
+            </h3>
+            <p className="text-xs text-sand-500">Sortie de caisse ou paiement d'exploitation</p>
+          </div>
+          <button onClick={onDesc} className="p-1 rounded-lg text-sand-400 hover:text-sand-600 hover:bg-sand-100 transition-colors">
+            <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto">
+          {/* Sélection rapide de catégorie */}
           <div>
-            <label className="block text-sm font-medium text-sand-700 mb-1">Date de la dépense/achat</label>
-            <input
-              type="date"
-              required
-              value={formData.date}
-              onChange={e => setFormData({ ...formData, date: e.target.value })}
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
-            />
-          </div>
+            <label className="block text-xs font-semibold text-sand-600 uppercase tracking-wider mb-2">
+              Catégorie principale
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mb-2">
+              {QUICK_CATEGORIES.map(cat => {
+                const isSelected = formData.categorie === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        categorie: cat.id,
+                        intrant: cat.id === 'Intrants' && !prev.intrant ? 'Glace' : prev.intrant,
+                        description: prev.description || (cat.id === 'Intrants' ? 'Achat sacs de glace' : '')
+                      }));
+                    }}
+                    className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium border transition-all text-left ${
+                      isSelected
+                        ? 'bg-sand-900 text-white border-sand-900 shadow-sm'
+                        : 'bg-sand-50 text-sand-700 border-sand-200 hover:bg-sand-100'
+                    }`}
+                  >
+                    <span>{cat.icon}</span>
+                    <span className="truncate">{cat.label}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-sand-700 mb-1">Catégorie</label>
+            {/* Sélecteur complet si catégorie rare */}
             <select
               value={formData.categorie}
               onChange={e => setFormData({ ...formData, categorie: e.target.value as CategorieDepense })}
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
+              className="w-full p-2 border border-sand-200 rounded-lg text-xs bg-white text-sand-700 outline-none focus:ring-1 focus:ring-sand-900"
             >
               {CATEGORIES.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat} value={cat}>Toutes les options : {cat}</option>
               ))}
             </select>
           </div>
 
-          {/* Champ Intrant : Spécifier le nom de l'intrant */}
+          {/* Intrant spécifique si Intrants / Glace sélectionné */}
           {(formData.categorie === 'Intrants' || formData.intrant !== '') && (
-            <div className="bg-amber-50/70 p-3.5 rounded-xl border border-amber-200 space-y-2">
+            <div className="bg-sky-50/70 p-3.5 rounded-xl border border-sky-200 space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-semibold text-amber-900">
-                  Nom de l'intrant {formData.categorie === 'Intrants' && <span className="text-danger-500">*</span>}
+                <label className="block text-xs font-semibold text-sky-900">
+                  Matière ou intrant acheté {formData.categorie === 'Intrants' && <span className="text-danger-500">*</span>}
                 </label>
                 {formData.categorie !== 'Intrants' && (
                   <button
@@ -153,13 +196,36 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
                     }}
                     className="text-xs text-sand-500 hover:text-danger-600 underline"
                   >
-                    Retirer l'intrant
+                    Retirer
                   </button>
                 )}
               </div>
-              <p className="text-xs text-amber-700">
-                Sélectionnez un intrant du stock ou saisissez manuellement son nom.
-              </p>
+
+              {/* Raccourcis express pour la glace et levure */}
+              <div className="flex flex-wrap gap-1.5">
+                {['Glace', 'Levure', 'Sel', 'Améliorant'].map(item => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => {
+                      setShowManualIntrant(false);
+                      setFormData(prev => ({
+                        ...prev,
+                        intrant: item,
+                        description: prev.description || `Achat ${item}`
+                      }));
+                    }}
+                    className={`px-2.5 py-1 text-xs rounded-lg border font-medium transition-colors ${
+                      formData.intrant.toLowerCase() === item.toLowerCase()
+                        ? 'bg-sky-600 text-white border-sky-600'
+                        : 'bg-white text-sky-800 border-sky-200 hover:bg-sky-100'
+                    }`}
+                  >
+                    {item === 'Glace' ? '❄️ Glace' : item}
+                  </button>
+                ))}
+              </div>
+
               <div>
                 <select
                   value={
@@ -181,100 +247,110 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
                       setFormData({ ...formData, intrant: val });
                     }
                   }}
-                  className="w-full p-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none bg-white text-sm"
+                  className="w-full p-2 border border-sky-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none bg-white text-xs"
                 >
-                  <option value="">-- Sélectionner un intrant existant --</option>
+                  <option value="">-- Autre intrant de la liste --</option>
                   {intrantsOptions.map(nom => (
                     <option key={nom} value={nom}>
                       {nom}
                     </option>
                   ))}
-                  <option value="autre">Autre (Saisie manuelle)</option>
+                  <option value="autre">Autre (Saisie libre)</option>
                 </select>
               </div>
+
               {(showManualIntrant || (formData.intrant !== '' && !intrantsOptions.includes(formData.intrant))) && (
                 <input
                   type="text"
                   required={formData.categorie === 'Intrants'}
                   value={formData.intrant}
                   onChange={e => setFormData({ ...formData, intrant: e.target.value })}
-                  className="w-full p-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none text-sm bg-white"
-                  placeholder="Ex: Farine T55, Levure fraîche, Sucre roux..."
+                  className="w-full p-2 border border-sky-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none text-xs bg-white"
+                  placeholder="Ex: Sacs de glace, Levure fraîche, Sucre..."
                   autoFocus={showManualIntrant && formData.intrant === ''}
                 />
               )}
             </div>
           )}
 
-          {formData.categorie !== 'Intrants' && formData.intrant === '' && (
-            <div className="text-right">
-              <button
-                type="button"
-                onClick={() => setShowManualIntrant(true)}
-                className="text-xs text-amber-700 hover:text-amber-800 font-medium hover:underline inline-flex items-center gap-1"
-              >
-                + Associer à un intrant spécifique (optionnel)
-              </button>
-            </div>
-          )}
-
-          {/* Champs Période d'usage (Conditionnel) */}
-          {['Carburant Four', 'Loyer', 'Électricité', 'Eau', 'Intrants'].includes(formData.categorie) && (
-            <div className="bg-warning-50 p-4 rounded-lg border border-warning-100">
-              <h4 className="text-sm font-semibold text-warning-600 mb-2">Période de consommation (Optionnel)</h4>
-              <div className="bg-white/50 p-2 rounded mb-3 text-xs text-warning-600 border border-warning-100">
-                <p>Le calcul se fait sur la base du proratadans.</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-sand-700 mb-1">Début utilisation</label>
-                  <input
-                    type="date"
-                    value={formData.dateDebutUsage}
-                    onChange={e => setFormData({ ...formData, dateDebutUsage: e.target.value })}
-                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-sand-700 mb-1">Fin utilisation (Estimée)</label>
-                  <input
-                    type="date"
-                    value={formData.dateFinUsage}
-                    onChange={e => setFormData({ ...formData, dateFinUsage: e.target.value })}
-                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none text-sm"
-                  />
-                </div>
+          {/* Montant & Date */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-sand-600 mb-1">
+                Montant total (FCFA) <span className="text-danger-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  step="1"
+                  value={formData.montant}
+                  onChange={e => setFormData({ ...formData, montant: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-sand-300 rounded-xl focus:ring-2 focus:ring-terracotta-500/20 focus:border-terracotta-600 outline-none text-lg font-bold text-sand-900 tabular-nums"
+                  placeholder="Ex: 12000"
+                />
+                <span className="absolute right-3 top-3 text-xs font-bold text-sand-400 pointer-events-none">FCFA</span>
               </div>
             </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-medium text-sand-700 mb-1">Montant (FCFA)</label>
-            <input
-              type="number"
-              required
-              min="0"
-              value={formData.montant}
-              onChange={e => setFormData({ ...formData, montant: e.target.value })}
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none text-lg font-semibold"
-              placeholder="0"
-            />
+            <div>
+              <label className="block text-xs font-semibold text-sand-600 mb-1">Date</label>
+              <input
+                type="date"
+                required
+                value={formData.date}
+                onChange={e => setFormData({ ...formData, date: e.target.value })}
+                className="w-full px-3 py-2.5 border border-sand-300 rounded-xl focus:ring-2 focus:ring-terracotta-500/20 focus:border-terracotta-600 outline-none text-sm text-sand-800"
+              />
+            </div>
           </div>
 
+          {/* Moyen de Paiement */}
           <div>
-            <label className="block text-sm font-medium text-sand-700 mb-1">Description</label>
+            <label className="block text-xs font-semibold text-sand-600 uppercase tracking-wider mb-1.5">
+              Origine du paiement
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'Especes', label: '💵 Espèces (Caisse)' },
+                { id: 'Mobile Money', label: '📱 Wave / OM' },
+                { id: 'Cheque', label: '🏦 Virement / Chèque' }
+              ].map(mode => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, moyenPaiement: mode.id as any })}
+                  className={`py-2 px-2 text-xs rounded-xl font-medium border transition-colors text-center ${
+                    formData.moyenPaiement === mode.id
+                      ? 'bg-sand-900 text-white border-sand-900 shadow-sm'
+                      : 'bg-sand-50 text-sand-700 border-sand-200 hover:bg-sand-100'
+                  }`}
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs font-semibold text-sand-600 mb-1">
+              Description / Motif <span className="text-danger-500">*</span>
+            </label>
             <input
               type="text"
               required
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none"
-              placeholder="Ex: Facture Senelec, Achat gazole, Réparation vanne..."
+              className="w-full px-3 py-2 border border-sand-300 rounded-xl focus:ring-2 focus:ring-terracotta-500/20 focus:border-terracotta-600 outline-none text-sm"
+              placeholder="Ex: 8 sacs de glace pour le pétrin, Gasoil véhicule de livraison..."
             />
           </div>
 
+          {/* Fournisseur (Optionnel) */}
           <div>
-            <label className="block text-sm font-medium text-sand-700 mb-1">Fournisseur</label>
+            <label className="block text-xs font-semibold text-sand-600 mb-1">Bénéficiaire / Fournisseur (Optionnel)</label>
             <div className="flex gap-2">
               <select
                 value={showManualInput ? 'autre' : (fournisseurs.some(f => f.nom === formData.fournisseur) ? formData.fournisseur : '')}
@@ -288,13 +364,13 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
                     setFormData({ ...formData, fournisseur: val });
                   }
                 }}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none bg-white"
+                className="w-full p-2 border border-sand-300 rounded-xl focus:ring-2 focus:ring-sand-900 outline-none bg-white text-xs text-sand-700"
               >
-                <option value="">-- Sélectionner ou saisir manuellement --</option>
+                <option value="">-- Aucun ou sélectionner --</option>
                 {fournisseurs.map(f => (
                   <option key={f.id} value={f.nom}>{f.nom}</option>
                 ))}
-                <option value="autre">Autre (Saisie manuelle)</option>
+                <option value="autre">Autre (Saisie libre)</option>
               </select>
             </div>
             {(showManualInput || (formData.fournisseur !== '' && !fournisseurs.some(f => f.nom === formData.fournisseur))) && (
@@ -302,27 +378,69 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
                 type="text"
                 value={formData.fournisseur}
                 onChange={e => setFormData({ ...formData, fournisseur: e.target.value })}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-warning-500 outline-none mt-2"
-                placeholder="Ex: Senelec, Sen'Eau, Total, Shell..."
+                className="w-full p-2 border border-sand-300 rounded-xl focus:ring-2 focus:ring-sand-900 outline-none mt-2 text-xs"
+                placeholder="Ex: Total, Senelec, Fournisseur glace, Nom employé..."
                 autoFocus={showManualInput && formData.fournisseur === ''}
               />
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-warning-600 hover:bg-warning-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-warning-500 disabled:opacity-50"
-          >
-            {loading ? (
-              <Loader2 className="animate-spin mr-2" size={20} />
-            ) : initialData ? (
-              <Save className="mr-2" size={20} />
-            ) : (
-              <Plus className="mr-2" size={20} />
+          {/* Options Avancées (Période / Prorata) */}
+          <div className="border-t border-sand-200 pt-3">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center justify-between w-full text-xs font-semibold text-sand-600 hover:text-sand-900 py-1"
+            >
+              <span>⏱️ Période de consommation / Prorata (Optionnel)</span>
+              {showAdvanced ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {showAdvanced && (
+              <div className="mt-2 bg-sand-50 p-3 rounded-xl border border-sand-200 space-y-2 text-xs">
+                <p className="text-sand-500">
+                  À remplir uniquement pour une charge qui s'étale sur plusieurs semaines ou mois (ex: loyer du mois, gros approvisionnement carburant).
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sand-700 mb-1 font-medium">Début utilisation</label>
+                    <input
+                      type="date"
+                      value={formData.dateDebutUsage}
+                      onChange={e => setFormData({ ...formData, dateDebutUsage: e.target.value })}
+                      className="w-full p-2 border border-sand-300 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sand-700 mb-1 font-medium">Fin utilisation</label>
+                    <input
+                      type="date"
+                      value={formData.dateFinUsage}
+                      onChange={e => setFormData({ ...formData, dateFinUsage: e.target.value })}
+                      className="w-full p-2 border border-sand-300 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
             )}
-            {initialData ? 'Mettre à jour' : 'Enregistrer la dépense'}
-          </button>
+          </div>
+
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={loading || !formData.montant || Number(formData.montant) <= 0}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl shadow-sm text-sm font-semibold text-white bg-terracotta-600 hover:bg-terracotta-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terracotta-500 disabled:opacity-50 transition-colors"
+            >
+              {loading ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : initialData ? (
+                <Save size={18} />
+              ) : (
+                <Plus size={18} />
+              )}
+              <span>{initialData ? 'Mettre à jour la dépense' : 'Valider la dépense'}</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>

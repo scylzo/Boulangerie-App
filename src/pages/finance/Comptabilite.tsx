@@ -1,8 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageLoader } from '../../components/ui/PageLoader';
 import { useStockStore } from '../../store/stockStore';
 import { useDepenseStore } from '../../store/depenseStore';
 import { useFacturationStore } from '../../store/facturationStore';
@@ -14,6 +13,12 @@ import { Modal } from '../../components/ui/Modal';
 import { Icon } from '@iconify/react';
 import omLogo from '../../assets/om.svg';
 import waveLogo from '../../assets/wave.svg';
+import { TableauBordRentabilite } from '../../components/finance/TableauBordRentabilite';
+import { TableauBordFinanceSimple } from '../../components/finance/TableauBordFinanceSimple';
+import { calculerAnalyseRentabilite } from '../../utils/analyseRentabilite';
+import { firestoreService, dateToTimestamp } from '../../firebase/collections';
+import { where } from 'firebase/firestore';
+import type { ProgrammeProduction } from '../../types/production';
 
 type EncaissEntry = { source: 'caisse' | 'livraison'; label: string; ref?: string; montant: number; date: Date };
 import {
@@ -25,7 +30,8 @@ import {
     Coins,
     Calendar,
     FileText,
-    ArrowRight
+    ArrowRight,
+    Award
 } from 'lucide-react';
 
 
@@ -40,8 +46,10 @@ export const Comptabilite: React.FC = () => {
     });
 
     const navigate = useNavigate();
-    // Vue : 'marge' (économique) ou 'tresorerie' (encaissé)
-    const [vue, setVue] = useState<'marge' | 'tresorerie'>('marge');
+    // Vue : 'simple' (Boulangerie 4 Chiffres), 'rentabilite' (SIG & point mort), 'marge' (économique) ou 'tresorerie' (encaissé)
+    const [vue, setVue] = useState<'simple' | 'rentabilite' | 'marge' | 'tresorerie'>('simple');
+    const [programmes, setProgrammes] = useState<ProgrammeProduction[]>([]);
+    const [isActualisant, setIsActualisant] = useState(false);
 
     const [stats, setStats] = useState({
         caBoutique: 0,
@@ -66,19 +74,16 @@ export const Comptabilite: React.FC = () => {
     const [modeDetail, setModeDetail] = useState<'espece' | 'om' | 'wave' | null>(null);
 
     const { chargerDepenses, getDepensesProRata, depenses } = useDepenseStore();
-    const { chargerFactures, factures, getReglementsPeriode, backfillReglementsJournal } = useFacturationStore();
+    const { chargerFactures, factures } = useFacturationStore();
     const { getVentesPeriode } = useBoutiqueStore();
     const { getTicketsPeriode } = usePosStore();
     const { clients, chargerClients } = useReferentielStore();
     const { chargerDonnees: chargerStock, mouvements, matieres } = useStockStore();
 
-    // Loader plein écran uniquement au premier chargement (les changements de
-    // période gardent l'indicateur inline stats.loading).
-    const [chargementInitial, setChargementInitial] = useState(true);
-
-    // Charger les données au montage et quand la période change
+    // Charger les données au montage et quand la période change (affichage direct à 0ms via Zustand)
     useEffect(() => {
-        chargerDonnees().finally(() => setChargementInitial(false));
+        calculerStats();
+        chargerDonnees();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [periode.debut, periode.fin]);
 
@@ -86,7 +91,7 @@ export const Comptabilite: React.FC = () => {
     useEffect(() => {
         calculerStats();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [factures, depenses, mouvements, matieres, periode.debut, periode.fin]);
+    }, [factures, depenses, mouvements, matieres]);
 
     // ── Calculs dérivés selon la vue active ────────────────────────────
     const estTreso = vue === 'tresorerie';
@@ -120,6 +125,34 @@ export const Comptabilite: React.FC = () => {
         ? { recettes: 'Encaissements', couts: 'Décaissements', resultat: 'Solde trésorerie', livraison: 'Livraisons réglées', matieres: 'Achats matières' }
         : { recettes: 'Recettes', couts: 'Dépenses', resultat: 'Résultat économique', livraison: 'Livraisons facturées', matieres: 'Matières consommées' };
 
+    // ── Analyse de rentabilité complète (SIG & Seuil de rentabilité) ────
+    const debutDate = useMemo(() => {
+        const d = new Date(periode.debut);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    }, [periode.debut]);
+
+    const finDate = useMemo(() => {
+        const d = new Date(periode.fin);
+        d.setHours(23, 59, 59, 999);
+        return d;
+    }, [periode.fin]);
+
+    const rapportRentabilite = useMemo(() => {
+        const depensesProrata = getDepensesProRata(debutDate, finDate);
+        return calculerAnalyseRentabilite({
+            debut: debutDate,
+            fin: finDate,
+            caBoutiquePos,
+            factures,
+            depensesProrata,
+            coutMatieresConsommees: stats.achatsMatieres,
+            mouvements,
+            matieres,
+            caLivraisonEncaisse: stats.caLivraisonEncaisse
+        });
+    }, [debutDate, finDate, caBoutiquePos, factures, getDepensesProRata, stats.achatsMatieres, stats.caLivraisonEncaisse, mouvements, matieres]);
+
     const chargerDonnees = async (forceStock = false) => {
         setStats(prev => ({ ...prev, loading: true }));
 
@@ -130,38 +163,37 @@ export const Comptabilite: React.FC = () => {
         fin.setHours(23, 59, 59, 999);
 
         try {
-            console.log("Calcul comptabilité pour la période:", debut.toLocaleString(), "au", fin.toLocaleString());
-
-            // Backfill du journal des règlements (historique) — NON bloquant : ne retarde pas
-            // l'affichage. Une fois terminé (1ʳᵉ fois par navigateur), on rafraîchit les stats
-            // dérivées des règlements.
-            if (!localStorage.getItem('cm.reglementsBackfilled')) {
-                backfillReglementsJournal()
-                    .then(() => { localStorage.setItem('cm.reglementsBackfilled', '1'); return getReglementsPeriode(debut, fin); })
-                    .then((regs) => {
-                        const fpm: Record<'espece' | 'om' | 'wave', number> = { espece: 0, om: 0, wave: 0 };
-                        let cle = 0;
-                        (regs || []).forEach(r => { if (r.mode) fpm[r.mode] += r.montant; cle += r.montant; });
-                        setStats(prev => ({ ...prev, factParMode: fpm, caLivraisonEncaisse: cle }));
-                    })
-                    .catch(() => { /* ignore */ });
-            }
-
-            // Le stock (matières + mouvements) est filtré en mémoire par période → on ne le (re)charge
-            // que si vide ou refresh manuel. Les tickets POS ne sont lus qu'UNE fois (par moyen de
-            // paiement), et caPos en est dérivé (plus de double lecture).
-            if (clients.length === 0) await chargerClients();
+            // Charger les référentiels en arrière-plan sans bloquer
+            if (clients.length === 0) chargerClients().catch(() => {});
 
             const doitChargerStock = forceStock || matieres.length === 0 || mouvements.length === 0;
-            // Tickets POS chargés une seule fois → agrégat + détail (qui/quand)
-            const [caBoutique, , , , tickets, reglementsPeriode] = await Promise.all([
-                getVentesPeriode(debut, fin),
-                chargerFactures(debut, fin),
-                chargerDepenses(debut, fin),
-                doitChargerStock ? chargerStock() : Promise.resolve(),
-                getTicketsPeriode(debut, fin),
-                getReglementsPeriode(debut, fin)
+
+            // Chargement parallèle des sources indispensables
+            const [caBoutique, , , , tickets] = await Promise.all([
+                getVentesPeriode(debut, fin).catch(err => { console.warn('Erreur ventes boutique:', err); return 0; }),
+                chargerFactures(debut, fin).catch(err => { console.warn('Erreur factures:', err); }),
+                chargerDepenses(debut, fin).catch(err => { console.warn('Erreur dépenses:', err); }),
+                (doitChargerStock ? chargerStock() : Promise.resolve()).catch(err => { console.warn('Erreur stock:', err); }),
+                getTicketsPeriode(debut, fin).catch(err => { console.warn('Erreur tickets POS:', err); return []; })
             ]);
+
+            // Charger les programmes de production en arrière-plan sans bloquer l'UI
+            firestoreService.getByQuery<ProgrammeProduction>('productionPrograms', [
+                where('dateProduction', '>=', dateToTimestamp(debut)),
+                where('dateProduction', '<=', dateToTimestamp(fin))
+            ]).then(progs => {
+                if (progs && progs.length > 0) setProgrammes(progs);
+            }).catch(() => {
+                firestoreService.getAll<ProgrammeProduction>('productionPrograms')
+                    .then(allProgs => {
+                        const filtres = (allProgs || []).filter(p => {
+                            const d = new Date(p.dateProduction || p.createdAt);
+                            return d >= debut && d <= fin;
+                        });
+                        setProgrammes(filtres);
+                    })
+                    .catch(() => {});
+            });
 
             const clientsList = useReferentielStore.getState().clients;
             const nomClient = (id: string) => {
@@ -175,7 +207,7 @@ export const Comptabilite: React.FC = () => {
             const detail: Record<'espece' | 'om' | 'wave', EncaissEntry[]> = { espece: [], om: [], wave: [] };
 
             // Caisse (POS) : chaque ticket → qui (vendeur) / quand
-            tickets.forEach(t => {
+            (tickets || []).forEach(t => {
                 const m = t.modePaiement as 'espece' | 'om' | 'wave';
                 if (m !== 'espece' && m !== 'om' && m !== 'wave') return;
                 posParMode[m] += (t.total || 0);
@@ -188,34 +220,58 @@ export const Comptabilite: React.FC = () => {
                 });
             });
 
-            // Livraison : chaque règlement → qui (client) / quand
+            // Règlements livraisons : extraits instantanément des factures sans requête réseau supplémentaire
             let caLivraisonEncaisse = 0;
-            reglementsPeriode.forEach(r => {
-                if (!r.mode) return;
-                
-                // Option A : Ne garder que les règlements de factures livrées sur cette même période (et non annulées)
-                const factureAssociee = factures.find(f => f.id === r.factureId);
-                if (!factureAssociee || factureAssociee.statut === 'annulee') return;
+            const facturesDuStore = useFacturationStore.getState().factures;
+            const facturesPeriode = facturesDuStore.filter(f => {
+                if (f.statut === 'annulee') return false;
+                const d = new Date(f.dateLivraison);
+                return d >= debut && d <= fin;
+            });
 
-                factParMode[r.mode] += r.montant;
-                caLivraisonEncaisse += r.montant;
-                detail[r.mode].push({
-                    source: 'livraison',
-                    label: nomClient(r.clientId),
-                    ref: `Règlement facture ${factureAssociee.numeroFacture}`,
-                    montant: r.montant,
-                    date: r.date,
+            facturesPeriode.forEach(f => {
+                (f.reglements || []).forEach((r: any) => {
+                    const m = r.mode as 'espece' | 'om' | 'wave';
+                    if (m !== 'espece' && m !== 'om' && m !== 'wave') return;
+                    const dRaw: any = r.date;
+                    const dReglement = dRaw instanceof Date ? dRaw : (dRaw?.toDate ? dRaw.toDate() : new Date(dRaw || Date.now()));
+                    factParMode[m] += r.montant || 0;
+                    caLivraisonEncaisse += r.montant || 0;
+                    detail[m].push({
+                        source: 'livraison',
+                        label: nomClient(f.clientId),
+                        ref: `Règlement facture ${f.numeroFacture}`,
+                        montant: r.montant || 0,
+                        date: dReglement,
+                    });
                 });
             });
 
-            // Tri chronologique décroissant dans chaque moyen
-            (['espece', 'om', 'wave'] as const).forEach(m => detail[m].sort((a, b) => b.date.getTime() - a.date.getTime()));
+            // Tri chronologique décroissant sécurisé dans chaque moyen
+            (['espece', 'om', 'wave'] as const).forEach(m => {
+                detail[m].sort((a, b) => {
+                    const timeA = a.date instanceof Date ? a.date.getTime() : new Date(a.date).getTime();
+                    const timeB = b.date instanceof Date ? b.date.getTime() : new Date(b.date).getTime();
+                    return (timeB || 0) - (timeA || 0);
+                });
+            });
 
             const caPos = posParMode.espece + posParMode.om + posParMode.wave;
 
-            setStats(prev => ({ ...prev, loading: false, caBoutique, caPos, posParMode, factParMode, caLivraisonEncaisse, encaissementsDetail: detail }));
+            setStats(prev => ({ ...prev, loading: false, caBoutique: caBoutique || 0, caPos, posParMode, factParMode, caLivraisonEncaisse, encaissementsDetail: detail }));
+            setTimeout(() => calculerStats(), 0);
         } catch (e) {
             console.error("Erreur calcul compta:", e);
+            setStats(prev => ({ ...prev, loading: false }));
+        }
+    };
+
+    const handleActualiser = async () => {
+        setIsActualisant(true);
+        try {
+            await chargerDonnees(true);
+        } finally {
+            setIsActualisant(false);
             setStats(prev => ({ ...prev, loading: false }));
         }
     };
@@ -575,6 +631,54 @@ export const Comptabilite: React.FC = () => {
             }
         }
 
+        // 5. SYNTHÈSE DE RENTABILITÉ & SIG
+        if (finalY > 180) {
+            doc.addPage();
+            finalY = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setTextColor(190, 80, 50); // Terracotta
+        doc.setFont("helvetica", "bold");
+        doc.text("5. Soldes Intermédiaires de Gestion & Point Mort", 14, finalY);
+
+        const sigData = [
+            ['Chiffre d\'Affaires Net', formatPdfCurrency(rapportRentabilite.sig.caNet), '100 %'],
+            ['Coût Matières Premières (Food Cost)', `-${formatPdfCurrency(rapportRentabilite.sig.coutMatieresConsommees)}`, `${rapportRentabilite.sig.tauxFoodCost.toFixed(1)} %`],
+            ['MARGE BRUTE MATIÈRES', formatPdfCurrency(rapportRentabilite.sig.margeBrute), `${rapportRentabilite.sig.tauxMargeBrute.toFixed(1)} %`],
+            ['Charges Externes (Énergie, Loyer, Carburant)', `-${formatPdfCurrency(rapportRentabilite.sig.chargesExternes)}`, `${rapportRentabilite.sig.tauxChargesExternes.toFixed(1)} %`],
+            ['VALEUR AJOUTÉE (VA)', formatPdfCurrency(rapportRentabilite.sig.valeurAjoutee), `${rapportRentabilite.sig.tauxValeurAjoutee.toFixed(1)} %`],
+            ['Charges de Personnel (Salaires)', `-${formatPdfCurrency(rapportRentabilite.sig.chargesPersonnel)}`, `${rapportRentabilite.sig.tauxMasseSalariale.toFixed(1)} %`],
+            ['EXCÉDENT BRUT D\'EXPLOITATION (EBE)', formatPdfCurrency(rapportRentabilite.sig.ebe), `${rapportRentabilite.sig.tauxEBE.toFixed(1)} %`],
+            ['RÉSULTAT NET', formatPdfCurrency(rapportRentabilite.sig.resultatNet), `${rapportRentabilite.sig.tauxMargeNette.toFixed(1)} %`],
+            ['Seuil de Rentabilité (Point Mort)', formatPdfCurrency(rapportRentabilite.seuil.seuilRentabiliteFCFA), rapportRentabilite.seuil.estRentable ? 'Rentable' : 'Déficitaire'],
+            ['CA Minimum d\'Équilibre Requis', `${formatPdfCurrency(rapportRentabilite.seuil.caEquilibreParJour)} / jour`, `${rapportRentabilite.periode.nbJours} jours`]
+        ];
+
+        autoTable(doc, {
+            startY: finalY + 5,
+            head: [['Poste Comptable', 'Montant', '% du CA / Statut']],
+            body: sigData,
+            theme: 'striped',
+            headStyles: { fillColor: [190, 80, 50], halign: 'left' },
+            columnStyles: {
+                0: { cellWidth: 100 },
+                1: { halign: 'right', fontStyle: 'bold' },
+                2: { halign: 'right' }
+            },
+            didParseCell: function (data) {
+                // Mettre en gras les totaux clés
+                if ([2, 4, 6, 7].includes(data.row.index) && data.section === 'body') {
+                    data.cell.styles.fontStyle = 'bold';
+                    if (data.row.index === 7) {
+                        data.cell.styles.textColor = rapportRentabilite.sig.resultatNet >= 0 ? [39, 174, 96] : [192, 57, 43];
+                    }
+                }
+            }
+        });
+
+        finalY = (doc as any).lastAutoTable.finalY + 15;
+
         // --- PIED DE PAGE ---
         const pageCount = (doc as any).internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
@@ -588,65 +692,57 @@ export const Comptabilite: React.FC = () => {
         doc.save(`Rapport_Financier_${periode.debut}_${periode.fin}.pdf`);
     };
 
-    if (chargementInitial) {
-        return <PageLoader message="Chargement de la comptabilité…" />;
-    }
-
     return (
         <div className="min-h-screen bg-sand-100 overflow-x-hidden">
             {/* Header */}
             <div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-3 sm:py-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4">
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                         <div className="w-10 h-10 bg-terracotta-500 rounded-xl flex items-center justify-center shrink-0">
                             <Coins className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0 flex-1">
-                            <h1 className="text-lg sm:text-xl font-semibold text-sand-900 truncate">Comptabilité</h1>
+                            <h1 className="text-lg sm:text-xl font-bold text-sand-900 truncate">Comptabilité</h1>
                             <p className="text-xs sm:text-sm text-sand-500 truncate">{estTreso ? 'Encaissements − Décaissements = Solde de trésorerie' : 'Recettes − Coûts consommés = Résultat économique'}</p>
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto justify-start lg:justify-end">
                         <button
                             onClick={genererRapportPDF}
-                            disabled={stats.loading}
-                            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-sand-900 text-white rounded-lg hover:bg-sand-800 transition-colors shadow-sm text-xs sm:text-sm font-medium disabled:opacity-50"
+                            disabled={isActualisant}
+                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-sand-900 text-white rounded-lg hover:bg-sand-800 transition-colors shadow-sm text-xs sm:text-sm font-semibold disabled:opacity-50"
                             title="Télécharger le rapport PDF"
                         >
-                            <FileText size={16} className="sm:w-[18px] sm:h-[18px]" />
+                            <FileText size={16} />
                             <span>Générer Rapport</span>
                         </button>
 
                         <button
-                            onClick={() => chargerDonnees(true)}
-                            disabled={stats.loading}
-                            className="p-2 text-sand-600 hover:text-sand-900 hover:bg-sand-100 rounded-lg transition-colors"
+                            onClick={handleActualiser}
+                            disabled={isActualisant}
+                            className="p-2 text-sand-600 hover:text-sand-900 hover:bg-sand-100 rounded-lg transition-colors border border-sand-200 shrink-0"
                             title="Actualiser les données"
                         >
-                            <RefreshCw size={18} className={`sm:w-5 sm:h-5 ${stats.loading ? "animate-spin" : ""}`} />
+                            <RefreshCw size={18} className={`${isActualisant ? "animate-spin text-terracotta-600" : ""}`} />
                         </button>
 
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-sand-50 p-2 rounded-lg border border-sand-200">
-                            <div className="flex items-center gap-2">
-                                <Calendar size={16} className="text-sand-500 sm:w-[18px] sm:h-[18px]" />
-                                <span className="text-xs sm:text-sm font-medium text-sand-700">Période :</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="date"
-                                    value={periode.debut}
-                                    onChange={(e) => setPeriode(p => ({ ...p, debut: e.target.value }))}
-                                    className="bg-white border border-sand-300 text-sand-900 text-xs sm:text-sm rounded-md focus:ring-sand-900 focus:border-sand-900 block p-1.5 w-full sm:w-auto"
-                                />
-                                <span className="text-sand-400 text-xs sm:text-sm">à</span>
-                                <input
-                                    type="date"
-                                    value={periode.fin}
-                                    onChange={(e) => setPeriode(p => ({ ...p, fin: e.target.value }))}
-                                    className="bg-white border border-sand-300 text-sand-900 text-xs sm:text-sm rounded-md focus:ring-sand-900 focus:border-sand-900 block p-1.5 w-full sm:w-auto"
-                                />
-                            </div>
+                        <div className="flex items-center gap-2 bg-sand-50 p-1.5 sm:p-2 rounded-lg border border-sand-200 text-xs sm:text-sm">
+                            <Calendar size={16} className="text-sand-500 shrink-0" />
+                            <span className="font-semibold text-sand-700 hidden sm:inline">Période :</span>
+                            <input
+                                type="date"
+                                value={periode.debut}
+                                onChange={(e) => setPeriode(p => ({ ...p, debut: e.target.value }))}
+                                className="bg-white border border-sand-300 text-sand-900 text-xs sm:text-sm rounded-md p-1 focus:ring-terracotta-500 focus:border-terracotta-500 max-w-[130px]"
+                            />
+                            <span className="text-sand-400">à</span>
+                            <input
+                                type="date"
+                                value={periode.fin}
+                                onChange={(e) => setPeriode(p => ({ ...p, fin: e.target.value }))}
+                                className="bg-white border border-sand-300 text-sand-900 text-xs sm:text-sm rounded-md p-1 focus:ring-terracotta-500 focus:border-terracotta-500 max-w-[130px]"
+                            />
                         </div>
                     </div>
                 </div>
@@ -654,39 +750,77 @@ export const Comptabilite: React.FC = () => {
 
             {/* Contenu principal */}
             <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-                {/* Sélecteur de vue : Marge économique / Trésorerie */}
-                <div className="bg-white rounded-2xl shadow-card border border-sand-200 p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                    <div className="inline-flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200 self-start shrink-0">
-                        <button
-                            onClick={() => setVue('marge')}
-                            className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all ${!estTreso ? 'bg-info-600 text-white shadow-sm' : 'text-sand-500 hover:text-sand-700'}`}
-                        >
-                            <PieChartIcon size={16} /> Marge économique
-                        </button>
-                        <button
-                            onClick={() => setVue('tresorerie')}
-                            className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all ${estTreso ? 'bg-success-600 text-white shadow-sm' : 'text-sand-500 hover:text-sand-700'}`}
-                        >
-                            <Coins size={16} /> Trésorerie
-                        </button>
+                {/* Sélecteur de vue : Suivi Simple / Rentabilité (SIG) / Marge économique / Trésorerie */}
+                <div className="bg-white rounded-2xl shadow-card border border-sand-200 p-3 sm:p-4 space-y-3 overflow-hidden">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200 overflow-x-auto max-w-full no-scrollbar gap-1">
+                            <button
+                                onClick={() => setVue('simple')}
+                                className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${vue === 'simple' ? 'bg-terracotta-600 text-white shadow-sm' : 'text-sand-600 hover:text-sand-900'}`}
+                            >
+                                <Icon icon="mdi:view-dashboard" className="w-4 h-4" /> Suivi Simple (Boulangerie)
+                            </button>
+                            <button
+                                onClick={() => setVue('rentabilite')}
+                                className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${vue === 'rentabilite' ? 'bg-sand-800 text-white shadow-sm' : 'text-sand-600 hover:text-sand-900'}`}
+                            >
+                                <Award size={15} /> Analyse Experte (SIG)
+                            </button>
+                            <button
+                                onClick={() => setVue('marge')}
+                                className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${vue === 'marge' ? 'bg-info-600 text-white shadow-sm' : 'text-sand-600 hover:text-sand-900'}`}
+                            >
+                                <PieChartIcon size={15} /> Marge économique
+                            </button>
+                            <button
+                                onClick={() => setVue('tresorerie')}
+                                className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${vue === 'tresorerie' ? 'bg-success-600 text-white shadow-sm' : 'text-sand-600 hover:text-sand-900'}`}
+                            >
+                                <Coins size={15} /> Trésorerie
+                            </button>
+                        </div>
+
+                        {ecartMargeTreso > 0 && (
+                            <button
+                                onClick={() => navigate('/facturation')}
+                                title="Voir les factures / impayés"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warning-50 text-warning-800 text-xs font-semibold ring-1 ring-inset ring-warning-200 hover:bg-warning-100 transition-colors shrink-0 max-w-full"
+                            >
+                                <Coins size={14} className="shrink-0" />
+                                <span className="truncate">Créances à encaisser : <strong>{formatCurrency(ecartMargeTreso)}</strong></span>
+                                <ArrowRight size={14} className="shrink-0" />
+                            </button>
+                        )}
                     </div>
-                    <p className="text-xs text-sand-500 min-w-0 flex-1">
-                        {estTreso
+
+                    <p className="text-xs text-sand-500 border-t border-sand-100 pt-2 leading-relaxed">
+                        {vue === 'simple'
+                            ? 'Suivi financier boulangerie en 4 chiffres : J\'ai vendu, J\'ai consommé en matières, J\'ai dépensé en charges, J\'ai gagné (Bénéfice net).'
+                            : vue === 'rentabilite'
+                            ? 'Diagnostic financier complet : Soldes Intermédiaires de Gestion (SIG), seuil de rentabilité (point mort), analyse par canal et gaspillage.'
+                            : estTreso
                             ? 'Argent réellement encaissé et décaissé — les factures non réglées ne comptent pas.'
-                            : 'Rentabilité de l’activité : CA produit − coûts consommés (inclut le facturé non encore encaissé).'}
+                            : 'Rentabilité brute : CA produit − coûts consommés (inclut le facturé non encore encaissé).'}
                     </p>
-                    {ecartMargeTreso > 0 && (
-                        <button
-                            onClick={() => navigate('/facturation')}
-                            title="Voir les factures / impayés"
-                            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warning-50 text-warning-700 text-xs font-semibold ring-1 ring-inset ring-warning-100 hover:bg-warning-100 transition-colors"
-                        >
-                            <Coins size={14} />
-                            Créances à encaisser : {formatCurrency(ecartMargeTreso)}
-                            <ArrowRight size={14} />
-                        </button>
-                    )}
                 </div>
+
+                {vue === 'simple' ? (
+                    <TableauBordFinanceSimple
+                        periode={periode}
+                        onChangerPeriode={(debut, fin) => setPeriode({ debut, fin })}
+                        caBoutiquePos={caBoutiquePos}
+                        caLivraison={stats.caLivraison}
+                        caLivraisonEncaisse={stats.caLivraisonEncaisse}
+                        depenses={depenses}
+                        mouvements={mouvements}
+                        matieres={matieres}
+                        programmes={programmes}
+                        onRefresh={() => chargerDonnees(true)}
+                    />
+                ) : vue === 'rentabilite' ? (
+                    <TableauBordRentabilite rapport={rapportRentabilite} formatCurrency={formatCurrency} />
+                ) : (
+                    <>
 
                 {/* KPI Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
@@ -929,6 +1063,8 @@ export const Comptabilite: React.FC = () => {
                         </div>
                     </div>
                 </div>
+                </>
+            )}
             </div>
 
             {/* Détail des encaissements d'un moyen de paiement */}

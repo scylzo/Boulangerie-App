@@ -90,6 +90,9 @@ export const useStockStore = create<StockState>((set, get) => ({
         } catch (error: any) {
             console.error('Erreur chargement stock:', error);
             set({ isLoading: false, error: error.message });
+            if (error?.code === 'resource-exhausted') {
+                console.warn('Quota Firestore atteint pour le chargement des stocks.');
+            }
         }
     },
 
@@ -543,9 +546,9 @@ export const useStockStore = create<StockState>((set, get) => ({
         set({ isLoading: true });
         try {
             const { matieres, mouvements } = get();
+            const updatesLocales: Record<string, { prixUnitaireMoyen: number; stockActuel: number }> = {};
             
             for (const matiere of matieres) {
-                // On récupère tous les mouvements de cette matière, triés par date croissante (du plus vieux au plus récent)
                 const mvtsMatiere = mouvements
                     .filter(m => m.matiereId === matiere.id)
                     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime() || new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
@@ -577,24 +580,42 @@ export const useStockStore = create<StockState>((set, get) => ({
                     }
                 }
                 
-                // Si divergence, on corrige dans Firebase
                 const fixedStock = Math.round(stockSimule * 1000) / 1000;
-                if (Math.abs(pmpSimule - (matiere.prixUnitaireMoyen || 0)) > 0.01 || Math.abs(fixedStock - matiere.stockActuel) > 0.01) {
-                    console.log(`Réparation ${matiere.nom}: PMP -> ${pmpSimule} (était ${matiere.prixUnitaireMoyen}), Stock -> ${fixedStock} (était ${matiere.stockActuel})`);
-                    await firestoreService.update('matieres', matiere.id, { 
-                        prixUnitaireMoyen: pmpSimule,
-                        stockActuel: fixedStock
-                    });
-                }
+                const fixedPmp = Math.round(pmpSimule * 100) / 100;
+                updatesLocales[matiere.id] = { prixUnitaireMoyen: fixedPmp, stockActuel: fixedStock };
             }
+
+            // 1. Mise à jour immédiate en mémoire locale (instantané sans blocage)
+            set(state => ({
+                matieres: state.matieres.map(m => updatesLocales[m.id] ? { ...m, ...updatesLocales[m.id] } : m),
+                isLoading: false
+            }));
+
+            // 2. Sauvegarde Firestore avec timeout de sécurité de 5s pour ne jamais bloquer l'UI
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_QUOTA')), 5000));
+            const savePromise = (async () => {
+                for (const matiere of matieres) {
+                    const u = updatesLocales[matiere.id];
+                    if (u && (Math.abs(u.prixUnitaireMoyen - (matiere.prixUnitaireMoyen || 0)) > 0.01 || Math.abs(u.stockActuel - matiere.stockActuel) > 0.01)) {
+                        await firestoreService.update('matieres', matiere.id, u);
+                    }
+                }
+            })();
+
+            await Promise.race([savePromise, timeoutPromise]).catch(err => {
+                console.warn('Sauvegarde Firestore partielle ou différée:', err);
+            });
             
-            await get().chargerDonnees();
-            toast.success("Historique des stocks et PMP réparé avec succès !");
-            set({ isLoading: false });
+            toast.success("PMP et stocks recalculés avec succès !");
         } catch (error: any) {
             console.error("Erreur lors de la réparation de l'historique", error);
-            set({ isLoading: false, error: error.message });
-            toast.error("Erreur lors de la réparation.");
+            if (error?.code === 'resource-exhausted' || error?.message?.includes('Quota') || error?.message === 'TIMEOUT_QUOTA') {
+                toast.error("Quota Firestore quotidien atteint. Le recalcul a été appliqué localement en mémoire.");
+            } else {
+                toast.error("Erreur lors de la réparation.");
+            }
+        } finally {
+            set({ isLoading: false });
         }
     }
 }));

@@ -2,9 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
+import toast from 'react-hot-toast';
 import { useProductionStore } from '../../store';
 import { useLivreurStore } from '../../store/livreurStore';
 import { htmlPrintService } from '../../services/htmlPrintService';
+import { ModalValidationProduction } from '../../components/production/ModalValidationProduction';
 
 const printStyles = `
   @media print {
@@ -106,6 +108,7 @@ const printStyles = `
 
 
 export const VueBoulanger: React.FC = () => {
+  const [showValidationModal, setShowValidationModal] = useState(false);
   const { programmeActuel, chargerProgramme, chargerProduits, produits, setQuantiteProduite, clients, chargerClients } = useProductionStore();
   const { livreurs, chargerLivreurs } = useLivreurStore();
   const [dateSelectionnee, setDateSelectionnee] = useState(new Date().toISOString().split('T')[0]);
@@ -716,13 +719,16 @@ export const VueBoulanger: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="mt-6 flex justify-end gap-3 border-t border-sand-100 pt-4">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-sand-100 pt-4">
+                  {programmeActuel?.statut === 'produit' && programmeActuel.sacsFarinePetris ? (
+                    <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+                      <Icon icon="mdi:check-circle" className="text-base text-emerald-600" />
+                      <span>{programmeActuel.sacsFarinePetris} sacs de farine pétris</span>
+                    </div>
+                  ) : <div />}
+
                   <button
-                    onClick={() => {
-                      if (window.confirm("Êtes-vous sûr de vouloir valider la production ? Cela déduira les stocks basés sur ces quantités.")) {
-                        useProductionStore.getState().validerProduction();
-                      }
-                    }}
+                    onClick={() => setShowValidationModal(true)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-colors ${programmeActuel?.statut === 'produit'
                       ? 'bg-success-600 cursor-default'
                       : 'bg-terracotta-600 hover:bg-terracotta-700'
@@ -1165,6 +1171,21 @@ export const VueBoulanger: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Modal Validation & Clôture Production */}
+      {programmeActuel && (
+        <ModalValidationProduction
+          isOpen={showValidationModal}
+          onClose={() => setShowValidationModal(false)}
+          onConfirm={async (sacs) => {
+            await useProductionStore.getState().validerProduction(sacs);
+            toast.success(`Production validée : ${sacs} sacs de farine déduits.`);
+          }}
+          totalPains={programmeActuel.totauxParProduit?.reduce((sum, p) => sum + p.totalGlobal, 0) || 0}
+          dateProduction={new Date(programmeActuel.dateProduction)}
+          sacsInitiaux={programmeActuel.sacsFarinePetris}
+        />
+      )}
 
       {/* Bouton flottant pour aller à la section Production */}
       {programmeActuel && (

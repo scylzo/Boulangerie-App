@@ -7,6 +7,7 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { formatCurrency } from '../../utils/currency';
 import { formaterQuantite } from '../../utils/calculations';
 import { memeJour } from '../../utils/dateUtils';
+import { BilanMensuelIngredientsModal } from '../../components/stock/BilanMensuelIngredientsModal';
 
 interface LigneConsommation {
     matiereId: string;
@@ -42,6 +43,7 @@ export const SaisieConsommations: React.FC = () => {
         message: '',
         onConfirm: () => { }
     });
+    const [showBilanModal, setShowBilanModal] = useState(false);
 
     // --- DEBUT: Variables pour l'outil de calcul ---
     const [showCalculator, setShowCalculator] = useState(false);
@@ -447,6 +449,16 @@ export const SaisieConsommations: React.FC = () => {
 
                     <div className="flex flex-wrap items-center justify-end gap-3 w-full sm:w-auto">
                         <button
+                            type="button"
+                            onClick={() => setShowBilanModal(true)}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors font-semibold shadow-xs text-xs sm:text-sm"
+                            title="Faire le bilan mensuel pour la levure, améliorant, sel (du 01 au 30)"
+                        >
+                            <Calendar className="w-4 h-4" />
+                            <span>Bilan Mensuel Ingrédients</span>
+                        </button>
+
+                        <button
                             onClick={handlePreRemplir}
                             className="flex items-center gap-2 px-3 py-2 bg-terracotta-50 text-terracotta-700 rounded-lg hover:bg-terracotta-100 transition-colors font-semibold border border-terracotta-200 shadow-sm text-xs sm:text-sm"
                             title="Remplir automatiquement avec les quantités de la veille"
@@ -723,6 +735,12 @@ export const SaisieConsommations: React.FC = () => {
                 confirmText="Confirmer"
                 cancelText="Mettre à jour"
                 type="info"
+            />
+
+            <BilanMensuelIngredientsModal
+                isOpen={showBilanModal}
+                onClose={() => setShowBilanModal(false)}
+                onSuccess={() => chargerStock()}
             />
         </div>
     );

@@ -739,8 +739,7 @@ export const useFacturationStore = create<FacturationStore>()(
             facturesQuery = query(
               collection(db, 'factures'),
               where('dateLivraison', '>=', dateDebut),
-              where('dateLivraison', '<=', dateFin),
-              orderBy('dateFacture', 'desc')
+              where('dateLivraison', '<=', dateFin)
             ) as any;
           } else {
             facturesQuery = query(
@@ -756,18 +755,21 @@ export const useFacturationStore = create<FacturationStore>()(
               const data = doc.data();
               return {
                 ...data,
-                dateLivraison: data.dateLivraison.toDate(),
-                dateFacture: data.dateFacture.toDate(),
-                createdAt: data.createdAt.toDate(),
-                updatedAt: data.updatedAt.toDate(),
-                validatedAt: data.validatedAt ? data.validatedAt.toDate() : undefined,
-                paidAt: data.paidAt ? data.paidAt.toDate() : undefined,
+                dateLivraison: data.dateLivraison?.toDate ? data.dateLivraison.toDate() : new Date(data.dateLivraison),
+                dateFacture: data.dateFacture?.toDate ? data.dateFacture.toDate() : new Date(data.dateFacture),
+                createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+                updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
+                validatedAt: data.validatedAt ? (data.validatedAt.toDate ? data.validatedAt.toDate() : new Date(data.validatedAt)) : undefined,
+                paidAt: data.paidAt ? (data.paidAt.toDate ? data.paidAt.toDate() : new Date(data.paidAt)) : undefined,
                 reglements: data.reglements ? data.reglements.map((r: any) => ({
                   ...r,
                   date: r.date && typeof r.date.toDate === 'function' ? r.date.toDate() : (r.date ? new Date(r.date) : new Date())
                 })) : undefined,
               } as Facture;
             });
+
+            // Tri par date de facture décroissante en mémoire (évite index composite Firestore)
+            facturesData.sort((a, b) => (b.dateFacture?.getTime() || 0) - (a.dateFacture?.getTime() || 0));
 
             // Déduplication par ID pour éviter les doublons
             const facturesUniques = Array.from(
@@ -1458,26 +1460,28 @@ export const useFacturationStore = create<FacturationStore>()(
 
           console.log(`🔄 Actualisation de ${facturesEnAttente.length} factures en attente...`);
 
-          // Pour optimiser, on pourrait charger tous les retours récents en une fois, 
-          // mais ici on garde la logique par facture pour la sécurité, en limitant le parallélisme si besoin.
-          // Pour l'instant, on traite en série pour éviter de surcharger Firebase
+          const timestamps = facturesEnAttente
+            .map(f => f.dateLivraison?.getTime?.() || new Date(f.dateLivraison).getTime())
+            .filter(t => !isNaN(t));
+          if (timestamps.length === 0) return;
+
+          const dateDebut = new Date(Math.min(...timestamps)); dateDebut.setHours(0, 0, 0, 0);
+          const dateFin = new Date(Math.max(...timestamps)); dateFin.setHours(23, 59, 59, 999);
+
+          // UNE SEULE requête pour toute la période au lieu d'une requête par facture (évite l'épuisement des quotas Firestore)
+          const retoursSnap = await getDocs(query(
+            collection(db, 'clientReturns'),
+            where('dateLivraison', '>=', dateDebut),
+            where('dateLivraison', '<=', dateFin)
+          ));
+
+          const retoursData = retoursSnap.docs.map(doc => ({
+            ...doc.data(),
+            dateLivraison: doc.data().dateLivraison.toDate()
+          })) as InvendusClient[];
+
           for (const facture of facturesEnAttente) {
             const d = facture.dateLivraison;
-            const dateDebut = new Date(d); dateDebut.setHours(0, 0, 0, 0);
-            const dateFin = new Date(d); dateFin.setHours(23, 59, 59, 999);
-
-            const retoursSnap = await getDocs(query(
-              collection(db, 'clientReturns'),
-              where('clientId', '==', facture.clientId),
-              where('dateLivraison', '>=', dateDebut),
-              where('dateLivraison', '<=', dateFin)
-            ));
-
-            const retoursData = retoursSnap.docs.map(doc => ({
-              ...doc.data(),
-              dateLivraison: doc.data().dateLivraison.toDate()
-            })) as InvendusClient[];
-
             if (verifierRetoursCompletes(facture.clientId, d, retoursData)) {
               const updateData = {
                 statut: 'validee' as const,

@@ -1,87 +1,118 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { AlertCircle, Package, Calendar } from 'lucide-react';
 import { Icon } from '@iconify/react';
+import { formaterQuantite } from '../../utils/calculations';
+import { formatCurrency } from '../../utils/currency';
 
 export const StockDashboard: React.FC = () => {
   const { matieres } = useStockStore();
 
-  // États pour le filtre de date (conservé pour cohérence UI, même si moins utilisé sans les stats financières)
-  const [dateDebut, setDateDebut] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-  });
-  const [dateFin, setDateFin] = useState(() => {
-    return new Date().toISOString().split('T')[0];
-  });
+  const { farine, glace, nbFaibles, valeurTotale } = useMemo(() => {
+    let farineMat: typeof matieres[0] | undefined;
+    let glaceMat: typeof matieres[0] | undefined;
+    let faibles = 0;
+    let valeur = 0;
+
+    matieres.forEach(m => {
+      const nom = m.nom.toLowerCase();
+      if (!farineMat && nom.includes('farine')) farineMat = m;
+      if (!glaceMat && nom.includes('glace')) glaceMat = m;
+
+      if (m.stockMinimum > 0 && m.stockActuel <= m.stockMinimum) {
+        faibles++;
+      }
+
+      if (m.stockActuel > 0 && m.prixUnitaireMoyen > 0) {
+        valeur += m.stockActuel * m.prixUnitaireMoyen;
+      }
+    });
+
+    return {
+      farine: farineMat,
+      glace: glaceMat,
+      nbFaibles: faibles,
+      valeurTotale: valeur
+    };
+  }, [matieres]);
 
   return (
-    <>
-      {/* Filtre de Date */}
-      <div className="bg-white p-3 sm:p-4 rounded-xl border border-sand-200 shadow-sm mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-info-50 rounded-lg text-info-600 shrink-0">
-              <Icon icon="mdi:chart-box" className="text-lg sm:text-xl" />
-            </div>
-            <h2 className="text-sm sm:text-base font-semibold text-sand-800">Tableau de Bord Stock</h2>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 bg-sand-50 p-2 rounded-lg border border-sand-200 w-full sm:w-auto">
-            <div className="flex items-center gap-2">
-              <Calendar size={16} className="text-sand-500 shrink-0 sm:w-[18px] sm:h-[18px]" />
-              <span className="text-xs sm:text-sm font-medium text-sand-700 whitespace-nowrap">Période :</span>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <input
-                type="date"
-                value={dateDebut}
-                onChange={(e) => setDateDebut(e.target.value)}
-                className="bg-white border border-sand-300 text-sand-900 text-xs sm:text-sm rounded-md focus:ring-info-500 focus:border-info-500 block p-1.5 flex-1 sm:flex-none min-w-0"
-              />
-              <span className="text-sand-400 text-xs sm:text-sm shrink-0">à</span>
-              <input
-                type="date"
-                value={dateFin}
-                onChange={(e) => setDateFin(e.target.value)}
-                className="bg-white border border-sand-300 text-sand-900 text-xs sm:text-sm rounded-md focus:ring-info-500 focus:border-info-500 block p-1.5 flex-1 sm:flex-none min-w-0"
-              />
-            </div>
-          </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* 1. Farine */}
+      <div className="bg-white p-5 rounded-2xl border border-sand-200 shadow-card flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+          <Icon icon="mdi:wheat" className="w-6 h-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold text-sand-500 uppercase tracking-wide">
+            Farine en Réserve
+          </p>
+          <p className="text-xl font-black text-sand-900 truncate mt-0.5">
+            {farine ? formaterQuantite(farine.stockActuel, farine.unite) : '—'}
+          </p>
+          <p className="text-[11px] text-sand-400 mt-0.5 truncate">
+            {farine?.stockMinimum ? `Seuil alerte : ${formaterQuantite(farine.stockMinimum, farine.unite)}` : 'Matière pétrin'}
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-6 rounded-xl border border-sand-100 shadow-sm">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm font-medium text-sand-500">Matières Référencées</p>
-              <h3 className="font-display text-2xl font-semibold text-sand-900 mt-1">
-                {matieres.length}
-              </h3>
-              <p className="text-xs text-sand-400 mt-1">Au total</p>
-            </div>
-            <div className="p-3 bg-info-50 rounded-lg text-info-600">
-              <Package size={24} />
-            </div>
-          </div>
+      {/* 2. Glace */}
+      <div className="bg-white p-5 rounded-2xl border border-sand-200 shadow-card flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center shrink-0">
+          <Icon icon="mdi:snowflake" className="w-6 h-6" />
         </div>
-
-        <div className="bg-white p-6 rounded-xl border border-sand-100 shadow-sm">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm font-medium text-sand-500">Stock Faible</p>
-              <h3 className="font-display text-2xl font-semibold text-sand-900 mt-1">
-                {matieres.filter(m => m.stockMinimum > 0 && m.stockActuel <= m.stockMinimum).length}
-              </h3>
-              <p className="text-xs text-danger-500 mt-1">À réapprovisionner</p>
-            </div>
-            <div className="p-3 bg-danger-50 rounded-lg text-danger-600">
-              <AlertCircle size={24} />
-            </div>
-          </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold text-sand-500 uppercase tracking-wide">
+            Glace Disponible
+          </p>
+          <p className="text-xl font-black text-sand-900 truncate mt-0.5">
+            {glace ? formaterQuantite(glace.stockActuel, glace.unite) : '—'}
+          </p>
+          <p className="text-[11px] text-cyan-700 mt-0.5 font-medium truncate">
+            {glace ? `PMP : ${formatCurrency(Math.round(glace.prixUnitaireMoyen))}/${glace.unite}` : 'Non créée'}
+          </p>
         </div>
       </div>
-    </>
+
+      {/* 3. Alertes / Seuil faible */}
+      <div className={`bg-white p-5 rounded-2xl border shadow-card flex items-center gap-4 ${
+        nbFaibles > 0 ? 'border-amber-300 bg-amber-50/20' : 'border-sand-200'
+      }`}>
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+          nbFaibles > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'
+        }`}>
+          <Icon icon={nbFaibles > 0 ? "mdi:alert" : "mdi:check-circle"} className="w-6 h-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold text-sand-500 uppercase tracking-wide">
+            Matières sous Seuil
+          </p>
+          <p className={`text-xl font-black mt-0.5 ${nbFaibles > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+            {nbFaibles} matière{nbFaibles > 1 ? 's' : ''}
+          </p>
+          <p className="text-[11px] text-sand-400 mt-0.5 truncate">
+            {nbFaibles > 0 ? 'Réapprovisionnement requis' : 'Tous les stocks sont OK'}
+          </p>
+        </div>
+      </div>
+
+      {/* 4. Valeur totale du stock */}
+      <div className="bg-white p-5 rounded-2xl border border-sand-200 shadow-card flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-sand-100 text-sand-700 flex items-center justify-center shrink-0">
+          <Icon icon="mdi:cash-multiple" className="w-6 h-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold text-sand-500 uppercase tracking-wide">
+            Valeur Marchandise
+          </p>
+          <p className="text-xl font-black text-sand-900 truncate mt-0.5">
+            {formatCurrency(Math.round(valeurTotale))}
+          </p>
+          <p className="text-[11px] text-sand-400 mt-0.5 truncate">
+            Total {matieres.length} matière{matieres.length > 1 ? 's' : ''} en réserve
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
+

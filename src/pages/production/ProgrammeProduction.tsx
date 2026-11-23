@@ -15,6 +15,7 @@ import { htmlPrintService } from '../../services/htmlPrintService';
 import { downloadProductionProgramPDF } from '../../utils/pdfGenerator';
 import { useLivreurStore } from '../../store/livreurStore';
 import { RedistributionModal } from '../../components/production/RedistributionModal';
+import { ModalValidationProduction } from '../../components/production/ModalValidationProduction';
 import { estWeekend, estDimanche } from '../../utils/dateUtils';
 import type { CommandeClient, RedistributionData, Client } from '../../types';
 
@@ -141,26 +142,24 @@ export const ProgrammeProduction: React.FC = () => {
 
   // Initialisation et listeners
   useEffect(() => {
-    const initialiser = async () => {
-      try {
-        await chargerProduits();
-        await chargerClients();
-        await chargerLivreurs();
-        const dateSelectionneeObj = new Date(dateSelectionnee);
-        chargerProgrammeAvecListener(dateSelectionneeObj);
-      } catch (error) {
-        console.error('Erreur lors de l\'initialisation:', error);
-        const dateSelectionneeObj = new Date(dateSelectionnee);
-        creerNouveauProgramme(dateSelectionneeObj);
-      }
-    };
+    // 1. Lancer immédiatement le listener de production pour cette date (ultra-rapide)
+    const dateSelectionneeObj = new Date(dateSelectionnee);
+    chargerProgrammeAvecListener(dateSelectionneeObj);
 
-    initialiser();
+    // 2. Charger les référentiels (produits, clients, livreurs) en parallèle sans bloquer
+    Promise.all([
+      chargerProduits(),
+      chargerClients(),
+      chargerLivreurs()
+    ]).catch(err => {
+      console.warn('Chargement référentiels en arrière-plan:', err);
+    });
 
     return () => {
       nettoyerListeners();
     };
-  }, [dateSelectionnee, chargerProduits, chargerClients, chargerLivreurs, chargerProgrammeAvecListener, creerNouveauProgramme, nettoyerListeners]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateSelectionnee]);
 
   // Rafraîchir les données quand le composant redevient visible
   useEffect(() => {
@@ -174,11 +173,29 @@ export const ProgrammeProduction: React.FC = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [rafraichirDonnees]);
 
-  // Loader plein écran au premier chargement
+  // Loader au premier chargement avec sécurité anti-blocage (timeout court 350ms max)
   const [chargementInitial, setChargementInitial] = useState(true);
+
   useEffect(() => {
-    if (programmeActuel && chargementInitial) setChargementInitial(false);
-  }, [programmeActuel, chargementInitial]);
+    if (programmeActuel) {
+      setChargementInitial(false);
+    }
+  }, [programmeActuel]);
+
+  useEffect(() => {
+    // Sécurité : affichage rapide en 350ms max
+    const timer = setTimeout(() => {
+      setChargementInitial(false);
+      // Si aucun programme après 350ms, s'assurer qu'un programme existe
+      const { programmeActuel: cur } = useProductionStore.getState();
+      if (!cur) {
+        creerNouveauProgramme(new Date(dateSelectionnee));
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateSelectionnee]);
 
   // Changement de date (+/- jours)
   const handleDecalerDate = (deltaJours: number) => {
@@ -674,22 +691,18 @@ export const ProgrammeProduction: React.FC = () => {
     }
   };
 
-  const handleValiderProduction = async () => {
-    const confirmation = await confirmModal.confirm({
-      title: 'Clôturer la production',
-      message: 'Êtes-vous sûr de vouloir clôturer la production pour ce jour ? Le programme sera verrouillé.',
-      confirmText: 'Clôturer la production',
-      cancelText: 'Annuler',
-      type: 'info'
-    });
+  const [showValidationModal, setShowValidationModal] = useState(false);
 
-    if (confirmation) {
-      try {
-        await validerProduction();
-        toast.success('Production validée');
-      } catch (error) {
-        toast.error('Erreur lors de la validation');
-      }
+  const handleValiderProduction = () => {
+    setShowValidationModal(true);
+  };
+
+  const handleConfirmValidation = async (sacsFarine: number) => {
+    try {
+      await validerProduction(sacsFarine);
+      toast.success(`Production validée : ${sacsFarine} sac(s) de farine déduit(s) du stock`);
+    } catch (error) {
+      toast.error('Erreur lors de la validation de la production');
     }
   };
 
@@ -753,7 +766,7 @@ export const ProgrammeProduction: React.FC = () => {
     return quantitesBoutique.reduce((t, q) => t + (Number(q.quantite) || 0), 0);
   }, [quantitesBoutique]);
 
-  if (chargementInitial || (!programmeActuel && isLoading)) {
+  if (chargementInitial && !programmeActuel) {
     return <PageLoader message="Chargement du programme de production…" />;
   }
 
@@ -899,6 +912,18 @@ export const ProgrammeProduction: React.FC = () => {
                   <Icon icon="mdi:check-decagram" className="text-sm" />
                   <span>Clôturer</span>
                 </button>
+              )}
+
+              {programmeActuel?.statut === 'produit' && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold">
+                  <Icon icon="mdi:check-circle" className="text-sm text-emerald-600" />
+                  <span>Clôturé {programmeActuel.sacsFarinePetris ? `• ${programmeActuel.sacsFarinePetris} sacs de farine` : ''}</span>
+                  {programmeActuel.sacsFarinePetris && programmeActuel.totauxParProduit && (
+                    <span className="text-[10px] text-emerald-600 font-normal">
+                      ({Math.round(programmeActuel.totauxParProduit.reduce((s, p) => s + p.totalGlobal, 0) / programmeActuel.sacsFarinePetris)} pcs/sac)
+                    </span>
+                  )}
+                </div>
               )}
             </div>
 
@@ -1819,6 +1844,18 @@ export const ProgrammeProduction: React.FC = () => {
         clients={clients}
         isLoading={isLoading || isSaving}
       />
+
+      {/* Modal Validation & Clôture Production (Sacs de farine) */}
+      {programmeActuel && (
+        <ModalValidationProduction
+          isOpen={showValidationModal}
+          onClose={() => setShowValidationModal(false)}
+          onConfirm={handleConfirmValidation}
+          totalPains={programmeActuel.totauxParProduit?.reduce((sum, p) => sum + p.totalGlobal, 0) || 0}
+          dateProduction={new Date(programmeActuel.dateProduction)}
+          sacsInitiaux={programmeActuel.sacsFarinePetris}
+        />
+      )}
 
       {/* Modal de Confirmation */}
       <ConfirmModal

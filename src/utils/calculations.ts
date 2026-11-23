@@ -73,7 +73,12 @@ export const formaterPourcentage = (valeur: number): string => {
 };
 
 export const formaterQuantite = (quantite: number, unite: string = ''): string => {
-  // Arrondir à 2 décimales pour éviter les problèmes de précision flottante (ex: 52.900000000000006)
-  const arrondie = Math.round((quantite + Number.EPSILON) * 100) / 100;
-  return `${arrondie.toLocaleString('fr-FR')}${unite ? ' ' + unite : ''}`;
+  if (quantite === undefined || quantite === null || isNaN(quantite)) {
+    return `0${unite ? ' ' + unite : ''}`;
+  }
+  // Arrondir à 2 décimales pour éviter les problèmes de précision flottante (ex: -32.900000000000006 -> -32,9)
+  const signe = quantite < 0 ? -1 : 1;
+  const abs = Math.abs(quantite);
+  const arrondie = signe * (Math.round((abs + Number.EPSILON) * 100) / 100);
+  return `${arrondie.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}${unite ? ' ' + unite : ''}`;
 };

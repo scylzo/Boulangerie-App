@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { Plus, Edit2, Trash2, AlertTriangle, ArrowRightLeft, Scale } from 'lucide-react';
+import { Plus, Edit2, Trash2, ArrowRightLeft, Scale, PackagePlus, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
@@ -10,9 +10,10 @@ import { useAuthStore } from '../../store/authStore';
 
 interface MatiereListProps {
   onAddMouvement: (matiere: MatierePremiere) => void;
+  onReception?: (matiere: MatierePremiere) => void;
 }
 
-export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
+export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onReception }) => {
   const { matieres, addMatiere, updateMatiere, deleteMatiere, addMouvement } = useStockStore();
   const { user } = useAuthStore();
   const [isEditing, setIsEditing] = useState<string | null>(null);
@@ -174,23 +175,25 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h2 className="text-base sm:text-lg font-semibold text-sand-800">Matières Premières</h2>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => useStockStore.getState().reparerHistoriqueStock()}
-            className="flex items-center justify-center space-x-2 bg-sand-100 hover:bg-sand-200 text-sand-700 px-3 py-2 rounded-lg transition-colors text-xs sm:text-sm font-semibold border border-sand-300"
-            title="Recalcule le stock actuel et le Prix Moyen Pondéré de toutes les matières en rejouant l'historique des mouvements"
-          >
-            <AlertTriangle size={14} className="sm:w-4 sm:h-4 text-warning-500" />
-            <span>Réparer PMP</span>
-          </button>
+          {onReception && (
+            <button
+              onClick={() => onReception(matieres[0])}
+              className="flex items-center justify-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-2 rounded-lg transition-colors text-xs sm:text-sm font-semibold border border-emerald-200"
+              title="Enregistrer une réception de marchandise"
+            >
+              <PackagePlus size={16} />
+              <span>Réceptionner</span>
+            </button>
+          )}
           <button
             onClick={() => {
               setIsEditing(null);
               setFormData({ nom: '', unite: 'kg', stockMinimum: '', stockActuel: '', dateCreation: new Date().toISOString().split('T')[0] });
               setShowForm(!showForm);
             }}
-            className="flex items-center justify-center space-x-2 bg-warning-600 hover:bg-warning-600 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex-1 sm:flex-none text-sm sm:text-base"
+            className="flex items-center justify-center space-x-2 bg-sand-900 hover:bg-sand-800 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex-1 sm:flex-none text-sm font-medium shadow-sm"
           >
-            <Plus size={18} className="sm:w-5 sm:h-5" />
+            <Plus size={16} />
             <span>Nouvelle Matière</span>
           </button>
         </div>
@@ -235,6 +238,8 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                 <option value="g">Gramme (g)</option>
                 <option value="l">Litre (l)</option>
                 <option value="piece">Pièce</option>
+                <option value="sac">Sac</option>
+                <option value="sachet">Sachet</option>
                 <option value="sac_50kg">Sac 50kg</option>
                 <option value="sac_25kg">Sac 25kg</option>
               </select>
@@ -400,6 +405,15 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement }) => {
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                     <div className="flex justify-end space-x-1 sm:space-x-2">
+                      {onReception && (
+                        <button
+                          onClick={() => onReception(matiere)}
+                          title={`Réceptionner ${matiere.nom}`}
+                          className="p-1.5 sm:p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                        >
+                          <PackagePlus size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        </button>
+                      )}
                       {isConvertible && (
                         <button
                           onClick={() => openConversion(matiere)}

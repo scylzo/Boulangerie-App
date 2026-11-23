@@ -170,6 +170,7 @@ export interface ProgrammeProduction {
     repartitionCar2Matin: number;
     repartitionCarSoir: number;
   }>;
+  sacsFarinePetris?: number; // Nombre de sacs de farine de 50kg pétris pour cette journée
   statut: 'brouillon' | 'envoye' | 'modifie' | 'produit';
   createdAt: Date;
   updatedAt: Date;

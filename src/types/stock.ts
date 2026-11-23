@@ -10,7 +10,7 @@ export interface Fournisseur {
     updatedAt: Date;
 }
 
-export type UniteMesure = 'kg' | 'g' | 'l' | 'ml' | 'piece' | 'sac_50kg' | 'sac_25kg';
+export type UniteMesure = 'kg' | 'g' | 'l' | 'ml' | 'piece' | 'sac' | 'sachet' | 'carton' | 'sac_50kg' | 'sac_25kg';
 
 export interface MatierePremiere {
     id: string;

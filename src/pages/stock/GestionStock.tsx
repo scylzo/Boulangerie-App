@@ -5,20 +5,25 @@ import { StockDashboard } from '../../components/stock/StockDashboard';
 import { MatiereList } from '../../components/stock/MatiereList';
 import { MouvementModal } from '../../components/stock/MouvementModal';
 import { MouvementsList } from '../../components/stock/MouvementsList';
+import { ModalReceptionStock } from '../../components/stock/ModalReceptionStock';
+import { BilanMensuelIngredientsModal } from '../../components/stock/BilanMensuelIngredientsModal';
 import type { MatierePremiere } from '../../types';
-import { Package, History } from 'lucide-react';
+import { Package, History, PlusCircle, CalendarCheck, ClipboardList } from 'lucide-react';
 
 export const GestionStock: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'stock' | 'mouvements'>('stock');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isReceptionModalOpen, setIsReceptionModalOpen] = useState(false);
+  const [isBilanModalOpen, setIsBilanModalOpen] = useState(false);
   const [selectedMatiere, setSelectedMatiere] = useState<MatierePremiere | undefined>(undefined);
-  const { chargerDonnees, isLoading } = useStockStore();
+  const [receptionMatiere, setReceptionMatiere] = useState<MatierePremiere | undefined>(undefined);
+  const { chargerDonnees, isLoading, matieres } = useStockStore();
 
   useEffect(() => {
     chargerDonnees();
   }, [chargerDonnees]);
 
-  if (isLoading) {
+  if (isLoading && matieres.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="w-8 h-8 border-4 border-warning-500 border-t-transparent rounded-full animate-spin"></div>
@@ -29,6 +34,11 @@ export const GestionStock: React.FC = () => {
   const handleOpenMouvement = (matiere: MatierePremiere) => {
     setSelectedMatiere(matiere);
     setIsModalOpen(true);
+  };
+
+  const handleOpenReception = (matiere?: MatierePremiere) => {
+    setReceptionMatiere(matiere);
+    setIsReceptionModalOpen(true);
   };
 
   return (
@@ -42,16 +52,38 @@ export const GestionStock: React.FC = () => {
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="font-display text-lg sm:text-2xl font-semibold text-sand-900 truncate">Gestion des Stocks</h1>
-              <p className="text-xs sm:text-sm text-sand-500 truncate">Suivi des matières premières</p>
+              <p className="text-xs sm:text-sm text-sand-500 truncate">Réserve de farine, glace et matières premières</p>
             </div>
           </div>
-          <Link
-            to="/stocks/declaration"
-            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-sand-900 text-white rounded-lg hover:bg-sand-800 transition-colors shadow-sm text-xs sm:text-sm font-medium w-full sm:w-auto shrink-0"
-          >
-            <Package className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span>Saisie Journalière</span>
-          </Link>
+
+          {/* Actions rapides */}
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => handleOpenReception()}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm transition-colors text-xs sm:text-sm font-semibold flex-1 sm:flex-none"
+              title="Enregistrer une livraison ou un achat de sacs de farine, glace, levure..."
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>+ Réception Stock</span>
+            </button>
+
+            <button
+              onClick={() => setIsBilanModalOpen(true)}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-sand-50 text-sand-800 border border-sand-300 rounded-xl shadow-sm transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+              title="Faire l'inventaire et le bilan des consommations du mois (glace, levure, améliorants...)"
+            >
+              <CalendarCheck className="w-4 h-4 text-terracotta-600" />
+              <span>Bilan Mensuel</span>
+            </button>
+
+            <Link
+              to="/stocks/declaration"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-sand-900 text-white rounded-xl hover:bg-sand-800 transition-colors shadow-sm text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+            >
+              <ClipboardList className="w-4 h-4" />
+              <span>Saisie Journalière</span>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -70,7 +102,7 @@ export const GestionStock: React.FC = () => {
                   }`}
               >
                 <Package size={16} className="sm:w-[18px] sm:h-[18px]" />
-                <span>Inventaire</span>
+                <span>Inventaire & Réserve</span>
               </button>
               <button
                 onClick={() => setActiveTab('mouvements')}
@@ -87,7 +119,10 @@ export const GestionStock: React.FC = () => {
 
           <div className="p-4 sm:p-6">
             {activeTab === 'stock' && (
-              <MatiereList onAddMouvement={handleOpenMouvement} />
+              <MatiereList
+                onAddMouvement={handleOpenMouvement}
+                onReception={handleOpenReception}
+              />
             )}
             {activeTab === 'mouvements' && (
               <MouvementsList />
@@ -103,6 +138,20 @@ export const GestionStock: React.FC = () => {
           setSelectedMatiere(undefined);
         }}
         selectedMatiere={selectedMatiere}
+      />
+
+      <ModalReceptionStock
+        isOpen={isReceptionModalOpen}
+        onClose={() => {
+          setIsReceptionModalOpen(false);
+          setReceptionMatiere(undefined);
+        }}
+        matiereInitiale={receptionMatiere}
+      />
+
+      <BilanMensuelIngredientsModal
+        isOpen={isBilanModalOpen}
+        onClose={() => setIsBilanModalOpen(false)}
       />
     </div>
   );

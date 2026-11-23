@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useDepenseStore } from '../../store/depenseStore';
 import { useStockStore } from '../../store/stockStore';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
@@ -616,10 +617,30 @@ export const GestionDepenses: React.FC = () => {
           )}
 
           {activeTab === 'stock' && (
-            <DepenseList
-              depenses={filteredDepenses.filter(d => d.id.startsWith('stock_'))}
-              readOnly={true}
-            />
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-xl gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                    <Package size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-emerald-900">Achats & Réceptions de Stock</h4>
+                    <p className="text-xs text-emerald-700">Ces dépenses proviennent des livraisons de matières (farine, glace, levure...).</p>
+                  </div>
+                </div>
+                <Link
+                  to="/stock"
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors whitespace-nowrap"
+                >
+                  + Réceptionner dans Stock
+                </Link>
+              </div>
+
+              <DepenseList
+                depenses={filteredDepenses.filter(d => d.id.startsWith('stock_'))}
+                readOnly={true}
+              />
+            </div>
           )}
 
           {activeTab === 'fournisseurs' && (
