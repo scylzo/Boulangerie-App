@@ -157,20 +157,15 @@ export const GestionFactures: React.FC = () => {
     initialiser();
   }, [chargerParametres, chargerFactures, chargerClients, selectedMonth]);
 
-  // Synchronisation auto en arrière-plan - Uniquement si l'onglet est actif
+  // Synchronisation allégée : uniquement quand l'utilisateur revient sur l'onglet
   useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        if (typeof document !== 'undefined' && document.hidden) return; // Ne pas consommer de quota si l'onglet est en arrière-plan
-        const start = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
-        const end = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
-        
-        await chargerFactures(start, end, true);
-      } catch (error) {
-        console.error('Erreur synchro auto factures:', error);
-      }
-    }, 120000); // 2 minutes au lieu de 30 secondes
-    return () => clearInterval(interval);
+    const onFocus = () => {
+      const start = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+      const end = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+      chargerFactures(start, end, true).catch(() => {});
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
   }, [chargerFactures, selectedMonth]);
 
   // --- Logique Vue Clients ---

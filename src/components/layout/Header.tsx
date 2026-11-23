@@ -6,6 +6,9 @@ import { useStockStore } from '../../store/stockStore';
 import { useReferentielStore } from '../../store/referentielStore';
 import { formaterQuantite } from '../../utils/calculations';
 import { APP_MODULES } from '../../constants/modules';
+import { estEnModeSecours, desactiverModeSecours, activerModeSecours } from '../../firebase/config';
+import { flushSyncQueue } from '../../utils/syncQueue';
+import toast from 'react-hot-toast';
 
 type ResultatRecherche = { type: 'page' | 'produit' | 'client'; label: string; sous?: string; icon: string; href: string };
 
@@ -40,6 +43,38 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
   const allerAuStock = () => {
     setShowAlerts(false);
     navigate('/stocks');
+  };
+
+  // Mode secours quota local
+  const [modeSecours, setModeSecours] = useState(estEnModeSecours());
+  const [isTestingConnexion, setIsTestingConnexion] = useState(false);
+
+  useEffect(() => {
+    const handleSecoursChange = (e: any) => {
+      setModeSecours(e.detail?.actif ?? estEnModeSecours());
+    };
+    window.addEventListener('boulangerie_mode_secours_changed', handleSecoursChange);
+    return () => window.removeEventListener('boulangerie_mode_secours_changed', handleSecoursChange);
+  }, []);
+
+  const handleTesterReconnexion = async () => {
+    setIsTestingConnexion(true);
+    try {
+      await desactiverModeSecours();
+      const res = await flushSyncQueue();
+      if (res.remainingCount === 0) {
+        toast.success('🌐 Connexion Firebase rétablie et données synchronisées !');
+      } else {
+        toast.error('⚠️ Quota Firebase toujours dépassé. Retour en mode secours local.');
+        await activerModeSecours();
+      }
+    } catch {
+      toast.error('⚠️ Quota Firebase toujours dépassé. Retour en mode secours local.');
+      await activerModeSecours();
+    } finally {
+      setIsTestingConnexion(false);
+      setModeSecours(estEnModeSecours());
+    }
   };
 
   // ── Recherche globale (écrans + produits + clients) ────────────────
@@ -134,7 +169,23 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
         </div>
 
         {/* Droite : recherche + actions */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          {/* Badge Mode Secours Quota */}
+          {modeSecours && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+              <span className="hidden sm:inline font-medium">Mode Secours Local</span>
+              <button
+                onClick={handleTesterReconnexion}
+                disabled={isTestingConnexion}
+                className="ml-1 px-2 py-0.5 rounded-lg bg-amber-200 hover:bg-amber-300 text-amber-950 font-semibold text-[11px] transition-colors"
+                title="Tester si le quota Firebase est réinitialisé et synchroniser les données"
+              >
+                {isTestingConnexion ? 'Test…' : 'Reconnecter'}
+              </button>
+            </div>
+          )}
+
           {/* Recherche globale */}
           <div className="hidden md:block relative">
             <div className="flex items-center gap-2 h-10 px-3.5 rounded-xl bg-sand-100 text-sand-500 text-sm w-72 focus-within:ring-2 focus-within:ring-terracotta-500/40">

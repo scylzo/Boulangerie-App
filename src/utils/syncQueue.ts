@@ -1,5 +1,5 @@
 import { doc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { db, activerModeSecours } from '../firebase/config';
 import toast from 'react-hot-toast';
 
 export interface PendingSyncItem {
@@ -120,7 +120,8 @@ export const flushSyncQueue = async (): Promise<{ successCount: number; remainin
         }
       } catch (err: any) {
         if (err?.code === 'resource-exhausted' || err?.message?.includes('Quota exceeded')) {
-          console.warn('⚠️ Quota Firestore toujours dépassé, la synchronisation réessayera ultérieurement.');
+          console.warn('⚠️ Quota Firestore toujours dépassé, activation du mode secours local.');
+          activerModeSecours().catch(() => {});
           break; // Ne pas insister pour ne pas surcharger
         } else {
           console.error(`Erreur synchronisation item ${item.id}:`, err);
