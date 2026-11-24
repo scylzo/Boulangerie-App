@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onToggleCollapse })
     setIsTestingConnexion(true);
     try {
       await desactiverModeSecours();
-      const res = await flushSyncQueue();
+      const res = await flushSyncQueue(true);
       if (res.remainingCount === 0) {
         toast.success('🌐 Connexion Firebase rétablie et données synchronisées !');
       } else {

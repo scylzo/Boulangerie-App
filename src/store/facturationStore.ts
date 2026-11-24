@@ -5,6 +5,7 @@ import { realTimeListeners } from '../firebase/collections';
 import { db } from '../firebase/config';
 import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient, Client, Reglement, ModePaiement } from '../types';
 import { addToSyncQueue, flushSyncQueue } from '../utils/syncQueue';
+import { useReferentielStore } from './referentielStore';
 
 
 interface FacturationStore {
@@ -135,33 +136,17 @@ export const useFacturationStore = create<FacturationStore>()(
             commandesParClient.get(clientId)!.push(commande);
           });
 
-          // a. Pré-chargement des Clients et Produits pour éviter les appels Firestore en boucle
-          const allClientIds = Array.from(commandesParClient.keys());
-          const allProduitIds = new Set<string>();
-          commandesClients.forEach(c => c.produits.forEach(p => allProduitIds.add(p.produitId)));
+          // Utiliser les référentiels en mémoire pour éviter 50 requêtes getDoc réseau
+          const refClients = useReferentielStore.getState().clients || [];
+          const refProduits = useReferentielStore.getState().produits || [];
 
-          const [clientsCache, produitsCache] = await Promise.all([
-            // Charger tous les clients concernés
-            Promise.all(allClientIds.map(async (id) => {
-              try {
-                const d = await getDoc(doc(db, 'clients', id));
-                return d.exists() ? { id: d.id, ...d.data() } as Client : null;
-              } catch (e) { return null; }
-            })).then(res => new Map<string, Client>(res.filter(c => c !== null).map(c => [c!.id, c as Client]))),
-
-            // Charger tous les produits concernés
-            Promise.all(Array.from(allProduitIds).map(async (id) => {
-              try {
-                const d = await getDoc(doc(db, 'produits', id));
-                return d.exists() ? { id: d.id, ...d.data() } as any : null;
-              } catch (e) { return null; }
-            })).then(res => new Map<string, any>(res.filter(p => p !== null).map(p => [p!.id, {
-              ...p,
-              prixClient: p!.prixClient || 0,
-              prixBoutique: p!.prixBoutique || 0,
-              prixUnitaire: p!.prixUnitaire || 0
-            }])))
-          ]);
+          const clientsCache = new Map<string, Client>(refClients.map(c => [c.id, c]));
+          const produitsCache = new Map<string, any>(refProduits.map(p => [p.id, {
+            ...p,
+            prixClient: p.prixClient || 0,
+            prixBoutique: p.prixBoutique || 0,
+            prixUnitaire: p.prixUnitaire || 0
+          }]));
 
           const nouvelles: Facture[] = [];
           const misesAJour: Facture[] = [];

@@ -59,10 +59,16 @@ export const removeFromSyncQueue = (id: string): void => {
 };
 
 let isFlushing = false;
+let lastQuotaErrorTime = 0;
 
-export const flushSyncQueue = async (): Promise<{ successCount: number; remainingCount: number }> => {
+export const flushSyncQueue = async (force: boolean = false): Promise<{ successCount: number; remainingCount: number }> => {
   if (isFlushing) return { successCount: 0, remainingCount: getSyncQueue().length };
   
+  // Si le quota a été dépassé récemment, attendre au moins 5 minutes avant de retenter automatiquement
+  if (!force && Date.now() - lastQuotaErrorTime < 5 * 60 * 1000) {
+    return { successCount: 0, remainingCount: getSyncQueue().length };
+  }
+
   const queue = getSyncQueue();
   if (queue.length === 0) return { successCount: 0, remainingCount: 0 };
 
@@ -132,7 +138,8 @@ export const flushSyncQueue = async (): Promise<{ successCount: number; remainin
         }
       } catch (err: any) {
         if (err?.code === 'resource-exhausted' || err?.message?.includes('Quota exceeded')) {
-          console.warn('⚠️ Quota Firestore toujours dépassé, activation du mode secours local.');
+          lastQuotaErrorTime = Date.now();
+          console.warn('⚠️ Quota Firestore toujours dépassé, mise en veille des écritures pour 5 min.');
           activerModeSecours().catch(() => {});
           break; // Ne pas insister pour ne pas surcharger
         } else {
