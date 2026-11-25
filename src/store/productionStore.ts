@@ -371,7 +371,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     try {
       const programmes = await Promise.race([
         businessQueries.getProgrammeByDate(date),
-        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
+        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
       ]);
 
       console.log('🔍 Programmes trouvés dans Firebase:', (programmes || []).length);
@@ -662,7 +662,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           const { id: _, ...dataContent } = dataToSaveSafe;
           const docRef = await Promise.race([
             firestoreService.create('productionPrograms', dataContent),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
           ]);
 
           set((state) => ({
@@ -677,7 +677,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           const { id, ...dataContent } = dataToSaveSafe;
           await Promise.race([
             firestoreService.update('productionPrograms', id, dataContent),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
           ]);
           set({ isLoading: false });
         }
