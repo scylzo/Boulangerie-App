@@ -4,7 +4,9 @@ import {
     collection,
     runTransaction,
     doc,
-    Timestamp
+    Timestamp,
+    orderBy,
+    limit
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { firestoreService } from '../firebase/collections';
@@ -64,7 +66,10 @@ export const useStockStore = create<StockState>((set, get) => ({
         try {
             const [matieres, mouvements, fournisseurs] = await Promise.all([
                 firestoreService.getAll<MatierePremiere>('matieres'),
-                firestoreService.getAll<MouvementStock>('mouvements'),
+                firestoreService.getByQuery<MouvementStock>('mouvements', [
+                    orderBy('createdAt', 'desc'),
+                    limit(150)
+                ]).catch(() => firestoreService.getByQuery<MouvementStock>('mouvements', [limit(150)])),
                 firestoreService.getAll<Fournisseur>('fournisseurs')
             ]);
 

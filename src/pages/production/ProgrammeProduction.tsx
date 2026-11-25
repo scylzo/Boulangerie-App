@@ -45,7 +45,7 @@ export const ProgrammeProduction: React.FC = () => {
     commandeEnEdition,
     quantiteBoutiqueEnEdition,
     formulaireCommande,
-    creerNouveauProgramme,
+    // creerNouveauProgramme géré dans le store
     chargerProgrammeAvecListener,
     nettoyerListeners,
     envoyerAuBoulanger,
@@ -183,18 +183,12 @@ export const ProgrammeProduction: React.FC = () => {
   }, [programmeActuel]);
 
   useEffect(() => {
-    // Sécurité : affichage rapide en 350ms max
+    // Sécurité : fin du loader après un court délai
     const timer = setTimeout(() => {
       setChargementInitial(false);
-      // Si aucun programme après 350ms, s'assurer qu'un programme existe
-      const { programmeActuel: cur } = useProductionStore.getState();
-      if (!cur) {
-        creerNouveauProgramme(new Date(dateSelectionnee));
-      }
-    }, 350);
+    }, 500);
 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateSelectionnee]);
 
   // Changement de date (+/- jours)

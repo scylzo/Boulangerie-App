@@ -268,9 +268,9 @@ export const usePosStore = create<PosStore>((set, get) => ({
       const snap = await getDocs(q);
       return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as TicketPOS[];
     } catch (e) {
-      // Repli : on charge tout et on filtre côté client
+      // Repli sécurisé limité pour éviter de saturer le quota
       try {
-        const snap = await getDocs(collection(db, 'pos_tickets'));
+        const snap = await getDocs(query(collection(db, 'pos_tickets'), orderBy('date', 'desc'), limit(150)));
         return (snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as TicketPOS[])
           .filter(t => t.date >= debutKey && t.date <= finKey);
       } catch (err) {

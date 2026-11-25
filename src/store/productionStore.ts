@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import toast from 'react-hot-toast';
 
 import type { ProgrammeProduction, CommandeClient, QuantiteBoutique, Produit, Client, RedistributionData } from '../types';
 import { firestoreService, businessQueries, realTimeListeners, dateToTimestamp, timestampToDate } from '../firebase/collections';
@@ -463,25 +464,34 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
           });
           get().calculerTotauxParProduit();
         } else {
-          const dateProduction = new Date(calKey + 'T00:00:00.000Z');
-          const nouveauProgramme: ProgrammeProduction = {
-            id: `prog_${Date.now()}`,
-            dateProduction,
-            dateCreation: new Date(),
-            statut: 'brouillon',
-            commandesClients: [],
-            quantitesBoutique: [],
-            totauxParProduit: [],
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          set({
-            programmeActuel: nouveauProgramme,
-            commandesClients: [],
-            quantitesBoutique: [],
-            isLoading: false
-          });
-          get().calculerTotauxParProduit();
+          const todayStr = new Date().toISOString().split('T')[0];
+          // On ne crée un brouillon vierge automatique QUE pour aujourd'hui
+          if (calKey === todayStr) {
+            const dateProduction = new Date(calKey + 'T00:00:00.000Z');
+            const nouveauProgramme: ProgrammeProduction = {
+              id: `prog_${Date.now()}`,
+              dateProduction,
+              dateCreation: new Date(),
+              statut: 'brouillon',
+              commandesClients: [],
+              quantitesBoutique: [],
+              totauxParProduit: [],
+              createdAt: new Date(),
+              updatedAt: new Date()
+            };
+            set({
+              programmeActuel: nouveauProgramme,
+              commandesClients: [],
+              quantitesBoutique: [],
+              isLoading: false
+            });
+            get().calculerTotauxParProduit();
+          } else {
+            // Pour un jour passé où la requête a échoué (quota ou réseau) :
+            // Ne PAS créer de faux brouillon vide pour ne pas faire croire à une suppression !
+            toast.error("Impossible de charger les données du serveur pour cette date (serveur ou quota). Vos données enregistrées sont préservées.", { id: 'err-quota-prog' });
+            set({ isLoading: false });
+          }
         }
       } else {
         set({ isLoading: false });

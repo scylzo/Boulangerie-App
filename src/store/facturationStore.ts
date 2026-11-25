@@ -747,7 +747,8 @@ export const useFacturationStore = create<FacturationStore>()(
           } else {
             facturesQuery = query(
               collection(db, 'factures'),
-              orderBy('dateFacture', 'desc')
+              orderBy('dateFacture', 'desc'),
+              limit(60)
             ) as any;
           }
 

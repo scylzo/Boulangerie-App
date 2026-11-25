@@ -35,8 +35,13 @@ export const Dashboard: React.FC = () => {
         let annule = false;
         const init = async () => {
             try {
+                const fin = new Date();
+                const debut = new Date();
+                debut.setDate(debut.getDate() - 14);
+                debut.setHours(0, 0, 0, 0);
+
                 await Promise.all([
-                    chargerFactures(),
+                    chargerFactures(debut, fin),
                     chargerStock(),
                     chargerProgramme(new Date()),
                     chargerClients()

@@ -183,16 +183,8 @@ export const Comptabilite: React.FC = () => {
                 where('dateProduction', '<=', dateToTimestamp(fin))
             ]).then(progs => {
                 if (progs && progs.length > 0) setProgrammes(progs);
-            }).catch(() => {
-                firestoreService.getAll<ProgrammeProduction>('productionPrograms')
-                    .then(allProgs => {
-                        const filtres = (allProgs || []).filter(p => {
-                            const d = new Date(p.dateProduction || p.createdAt);
-                            return d >= debut && d <= fin;
-                        });
-                        setProgrammes(filtres);
-                    })
-                    .catch(() => {});
+            }).catch(err => {
+                console.warn('Programme production comptabilité non disponible ou quota:', err?.message || err);
             });
 
             const clientsList = useReferentielStore.getState().clients;
