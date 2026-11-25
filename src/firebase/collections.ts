@@ -9,6 +9,7 @@ import {
   query,
   where,
   orderBy,
+  limit,
   onSnapshot,
   Timestamp
 } from 'firebase/firestore';
@@ -260,7 +261,8 @@ export const realTimeListeners = {
     } else {
       q = query(
         collectionsRef.factures,
-        orderBy('dateFacture', 'desc')
+        orderBy('dateFacture', 'desc'),
+        limit(50)
       );
     }
 

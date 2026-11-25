@@ -654,16 +654,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         localStorage.setItem(`boulangerie_programme_${calKey}`, JSON.stringify(programmeAEnregistrer));
       } catch (_) {}
 
-      // 2. File d'attente automatique de synchronisation pour Firebase
-      addToSyncQueue({
-        type: 'programme_production',
-        data: {
-          id: programmeActuel.id,
-          data: dataToSaveSafe
-        }
-      });
-
-      // 3. Sauvegarde Firestore directe protégée par un timeout strict (2000ms max)
+      // 2. Sauvegarde Firestore directe protégée par un timeout strict (2000ms max)
+      // On n'ajoute dans la syncQueue QUE si l'écriture directe échoue, pour éviter les doubles écritures
       try {
         if (programmeActuel.id.startsWith('prog_')) {
           // Nouveau programme, l'ajouter
@@ -691,6 +683,14 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         }
       } catch (err: any) {
         console.warn('⚠️ Programme sauvegardé en local (Firestore inaccessible ou quota):', err?.message || err);
+        // En cas d'échec direct uniquement : différer via la file d'attente
+        addToSyncQueue({
+          type: 'programme_production',
+          data: {
+            id: programmeActuel.id,
+            data: dataToSaveSafe
+          }
+        });
         if (err?.code === 'resource-exhausted') {
           activerModeSecours().catch(() => {});
         }
@@ -831,22 +831,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         localStorage.setItem(`boulangerie_programme_${calKey}`, JSON.stringify(programmeEnvoye));
       } catch (_) {}
 
-      // 3. Ajouter à la file d'attente de synchronisation
-      addToSyncQueue({
-        type: 'programme_production',
-        data: {
-          id: programmeEnvoye.id,
-          data: cleanData({
-            ...programmeEnvoye,
-            dateProduction: dateToTimestamp(dateProductionNorm),
-            dateCreation: dateToTimestamp(programmeEnvoye.dateCreation),
-            createdAt: dateToTimestamp(programmeEnvoye.createdAt),
-            updatedAt: dateToTimestamp(programmeEnvoye.updatedAt)
-          })
-        }
-      });
-
-      // 4. Puis déclencher la sauvegarde sans bloquer
+      // 3. Déclencher la sauvegarde (qui gère Firestore et la syncQueue en cas de besoin)
       await get().sauvegarderProgramme();
 
     } catch (error) {
