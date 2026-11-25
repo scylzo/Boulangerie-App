@@ -454,7 +454,23 @@ export const useFacturationStore = create<FacturationStore>()(
             .map(d => ({ ...d.data(), id: d.id, dateLivraison: d.data().dateLivraison.toDate() })) as CommandeClient[];
           
           // Filtrer les commandes annulées
-          const commandesValides = commandes.filter(c => c.statut !== 'annulee');
+          let commandesValides = commandes.filter(c => c.statut !== 'annulee');
+
+          if (commandesValides.length === 0) {
+            // Repli : vérifier si des commandes existent dans le programme de production en mémoire
+            try {
+              const { useProductionStore } = await import('./productionStore');
+              const progCmds = useProductionStore.getState().commandesClients || [];
+              const fromProg = progCmds.filter(c => {
+                if (c.clientId !== clientId || c.statut === 'annulee') return false;
+                const d = new Date(c.dateLivraison);
+                return d >= dateDebut && (!dateFin || d <= dateFin);
+              });
+              if (fromProg.length > 0) {
+                commandesValides = fromProg;
+              }
+            } catch (_) {}
+          }
 
           if (commandesValides.length === 0) {
             console.log("Aucune commande valide trouvée pour cette période");

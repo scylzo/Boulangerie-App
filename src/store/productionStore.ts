@@ -54,6 +54,7 @@ interface ProductionStore {
   sauvegarderProgramme: () => Promise<void>;
   sauvegarderEtRecharger: () => Promise<void>; // Sauvegarde + rechargement pour éviter les conflits
   envoyerAuBoulanger: () => Promise<void>;
+  genererFacturesDuProgramme: () => Promise<void>;
   validerProduction: (sacsFarine?: number) => Promise<void>; // Action pour déduire les stocks de farine
   marquerCommeModifie: () => void; // Marquer le programme comme modifié après envoi
   nettoyerListeners: () => void; // Nettoyer les listeners
@@ -844,9 +845,28 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       // 3. Déclencher la sauvegarde (qui gère Firestore et la syncQueue en cas de besoin)
       await get().sauvegarderProgramme();
 
+      // 4. Générer les factures pour les livraisons du jour en 1 seul appel propre
+      try {
+        const { useFacturationStore } = await import('./facturationStore');
+        await useFacturationStore.getState().genererFacturesDepuisLivraisons(dateProductionNorm, cmdsJour, []);
+        console.log('✅ Factures générées pour le programme envoyé au four');
+      } catch (errFact) {
+        console.warn('Génération factures lors de l\'envoi au four:', errFact);
+      }
+
     } catch (error) {
       console.warn('Envoi au boulanger traité en local:', error);
     }
+  },
+
+  genererFacturesDuProgramme: async () => {
+    const { programmeActuel, commandesClients } = get();
+    if (!programmeActuel) return;
+    const cmdsJour = commandesDuJour(commandesClients, programmeActuel.dateProduction);
+    const cal = extraireDateCalendaire(programmeActuel.dateProduction);
+    const dateProductionNorm = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(programmeActuel.dateProduction);
+    const { useFacturationStore } = await import('./facturationStore');
+    await useFacturationStore.getState().genererFacturesDepuisLivraisons(dateProductionNorm, cmdsJour, []);
   },
 
   // Actions Commandes Clients
