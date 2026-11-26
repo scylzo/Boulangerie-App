@@ -851,7 +851,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
         await useFacturationStore.getState().genererFacturesDepuisLivraisons(dateProductionNorm, cmdsJour, []);
         console.log('✅ Factures générées pour le programme envoyé au four');
       } catch (errFact) {
-        console.warn('Génération factures lors de l\'envoi au four:', errFact);
+        console.error('Erreur génération factures lors de l\'envoi au four:', errFact);
       }
 
     } catch (error) {
@@ -867,6 +867,7 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     const dateProductionNorm = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(programmeActuel.dateProduction);
     const { useFacturationStore } = await import('./facturationStore');
     await useFacturationStore.getState().genererFacturesDepuisLivraisons(dateProductionNorm, cmdsJour, []);
+    console.log(`✅ ${cmdsJour.length} factures synchronisées pour le programme`);
   },
 
   // Actions Commandes Clients

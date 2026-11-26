@@ -419,14 +419,35 @@ export const GestionFactures: React.FC = () => {
             className="w-full pl-9 sm:pl-10 pr-4 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-terracotta-500 focus:border-transparent outline-none text-sm sm:text-base"
           />
         </div>
-        <Button
-          onClick={() => setShowRistourneModal(true)}
-          variant="outline"
-          className="flex items-center justify-center gap-2 text-sand-700 hover:bg-sand-50 border-sand-300 w-full sm:w-auto"
-        >
-          <Icon icon="mdi:calculator" className="text-lg sm:text-xl" />
-          <span className="text-sm sm:text-base">Ristournes</span>
-        </Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button
+            onClick={async () => {
+              try {
+                const start = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+                const end = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+                await chargerFactures(start, end);
+                await chargerClients();
+                toast.success('Factures actualisées');
+              } catch (_) {
+                toast.error('Erreur lors de l\'actualisation');
+              }
+            }}
+            variant="outline"
+            className="flex items-center justify-center gap-2 text-sand-700 hover:bg-sand-50 border-sand-300 flex-1 sm:flex-initial"
+            title="Recharger les factures du mois"
+          >
+            <Icon icon="mdi:refresh" className="text-lg sm:text-xl" />
+            <span className="text-sm sm:text-base">Actualiser</span>
+          </Button>
+          <Button
+            onClick={() => setShowRistourneModal(true)}
+            variant="outline"
+            className="flex items-center justify-center gap-2 text-sand-700 hover:bg-sand-50 border-sand-300 flex-1 sm:flex-initial"
+          >
+            <Icon icon="mdi:calculator" className="text-lg sm:text-xl" />
+            <span className="text-sm sm:text-base">Ristournes</span>
+          </Button>
+        </div>
       </div>
 
       {/* Liste des clients (cliquable → factures du client) */}

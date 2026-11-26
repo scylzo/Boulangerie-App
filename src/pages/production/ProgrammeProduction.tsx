@@ -45,6 +45,7 @@ export const ProgrammeProduction: React.FC = () => {
     commandeEnEdition,
     quantiteBoutiqueEnEdition,
     formulaireCommande,
+    genererFacturesDuProgramme,
     // creerNouveauProgramme géré dans le store
     chargerProgrammeAvecListener,
     nettoyerListeners,
@@ -679,9 +680,24 @@ export const ProgrammeProduction: React.FC = () => {
 
     try {
       await envoyerAuBoulanger();
-      toast.success('Programme envoyé au boulanger');
+      toast.success('Programme envoyé au boulanger et factures générées !');
     } catch (error) {
       toast.error('Erreur lors de l\'envoi du programme');
+    }
+  };
+
+  const [syncingFactures, setSyncingFactures] = useState(false);
+  const handleSynchroniserFactures = async () => {
+    if (!programmeActuel) return;
+    setSyncingFactures(true);
+    try {
+      await genererFacturesDuProgramme();
+      toast.success('Factures du programme synchronisées avec succès !');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la synchronisation des factures');
+    } finally {
+      setSyncingFactures(false);
     }
   };
 
@@ -894,6 +910,18 @@ export const ProgrammeProduction: React.FC = () => {
                 >
                   <Icon icon="mdi:send-outline" className="text-sm" />
                   <span>{programmeActuel.statut === 'brouillon' ? 'Envoyer au four' : 'Renvoyer au four'}</span>
+                </button>
+              )}
+
+              {programmeActuel && (
+                <button
+                  onClick={handleSynchroniserFactures}
+                  disabled={isLoading || syncingFactures}
+                  className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-sand-100 hover:bg-sand-200 text-sand-800 rounded-lg text-xs font-medium transition-colors shadow-2xs flex-1 sm:flex-initial"
+                  title="Synchroniser et recalculer les factures clients pour ce jour"
+                >
+                  <Icon icon={syncingFactures ? "mdi:loading" : "mdi:receipt-text-check-outline"} className={`text-base ${syncingFactures ? "animate-spin" : "text-terracotta-600"}`} />
+                  <span>{syncingFactures ? 'Synchronisation...' : 'Sync Factures'}</span>
                 </button>
               )}
 

@@ -90,21 +90,26 @@ export const useFacturationStore = create<FacturationStore>()(
         set({ isLoading: true });
 
         try {
-
-          const { parametres } = get();
+          let parametres = get().parametres;
           if (!parametres) {
-            throw new Error('Paramètres de facturation non configurés');
+            try {
+              await get().chargerParametres();
+              parametres = get().parametres;
+            } catch (_) {}
           }
+          const paramsSafe: ParametresFacturation = parametres || {
+            id: 'parametres_defaut',
+            tauxTVADefaut: 0,
+            conditionsPaiementDefaut: 'Paiement à réception',
+            mentionsLegales: '',
+            numeroFactureProchain: 1,
+            prefixeFacture: 'FACT'
+          };
 
           if (!commandesClients || commandesClients.length === 0) {
             set({ isLoading: false });
-            // S'il n'y a pas de commandes, on ne fait rien
             return;
           }
-
-
-          // Récupérer les factures existantes pour cette date (DEPUIS FIRESTORE pour sécurité)
-
 
           // Bornes pour la query
           const debutJour = new Date(date); debutJour.setHours(0, 0, 0, 0);
@@ -116,15 +121,24 @@ export const useFacturationStore = create<FacturationStore>()(
             where('dateLivraison', '<=', finJour)
           );
 
-          const snapFactures = await getDocs(qFactures);
-          const facturesExistantes = snapFactures.docs.map(doc => {
-            const data = doc.data();
-            return {
-              ...data,
-              id: doc.id,
-              dateLivraison: data.dateLivraison?.toDate ? data.dateLivraison.toDate() : new Date(data.dateLivraison)
-            } as Facture;
-          });
+          let facturesExistantes: Facture[] = [];
+          try {
+            const snapFactures = await getDocs(qFactures);
+            facturesExistantes = snapFactures.docs.map(doc => {
+              const data = doc.data();
+              return {
+                ...data,
+                id: doc.id,
+                dateLivraison: data.dateLivraison?.toDate ? data.dateLivraison.toDate() : new Date(data.dateLivraison)
+              } as Facture;
+            });
+          } catch (e) {
+            console.warn('Lecture factures existantes Firestore ignorée (repli local):', e);
+            facturesExistantes = (get().factures || []).filter(f => {
+              const d = new Date(f.dateLivraison);
+              return d >= debutJour && d <= finJour;
+            });
+          }
 
           // Grouper les commandes par client (en ignorant les annulées)
           const commandesParClient = new Map<string, CommandeClient[]>();
@@ -136,9 +150,22 @@ export const useFacturationStore = create<FacturationStore>()(
             commandesParClient.get(clientId)!.push(commande);
           });
 
-          // Utiliser les référentiels en mémoire pour éviter 50 requêtes getDoc réseau
-          const refClients = useReferentielStore.getState().clients || [];
-          const refProduits = useReferentielStore.getState().produits || [];
+          // Utiliser les référentiels en mémoire ou charger si vides
+          let refClients = useReferentielStore.getState().clients || [];
+          let refProduits = useReferentielStore.getState().produits || [];
+
+          if (refClients.length === 0) {
+            try {
+              const { useProductionStore } = await import('./productionStore');
+              refClients = useProductionStore.getState().clients || [];
+            } catch (_) {}
+          }
+          if (refProduits.length === 0) {
+            try {
+              const { useProductionStore } = await import('./productionStore');
+              refProduits = useProductionStore.getState().produits || [];
+            } catch (_) {}
+          }
 
           const clientsCache = new Map<string, Client>(refClients.map(c => [c.id, c]));
           const produitsCache = new Map<string, any>(refProduits.map(p => [p.id, {
@@ -153,17 +180,23 @@ export const useFacturationStore = create<FacturationStore>()(
 
           // Traiter chaque client ayant une commande
           for (const [clientId, commandesClient] of commandesParClient) {
-
             // Vérifier si une facture existe déjà pour ce client
             const factureExistante = facturesExistantes.find(f => f.clientId === clientId);
 
-            // Si la facture existe et est bloquée (payée, envoyée, annulée), on ne la touche pas
-            if (factureExistante && ['payee', 'envoyee', 'annulee'].includes(factureExistante.statut)) {
+            // Ne sauter QUE si la facture est payée ou annulée ET a déjà un montant valide (> 0)
+            if (factureExistante && ['payee', 'annulee'].includes(factureExistante.statut) && (factureExistante.totalTTC || 0) > 0) {
               continue;
             }
 
-            // Récupérer les informations du client depuis le cache
-            let clientInfo = clientsCache.get(clientId) as Client | undefined;
+            // Récupérer les informations du client depuis le cache ou la commande
+            const cmdClientFallback = commandesClient[0]?.client;
+            let clientInfo = clientsCache.get(clientId) || cmdClientFallback;
+            if (!clientInfo) {
+              const fromRef = refClients.find(c => c.id === clientId);
+              if (fromRef) clientInfo = fromRef;
+            }
+
+            const clientNomFallback = clientInfo?.nom || (commandesClient[0] as any)?.clientNom || (commandesClient[0] as any)?.client?.nom || `Client ${clientId}`;
 
             const retoursClient = retoursClients.find(r => r.clientId === clientId);
             const retoursCompletes = get().verifierRetoursCompletes(clientId, date, retoursClients);
@@ -173,34 +206,55 @@ export const useFacturationStore = create<FacturationStore>()(
 
             for (const commande of commandesClient) {
               for (const produitCmd of commande.produits) {
-                // Récupérer les informations complètes du produit depuis le cache
-                const produitFull: any = produitsCache.get(produitCmd.produitId) || produitCmd.produit || { 
-                  id: produitCmd.produitId, nom: 'Produit Inconnu', prixUnitaire: 0, prixClient: 0, prixBoutique: 0 
+                // Récupérer les informations complètes du produit depuis le cache ou la commande
+                const cachedProd = produitsCache.get(produitCmd.produitId);
+                const cmdProdFallback = (produitCmd as any).produit;
+                const produitFull: any = cachedProd || cmdProdFallback || {
+                  id: produitCmd.produitId,
+                  nom: (produitCmd as any).nomProduit || (produitCmd as any).nom || 'Produit',
+                  prixUnitaire: Number(produitCmd.prixUnitaire) || 0,
+                  prixClient: Number(produitCmd.prixUnitaire) || 0,
+                  prixBoutique: Number(produitCmd.prixUnitaire) || 0
                 };
 
+                // Si le nom était resté 'Produit Inconnu', chercher un meilleur nom
+                if (!produitFull.nom || produitFull.nom === 'Produit Inconnu') {
+                  const betterName = (produitCmd as any).nomProduit || (produitCmd as any).produit?.nom || refProduits.find(p => p.id === produitCmd.produitId)?.nom;
+                  if (betterName) produitFull.nom = betterName;
+                }
 
                 // Quantité totale livrée pour cette commande spécifique
-                const quantiteLivree = Object.values(produitCmd.repartitionCars || {})
+                let quantiteLivree = Object.values(produitCmd.repartitionCars || {})
                   .reduce((sum, qte) => sum + (Number(qte) || 0), 0);
-
+                if (quantiteLivree === 0 && Number(produitCmd.quantiteCommandee) > 0) {
+                  quantiteLivree = Number(produitCmd.quantiteCommandee);
+                }
 
                 if (quantiteLivree > 0) {
-                  // Quantité retournée (Globale pour le client/jour, donc on doit faire attention à ne pas la compter en double)
-                  // La logique actuelle des retours est stockée par "produitId" pour le client et la date.
-                  // Donc si on a 2 commandes de baguette, le "retour" est global pour les baguettes de la journée.
-                  // On l'ajoute une seule fois ou on le recalcule à la fin.
-
-                  const prixUnitaire = (clientInfo?.typeClient === 'client' || commande.client?.typeClient === 'client')
-                    ? (produitFull.prixClient || produitFull.prixUnitaire || 0)
-                    : (produitFull.prixBoutique || produitFull.prixUnitaire || 0);
+                  // Prix unitaire : priorité au prix de la commande
+                  let prixUnitaire = Number(produitCmd.prixUnitaire) || 0;
+                  if (!prixUnitaire || prixUnitaire <= 0) {
+                    const isClient = (clientInfo?.typeClient === 'client' || (commande as any).client?.typeClient === 'client');
+                    prixUnitaire = isClient
+                      ? (Number(produitFull.prixClient) || Number(produitFull.prixUnitaire) || 0)
+                      : (Number(produitFull.prixBoutique) || Number(produitFull.prixUnitaire) || 0);
+                  }
+                  if (!prixUnitaire || prixUnitaire <= 0) {
+                    const refP = refProduits.find(p => p.id === produitCmd.produitId);
+                    if (refP) {
+                      prixUnitaire = Number(refP.prixClient) || Number(refP.prixUnitaire) || 0;
+                    }
+                  }
 
                   if (lignesMap.has(produitCmd.produitId)) {
                     // Mise à jour de la ligne existante
                     const ligneExistante = lignesMap.get(produitCmd.produitId)!;
                     ligneExistante.quantiteLivree += quantiteLivree;
-                    // On ne touche pas aux retours ici, on les appliquera globalement à la fin pour éviter les doublons
+                    if (prixUnitaire > 0 && ligneExistante.prixUnitaire === 0) {
+                      ligneExistante.prixUnitaire = prixUnitaire;
+                    }
                     ligneExistante.quantiteFacturee = Math.max(0, ligneExistante.quantiteLivree - ligneExistante.quantiteRetournee);
-                    ligneExistante.montantLigne = ligneExistante.quantiteFacturee * prixUnitaire;
+                    ligneExistante.montantLigne = ligneExistante.quantiteFacturee * (ligneExistante.prixUnitaire || prixUnitaire);
                   } else {
                     // Nouvelle ligne
                     const produitRetour = retoursClient?.produits.find(p => p.produitId === produitCmd.produitId);
@@ -210,9 +264,13 @@ export const useFacturationStore = create<FacturationStore>()(
 
                     lignesMap.set(produitCmd.produitId, {
                       produitId: produitCmd.produitId,
-                      produit: produitFull,
+                      produit: {
+                        ...produitFull,
+                        prixUnitaire: prixUnitaire,
+                        prixClient: produitFull.prixClient || prixUnitaire
+                      },
                       quantiteLivree,
-                      quantiteRetournee, // On l'initialise ici, c'est correct car c'est la valeur globale jour
+                      quantiteRetournee,
                       quantiteFacturee,
                       prixUnitaire,
                       montantLigne
@@ -226,18 +284,14 @@ export const useFacturationStore = create<FacturationStore>()(
 
             if (lignes.length > 0) {
               // Calculer les totaux
-              const totaux = get().calculerTotauxFacture(lignes, parametres.tauxTVADefaut);
+              const totaux = get().calculerTotauxFacture(lignes, paramsSafe.tauxTVADefaut);
 
               // Calculer l'utilisation du solde / avoir
               let soldeUtilise = 0;
               let netAPayer = totaux.totalTTC;
 
-              // Pour le calcul du solde, on doit prendre en compte ce qui a déjà été "réservé" par cette facture
-              // si on est en train de la mettre à jour.
               let soldeDisponible = clientInfo?.solde || 0;
-
               if (factureExistante && factureExistante.soldeUtilise) {
-                // On "remet" virtuellement le solde utilisé dans le pot pour recalculer
                 soldeDisponible += factureExistante.soldeUtilise;
               }
 
@@ -246,29 +300,8 @@ export const useFacturationStore = create<FacturationStore>()(
                 netAPayer = Math.max(0, totaux.totalTTC - soldeUtilise);
               }
 
-              // Calcul de la différence à impacter sur le solde client réel
-              const ancienSoldeUtilise = factureExistante?.soldeUtilise || 0;
-              const differenceSolde = soldeUtilise - ancienSoldeUtilise;
-
-              // Mise à jour du solde client si changement
-              if (differenceSolde !== 0) {
-                try {
-                  const clientRef = doc(db, 'clients', clientId);
-                  // On doit relire le solde pour être sûr (concurrence)
-                  const clientsnap = await getDoc(clientRef);
-                  if (clientsnap.exists()) {
-                    const currentSolde = clientsnap.data().solde || 0;
-                    await updateDoc(clientRef, { solde: currentSolde - differenceSolde });
-                    console.log(`📉 Ajustement solde client ${clientId}: -${differenceSolde} (Facture gen)`);
-                  }
-                } catch (e) {
-                  console.error('Erreur mise à jour solde client (gen):', e);
-                }
-              }
-
               // Préparer l'objet facture pour Firestore (nettoyage)
               const lignesClean = lignes.map(ligne => {
-                // ... nettoyage similaire à l'original ...
                 const p = ligne.produit as any;
                 return {
                   produitId: ligne.produitId,
@@ -278,37 +311,38 @@ export const useFacturationStore = create<FacturationStore>()(
                   prixUnitaire: ligne.prixUnitaire,
                   montantLigne: ligne.montantLigne,
                   produit: p ? {
-                    id: p.id, nom: p.nom, prixUnitaire: p.prixUnitaire || 0, prixClient: p.prixClient || 0, prixBoutique: p.prixBoutique || 0
+                    id: p.id || ligne.produitId,
+                    nom: p.nom || 'Produit',
+                    prixUnitaire: p.prixUnitaire || ligne.prixUnitaire,
+                    prixClient: p.prixClient || ligne.prixUnitaire,
+                    prixBoutique: p.prixBoutique || ligne.prixUnitaire
                   } : null
                 };
               });
 
-              const clientClean = clientInfo ? {
-                id: clientInfo.id,
-                nom: clientInfo.nom,
-                adresse: clientInfo.adresse || '',
-                telephone: clientInfo.telephone || '',
-                email: clientInfo.email || '',
-                typeClient: clientInfo.typeClient,
-              } : null;
-
+              const clientClean = {
+                id: clientId,
+                nom: clientNomFallback,
+                prenom: (clientInfo as any)?.prenom || '',
+                adresse: clientInfo?.adresse || '',
+                telephone: clientInfo?.telephone || '',
+                email: clientInfo?.email || '',
+                typeClient: clientInfo?.typeClient || 'client',
+              };
 
               if (factureExistante) {
                 // MISE À JOUR FACTURE EXISTANTE
-                // Le calcul des soldes a été fait au dessus et la déduction appliquée.
-
-
                 const updates = {
+                  client: clientClean,
                   lignes: lignesClean,
                   ...totaux,
                   soldeUtilise,
                   netAPayer,
-                  statut: retoursCompletes ? 'validee' : 'en_attente_retours', // Mise à jour du statut basée sur les retours actuels
+                  statut: retoursCompletes ? 'validee' : 'en_attente_retours',
                   retoursCompletes,
                   updatedAt: new Date()
                 } as any;
 
-                // Si elle passe à validée, on met la date
                 if (retoursCompletes && factureExistante.statut !== 'validee') {
                   updates.validatedAt = new Date();
                 }
@@ -322,10 +356,10 @@ export const useFacturationStore = create<FacturationStore>()(
                   console.warn('Mise à jour facture Firestore ignorée (quota ou réseau):', e);
                 }
 
-                // Mise à jour state local
                 misesAJour.push({
                   ...factureExistante,
-                  lignes, // Avec les objets complets pour l'UI
+                  client: clientClean as any,
+                  lignes,
                   ...totaux,
                   statut: updates.statut,
                   retoursCompletes,
@@ -342,28 +376,27 @@ export const useFacturationStore = create<FacturationStore>()(
                   id: deterministicId,
                   numeroFacture: get().genererNumeroFacture(date),
                   clientId,
-                  client: clientInfo,
+                  client: clientClean as any,
                   dateLivraison: date,
                   dateFacture: new Date(),
                   lignes,
                   ...totaux,
                   soldeUtilise,
                   netAPayer,
-                  tauxTVA: parametres.tauxTVADefaut,
+                  tauxTVA: paramsSafe.tauxTVADefaut,
                   statut: retoursCompletes ? 'validee' : 'en_attente_retours',
                   retoursCompletes,
-                  conditionsPaiement: clientInfo?.conditionsPaiement || parametres.conditionsPaiementDefaut,
+                  conditionsPaiement: clientInfo?.conditionsPaiement || paramsSafe.conditionsPaiementDefaut,
                   createdAt: new Date(),
                   updatedAt: new Date()
                 };
 
-                // Sauvegarde Firestore
                 const factureFirebase = {
                   ...nouvelleFacture,
                   lignes: lignesClean,
                   client: clientClean
-                  // ... autres champs
                 };
+
                 try {
                   await Promise.race([
                     setDoc(doc(db, 'factures', nouvelleFacture.id), factureFirebase, { merge: true }),
@@ -586,20 +619,33 @@ export const useFacturationStore = create<FacturationStore>()(
 
             for (const cmd of commandesJour) {
               for (const pCmd of cmd.produits) {
-                const qte = Object.values(pCmd.repartitionCars || {}).reduce((s, q) => s + (Number(q) || 0), 0);
+                let qte = Object.values(pCmd.repartitionCars || {}).reduce((s, q) => s + (Number(q) || 0), 0);
+                if (qte === 0 && Number(pCmd.quantiteCommandee) > 0) {
+                  qte = Number(pCmd.quantiteCommandee);
+                }
                 if (qte <= 0) continue;
 
                 // Utiliser le cache
-                const produitRef: any = produitsCache.get(pCmd.produitId) || pCmd.produit || { id: pCmd.produitId, nom: 'Produit Inconnu', prixUnitaire: 0 };
+                const produitRef: any = produitsCache.get(pCmd.produitId) || pCmd.produit || {
+                  id: pCmd.produitId,
+                  nom: (pCmd as any).nomProduit || 'Produit',
+                  prixUnitaire: Number(pCmd.prixUnitaire) || 0
+                };
                 
-                // Prix selon type client
-                const prixUnitaire = (clientInfo?.typeClient === 'client')
-                  ? (produitRef.prixClient || produitRef.prixUnitaire || 0)
-                  : (produitRef.prixBoutique || produitRef.prixUnitaire || 0);
+                // Prix selon commande d'abord, puis type client
+                let prixUnitaire = Number(pCmd.prixUnitaire) || 0;
+                if (!prixUnitaire || prixUnitaire <= 0) {
+                  prixUnitaire = (clientInfo?.typeClient === 'client')
+                    ? (Number(produitRef.prixClient) || Number(produitRef.prixUnitaire) || 0)
+                    : (Number(produitRef.prixBoutique) || Number(produitRef.prixUnitaire) || 0);
+                }
 
                 if (lignesMap.has(pCmd.produitId)) {
                   const l = lignesMap.get(pCmd.produitId)!;
                   l.quantiteLivree += qte;
+                  if (prixUnitaire > 0 && l.prixUnitaire === 0) {
+                    l.prixUnitaire = prixUnitaire;
+                  }
                 } else {
                   // Chercher retour pour ce produit
                   const retourProd = retoursJour.find(r => r.produits.some(rp => rp.produitId === pCmd.produitId));
@@ -608,7 +654,11 @@ export const useFacturationStore = create<FacturationStore>()(
 
                   lignesMap.set(pCmd.produitId, {
                     produitId: pCmd.produitId,
-                    produit: produitRef,
+                    produit: {
+                      ...produitRef,
+                      prixUnitaire,
+                      prixClient: produitRef.prixClient || prixUnitaire
+                    },
                     quantiteLivree: qte,
                     quantiteRetournee: qteRetour,
                     quantiteFacturee: 0,
@@ -666,6 +716,7 @@ export const useFacturationStore = create<FacturationStore>()(
 
             // Données de mise à jour pour Firestore
             const updatesFirestore = {
+              client: clientClean,
               lignes: lignesClean,
               ...totaux,
               soldeUtilise,
