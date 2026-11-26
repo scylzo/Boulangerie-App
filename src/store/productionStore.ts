@@ -848,7 +848,9 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
       // 4. Générer les factures pour les livraisons du jour en 1 seul appel propre
       try {
         const { useFacturationStore } = await import('./facturationStore');
-        await useFacturationStore.getState().genererFacturesDepuisLivraisons(dateProductionNorm, cmdsJour, []);
+        const { useLivraisonStore } = await import('./livraisonStore');
+        const retours = useLivraisonStore.getState().invendusClients || [];
+        await useFacturationStore.getState().genererFacturesDepuisLivraisons(dateProductionNorm, cmdsJour, retours);
         console.log('✅ Factures générées pour le programme envoyé au four');
       } catch (errFact) {
         console.error('Erreur génération factures lors de l\'envoi au four:', errFact);
@@ -866,7 +868,9 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     const cal = extraireDateCalendaire(programmeActuel.dateProduction);
     const dateProductionNorm = cal ? new Date(cal + 'T00:00:00.000Z') : new Date(programmeActuel.dateProduction);
     const { useFacturationStore } = await import('./facturationStore');
-    await useFacturationStore.getState().genererFacturesDepuisLivraisons(dateProductionNorm, cmdsJour, []);
+    const { useLivraisonStore } = await import('./livraisonStore');
+    const retours = useLivraisonStore.getState().invendusClients || [];
+    await useFacturationStore.getState().genererFacturesDepuisLivraisons(dateProductionNorm, cmdsJour, retours);
     console.log(`✅ ${cmdsJour.length} factures synchronisées pour le programme`);
   },
 

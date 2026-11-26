@@ -275,11 +275,12 @@ export const useFacturationStore = create<FacturationStore>()(
                 }
 
                 // Quantité totale livrée pour cette commande spécifique
-                let quantiteLivree = Object.values(produitCmd.repartitionCars || {})
+                // Priorité absolue à quantiteCommandee (source de vérité du programme de production),
+                // avec repli sur la somme des véhicules de livraison si quantiteCommandee non définie.
+                const qteCmd = Number(produitCmd.quantiteCommandee) || 0;
+                const qteCars = Object.values(produitCmd.repartitionCars || {})
                   .reduce((sum, qte) => sum + (Number(qte) || 0), 0);
-                if (quantiteLivree === 0 && Number(produitCmd.quantiteCommandee) > 0) {
-                  quantiteLivree = Number(produitCmd.quantiteCommandee);
-                }
+                let quantiteLivree = qteCmd > 0 ? qteCmd : qteCars;
 
                 if (quantiteLivree > 0) {
                   // Prix unitaire : priorité au prix de la commande
@@ -326,7 +327,14 @@ export const useFacturationStore = create<FacturationStore>()(
             // Déduire systématiquement les retours de chaque ligne
             for (const ligne of lignesMap.values()) {
               const produitRetour = retoursClient?.produits?.find(p => p.produitId === ligne.produitId);
-              const qteRetour = Number(produitRetour?.invendus) || 0;
+              let qteRetour = Number(produitRetour?.invendus) || 0;
+              // Si aucun retour dans retoursClient mais qu'un retour était déjà enregistré sur la facture existante, le préserver
+              if (qteRetour === 0 && factureExistante) {
+                const ligneEx = factureExistante.lignes?.find(l => l.produitId === ligne.produitId);
+                if (ligneEx && Number(ligneEx.quantiteRetournee) > 0) {
+                  qteRetour = Number(ligneEx.quantiteRetournee);
+                }
+              }
               ligne.quantiteRetournee = qteRetour;
               ligne.quantiteFacturee = Math.max(0, ligne.quantiteLivree - qteRetour);
               ligne.montantLigne = ligne.quantiteFacturee * (ligne.prixUnitaire || 0);
@@ -653,44 +661,71 @@ export const useFacturationStore = create<FacturationStore>()(
           }
 
           // 1. Récupérer les commandes du client
-          let commandesSnap;
+          const allCommandes: CommandeClient[] = [];
+
+          // a. Extraire depuis la collection productionPrograms de Firestore
           try {
-            commandesSnap = await getDocs(query(
-              collection(db, 'clientOrders'),
-              where('clientId', '==', clientId)
-            ));
+            const progSnap = await getDocs(query(collection(db, 'productionPrograms')));
+            for (const docSnap of progSnap.docs) {
+              const data = docSnap.data();
+              const dateProd = data.dateProduction?.toDate ? data.dateProduction.toDate() : new Date(data.dateProduction);
+              if (dateProd >= dateDebut && (!dateFin || dateProd <= dateFin)) {
+                const cmds = (data.commandesClients || []).filter((c: any) => c.clientId === clientId && c.statut !== 'annulee');
+                cmds.forEach((c: any) => {
+                  allCommandes.push({
+                    ...c,
+                    id: c.id || `${docSnap.id}_${c.clientId}`,
+                    dateLivraison: c.dateLivraison?.toDate ? c.dateLivraison.toDate() : (c.dateLivraison ? new Date(c.dateLivraison) : dateProd)
+                  });
+                });
+              }
+            }
           } catch (e) {
-            console.warn('Erreur lecture commandes client Firestore:', e);
+            console.warn('Erreur lecture productionPrograms Firestore:', e);
           }
 
-          const rawCommandes = (commandesSnap?.docs || []).map(d => ({
-            ...d.data(),
-            id: d.id,
-            dateLivraison: d.data().dateLivraison?.toDate ? d.data().dateLivraison.toDate() : new Date(d.data().dateLivraison)
-          })) as CommandeClient[];
+          // b. Fusionner avec le programme en mémoire (ex: modifications en cours dans Programme de Production)
+          try {
+            const { useProductionStore } = await import('./productionStore');
+            const inMemoryCmds = useProductionStore.getState().commandesClients || [];
+            const inMemoryFiltered = inMemoryCmds.filter(c => {
+              if (c.clientId !== clientId || c.statut === 'annulee') return false;
+              const d = new Date(c.dateLivraison);
+              return d >= dateDebut && (!dateFin || d <= dateFin);
+            });
+            for (const memCmd of inMemoryFiltered) {
+              const existingIdx = allCommandes.findIndex(c => c.id === memCmd.id);
+              if (existingIdx >= 0) {
+                allCommandes[existingIdx] = memCmd;
+              } else {
+                allCommandes.push(memCmd);
+              }
+            }
+          } catch (_) {}
 
-          // Filtrer par période et exclure annulées
-          let commandesValides = rawCommandes.filter(c => {
+          // c. Fallback clientOrders au cas où
+          if (allCommandes.length === 0) {
+            try {
+              const snap = await getDocs(query(
+                collection(db, 'clientOrders'),
+                where('clientId', '==', clientId)
+              ));
+              snap.docs.forEach(d => {
+                const data = d.data();
+                allCommandes.push({
+                  ...data,
+                  id: d.id,
+                  dateLivraison: data.dateLivraison?.toDate ? data.dateLivraison.toDate() : new Date(data.dateLivraison)
+                } as CommandeClient);
+              });
+            } catch (_) {}
+          }
+
+          let commandesValides = allCommandes.filter(c => {
             if (c.statut === 'annulee') return false;
             const d = new Date(c.dateLivraison);
             return d >= dateDebut && (!dateFin || d <= dateFin);
           });
-
-          if (commandesValides.length === 0) {
-            // Repli : vérifier si des commandes existent dans le programme de production en mémoire
-            try {
-              const { useProductionStore } = await import('./productionStore');
-              const progCmds = useProductionStore.getState().commandesClients || [];
-              const fromProg = progCmds.filter(c => {
-                if (c.clientId !== clientId || c.statut === 'annulee') return false;
-                const d = new Date(c.dateLivraison);
-                return d >= dateDebut && (!dateFin || d <= dateFin);
-              });
-              if (fromProg.length > 0) {
-                commandesValides = fromProg;
-              }
-            } catch (_) {}
-          }
 
           if (commandesValides.length === 0) {
             console.log("Aucune commande valide trouvée pour cette période");
@@ -812,10 +847,9 @@ export const useFacturationStore = create<FacturationStore>()(
 
             for (const cmd of commandesJour) {
               for (const pCmd of cmd.produits) {
-                let qte = Object.values(pCmd.repartitionCars || {}).reduce((s, q) => s + (Number(q) || 0), 0);
-                if (qte === 0 && Number(pCmd.quantiteCommandee) > 0) {
-                  qte = Number(pCmd.quantiteCommandee);
-                }
+                const qteCmd = Number(pCmd.quantiteCommandee) || 0;
+                const qteCars = Object.values(pCmd.repartitionCars || {}).reduce((s, q) => s + (Number(q) || 0), 0);
+                const qte = qteCmd > 0 ? qteCmd : qteCars;
                 if (qte <= 0) continue;
 
                 // Utiliser le cache
@@ -843,7 +877,13 @@ export const useFacturationStore = create<FacturationStore>()(
                   // Chercher retour pour ce produit
                   const retourProd = retoursJour.find(r => r.produits.some(rp => rp.produitId === pCmd.produitId));
                   const retourItem = retourProd?.produits.find(rp => rp.produitId === pCmd.produitId);
-                  const qteRetour = retourItem?.invendus || 0;
+                  let qteRetour = retourItem?.invendus || 0;
+                  if (qteRetour === 0 && factureExistante) {
+                    const ligneEx = factureExistante.lignes?.find(fl => fl.produitId === pCmd.produitId);
+                    if (ligneEx && Number(ligneEx.quantiteRetournee) > 0) {
+                      qteRetour = Number(ligneEx.quantiteRetournee);
+                    }
+                  }
 
                   lignesMap.set(pCmd.produitId, {
                     produitId: pCmd.produitId,
@@ -865,7 +905,14 @@ export const useFacturationStore = create<FacturationStore>()(
             // Finaliser lignes
             const lignes = Array.from(lignesMap.values()).map(l => {
               const retourGlob = retoursJour.flatMap(r => r.produits).find(rp => rp.produitId === l.produitId);
-              if (retourGlob) l.quantiteRetournee = retourGlob.invendus || 0;
+              if (retourGlob) {
+                l.quantiteRetournee = Number(retourGlob.invendus) || 0;
+              } else if (factureExistante) {
+                const ligneEx = factureExistante.lignes?.find(fl => fl.produitId === l.produitId);
+                if (ligneEx && Number(ligneEx.quantiteRetournee) > 0) {
+                  l.quantiteRetournee = Number(ligneEx.quantiteRetournee);
+                }
+              }
 
               l.quantiteFacturee = Math.max(0, l.quantiteLivree - l.quantiteRetournee);
               l.montantLigne = l.quantiteFacturee * l.prixUnitaire;

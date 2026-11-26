@@ -28,10 +28,24 @@ export const ModifierProduitForm: React.FC<ModifierProduitFormProps> = ({
 
   // États du formulaire
   const [prixUnitaire, setPrixUnitaire] = useState(produitOriginal.prixUnitaire || 0);
+  const initialCar1 = produitOriginal.repartitionCars?.car1_matin !== undefined && produitOriginal.repartitionCars?.car1_matin !== null
+    ? produitOriginal.repartitionCars.car1_matin
+    : '';
+  const initialCar2 = produitOriginal.repartitionCars?.car2_matin !== undefined && produitOriginal.repartitionCars?.car2_matin !== null
+    ? produitOriginal.repartitionCars.car2_matin
+    : '';
+  const initialCarSoir = produitOriginal.repartitionCars?.car_soir !== undefined && produitOriginal.repartitionCars?.car_soir !== null
+    ? produitOriginal.repartitionCars.car_soir
+    : '';
+
+  const totalCars = (Number(initialCar1) || 0) + (Number(initialCar2) || 0) + (Number(initialCarSoir) || 0);
+
   const [repartitionCars, setRepartitionCars] = useState({
-    car1_matin: produitOriginal.repartitionCars?.car1_matin || '',
-    car2_matin: produitOriginal.repartitionCars?.car2_matin || '',
-    car_soir: produitOriginal.repartitionCars?.car_soir || ''
+    car1_matin: totalCars === 0 && (produitOriginal.quantiteCommandee || 0) > 0
+      ? produitOriginal.quantiteCommandee
+      : (initialCar1 !== '' ? initialCar1 : ''),
+    car2_matin: initialCar2 !== '' ? initialCar2 : '',
+    car_soir: initialCarSoir !== '' ? initialCarSoir : ''
   });
 
   // Calculer le total des répartitions (Quantité Commandée)
