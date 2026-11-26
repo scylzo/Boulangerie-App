@@ -54,17 +54,16 @@ export const Modal: React.FC<ModalProps> = ({
         <div className="absolute -top-2 right-6 w-4 h-4 bg-white border-l border-t border-sand-200 transform rotate-45"></div>
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-sand-200 px-6 py-4 bg-sand-50 rounded-t-xl">
-          <h3 className="font-display text-lg font-semibold text-sand-900 flex items-center gap-2">
-            <div className="w-2 h-2 bg-terracotta-500 rounded-full"></div>
+        <div className="flex items-center justify-between border-b border-sand-200 px-5 sm:px-6 py-3.5 sm:py-4 bg-sand-50/70 rounded-t-xl">
+          <h3 className="font-display text-base sm:text-lg font-semibold text-sand-900">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 hover:bg-sand-100 hover:scale-105 transition-all duration-200 group"
+            className="rounded-lg p-1.5 hover:bg-sand-100 text-sand-400 hover:text-sand-700 transition-colors"
             title="Fermer"
           >
-            <Icon icon="mdi:close" className="text-sand-500 group-hover:text-sand-700 text-xl transition-colors" />
+            <Icon icon="mdi:close" className="text-xl" />
           </button>
         </div>
 
@@ -108,16 +107,16 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Modal centré */}
       <div className={`relative w-full ${sizeClasses[size]} mx-4 bg-white rounded-xl shadow-overlay max-h-[80vh] overflow-y-auto border border-sand-200 animate-in zoom-in-95 fade-in duration-300`}>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-sand-200 px-6 py-4 bg-sand-50 rounded-t-xl">
-          <h3 className="font-display text-lg font-semibold text-sand-900 flex items-center gap-2">
-            <div className="w-2 h-2 bg-terracotta-500 rounded-full"></div>
+        <div className="flex items-center justify-between border-b border-sand-200 px-5 sm:px-6 py-3.5 sm:py-4 bg-sand-50/70 rounded-t-xl">
+          <h3 className="font-display text-base sm:text-lg font-semibold text-sand-900">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 hover:bg-sand-100 hover:scale-105 transition-all duration-200 group"
+            className="rounded-lg p-1.5 hover:bg-sand-100 text-sand-400 hover:text-sand-700 transition-colors"
+            title="Fermer"
           >
-            <Icon icon="mdi:close" className="text-sand-500 group-hover:text-sand-700 text-xl transition-colors" />
+            <Icon icon="mdi:close" className="text-xl" />
           </button>
         </div>
 

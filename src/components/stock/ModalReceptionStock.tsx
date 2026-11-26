@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
 import { useStockStore } from '../../store/stockStore';
 import { useDepenseStore } from '../../store/depenseStore';
 import { useAuthStore } from '../../store';
@@ -136,168 +135,191 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Réception de Marchandise (Entrée Stock)">
+    <Modal isOpen={isOpen} onClose={onClose} title="Réception de marchandise" size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* En-tête informatif */}
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 text-xs text-emerald-900">
-          <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-            <Icon icon="mdi:truck-delivery" className="w-5 h-5" />
+        {/* En-tête informatif sobre */}
+        <div className="p-3 bg-sand-50/80 border border-sand-200/70 rounded-xl flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center shrink-0">
+            <Icon icon="mdi:truck-delivery-outline" className="w-5 h-5" />
           </div>
-          <div>
-            <p className="font-bold">Ajout direct à la réserve</p>
-            <p className="text-emerald-800 text-[11px]">
-              Enregistrez l&apos;arrivée de vos sacs de farine, sacs de glace, levure ou ingrédients.
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-sand-900">Entrée en stock direct</p>
+            <p className="text-[11px] text-sand-500 truncate">
+              Ajoute immédiatement les quantités livrées à votre réserve de matières premières.
             </p>
           </div>
         </div>
 
         {/* Sélection de la Matière */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-sand-700 mb-1.5">
-            Matière Première Réceptionnée :
-          </label>
-          <select
-            value={matiereId}
-            onChange={(e) => handleMatiereChange(e.target.value)}
-            className="w-full py-2.5 px-3 bg-white border border-sand-300 rounded-xl text-sm font-semibold text-sand-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
-            required
-          >
-            {matieres.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.nom.toLowerCase().includes('farine') ? '🌾 ' : m.nom.toLowerCase().includes('glace') ? '❄️ ' : '📦 '}
-                {m.nom} ({m.unite})
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-medium text-sand-700">
+              Matière première
+            </label>
+            {selectedMatiere && (
+              <span className="text-[11px] text-sand-500 font-medium bg-sand-100 px-2 py-0.5 rounded-md">
+                Stock actuel : <strong className="text-sand-900">{selectedMatiere.stockActuel} {selectedMatiere.unite}</strong>
+              </span>
+            )}
+          </div>
+          <div className="relative">
+            <select
+              value={matiereId}
+              onChange={(e) => handleMatiereChange(e.target.value)}
+              className="w-full py-2.5 pl-3 pr-8 bg-white border border-sand-200 rounded-xl text-sm font-medium text-sand-900 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all cursor-pointer shadow-xs"
+              required
+            >
+              {matieres.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.nom.toLowerCase().includes('farine') ? '🌾 ' : m.nom.toLowerCase().includes('glace') ? '❄️ ' : '📦 '}
+                  {m.nom} ({m.unite})
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Quantité & Prix unitaire */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-sand-700 mb-1.5">
-              Quantité reçue ({selectedMatiere?.unite || 'unités'}) :
+            <label className="block text-xs font-medium text-sand-700 mb-1.5">
+              Quantité reçue <span className="text-danger-500">*</span>
             </label>
             <div className="relative">
               <input
                 type="number"
                 step="any"
                 min="0.1"
-                placeholder={isFarine ? 'Ex: 50 (sacs)' : isGlace ? 'Ex: 8 (sacs)' : '0'}
+                placeholder={isFarine ? 'Ex: 50' : isGlace ? 'Ex: 8' : '0'}
                 value={quantite}
                 onChange={(e) => setQuantite(e.target.value)}
-                className="w-full py-2 px-3 text-sm font-bold bg-white border border-sand-300 rounded-xl text-sand-900 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full py-2 pl-3 pr-14 text-sm font-semibold bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
                 required
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-sand-400">
-                {selectedMatiere?.unite}
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-sand-400 bg-sand-50 px-1.5 py-0.5 rounded">
+                {selectedMatiere?.unite || 'unité'}
               </span>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-sand-700 mb-1.5">
-              Prix unitaire payé (FCFA) :
+            <label className="block text-xs font-medium text-sand-700 mb-1.5">
+              Prix unitaire d&apos;achat
             </label>
             <div className="relative">
               <input
                 type="number"
                 step="1"
                 min="0"
-                placeholder={isFarine ? '18 000' : isGlace ? '1 500' : '0'}
+                placeholder={isFarine ? '18000' : isGlace ? '1500' : '0'}
                 value={prixUnitaire}
                 onChange={(e) => setPrixUnitaire(e.target.value)}
-                className="w-full py-2 px-3 text-sm font-bold bg-white border border-sand-300 rounded-xl text-sand-900 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full py-2 pl-3 pr-20 text-sm font-semibold bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-sand-400">
-                FCFA/{selectedMatiere?.unite}
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-medium text-sand-400 bg-sand-50 px-1.5 py-0.5 rounded">
+                F/{selectedMatiere?.unite || 'u'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Date, Fournisseur & Référence */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-sand-700 mb-1.5">
-              Date de réception :
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full py-2 px-3 text-sm font-semibold bg-white border border-sand-300 rounded-xl text-sand-900"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-sand-700 mb-1.5">
-              Fournisseur (Optionnel) :
-            </label>
-            <select
-              value={fournisseurId}
-              onChange={(e) => setFournisseurId(e.target.value)}
-              className="w-full py-2 px-3 text-sm bg-white border border-sand-300 rounded-xl text-sand-900"
-            >
-              <option value="">Non spécifié</option>
-              {fournisseurs.map(f => (
-                <option key={f.id} value={f.id}>{f.nom}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-sand-700 mb-1.5">
-              N° BL / Facture (Optionnel) :
-            </label>
-            <input
-              type="text"
-              placeholder="Ex: BL-10492"
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              className="w-full py-2 px-3 text-sm bg-white border border-sand-300 rounded-xl text-sand-900"
-            />
-          </div>
-        </div>
-
-        {/* Montant Total estimé */}
+        {/* Récapitulatif montant total */}
         {montantTotal > 0 && (
-          <div className="p-3 bg-sand-100 rounded-xl flex items-center justify-between text-xs">
-            <span className="font-semibold text-sand-700">Coût total de la livraison :</span>
-            <span className="text-base font-extrabold text-emerald-700">
+          <div className="px-3.5 py-2.5 bg-emerald-50/60 border border-emerald-200/60 rounded-xl flex items-center justify-between">
+            <span className="text-xs text-emerald-900 font-medium">Coût total calculé</span>
+            <span className="text-sm font-bold text-emerald-700">
               {formatCurrency(montantTotal)}
             </span>
           </div>
         )}
 
-        {/* Option : Enregistrer aussi en sortie de caisse */}
-        <div className="p-3 bg-sand-50 border border-sand-200 rounded-xl space-y-2">
-          <label className="flex items-center gap-2 text-xs font-bold text-sand-800 cursor-pointer">
+        {/* Détails logistiques : Date & Fournisseur */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-sand-700 mb-1.5">
+              Date de livraison
+            </label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full py-2 px-3 text-sm font-medium bg-white border border-sand-200 rounded-xl text-sand-900 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs cursor-pointer"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-sand-700 mb-1.5">
+              Fournisseur <span className="text-[11px] text-sand-400 font-normal">(optionnel)</span>
+            </label>
+            <select
+              value={fournisseurId}
+              onChange={(e) => setFournisseurId(e.target.value)}
+              className="w-full py-2 px-3 text-sm bg-white border border-sand-200 rounded-xl text-sand-900 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs cursor-pointer"
+            >
+              <option value="">Sélectionner un fournisseur...</option>
+              {fournisseurs.map(f => (
+                <option key={f.id} value={f.id}>{f.nom}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* N° BL / Facture */}
+        <div>
+          <label className="block text-xs font-medium text-sand-700 mb-1.5">
+            Référence BL ou Facture <span className="text-[11px] text-sand-400 font-normal">(optionnel)</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Ex : BL-10492 ou Facture n°442"
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+            className="w-full py-2 px-3 text-sm bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
+          />
+        </div>
+
+        {/* Option : Enregistrer aussi en dépense / sortie de caisse */}
+        <div className={`p-3.5 border rounded-xl transition-all ${
+          enregistrerEnDepense
+            ? 'bg-sand-50/90 border-sand-300'
+            : 'bg-white border-sand-200 hover:border-sand-300'
+        }`}>
+          <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={enregistrerEnDepense}
               onChange={(e) => setEnregistrerEnDepense(e.target.checked)}
-              className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+              className="mt-0.5 rounded border-sand-300 text-sand-900 focus:ring-sand-900/20 w-4 h-4 cursor-pointer"
             />
-            <span>Enregistrer aussi en sortie d&apos;argent (Dépense payée au comptant)</span>
+            <div className="flex-1">
+              <span className="block text-xs font-semibold text-sand-900">
+                Enregistrer le règlement immédiat (Dépense)
+              </span>
+              <span className="block text-[11px] text-sand-500 mt-0.5">
+                Crée automatiquement une charge dans le journal des dépenses pour refléter la sortie d&apos;argent.
+              </span>
+            </div>
           </label>
 
           {enregistrerEnDepense && (
-            <div className="pt-2 border-t border-sand-200 flex items-center gap-3 text-xs">
-              <span className="text-sand-600">Moyen de paiement :</span>
-              <div className="flex gap-2">
+            <div className="mt-3 pt-3 border-t border-sand-200 animate-in fade-in duration-200">
+              <span className="block text-[11px] font-medium text-sand-600 mb-1.5">
+                Mode de règlement utilisé :
+              </span>
+              <div className="grid grid-cols-3 gap-2">
                 {(['Especes', 'Mobile Money', 'Cheque'] as const).map(mode => (
                   <button
                     key={mode}
                     type="button"
                     onClick={() => setModePaiement(mode)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
+                    className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
                       modePaiement === mode
-                        ? 'bg-emerald-600 text-white border-emerald-600'
-                        : 'bg-white text-sand-700 border-sand-300'
+                        ? 'bg-sand-900 text-white border-sand-900 shadow-xs'
+                        : 'bg-white text-sand-700 border-sand-200 hover:bg-sand-100/60'
                     }`}
                   >
-                    {mode === 'Especes' ? '💵 Espèces (Caisse)' : mode === 'Mobile Money' ? '📱 Wave/OM' : '🏦 Chèque/Vir'}
+                    {mode === 'Especes' ? '💵 Espèces' : mode === 'Mobile Money' ? '📱 Wave / OM' : '🏦 Chèque / Vir.'}
                   </button>
                 ))}
               </div>
@@ -305,20 +327,33 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
           )}
         </div>
 
-        {/* Boutons d'action */}
-        <div className="flex justify-end gap-2 pt-2 border-t border-sand-100">
-          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
-            Annuler
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            isLoading={isSubmitting}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-sand-100">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-sand-700 hover:bg-sand-100 border border-sand-200 transition-colors"
           >
-            <Icon icon="mdi:check" className="w-5 h-5 mr-1" />
-            Confirmer l&apos;entrée en stock
-          </Button>
+            Annuler
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              <>
+                <Icon icon="mdi:loading" className="w-4 h-4 animate-spin" />
+                <span>Enregistrement...</span>
+              </>
+            ) : (
+              <>
+                <Icon icon="mdi:check" className="w-4 h-4" />
+                <span>Confirmer l&apos;entrée en stock</span>
+              </>
+            )}
+          </button>
         </div>
       </form>
     </Modal>
