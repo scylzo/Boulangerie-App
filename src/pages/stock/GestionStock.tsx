@@ -5,7 +5,6 @@ import { MatiereList } from '../../components/stock/MatiereList';
 import { MouvementModal } from '../../components/stock/MouvementModal';
 import { MouvementsList } from '../../components/stock/MouvementsList';
 import { ModalReceptionStock } from '../../components/stock/ModalReceptionStock';
-import { StockInventaire } from '../../components/stock/StockInventaire';
 import { StockRapportPeriode } from '../../components/stock/StockRapportPeriode';
 import { StockBilan } from '../../components/stock/StockBilan';
 import type { MatierePremiere } from '../../types';
@@ -13,12 +12,11 @@ import {
   Package,
   History,
   PlusCircle,
-  ClipboardCheck,
   CalendarRange,
-  Scale
+  CalendarCheck2
 } from 'lucide-react';
 
-type TabType = 'reserve' | 'mouvements' | 'rapport' | 'inventaire' | 'bilan';
+type TabType = 'reserve' | 'mouvements' | 'rapport' | 'bilan';
 
 export const GestionStock: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('reserve');
@@ -88,7 +86,7 @@ export const GestionStock: React.FC = () => {
         {/* Vue d'ensemble KPI (niveaux farine, glace, alertes seuil, valeur stock) */}
         <StockDashboard />
 
-        {/* Bloc Onglets Unifiés : Les 5 piliers métiers */}
+        {/* Bloc Onglets Unifiés : Les 4 piliers métiers */}
         <div className="bg-white rounded-2xl shadow-card border border-sand-200 overflow-hidden">
           <div className="border-b border-sand-200 bg-sand-50/50">
             <nav className="flex space-x-1 sm:space-x-2 px-2 sm:px-4 overflow-x-auto no-scrollbar" aria-label="Tabs">
@@ -131,20 +129,7 @@ export const GestionStock: React.FC = () => {
                 <span>Rapport par Période</span>
               </button>
 
-              {/* 4. Inventaire Physique */}
-              <button
-                onClick={() => setActiveTab('inventaire')}
-                className={`flex items-center space-x-1.5 sm:space-x-2 py-3 px-3 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap ${
-                  activeTab === 'inventaire'
-                    ? 'border-emerald-600 text-emerald-800 bg-white/70 rounded-t-lg'
-                    : 'border-transparent text-sand-600 hover:text-sand-900 hover:border-sand-300'
-                }`}
-              >
-                <ClipboardCheck size={16} className={activeTab === 'inventaire' ? 'text-emerald-700' : ''} />
-                <span>Inventaire Physique</span>
-              </button>
-
-              {/* 5. Bilan Journalier & Mensuel */}
+              {/* 4. Bilan Journalier & Mensuel */}
               <button
                 onClick={() => setActiveTab('bilan')}
                 className={`flex items-center space-x-1.5 sm:space-x-2 py-3 px-3 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap ${
@@ -153,7 +138,7 @@ export const GestionStock: React.FC = () => {
                     : 'border-transparent text-sand-600 hover:text-sand-900 hover:border-sand-300'
                 }`}
               >
-                <Scale size={16} className={activeTab === 'bilan' ? 'text-emerald-700' : ''} />
+                <CalendarCheck2 size={16} className={activeTab === 'bilan' ? 'text-emerald-700' : ''} />
                 <span>Bilan Journalier & Mensuel</span>
               </button>
             </nav>
@@ -178,12 +163,7 @@ export const GestionStock: React.FC = () => {
               <StockRapportPeriode />
             )}
 
-            {/* 4. Inventaire Physique */}
-            {activeTab === 'inventaire' && (
-              <StockInventaire />
-            )}
-
-            {/* 5. Bilan Journalier & Mensuel */}
+            {/* 4. Bilan Journalier & Mensuel */}
             {activeTab === 'bilan' && (
               <StockBilan />
             )}
