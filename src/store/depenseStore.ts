@@ -10,6 +10,7 @@ import {
     where,
     getDocs,
     orderBy,
+    limit,
     Timestamp
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -66,12 +67,13 @@ export const useDepenseStore = create<DepenseStore>()(
                         adjustDateFin.setHours(23, 59, 59, 999);
                         q1 = query(q1, where('date', '<=', adjustDateFin));
                     }
+                    q1 = query(q1, limit(150));
                     promises.push(getDocs(q1));
 
                     // Requete 2 : Dépenses avec période d'usage qui chevauchent le début de la période
                     // On cherche les dépenses dont dateFinUsage >= dateDebut
                     if (startFilter) {
-                        const q2 = query(depensesRef, where('dateFinUsage', '>=', startFilter));
+                        const q2 = query(depensesRef, where('dateFinUsage', '>=', startFilter), limit(150));
                         promises.push(getDocs(q2));
                     }
 

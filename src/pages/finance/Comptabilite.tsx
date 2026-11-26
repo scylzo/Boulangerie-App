@@ -17,7 +17,7 @@ import { TableauBordRentabilite } from '../../components/finance/TableauBordRent
 import { TableauBordFinanceSimple } from '../../components/finance/TableauBordFinanceSimple';
 import { calculerAnalyseRentabilite } from '../../utils/analyseRentabilite';
 import { firestoreService, dateToTimestamp } from '../../firebase/collections';
-import { where } from 'firebase/firestore';
+import { where, limit } from 'firebase/firestore';
 import type { ProgrammeProduction } from '../../types/production';
 
 type EncaissEntry = { source: 'caisse' | 'livraison'; label: string; ref?: string; montant: number; date: Date };
@@ -180,7 +180,8 @@ export const Comptabilite: React.FC = () => {
             // Charger les programmes de production en arrière-plan sans bloquer l'UI
             firestoreService.getByQuery<ProgrammeProduction>('productionPrograms', [
                 where('dateProduction', '>=', dateToTimestamp(debut)),
-                where('dateProduction', '<=', dateToTimestamp(fin))
+                where('dateProduction', '<=', dateToTimestamp(fin)),
+                limit(60)
             ]).then(progs => {
                 if (progs && progs.length > 0) setProgrammes(progs);
             }).catch(err => {
