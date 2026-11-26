@@ -2,9 +2,21 @@ import React, { useState, useMemo } from 'react';
 import { useStockStore } from '../../store/stockStore';
 import { useAuthStore } from '../../store/authStore';
 import { formaterQuantite } from '../../utils/calculations';
-import { ClipboardCheck, CheckCircle2, ArrowRight, RotateCcw, Search, Sparkles } from 'lucide-react';
+import {
+  ClipboardCheck,
+  CheckCircle2,
+  ArrowRight,
+  RotateCcw,
+  Search,
+  Sparkles,
+  Scale,
+  Save,
+  Check
+} from 'lucide-react';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { Modal } from '../ui/Modal';
 import toast from 'react-hot-toast';
+import type { MatierePremiere } from '../../types';
 
 export const StockInventaire: React.FC = () => {
   const { matieres, addMouvement, chargerDonnees } = useStockStore();
@@ -17,6 +29,17 @@ export const StockInventaire: React.FC = () => {
   const [saisies, setSaisies] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // État de la modale d'ajustement direct par ligne
+  const [correctionModal, setCorrectionModal] = useState<{
+    isOpen: boolean;
+    matiere?: MatierePremiere;
+    valeur: string;
+    isSaving?: boolean;
+  }>({
+    isOpen: false,
+    valeur: ''
+  });
 
   // Trier les matières (Farine, Glace en tête, puis alphabétique)
   const matieresActives = useMemo(() => {
@@ -60,7 +83,7 @@ export const StockInventaire: React.FC = () => {
     toast('Champs d\'inventaire réinitialisés', { icon: '🧹' });
   };
 
-  // Calcul des deltas
+  // Calcul des deltas pour chaque matière
   const lignesAvecDelta = useMemo(() => {
     return matieresActives.map(m => {
       const saisie = saisies[m.id];
@@ -99,7 +122,63 @@ export const StockInventaire: React.FC = () => {
     return lignesAvecDelta.filter(l => l.valide).length;
   }, [lignesAvecDelta]);
 
-  const handleValiderInventaire = async () => {
+  // Ajustement direct pour UNE SEULE matière (depuis la ligne ou la touche Entrée)
+  const handleAjusterLigne = async (matiere: MatierePremiere, valeurForcee?: string) => {
+    const brute = valeurForcee !== undefined ? valeurForcee : (saisies[matiere.id] ?? '');
+    if (!brute.trim()) {
+      toast.error(`Veuillez saisir le stock réel compté pour ${matiere.nom}.`);
+      return;
+    }
+
+    const cible = Math.round((parseFloat(brute.replace(',', '.')) + Number.EPSILON) * 100) / 100;
+    if (isNaN(cible) || cible < 0) {
+      toast.error('Quantité invalide (doit être un nombre positif ou 0).');
+      return;
+    }
+
+    const delta = Math.round((cible - matiere.stockActuel + Number.EPSILON) * 100) / 100;
+
+    if (delta === 0) {
+      toast(`Le stock de ${matiere.nom} est déjà conforme à ${cible} ${matiere.unite}.`, { icon: '👌' });
+      return;
+    }
+
+    try {
+      const auteurNom = user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : 'Gérant';
+      const dateCible = new Date(dateInventaire + 'T12:00:00');
+
+      await addMouvement({
+        date: dateCible,
+        matiereId: matiere.id,
+        type: 'correction',
+        quantite: delta,
+        motif: `Ajustement inventaire : ${matiere.nom} (${delta > 0 ? '+' : ''}${delta} ${matiere.unite})`,
+        auteur: auteurNom,
+        userId: user?.id || 'current-user-id'
+      });
+
+      toast.success(
+        `Stock de ${matiere.nom} ajusté à ${cible} ${matiere.unite} (${delta > 0 ? '+' : ''}${delta} ${matiere.unite}) !`
+      );
+
+      // Effacer la saisie de cette matière
+      setSaisies(prev => {
+        const copy = { ...prev };
+        delete copy[matiere.id];
+        return copy;
+      });
+
+      // Fermer modal si ouverte
+      setCorrectionModal({ isOpen: false, valeur: '' });
+      await chargerDonnees();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(`Erreur lors de l'ajustement de ${matiere.nom}.`);
+    }
+  };
+
+  // Validation globale de tous les écarts d'un coup
+  const handleValiderToutInventaire = async () => {
     if (ecartsACorriger.length === 0) {
       toast('Aucun écart à corriger.', { icon: 'ℹ️' });
       setShowConfirmModal(false);
@@ -148,12 +227,12 @@ export const StockInventaire: React.FC = () => {
             <span>Inventaire Physique de la Réserve</span>
           </h2>
           <p className="text-xs sm:text-sm text-sand-600 mt-0.5">
-            Comptez les sacs et matières réels en réserve. Le système calculera automatiquement les écarts et alignera les stocks.
+            Saisissez le stock réel pour chaque matière. Vous pouvez enregistrer ligne par ligne ou valider l'ensemble en 1 clic.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-sand-200 text-xs">
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-sand-200 text-xs shadow-xs">
             <span className="text-sand-500 font-medium">Date d'inventaire :</span>
             <input
               type="date"
@@ -165,7 +244,7 @@ export const StockInventaire: React.FC = () => {
 
           <button
             onClick={handlePreRemplirTheorique}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-sand-100 text-sand-700 text-xs font-semibold rounded-xl border border-sand-200 shadow-sm transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-sand-100 text-sand-700 text-xs font-semibold rounded-xl border border-sand-200 shadow-sm transition-colors cursor-pointer"
             title="Pré-remplir avec les stocks théoriques pour ne modifier que les écarts"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
@@ -175,7 +254,7 @@ export const StockInventaire: React.FC = () => {
           {totalSaisis > 0 && (
             <button
               onClick={handleReinitialiser}
-              className="flex items-center gap-1.5 px-2.5 py-2 text-sand-500 hover:text-sand-700 text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-2 text-sand-500 hover:text-sand-700 text-xs font-medium transition-colors cursor-pointer"
               title="Effacer la saisie en cours"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -197,7 +276,7 @@ export const StockInventaire: React.FC = () => {
               {isSubmitting
                 ? 'Enregistrement...'
                 : ecartsACorriger.length > 0
-                ? `Valider (${ecartsACorriger.length} écart${ecartsACorriger.length > 1 ? 's' : ''})`
+                ? `Valider tout (${ecartsACorriger.length} écart${ecartsACorriger.length > 1 ? 's' : ''})`
                 : 'Aucun écart'}
             </span>
           </button>
@@ -210,7 +289,7 @@ export const StockInventaire: React.FC = () => {
           <Search className="w-4 h-4 text-sand-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Rechercher une matière (farine, levure, sel...)"
+            placeholder="Rechercher une matière (farine, levure, sel, glace...)"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-white border border-sand-200 rounded-xl text-xs sm:text-sm text-sand-800 placeholder-sand-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
@@ -229,7 +308,7 @@ export const StockInventaire: React.FC = () => {
         </div>
       </div>
 
-      {/* Tableau d'inventaire */}
+      {/* Tableau d'inventaire avec action directe sur chaque ligne */}
       <div className="border border-sand-200 rounded-2xl overflow-hidden bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
@@ -237,9 +316,9 @@ export const StockInventaire: React.FC = () => {
               <tr>
                 <th className="py-3 px-4">Matière Première</th>
                 <th className="py-3 px-4 text-right">Stock Théorique</th>
-                <th className="py-3 px-4 w-44">Quantité Réelle Comptée</th>
+                <th className="py-3 px-4 w-52">Quantité Réelle Comptée</th>
                 <th className="py-3 px-4 text-center">Écart (Delta)</th>
-                <th className="py-3 px-4 text-right">Statut</th>
+                <th className="py-3 px-4 text-right">Action / Ajustement</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-sand-100">
@@ -248,6 +327,7 @@ export const StockInventaire: React.FC = () => {
                 const saisieVal = saisies[m.id] ?? '';
                 const statut = ligne?.statut || 'non_saisi';
                 const delta = ligne?.delta || 0;
+                const aSaisie = saisieVal.trim() !== '';
 
                 return (
                   <tr
@@ -272,25 +352,45 @@ export const StockInventaire: React.FC = () => {
                     </td>
 
                     {/* Stock Théorique */}
-                    <td className="py-3 px-4 text-right font-medium text-sand-700">
+                    <td className="py-3 px-4 text-right font-semibold text-sand-700">
                       {formaterQuantite(m.stockActuel, m.unite)}
                     </td>
 
-                    {/* Saisie Réelle */}
+                    {/* Saisie Réelle avec touche Entrée directe */}
                     <td className="py-3 px-4">
-                      <div className="relative">
-                        <input
-                          type="number"
-                          step="any"
-                          min="0"
-                          placeholder={String(m.stockActuel)}
-                          value={saisieVal}
-                          onChange={e => handleSaisieChange(m.id, e.target.value)}
-                          className="w-full py-1.5 pl-3 pr-10 border border-sand-300 rounded-xl text-xs sm:text-sm font-semibold text-sand-900 bg-sand-50/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-sand-400 font-medium pointer-events-none">
-                          {m.unite}
-                        </span>
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="number"
+                            step="any"
+                            min="0"
+                            placeholder="Saisir réel..."
+                            value={saisieVal}
+                            onChange={e => handleSaisieChange(m.id, e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAjusterLigne(m);
+                              }
+                            }}
+                            className="w-full py-1.5 pl-3 pr-9 border border-sand-300 rounded-xl text-xs sm:text-sm font-semibold text-sand-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                          />
+                          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-sand-400 font-medium pointer-events-none">
+                            {m.unite}
+                          </span>
+                        </div>
+
+                        {/* Bouton direct "Enregistrer" dès qu'une valeur est saisie */}
+                        {aSaisie && (
+                          <button
+                            type="button"
+                            onClick={() => handleAjusterLigne(m)}
+                            className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer"
+                            title={`Enregistrer l'ajustement pour ${m.nom}`}
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
 
@@ -313,20 +413,34 @@ export const StockInventaire: React.FC = () => {
                       )}
                     </td>
 
-                    {/* Statut */}
+                    {/* Action / Bouton Ajuster */}
                     <td className="py-3 px-4 text-right">
-                      {statut === 'non_saisi' && (
-                        <span className="text-[11px] text-sand-400">Non renseigné</span>
-                      )}
-                      {statut === 'conforme' && (
-                        <span className="text-[11px] font-semibold text-emerald-700">Conforme</span>
-                      )}
-                      {statut === 'surplus' && (
-                        <span className="text-[11px] font-semibold text-amber-700">Surplus (+ stock)</span>
-                      )}
-                      {statut === 'manquant' && (
-                        <span className="text-[11px] font-semibold text-rose-700">Perte / Manquant</span>
-                      )}
+                      <div className="flex items-center justify-end gap-1.5">
+                        {aSaisie && delta !== 0 ? (
+                          <button
+                            onClick={() => handleAjusterLigne(m)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            <Save className="w-3.5 h-3.5 text-emerald-700" />
+                            <span>Appliquer</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              setCorrectionModal({
+                                isOpen: true,
+                                matiere: m,
+                                valeur: String(Math.max(0, m.stockActuel))
+                              })
+                            }
+                            className="flex items-center gap-1 px-2.5 py-1.5 bg-sand-50 hover:bg-sand-100 text-sand-700 border border-sand-200 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                            title="Ouvrir la modale d'ajustement direct"
+                          >
+                            <Scale className="w-3.5 h-3.5 text-terracotta-600" />
+                            <span>Ajuster</span>
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -334,13 +448,125 @@ export const StockInventaire: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pied de tableau avec bouton de validation globale */}
+        {ecartsACorriger.length > 0 && (
+          <div className="p-4 bg-sand-50 border-t border-sand-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-xs sm:text-sm text-sand-700 font-medium">
+              <strong>{ecartsACorriger.length} écart(s)</strong> détecté(s) prêt(s) à être synchronisés avec la réserve.
+            </span>
+            <button
+              onClick={() => setShowConfirmModal(true)}
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all cursor-pointer"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Valider tous les ajustements ({ecartsACorriger.length})</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Modal de confirmation détaillée */}
+      {/* Modal d'ajustement individuel direct (Scale) */}
+      {correctionModal.isOpen && correctionModal.matiere && (() => {
+        const mat = correctionModal.matiere;
+        const cible = Math.round((parseFloat(correctionModal.valeur.replace(',', '.')) || 0) * 100) / 100;
+        const delta = Math.round((cible - mat.stockActuel + Number.EPSILON) * 100) / 100;
+
+        return (
+          <Modal
+            isOpen={correctionModal.isOpen}
+            onClose={() => setCorrectionModal({ isOpen: false, valeur: '' })}
+            title={`Ajuster le stock : ${mat.nom}`}
+            size="sm"
+            position="center"
+          >
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-terracotta-50 text-terracotta-600 flex items-center justify-center shrink-0">
+                  <Scale className="w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm text-sand-600">
+                  Indiquez le <strong>stock réellement compté en réserve</strong>. Le système enregistrera automatiquement le mouvement d'ajustement pour mettre le stock à niveau.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-xs sm:text-sm">
+                <span className="text-sand-600 font-medium">Stock système actuel</span>
+                <span className="font-bold text-sand-900">
+                  {formaterQuantite(mat.stockActuel, mat.unite)}
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-sand-700 mb-1.5">
+                  Nouveau stock réel compté ({mat.unite}) :
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    autoFocus
+                    value={correctionModal.valeur}
+                    onChange={e => setCorrectionModal(c => ({ ...c, valeur: e.target.value }))}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAjusterLigne(mat, correctionModal.valeur);
+                      }
+                    }}
+                    className="w-full py-2 pl-3 pr-10 border border-sand-300 rounded-xl text-sm font-bold text-sand-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-sand-400 font-semibold pointer-events-none">
+                    {mat.unite}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-sand-50 border border-sand-200 text-xs sm:text-sm">
+                <span className="text-sand-600 font-medium">Écart qui sera appliqué</span>
+                <span
+                  className={`font-bold ${
+                    delta === 0
+                      ? 'text-sand-400'
+                      : delta > 0
+                      ? 'text-emerald-700'
+                      : 'text-rose-700'
+                  }`}
+                >
+                  {delta === 0
+                    ? '0 (Conforme)'
+                    : `${delta > 0 ? '+' : ''}${delta} ${mat.unite}`}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCorrectionModal({ isOpen: false, valeur: '' })}
+                  className="flex-1 py-2.5 rounded-xl border border-sand-300 text-sand-700 hover:bg-sand-50 text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAjusterLigne(mat, correctionModal.valeur)}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors cursor-pointer"
+                >
+                  Confirmer l'ajustement
+                </button>
+              </div>
+            </div>
+          </Modal>
+        );
+      })()}
+
+      {/* Modal de confirmation détaillée pour l'ensemble de l'inventaire */}
       <ConfirmModal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
-        onConfirm={handleValiderInventaire}
+        onConfirm={handleValiderToutInventaire}
         title="Confirmer l'ajustement des stocks"
         message={
           <div>
