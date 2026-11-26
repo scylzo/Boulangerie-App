@@ -106,7 +106,8 @@ export const firestoreService = {
   },
 
   async getAll<T>(collectionName: keyof typeof collectionsRef): Promise<T[]> {
-    const querySnapshot = await getDocs(collectionsRef[collectionName]);
+    const q = query(collectionsRef[collectionName], limit(100));
+    const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()

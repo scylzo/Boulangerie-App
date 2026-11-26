@@ -118,7 +118,8 @@ export const useFacturationStore = create<FacturationStore>()(
           const qFactures = query(
             collection(db, 'factures'),
             where('dateLivraison', '>=', debutJour),
-            where('dateLivraison', '<=', finJour)
+            where('dateLivraison', '<=', finJour),
+            limit(60)
           );
 
           let facturesExistantes: Facture[] = [];
@@ -1129,7 +1130,7 @@ export const useFacturationStore = create<FacturationStore>()(
 
       getFacturesClient: async (clientId: string) => {
         try {
-          const q = query(collection(db, 'factures'), where('clientId', '==', clientId));
+          const q = query(collection(db, 'factures'), where('clientId', '==', clientId), limit(100));
           const snap = await getDocs(q);
           return snap.docs.map(doc => {
             const data = doc.data();
@@ -1258,7 +1259,7 @@ export const useFacturationStore = create<FacturationStore>()(
 
       backfillReglementsJournal: async () => {
         try {
-          const snap = await getDocs(collection(db, 'factures'));
+          const snap = await getDocs(query(collection(db, 'factures'), limit(50)));
           const ops: Promise<any>[] = [];
           let n = 0;
           snap.docs.forEach(d => {
