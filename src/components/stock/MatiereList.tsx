@@ -77,33 +77,45 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
 
   const handleCorriger = async () => {
     if (!correction.matiere) return;
-    const opts = getOptionsConditionnement(correction.matiere);
+    const m = matieres.find(item => item.id === correction.matiere?.id) || correction.matiere;
+    const opts = getOptionsConditionnement(m);
     const selectedOpt = opts.find(o => o.id === correction.uniteId) || opts[0];
     const factor = selectedOpt?.factor || 1;
 
-    const saisieNum = parseFloat(correction.valeur.replace(',', '.')) || 0;
+    if (!correction.valeur.trim()) {
+      toast.error('Veuillez saisir le stock réel compté.');
+      return;
+    }
+
+    const saisieNum = parseFloat(correction.valeur.replace(',', '.'));
+    if (isNaN(saisieNum) || saisieNum < 0) {
+      toast.error('Quantité invalide (doit être un nombre positif ou 0).');
+      return;
+    }
+
     const cible = round2(saisieNum * factor);
-    const delta = round2(cible - correction.matiere.stockActuel);
+    const delta = round2(cible - m.stockActuel);
     if (delta === 0) {
+      toast.success(`Le stock est déjà conforme (${cible} ${m.unite})`);
       setCorrection({ isOpen: false, valeur: '' });
       return;
     }
     setIsCorrecting(true);
     try {
       const motifTexte = factor !== 1
-        ? `Correction inventaire : ${saisieNum} ${selectedOpt.labelCourt} (${delta > 0 ? '+' : ''}${delta} ${correction.matiere.unite})`
+        ? `Correction inventaire : ${saisieNum} ${selectedOpt.labelCourt} (${delta > 0 ? '+' : ''}${delta} ${m.unite})`
         : 'Correction inventaire';
 
       await addMouvement({
         date: new Date(),
-        matiereId: correction.matiere.id,
+        matiereId: m.id,
         type: 'correction',
         quantite: delta,
         motif: motifTexte,
-        auteur: user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : '',
+        auteur: user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : 'Gérant',
         userId: user?.id || 'current-user-id',
       });
-      toast.success(`Stock corrigé : ${formaterQuantite(cible, correction.matiere.unite)}`);
+      toast.success(`Stock corrigé : ${formaterQuantite(cible, m.unite)}`);
       setCorrection({ isOpen: false, valeur: '' });
     } catch {
       toast.error('Erreur lors de la correction du stock');
@@ -461,13 +473,14 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
 
       {/* Correction de stock (inventaire) */}
       {correction.isOpen && correction.matiere && (() => {
-        const m = correction.matiere;
+        const m = matieres.find(item => item.id === correction.matiere?.id) || correction.matiere;
         const opts = getOptionsConditionnement(m);
         const selectedOpt = opts.find(o => o.id === correction.uniteId) || opts[0];
         const factor = selectedOpt?.factor || 1;
-        const saisieNum = parseFloat(correction.valeur.replace(',', '.')) || 0;
+        const hasValeur = correction.valeur.trim() !== '';
+        const saisieNum = hasValeur ? (parseFloat(correction.valeur.replace(',', '.')) || 0) : 0;
         const cible = round2(saisieNum * factor);
-        const delta = round2(cible - m.stockActuel);
+        const delta = hasValeur ? round2(cible - m.stockActuel) : 0;
 
         return (
           <Modal
@@ -529,6 +542,7 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
                     step="any"
                     min="0"
                     autoFocus
+                    placeholder="Ex: 10"
                     value={correction.valeur}
                     onChange={(e) => setCorrection((c) => ({ ...c, valeur: e.target.value }))}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleCorriger(); }}
@@ -548,8 +562,8 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
 
               <div className="flex items-center justify-between text-sm">
                 <span className="text-sand-500">Ajustement</span>
-                <span className={`font-semibold tabular-nums ${delta === 0 ? 'text-sand-400' : delta > 0 ? 'text-success-600' : 'text-danger-600'}`}>
-                  {delta > 0 ? '+' : ''}{formaterQuantite(delta, m.unite)}
+                <span className={`font-semibold tabular-nums ${!hasValeur || delta === 0 ? 'text-sand-400' : delta > 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                  {!hasValeur ? '—' : `${delta > 0 ? '+' : ''}${formaterQuantite(delta, m.unite)}`}
                 </span>
               </div>
 
@@ -564,7 +578,7 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
                 <button
                   type="button"
                   onClick={handleCorriger}
-                  disabled={isCorrecting || delta === 0}
+                  disabled={isCorrecting || !hasValeur || delta === 0}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-terracotta-600 hover:bg-terracotta-700 text-white font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isCorrecting ? 'Correction…' : 'Valider la correction'}

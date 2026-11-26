@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
 import {
-    collection,
     runTransaction,
     doc,
     Timestamp,
@@ -186,111 +185,101 @@ export const useStockStore = create<StockState>((set, get) => ({
     addMouvement: async (mouvementData) => {
         set({ isLoading: true });
         try {
-            // TRANSACTION REQUISE : Mettre à jour le mouvement ET le stock/PMP de la matière
-            await runTransaction(db, async (transaction) => {
-                // 1. Lire la matière actuelle
-                const matiereRef = doc(db, 'matieres', mouvementData.matiereId);
-                const matiereDoc = await transaction.get(matiereRef);
+            const matieres = get().matieres;
+            const matiere = matieres.find(m => m.id === mouvementData.matiereId);
+            const currentStock = Number(matiere?.stockActuel ?? 0);
+            const currentPMP = Number(matiere?.prixUnitaireMoyen ?? 0);
 
-                if (!matiereDoc.exists()) {
-                    throw new Error("Matière première introuvable !");
+            let newStock = currentStock;
+            let newPMP = currentPMP;
+
+            if (mouvementData.type === 'achat') {
+                const quantiteAchat = Number(mouvementData.quantite || 0);
+                const prixAchat = Number(mouvementData.prixUnitaire || 0);
+
+                if (prixAchat > 0) {
+                    const ancienStockVal = Math.max(0, currentStock) * currentPMP;
+                    const nouvelAchatVal = quantiteAchat * prixAchat;
+                    const stockTotalTheorique = Math.max(0, currentStock) + quantiteAchat;
+
+                    if (stockTotalTheorique > 0) {
+                        newPMP = (ancienStockVal + nouvelAchatVal) / stockTotalTheorique;
+                    } else {
+                        newPMP = prixAchat;
+                    }
+                } else if (currentPMP === 0 && prixAchat > 0) {
+                    newPMP = prixAchat;
                 }
 
-                const matiere = matiereDoc.data() as MatierePremiere;
+                newStock += quantiteAchat;
+            } else if (mouvementData.type === 'correction') {
+                // Dans le cas d'une correction, quantite est le delta signé (+ ou -)
+                const delta = Number(mouvementData.quantite || 0);
+                newStock += delta;
+            } else {
+                // Sorties (consommation, perte, retour_fournisseur)
+                const sortie = Math.abs(Number(mouvementData.quantite || 0));
+                newStock -= sortie;
+            }
 
-                let newStock = matiere.stockActuel;
-                let newPMP = matiere.prixUnitaireMoyen || 0;
+            const finalStock = Math.round((newStock + Number.EPSILON) * 100) / 100;
+            const finalPMP = Math.round((newPMP + Number.EPSILON) * 100) / 100;
 
-                // 2. Calculer les nouvelles valeurs
-                if (mouvementData.type === 'achat') {
-                    const quantiteAchat = mouvementData.quantite;
+            const dateMouv = mouvementData.date 
+                ? (mouvementData.date instanceof Date ? mouvementData.date : new Date(mouvementData.date)) 
+                : new Date();
+            const now = new Date();
 
-                    // Calcul du PMP (Prix Moyen Pondéré)
-                    // Formule : ((AncienStock * AncienPMP) + (QteAchat * PrixAchat)) / (AncienStock + QteAchat)
-                    if (mouvementData.prixUnitaire && mouvementData.prixUnitaire > 0) {
-                        const ancienStockVal = Math.max(0, newStock) * newPMP; // On évite les stocks négatifs pour la valo
-                        const nouvelAchatVal = quantiteAchat * mouvementData.prixUnitaire;
-                        const stockTotalTheorique = Math.max(0, newStock) + quantiteAchat;
+            const tempMouvementId = `mouv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+            const localMouvement: MouvementStock = {
+                id: tempMouvementId,
+                ...mouvementData,
+                quantite: Number(mouvementData.quantite || 0),
+                prixUnitaire: mouvementData.prixUnitaire ? Number(mouvementData.prixUnitaire) : undefined,
+                date: dateMouv,
+                createdAt: now
+            };
 
-                        if (stockTotalTheorique > 0) {
-                            newPMP = (ancienStockVal + nouvelAchatVal) / stockTotalTheorique;
-                        } else {
-                            // Si stock total est 0 ou moins (bizarre après un achat positif), on prend le prix du dernier achat
-                            newPMP = mouvementData.prixUnitaire;
-                        }
-                    } else if (newPMP === 0 && mouvementData.prixUnitaire) {
-                        // Si pas de PMP avant (0) et qu'on a un prix, c'est le nouveau PMP
-                        newPMP = mouvementData.prixUnitaire;
-                    }
+            // 1. MISE À JOUR IMMÉDIATE (0ms) DANS LE STORE ZUSTAND
+            set(state => ({
+                matieres: state.matieres.map(m => m.id === mouvementData.matiereId ? {
+                    ...m,
+                    stockActuel: finalStock,
+                    prixUnitaireMoyen: finalPMP,
+                    updatedAt: now
+                } : m),
+                mouvements: [localMouvement, ...state.mouvements],
+                isLoading: false
+            }));
 
-                    newStock += quantiteAchat;
-
-                } else {
-                    // Pour les sorties, on valorise au PMP actuel
-                    // Mais attention, on garde la convention : newValeurTotale = Stock * PMP
-                    // Sauf si correction manuelle ? Restons simples selon la logique précédente
-
-                    let signedQuantity = Math.abs(mouvementData.quantite);
-                    // Si ce n'est pas un achat ou une correction positive, c'est une sortie
-                    if (['consommation', 'perte', 'retour_fournisseur'].includes(mouvementData.type)) {
-                        signedQuantity = -signedQuantity;
-                    }
-                    // Note: pour 'correction', si quantity est positive c'est un ajout, négative un retrait (géré par linput utilisateur potentiellement ou logique)
-                    // Dans le modal actuel, correction est traitée comme value absolue pour l'instant dans l'ancien code?
-                    // Vérifions l'ancien code: 
-                    // if (mouvementData.type === 'correction') signedQuantity = mouvementData.quantite; (donc peut etre negatif)
-
-                    // Dans le doute, pour 'correction', on fait confiance au signe envoyé ou à la logique UI. 
-                    // Mais dans le modal UI, tout est positif. Supposons 'correction' = ajustement absolu ? 
-                    // Non, correction d'inventaire c'est souvent "j'ai compté X, le système dit Y".
-                    // Simplification: le modal envoie une quantité positive. Si type correction, considérons ça comme un AJOUT pour l'instant ou laissons l'UI gérer le signe.
-                    // L'ancien code disait: if type != achat, newStock += signedQuantity.
-
-                    if (mouvementData.type === 'correction') {
-                        // Pour l'instant, traitons correction comme un ajout direct (ou retrait si négatif)
-                        signedQuantity = mouvementData.quantite;
-                    }
-
-                    newStock += signedQuantity;
-                }
-
-                // 3. Préparer le mouvement à créer
-                const newMouvementRef = doc(collection(db, 'mouvements'));
-
-                const newMouvement: any = {
-                    id: newMouvementRef.id,
-                    ...mouvementData,
-                    createdAt: new Date(),
-                    date: mouvementData.date ? new Date(mouvementData.date) : new Date(),
-                };
-
-                // Nettoyer les undefined pour Firestore
-                Object.keys(newMouvement).forEach(key => {
-                    if (newMouvement[key] === undefined) {
-                        delete newMouvement[key];
-                    }
-                });
-
-                // 4. Écritures dans la transaction
-                transaction.set(newMouvementRef, newMouvement);
-                transaction.update(matiereRef, {
-                    // Arrondi 2 décimales : évite l'accumulation d'artefacts de virgule flottante
-                    stockActuel: Math.round((newStock + Number.EPSILON) * 100) / 100,
-                    prixUnitaireMoyen: newPMP, // Mise à jour du PMP
-                    updatedAt: new Date()
-                });
+            // 2. PERSISTANCE FIRESTORE SÉCURISÉE
+            const updateMatierePromise = firestoreService.update('matieres', mouvementData.matiereId, {
+                stockActuel: finalStock,
+                prixUnitaireMoyen: finalPMP,
+                updatedAt: now
             });
 
+            const createMouvPromise = firestoreService.create('mouvements', {
+                ...mouvementData,
+                quantite: Number(mouvementData.quantite || 0),
+                prixUnitaire: mouvementData.prixUnitaire ? Number(mouvementData.prixUnitaire) : undefined,
+                date: dateMouv,
+                createdAt: now
+            });
 
+            const [_, mouvDocRef] = await Promise.all([updateMatierePromise, createMouvPromise]);
 
-            // Rechargement des données pour être sûr d'avoir l'état frais (ou update manuel optimiste)
-            // Pour être sûr de la synchro PMP, on recharge tout ou juste la matière ?
-            // Optimisons : recharger juste matières et mouvements
-            get().chargerDonnees();
+            if (mouvDocRef?.id) {
+                // Remplacer l'id temporaire par l'id réel de Firestore
+                set(state => ({
+                    mouvements: state.mouvements.map(m => m.id === tempMouvementId ? { ...m, id: mouvDocRef.id } : m)
+                }));
+            }
 
         } catch (error: any) {
-            console.error('Erreur transaction stock:', error);
+            console.error('Erreur addMouvement stock:', error);
             set({ isLoading: false, error: error.message });
+            throw error;
         }
     },
 
@@ -379,54 +368,47 @@ export const useStockStore = create<StockState>((set, get) => ({
     deleteMouvement: async (id: string) => {
         set({ isLoading: true });
         try {
-            await runTransaction(db, async (transaction) => {
-                const mouvementRef = doc(db, 'mouvements', id);
-                const mouvementDoc = await transaction.get(mouvementRef);
-                if (!mouvementDoc.exists()) throw new Error("Mouvement introuvable");
+            const mouvement = get().mouvements.find(m => m.id === id);
+            if (!mouvement) throw new Error("Mouvement introuvable");
 
-                const mouvement = mouvementDoc.data() as MouvementStock;
-                const matiereRef = doc(db, 'matieres', mouvement.matiereId);
-                const matiereDoc = await transaction.get(matiereRef);
+            const matiere = get().matieres.find(m => m.id === mouvement.matiereId);
+            let finalStock = matiere ? Number(matiere.stockActuel || 0) : 0;
+            const qte = Number(mouvement.quantite || 0);
 
-                if (matiereDoc.exists()) {
-                    const matiere = matiereDoc.data() as MatierePremiere;
-                    let newStock = matiere.stockActuel;
-
-                    // Annuler l'effet du mouvement
-                    // Note: Dans la BDD, 'quantite' est stockée en positif souvent mais il faut vérifier la logique d'addMouvement
-                    // Dans addMouvement:
-                    // Achat -> +quantite
-                    // Conso/Perte -> -quantite (mais stocké comment ? 'signedQuantity' est calculé pour le stock, mais le mouvement a le champ quantite)
-                    // Regardons addMouvement: transaction.set(..., { quantite: finalQuantity }) où finalQuantity est positif
-                    // Et stock += signedQuantity.
-                    // Donc mouvement.quantite est la valeur ABSOLUE généralement.
-
-                    const qte = mouvement.quantite;
-
-                    if (mouvement.type === 'achat') {
-                        // C'était une entrée, donc on retire du stock
-                        newStock -= qte;
-                    } else if (['consommation', 'perte', 'retour_fournisseur'].includes(mouvement.type)) {
-                        // C'était une sortie, donc on ré-ajoute au stock
-                        newStock += qte;
-                    } else if (mouvement.type === 'correction') {
-                        // Correction: On suppose que c'était un ajout si positif (implémentation actuelle simple)
-                        // Si on veut être rigoureux faudrait stocker le delta signé. 
-                        // Mais pour l'instant 'correction' dans addMouvement fait += quantite.
-                        newStock -= qte;
-                    }
-
-                    transaction.update(matiereRef, {
-                        stockActuel: Math.round((newStock + Number.EPSILON) * 100) / 100,
-                        updatedAt: new Date()
-                    });
+            if (matiere) {
+                if (mouvement.type === 'achat') {
+                    finalStock -= qte;
+                } else if (['consommation', 'perte', 'retour_fournisseur'].includes(mouvement.type)) {
+                    finalStock += qte;
+                } else if (mouvement.type === 'correction') {
+                    finalStock -= qte;
                 }
+                finalStock = Math.round((finalStock + Number.EPSILON) * 100) / 100;
+            }
 
-                transaction.delete(mouvementRef);
-            });
+            const now = new Date();
 
-            await get().chargerDonnees();
-            console.log('✅ Mouvement supprimé');
+            // Optimistic update
+            set(state => ({
+                matieres: matiere ? state.matieres.map(m => m.id === mouvement.matiereId ? {
+                    ...m,
+                    stockActuel: finalStock,
+                    updatedAt: now
+                } : m) : state.matieres,
+                mouvements: state.mouvements.filter(m => m.id !== id),
+                isLoading: false
+            }));
+
+            const promises: Promise<any>[] = [firestoreService.delete('mouvements', id)];
+            if (matiere) {
+                promises.push(firestoreService.update('matieres', matiere.id, {
+                    stockActuel: finalStock,
+                    updatedAt: now
+                }));
+            }
+
+            await Promise.all(promises);
+            console.log('✅ Mouvement supprimé avec succès');
         } catch (error: any) {
             console.error('Erreur suppression mouvement:', error);
             set({ isLoading: false, error: error.message });
