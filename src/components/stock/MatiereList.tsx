@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import { useStockStore } from '../../store/stockStore';
-import { Plus, Edit2, Trash2, ArrowRightLeft, Scale, PackagePlus, AlertTriangle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Scale, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
 import type { MatierePremiere, UniteMesure } from '../../types';
 import { formaterQuantite } from '../../utils/calculations';
+import { getOptionsConditionnement } from '../../utils/conditionnementStock';
 import { useAuthStore } from '../../store/authStore';
 
 interface MatiereListProps {
-  onAddMouvement: (matiere: MatierePremiere) => void;
+  onAddMouvement?: (matiere: MatierePremiere) => void;
   onReception?: (matiere: MatierePremiere) => void;
 }
 
-export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onReception }) => {
+export const MatiereList: React.FC<MatiereListProps> = () => {
   const { matieres, addMatiere, updateMatiere, deleteMatiere, addMouvement } = useStockStore();
   const { user } = useAuthStore();
   const [isEditing, setIsEditing] = useState<string | null>(null);
@@ -53,19 +54,35 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onRece
 
   // Correction de stock (inventaire)
   const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
-  const [correction, setCorrection] = useState<{ isOpen: boolean; matiere?: MatierePremiere; valeur: string }>({
+  const [correction, setCorrection] = useState<{
+    isOpen: boolean;
+    matiere?: MatierePremiere;
+    valeur: string;
+    uniteId?: string;
+  }>({
     isOpen: false,
     valeur: ''
   });
   const [isCorrecting, setIsCorrecting] = useState(false);
 
   const openCorrection = (matiere: MatierePremiere) => {
-    setCorrection({ isOpen: true, matiere, valeur: String(round2(Math.max(0, matiere.stockActuel))) });
+    const opts = getOptionsConditionnement(matiere);
+    setCorrection({
+      isOpen: true,
+      matiere,
+      valeur: String(round2(Math.max(0, matiere.stockActuel))),
+      uniteId: opts[0]?.id || matiere.unite
+    });
   };
 
   const handleCorriger = async () => {
     if (!correction.matiere) return;
-    const cible = round2(parseFloat(correction.valeur.replace(',', '.')) || 0);
+    const opts = getOptionsConditionnement(correction.matiere);
+    const selectedOpt = opts.find(o => o.id === correction.uniteId) || opts[0];
+    const factor = selectedOpt?.factor || 1;
+
+    const saisieNum = parseFloat(correction.valeur.replace(',', '.')) || 0;
+    const cible = round2(saisieNum * factor);
     const delta = round2(cible - correction.matiere.stockActuel);
     if (delta === 0) {
       setCorrection({ isOpen: false, valeur: '' });
@@ -73,12 +90,16 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onRece
     }
     setIsCorrecting(true);
     try {
+      const motifTexte = factor !== 1
+        ? `Correction inventaire : ${saisieNum} ${selectedOpt.labelCourt} (${delta > 0 ? '+' : ''}${delta} ${correction.matiere.unite})`
+        : 'Correction inventaire';
+
       await addMouvement({
         date: new Date(),
         matiereId: correction.matiere.id,
         type: 'correction',
         quantite: delta,
-        motif: 'Correction inventaire',
+        motif: motifTexte,
         auteur: user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : '',
         userId: user?.id || 'current-user-id',
       });
@@ -175,16 +196,6 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onRece
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h2 className="text-base sm:text-lg font-semibold text-sand-800">Matières Premières</h2>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          {onReception && (
-            <button
-              onClick={() => onReception(matieres[0])}
-              className="flex items-center justify-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-2 rounded-lg transition-colors text-xs sm:text-sm font-semibold border border-emerald-200"
-              title="Enregistrer une réception de marchandise"
-            >
-              <PackagePlus size={16} />
-              <span>Réceptionner</span>
-            </button>
-          )}
           <button
             onClick={() => {
               setIsEditing(null);
@@ -259,7 +270,7 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onRece
               <div className="text-warning-600 mt-0.5"><AlertTriangle size={18} /></div>
               <div className="text-sm text-warning-600 leading-relaxed">
                 <span className="font-semibold">Note :</span> Créez d'abord la matière avec son unité de base.
-                Vous pourrez ensuite ajouter du stock via le bouton <b>Mouvements</b> <ArrowRightLeft className="inline mx-1" size={14} /> dans la liste.
+                Vous pourrez ensuite enregistrer des livraisons via le bouton <b>+ Réception Stock</b>.
               </div>
             </div>
           </div>
@@ -405,15 +416,6 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onRece
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                     <div className="flex justify-end space-x-1 sm:space-x-2">
-                      {onReception && (
-                        <button
-                          onClick={() => onReception(matiere)}
-                          title={`Réceptionner ${matiere.nom}`}
-                          className="p-1.5 sm:p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                        >
-                          <PackagePlus size={16} className="sm:w-[18px] sm:h-[18px]" />
-                        </button>
-                      )}
                       {isConvertible && (
                         <button
                           onClick={() => openConversion(matiere)}
@@ -423,20 +425,29 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onRece
                           <span className="sm:hidden">Conv.</span>
                         </button>
                       )}
-                      <button onClick={() => onAddMouvement(matiere)} title="Mouvement de stock" className="p-1.5 sm:p-2 text-info-600 hover:bg-info-50 rounded-lg">
-                        <ArrowRightLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
-                      </button>
                       <button
                         onClick={() => openCorrection(matiere)}
-                        title="Corriger le stock (inventaire)"
-                        className={`p-1.5 sm:p-2 rounded-lg ${matiere.stockActuel < 0 ? 'text-warning-600 hover:bg-warning-50 ring-1 ring-warning-200' : 'text-sand-600 hover:bg-sand-100'}`}
+                        title="Corriger le stock"
+                        className={`p-1.5 sm:p-2 rounded-lg transition-colors cursor-pointer ${
+                          matiere.stockActuel < 0
+                            ? 'text-amber-700 bg-amber-50 ring-1 ring-amber-300'
+                            : 'text-sand-600 hover:bg-amber-50 hover:text-amber-800'
+                        }`}
                       >
                         <Scale size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
-                      <button onClick={() => startEdit(matiere)} title="Modifier" className="p-1.5 sm:p-2 text-sand-600 hover:bg-sand-100 rounded-lg">
+                      <button
+                        onClick={() => startEdit(matiere)}
+                        title="Modifier la matière"
+                        className="p-1.5 sm:p-2 text-sand-500 hover:text-sand-800 hover:bg-sand-100 rounded-lg transition-colors cursor-pointer"
+                      >
                         <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
-                      <button onClick={() => handleDelete(matiere.id, matiere.nom)} className="p-1.5 sm:p-2 text-danger-600 hover:bg-danger-50 rounded-lg">
+                      <button
+                        onClick={() => handleDelete(matiere.id, matiere.nom)}
+                        title="Supprimer la matière"
+                        className="p-1.5 sm:p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                      >
                         <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </button>
                     </div>
@@ -451,8 +462,13 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onRece
       {/* Correction de stock (inventaire) */}
       {correction.isOpen && correction.matiere && (() => {
         const m = correction.matiere;
-        const cible = round2(parseFloat(correction.valeur.replace(',', '.')) || 0);
+        const opts = getOptionsConditionnement(m);
+        const selectedOpt = opts.find(o => o.id === correction.uniteId) || opts[0];
+        const factor = selectedOpt?.factor || 1;
+        const saisieNum = parseFloat(correction.valeur.replace(',', '.')) || 0;
+        const cible = round2(saisieNum * factor);
         const delta = round2(cible - m.stockActuel);
+
         return (
           <Modal
             isOpen={correction.isOpen}
@@ -478,19 +494,57 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onRece
                 </span>
               </div>
 
+              {/* Choix unité si conditionnable (ex: Sachet 500g, Carton, kg) */}
+              {opts.length > 1 && (
+                <div>
+                  <label className="block text-xs font-semibold text-sand-700 mb-1">
+                    Unité de comptage :
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5 bg-sand-100/70 p-1 rounded-xl">
+                    {opts.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setCorrection(c => ({ ...c, uniteId: opt.id }))}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-center ${
+                          selectedOpt.id === opt.id
+                            ? 'bg-white text-terracotta-700 shadow-xs'
+                            : 'text-sand-600 hover:text-sand-900'
+                        }`}
+                      >
+                        {opt.labelCourt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-medium text-sand-700 mb-1.5">Stock réel constaté ({m.unite})</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  autoFocus
-                  value={correction.valeur}
-                  onChange={(e) => setCorrection((c) => ({ ...c, valeur: e.target.value }))}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleCorriger(); }}
-                  className="w-full px-3 py-2.5 border border-sand-300 rounded-lg text-right font-semibold text-sand-900 tabular-nums focus:ring-2 focus:ring-terracotta-500 focus:border-transparent"
-                />
+                <label className="block text-sm font-medium text-sand-700 mb-1.5">
+                  Stock réel constaté ({selectedOpt.labelCourt})
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    autoFocus
+                    value={correction.valeur}
+                    onChange={(e) => setCorrection((c) => ({ ...c, valeur: e.target.value }))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleCorriger(); }}
+                    className="w-full px-3 py-2.5 pr-14 border border-sand-300 rounded-lg text-right font-semibold text-sand-900 tabular-nums focus:ring-2 focus:ring-terracotta-500 focus:border-transparent"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-sand-400 pointer-events-none">
+                    {selectedOpt.labelCourt}
+                  </span>
+                </div>
               </div>
+
+              {factor !== 1 && saisieNum > 0 && (
+                <div className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                  = {cible} {m.unite} équivalent en réserve
+                </div>
+              )}
 
               <div className="flex items-center justify-between text-sm">
                 <span className="text-sand-500">Ajustement</span>
@@ -501,15 +555,17 @@ export const MatiereList: React.FC<MatiereListProps> = ({ onAddMouvement, onRece
 
               <div className="flex items-center gap-2 pt-1">
                 <button
+                  type="button"
                   onClick={() => setCorrection({ isOpen: false, valeur: '' })}
-                  className="flex-1 py-2.5 rounded-xl border border-sand-300 text-sand-700 hover:bg-sand-50 font-medium"
+                  className="flex-1 py-2.5 rounded-xl border border-sand-300 text-sand-700 hover:bg-sand-50 font-medium cursor-pointer"
                 >
                   Annuler
                 </button>
                 <button
+                  type="button"
                   onClick={handleCorriger}
                   disabled={isCorrecting || delta === 0}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-terracotta-600 hover:bg-terracotta-700 text-white font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-terracotta-600 hover:bg-terracotta-700 text-white font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isCorrecting ? 'Correction…' : 'Valider la correction'}
                 </button>

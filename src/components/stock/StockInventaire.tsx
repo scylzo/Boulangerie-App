@@ -9,12 +9,10 @@ import {
   RotateCcw,
   Search,
   Sparkles,
-  Scale,
   Save,
   Check
 } from 'lucide-react';
 import { ConfirmModal } from '../ui/ConfirmModal';
-import { Modal } from '../ui/Modal';
 import { getOptionsConditionnement } from '../../utils/conditionnementStock';
 import toast from 'react-hot-toast';
 import type { MatierePremiere } from '../../types';
@@ -31,17 +29,6 @@ export const StockInventaire: React.FC = () => {
   const [unitesInventaire, setUnitesInventaire] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-
-  // État de la modale d'ajustement direct par ligne
-  const [correctionModal, setCorrectionModal] = useState<{
-    isOpen: boolean;
-    matiere?: MatierePremiere;
-    valeur: string;
-    isSaving?: boolean;
-  }>({
-    isOpen: false,
-    valeur: ''
-  });
 
   // Trier les matières (Farine, Glace en tête, puis alphabétique)
   const matieresActives = useMemo(() => {
@@ -190,8 +177,6 @@ export const StockInventaire: React.FC = () => {
         return copy;
       });
 
-      // Fermer modal si ouverte
-      setCorrectionModal({ isOpen: false, valeur: '' });
       await chargerDonnees();
     } catch (err: any) {
       console.error(err);
@@ -479,34 +464,25 @@ export const StockInventaire: React.FC = () => {
                       )}
                     </td>
 
-                    {/* Action / Bouton Ajuster */}
+                    {/* Statut & Action */}
                     <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {aSaisie && delta !== 0 ? (
-                          <button
-                            onClick={() => handleAjusterLigne(m)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-                          >
-                            <Save className="w-3.5 h-3.5 text-emerald-700" />
-                            <span>Appliquer</span>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() =>
-                              setCorrectionModal({
-                                isOpen: true,
-                                matiere: m,
-                                valeur: String(Math.max(0, m.stockActuel))
-                              })
-                            }
-                            className="flex items-center gap-1 px-2.5 py-1.5 bg-sand-50 hover:bg-sand-100 text-sand-700 border border-sand-200 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                            title="Ouvrir la modale d'ajustement direct"
-                          >
-                            <Scale className="w-3.5 h-3.5 text-terracotta-600" />
-                            <span>Ajuster</span>
-                          </button>
-                        )}
-                      </div>
+                      {aSaisie && delta !== 0 ? (
+                        <button
+                          onClick={() => handleAjusterLigne(m)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                          <span>Appliquer</span>
+                        </button>
+                      ) : statut === 'non_saisi' ? (
+                        <span className="text-[11px] text-sand-400">Non renseigné</span>
+                      ) : statut === 'conforme' ? (
+                        <span className="text-[11px] font-semibold text-emerald-700">Conforme</span>
+                      ) : statut === 'surplus' ? (
+                        <span className="text-[11px] font-semibold text-amber-700">Surplus</span>
+                      ) : (
+                        <span className="text-[11px] font-semibold text-rose-700">Manquant</span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -532,101 +508,6 @@ export const StockInventaire: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Modal d'ajustement individuel direct (Scale) */}
-      {correctionModal.isOpen && correctionModal.matiere && (() => {
-        const mat = correctionModal.matiere;
-        const cible = Math.round((parseFloat(correctionModal.valeur.replace(',', '.')) || 0) * 100) / 100;
-        const delta = Math.round((cible - mat.stockActuel + Number.EPSILON) * 100) / 100;
-
-        return (
-          <Modal
-            isOpen={correctionModal.isOpen}
-            onClose={() => setCorrectionModal({ isOpen: false, valeur: '' })}
-            title={`Ajuster le stock : ${mat.nom}`}
-            size="sm"
-            position="center"
-          >
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-terracotta-50 text-terracotta-600 flex items-center justify-center shrink-0">
-                  <Scale className="w-5 h-5" />
-                </div>
-                <p className="text-xs sm:text-sm text-sand-600">
-                  Indiquez le <strong>stock réellement compté en réserve</strong>. Le système enregistrera automatiquement le mouvement d'ajustement pour mettre le stock à niveau.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-sand-50 border border-sand-200 text-xs sm:text-sm">
-                <span className="text-sand-600 font-medium">Stock système actuel</span>
-                <span className="font-bold text-sand-900">
-                  {formaterQuantite(mat.stockActuel, mat.unite)}
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-sand-700 mb-1.5">
-                  Nouveau stock réel compté ({mat.unite}) :
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    step="any"
-                    min="0"
-                    autoFocus
-                    value={correctionModal.valeur}
-                    onChange={e => setCorrectionModal(c => ({ ...c, valeur: e.target.value }))}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAjusterLigne(mat, correctionModal.valeur);
-                      }
-                    }}
-                    className="w-full py-2 pl-3 pr-10 border border-sand-300 rounded-xl text-sm font-bold text-sand-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-sand-400 font-semibold pointer-events-none">
-                    {mat.unite}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-sand-50 border border-sand-200 text-xs sm:text-sm">
-                <span className="text-sand-600 font-medium">Écart qui sera appliqué</span>
-                <span
-                  className={`font-bold ${
-                    delta === 0
-                      ? 'text-sand-400'
-                      : delta > 0
-                      ? 'text-emerald-700'
-                      : 'text-rose-700'
-                  }`}
-                >
-                  {delta === 0
-                    ? '0 (Conforme)'
-                    : `${delta > 0 ? '+' : ''}${delta} ${mat.unite}`}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setCorrectionModal({ isOpen: false, valeur: '' })}
-                  className="flex-1 py-2.5 rounded-xl border border-sand-300 text-sand-700 hover:bg-sand-50 text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAjusterLigne(mat, correctionModal.valeur)}
-                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors cursor-pointer"
-                >
-                  Confirmer l'ajustement
-                </button>
-              </div>
-            </div>
-          </Modal>
-        );
-      })()}
 
       {/* Modal de confirmation détaillée pour l'ensemble de l'inventaire */}
       <ConfirmModal
