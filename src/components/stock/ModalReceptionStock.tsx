@@ -5,6 +5,7 @@ import { useStockStore } from '../../store/stockStore';
 import { useDepenseStore } from '../../store/depenseStore';
 import { useAuthStore } from '../../store';
 import { formatCurrency } from '../../utils/currency';
+import { getOptionsConditionnement } from '../../utils/conditionnementStock';
 import toast from 'react-hot-toast';
 import type { MatierePremiere } from '../../types/stock';
 
@@ -33,6 +34,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [enregistrerEnDepense, setEnregistrerEnDepense] = useState(false);
   const [modePaiement, setModePaiement] = useState<'Especes' | 'Mobile Money' | 'Cheque'>('Especes');
+  const [unitReceptionId, setUnitReceptionId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mettre à jour si matiereInitiale change
@@ -52,12 +54,32 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
     return matieres.find(m => m.id === matiereId);
   }, [matieres, matiereId]);
 
+  const optionsConditionnement = useMemo(() => {
+    if (!selectedMatiere) return [];
+    return getOptionsConditionnement(selectedMatiere);
+  }, [selectedMatiere]);
+
+  // Définir l'unité par défaut (carton si achat de levure/magimix, sinon première option)
+  const optionActive = useMemo(() => {
+    if (optionsConditionnement.length === 0) return null;
+    if (unitReceptionId) {
+      const found = optionsConditionnement.find(o => o.id === unitReceptionId);
+      if (found) return found;
+    }
+    const cartonOpt = optionsConditionnement.find(o => o.id === 'carton');
+    return cartonOpt || optionsConditionnement[0];
+  }, [optionsConditionnement, unitReceptionId]);
+
   // Si l'utilisateur choisit une matière différente, pré-remplir le prix unitaire moyen existant
   const handleMatiereChange = (id: string) => {
     setMatiereId(id);
+    setUnitReceptionId('');
     const m = matieres.find(mat => mat.id === id);
     if (m && m.prixUnitaireMoyen > 0) {
-      setPrixUnitaire(String(Math.round(m.prixUnitaireMoyen)));
+      const opts = getOptionsConditionnement(m);
+      const cartonOpt = opts.find(o => o.id === 'carton');
+      const factor = cartonOpt ? cartonOpt.factor : (opts[0]?.factor || 1);
+      setPrixUnitaire(String(Math.round(m.prixUnitaireMoyen * factor)));
     }
   };
 
@@ -69,6 +91,12 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
     const pu = parseFloat(prixUnitaire) || 0;
     return q * pu;
   }, [quantite, prixUnitaire]);
+
+  const quantiteBaseCalculee = useMemo(() => {
+    const q = parseFloat(quantite) || 0;
+    const factor = optionActive?.factor || 1;
+    return Math.round((q * factor + Number.EPSILON) * 100) / 100;
+  }, [quantite, optionActive]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,21 +111,30 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
       return;
     }
 
+    const factor = optionActive?.factor || 1;
+    const qteBase = Math.round((qteNum * factor + Number.EPSILON) * 100) / 100;
     const puNum = parseFloat(prixUnitaire) || 0;
+    const puBase = qteBase > 0 && montantTotal > 0
+      ? Math.round(montantTotal / qteBase)
+      : puNum;
 
     setIsSubmitting(true);
     try {
       const dateObj = new Date(date);
       dateObj.setHours(12, 0, 0, 0);
 
+      const motifTexte = factor !== 1
+        ? `Réception livraison : ${qteNum} ${optionActive?.labelCourt || ''} (${qteBase} ${selectedMatiere.unite}) de ${selectedMatiere.nom}`
+        : `Réception livraison : ${qteNum} ${selectedMatiere.unite} de ${selectedMatiere.nom}`;
+
       // 1. Enregistrer le mouvement d'entrée en stock
       await addMouvement({
         matiereId: selectedMatiere.id,
         type: 'achat',
-        quantite: qteNum,
-        prixUnitaire: puNum,
+        quantite: qteBase,
+        prixUnitaire: puBase,
         montantPaye: montantTotal > 0 ? montantTotal : undefined,
-        motif: `Réception livraison : ${qteNum} ${selectedMatiere.unite} de ${selectedMatiere.nom}`,
+        motif: motifTexte,
         fournisseurId: fournisseurId || undefined,
         referenceDocument: reference.trim() || undefined,
         auteur: user?.nom || 'Gérant',
@@ -113,7 +150,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
           montant: montantTotal,
           categorie: 'Intrants',
           intrant: selectedMatiere.nom,
-          description: `Achat stock : ${qteNum} ${selectedMatiere.unite} de ${selectedMatiere.nom}${reference ? ` (Réf: ${reference})` : ''}`,
+          description: `Achat stock : ${qteNum} ${optionActive?.labelCourt || selectedMatiere.unite} de ${selectedMatiere.nom}${reference ? ` (Réf: ${reference})` : ''}`,
           fournisseur: fournisseurs.find(f => f.id === fournisseurId)?.nom,
           moyenPaiement: modePaiement,
           userId: user?.id || 'system'
@@ -121,7 +158,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
       }
 
       toast.success(
-        `Réception enregistrée : +${qteNum} ${selectedMatiere.unite} de ${selectedMatiere.nom} !`
+        `Réception enregistrée : +${qteNum} ${optionActive?.labelCourt || selectedMatiere.unite} (+${qteBase} ${selectedMatiere.unite}) de ${selectedMatiere.nom} !`
       );
 
       if (onSuccess) onSuccess();
@@ -179,11 +216,44 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
           </div>
         </div>
 
+        {/* Choix de l'unité de livraison si plusieurs conditionnements (ex: Carton de 20 sachets, Sachet, kg) */}
+        {optionsConditionnement.length > 1 && (
+          <div>
+            <label className="block text-xs font-semibold text-sand-700 mb-1.5">
+              Unité reçue :
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {optionsConditionnement.map((opt) => {
+                const isSelected = optionActive?.id === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setUnitReceptionId(opt.id)}
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                      isSelected
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                        : 'bg-white hover:bg-sand-50 text-sand-700 border-sand-200'
+                    }`}
+                  >
+                    <div>{opt.labelCourt}</div>
+                    {opt.description && (
+                      <div className={`text-[10px] font-normal truncate mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-sand-400'}`}>
+                        {opt.factor !== 1 ? `x${opt.factor} ${selectedMatiere?.unite}` : 'base'}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Quantité & Prix unitaire */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-sand-700 mb-1.5">
-              Quantité reçue <span className="text-danger-500">*</span>
+              Quantité reçue ({optionActive?.labelCourt || selectedMatiere?.unite}) <span className="text-danger-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -193,18 +263,23 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
                 placeholder={isFarine ? 'Ex: 50' : isGlace ? 'Ex: 8' : '0'}
                 value={quantite}
                 onChange={(e) => setQuantite(e.target.value)}
-                className="w-full py-2 pl-3 pr-14 text-sm font-semibold bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
+                className="w-full py-2 pl-3 pr-20 text-sm font-semibold bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
                 required
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-sand-400 bg-sand-50 px-1.5 py-0.5 rounded">
-                {selectedMatiere?.unite || 'unité'}
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-sand-400 bg-sand-50 px-1.5 py-0.5 rounded truncate max-w-[70px]">
+                {optionActive?.labelCourt || selectedMatiere?.unite || 'unité'}
               </span>
             </div>
+            {optionActive && optionActive.factor !== 1 && quantiteBaseCalculee > 0 && (
+              <p className="text-[11px] font-semibold text-emerald-700 mt-1">
+                = {quantiteBaseCalculee} {selectedMatiere?.unite} ajoutés au stock
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-xs font-medium text-sand-700 mb-1.5">
-              Prix unitaire d&apos;achat
+              Prix payé par {optionActive?.labelCourt || selectedMatiere?.unite}
             </label>
             <div className="relative">
               <input
@@ -217,7 +292,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
                 className="w-full py-2 pl-3 pr-20 text-sm font-semibold bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-medium text-sand-400 bg-sand-50 px-1.5 py-0.5 rounded">
-                F/{selectedMatiere?.unite || 'u'}
+                F/{optionActive?.labelCourt || selectedMatiere?.unite || 'u'}
               </span>
             </div>
           </div>

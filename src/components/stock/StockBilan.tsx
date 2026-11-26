@@ -6,6 +6,9 @@ import { formatCurrency } from '../../utils/currency';
 import { formaterQuantite } from '../../utils/calculations';
 import { memeJour } from '../../utils/dateUtils';
 import {
+  getOptionsConditionnement
+} from '../../utils/conditionnementStock';
+import {
   CalendarDays,
   CalendarCheck2,
   CheckCircle2,
@@ -31,12 +34,14 @@ export const StockBilan: React.FC = () => {
   // État Bilan Journalier
   const [dateJournee, setDateJournee] = useState<string>(formatYMD(now));
   const [saisiesJournee, setSaisiesJournee] = useState<Record<string, string>>({});
+  const [unitesSaisieJour, setUnitesSaisieJour] = useState<Record<string, string>>({});
   const [isSubmittingJournee, setIsSubmittingJournee] = useState(false);
 
   // État Bilan Mensuel
   const defautMois = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const [moisSelectionne, setMoisSelectionne] = useState<string>(defautMois);
   const [saisiesMois, setSaisiesMois] = useState<Record<string, string>>({});
+  const [unitesSaisieMois, setUnitesSaisieMois] = useState<Record<string, string>>({});
   const [isSubmittingMois, setIsSubmittingMois] = useState(false);
 
   // Matières actives avec Farine et Glace en tête
@@ -101,11 +106,25 @@ export const StockBilan: React.FC = () => {
     e.preventDefault();
 
     const entrees = Object.entries(saisiesJournee)
-      .map(([matiereId, val]) => ({
-        matiereId,
-        quantite: parseFloat(val.replace(',', '.'))
-      }))
-      .filter(item => !isNaN(item.quantite) && item.quantite > 0);
+      .map(([matiereId, val]) => {
+        const mat = matieres.find(m => m.id === matiereId);
+        const options = mat ? getOptionsConditionnement(mat) : [];
+        const unitId = unitesSaisieJour[matiereId] || (options[0]?.id ?? mat?.unite ?? 'kg');
+        const selectedOpt = options.find(o => o.id === unitId);
+        const factor = selectedOpt?.factor || 1;
+        const qteSaisie = parseFloat(val.replace(',', '.'));
+        const qteBase = Math.round((qteSaisie * factor + Number.EPSILON) * 100) / 100;
+
+        return {
+          matiereId,
+          matiereNom: mat?.nom || 'Article',
+          uniteBase: mat?.unite || '',
+          qteSaisie,
+          unitLabel: selectedOpt?.labelCourt || mat?.unite || '',
+          quantiteBase: qteBase
+        };
+      })
+      .filter(item => !isNaN(item.quantiteBase) && item.quantiteBase > 0);
 
     if (entrees.length === 0) {
       toast.error('Veuillez saisir au moins une quantité positive à déclarer.');
@@ -116,8 +135,11 @@ export const StockBilan: React.FC = () => {
     try {
       const payload = entrees.map(item => ({
         matiereId: item.matiereId,
-        quantite: item.quantite,
-        motif: `Sortie journalière du ${dateJournee}`
+        quantite: item.quantiteBase,
+        motif:
+          item.qteSaisie !== item.quantiteBase
+            ? `Sortie journalière du ${dateJournee} (${item.qteSaisie} ${item.unitLabel})`
+            : `Sortie journalière du ${dateJournee}`
       }));
 
       await declarerConsommationJournee(cibleDateJournee, payload);
@@ -186,11 +208,24 @@ export const StockBilan: React.FC = () => {
     e.preventDefault();
 
     const entrees = Object.entries(saisiesMois)
-      .map(([matiereId, val]) => ({
-        matiereId,
-        quantite: parseFloat(val.replace(',', '.'))
-      }))
-      .filter(item => !isNaN(item.quantite) && item.quantite > 0);
+      .map(([matiereId, val]) => {
+        const mat = matieres.find(m => m.id === matiereId);
+        const options = mat ? getOptionsConditionnement(mat) : [];
+        const unitId = unitesSaisieMois[matiereId] || (options[0]?.id ?? mat?.unite ?? 'kg');
+        const selectedOpt = options.find(o => o.id === unitId);
+        const factor = selectedOpt?.factor || 1;
+        const qteSaisie = parseFloat(val.replace(',', '.'));
+        const qteBase = Math.round((qteSaisie * factor + Number.EPSILON) * 100) / 100;
+
+        return {
+          matiereId,
+          matiereNom: mat?.nom || 'Article',
+          qteSaisie,
+          unitLabel: selectedOpt?.labelCourt || mat?.unite || '',
+          quantiteBase: qteBase
+        };
+      })
+      .filter(item => !isNaN(item.quantiteBase) && item.quantiteBase > 0);
 
     if (entrees.length === 0) {
       toast.error('Veuillez renseigner au moins une quantité pour le bilan mensuel.');
@@ -208,8 +243,11 @@ export const StockBilan: React.FC = () => {
           date: dateFinMois,
           matiereId: item.matiereId,
           type: 'consommation',
-          quantite: item.quantite,
-          motif: `Bilan mensuel consommations (${nomMoisFormatte})`,
+          quantite: item.quantiteBase,
+          motif:
+            item.qteSaisie !== item.quantiteBase
+              ? `Bilan mensuel consommations : ${item.qteSaisie} ${item.unitLabel} (${item.quantiteBase} kg)`
+              : `Bilan mensuel consommations (${nomMoisFormatte})`,
           auteur: auteurNom,
           userId: user?.id || 'current-user-id'
         });
@@ -388,11 +426,19 @@ export const StockBilan: React.FC = () => {
                 {matieresActives.map(m => {
                   const val = saisiesJournee[m.id] ?? '';
                   const consoExistante = consommationsDuJour.find(c => c.matiereId === m.id);
+                  const options = getOptionsConditionnement(m);
+                  const aPlusieursOptions = options.length > 1;
+                  const unitIdActif = unitesSaisieJour[m.id] || options[0].id;
+                  const optionActive = options.find(o => o.id === unitIdActif) || options[0];
+                  const qteNum = parseFloat(val.replace(',', '.'));
+                  const qteBaseEquiv = !isNaN(qteNum) && qteNum > 0
+                    ? Math.round((qteNum * optionActive.factor + Number.EPSILON) * 100) / 100
+                    : null;
 
                   return (
                     <div
                       key={m.id}
-                      className="p-3 rounded-xl border border-sand-200 bg-sand-50/40 hover:bg-sand-50 transition-colors space-y-1.5"
+                      className="p-3 rounded-xl border border-sand-200 bg-sand-50/40 hover:bg-sand-50 transition-colors space-y-2"
                     >
                       <div className="flex justify-between items-start">
                         <span className="font-semibold text-xs text-sand-900 truncate" title={m.nom}>
@@ -402,6 +448,28 @@ export const StockBilan: React.FC = () => {
                           {m.unite}
                         </span>
                       </div>
+
+                      {/* Sélecteur de conditionnement si applicable (ex: Sachet 500g / Carton / kg) */}
+                      {aPlusieursOptions && (
+                        <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-sand-200 text-[10px]">
+                          {options.map(opt => (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() =>
+                                setUnitesSaisieJour(prev => ({ ...prev, [m.id]: opt.id }))
+                              }
+                              className={`flex-1 py-0.5 px-1 rounded font-semibold transition-all text-center ${
+                                unitIdActif === opt.id
+                                  ? 'bg-emerald-600 text-white shadow-xs'
+                                  : 'text-sand-600 hover:text-sand-900 hover:bg-sand-100'
+                              }`}
+                            >
+                              {opt.labelCourt}
+                            </button>
+                          ))}
+                        </div>
+                      )}
 
                       <div className="relative">
                         <input
@@ -416,15 +484,22 @@ export const StockBilan: React.FC = () => {
                               [m.id]: e.target.value
                             }))
                           }
-                          className="w-full py-1.5 pl-3 pr-8 border border-sand-300 rounded-lg text-xs font-semibold text-sand-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                          className="w-full py-1.5 pl-3 pr-14 border border-sand-300 rounded-lg text-xs font-semibold text-sand-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                         />
-                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-sand-400 font-medium">
-                          {m.unite}
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-sand-500 font-semibold pointer-events-none truncate max-w-[50px]">
+                          {optionActive.labelCourt}
                         </span>
                       </div>
 
+                      {/* Équivalence en direct si facteur !== 1 */}
+                      {qteBaseEquiv !== null && optionActive.factor !== 1 && (
+                        <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50/80 px-2 py-0.5 rounded-md">
+                          = {qteBaseEquiv} {m.unite} déduit du stock
+                        </div>
+                      )}
+
                       <div className="text-[10px] text-sand-500 flex justify-between">
-                        <span>Dispo : {m.stockActuel}</span>
+                        <span>Dispo : {m.stockActuel} {m.unite}</span>
                         {consoExistante && (
                           <span className="text-cyan-700 font-semibold">
                             Saisi : {Math.abs(consoExistante.quantite)} {m.unite}
@@ -606,10 +681,19 @@ export const StockBilan: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {matieresActives.map(m => {
                   const val = saisiesMois[m.id] ?? '';
+                  const options = getOptionsConditionnement(m);
+                  const aPlusieursOptions = options.length > 1;
+                  const unitIdActif = unitesSaisieMois[m.id] || options[0].id;
+                  const optionActive = options.find(o => o.id === unitIdActif) || options[0];
+                  const qteNum = parseFloat(val.replace(',', '.'));
+                  const qteBaseEquiv = !isNaN(qteNum) && qteNum > 0
+                    ? Math.round((qteNum * optionActive.factor + Number.EPSILON) * 100) / 100
+                    : null;
+
                   return (
                     <div
                       key={m.id}
-                      className="p-3 rounded-xl border border-sand-200 bg-sand-50/40 hover:bg-sand-50 transition-colors space-y-1.5"
+                      className="p-3 rounded-xl border border-sand-200 bg-sand-50/40 hover:bg-sand-50 transition-colors space-y-2"
                     >
                       <div className="flex justify-between items-start">
                         <span className="font-semibold text-xs text-sand-900 truncate" title={m.nom}>
@@ -619,6 +703,28 @@ export const StockBilan: React.FC = () => {
                           {m.unite}
                         </span>
                       </div>
+
+                      {/* Sélecteur de conditionnement si applicable (ex: Sachet 500g / Carton / kg) */}
+                      {aPlusieursOptions && (
+                        <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-sand-200 text-[10px]">
+                          {options.map(opt => (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() =>
+                                setUnitesSaisieMois(prev => ({ ...prev, [m.id]: opt.id }))
+                              }
+                              className={`flex-1 py-0.5 px-1 rounded font-semibold transition-all text-center ${
+                                unitIdActif === opt.id
+                                  ? 'bg-terracotta-600 text-white shadow-xs'
+                                  : 'text-sand-600 hover:text-sand-900 hover:bg-sand-100'
+                              }`}
+                            >
+                              {opt.labelCourt}
+                            </button>
+                          ))}
+                        </div>
+                      )}
 
                       <div className="relative">
                         <input
@@ -633,12 +739,19 @@ export const StockBilan: React.FC = () => {
                               [m.id]: e.target.value
                             }))
                           }
-                          className="w-full py-1.5 pl-3 pr-8 border border-sand-300 rounded-lg text-xs font-semibold text-sand-900 bg-white focus:outline-none focus:ring-2 focus:ring-terracotta-500/20 focus:border-terracotta-500"
+                          className="w-full py-1.5 pl-3 pr-14 border border-sand-300 rounded-lg text-xs font-semibold text-sand-900 bg-white focus:outline-none focus:ring-2 focus:ring-terracotta-500/20 focus:border-terracotta-500"
                         />
-                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-sand-400 font-medium">
-                          {m.unite}
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-sand-500 font-semibold pointer-events-none truncate max-w-[50px]">
+                          {optionActive.labelCourt}
                         </span>
                       </div>
+
+                      {/* Équivalence en direct si facteur !== 1 */}
+                      {qteBaseEquiv !== null && optionActive.factor !== 1 && (
+                        <div className="text-[10px] font-bold text-terracotta-700 bg-terracotta-50/80 px-2 py-0.5 rounded-md">
+                          = {qteBaseEquiv} {m.unite} déduit du stock
+                        </div>
+                      )}
                     </div>
                   );
                 })}

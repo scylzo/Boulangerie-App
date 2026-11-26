@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
+import { getOptionsConditionnement } from '../../utils/conditionnementStock';
 import toast from 'react-hot-toast';
 import type { MatierePremiere } from '../../types';
 
@@ -27,6 +28,7 @@ export const StockInventaire: React.FC = () => {
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [saisies, setSaisies] = useState<Record<string, string>>({});
+  const [unitesInventaire, setUnitesInventaire] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -86,16 +88,23 @@ export const StockInventaire: React.FC = () => {
   // Calcul des deltas pour chaque matière
   const lignesAvecDelta = useMemo(() => {
     return matieresActives.map(m => {
+      const options = getOptionsConditionnement(m);
+      const unitId = unitesInventaire[m.id] || options[0].id;
+      const selectedOpt = options.find(o => o.id === unitId) || options[0];
+      const factor = selectedOpt.factor || 1;
+
       const saisie = saisies[m.id];
       const hasValue = saisie !== undefined && saisie.trim() !== '';
-      const quantiteReelle = hasValue ? parseFloat(saisie.replace(',', '.')) : null;
-      const valide = quantiteReelle !== null && !isNaN(quantiteReelle) && quantiteReelle >= 0;
+      const quantiteSaisie = hasValue ? parseFloat(saisie.replace(',', '.')) : null;
+      const valide = quantiteSaisie !== null && !isNaN(quantiteSaisie) && quantiteSaisie >= 0;
 
+      let quantiteReelleBase = 0;
       let delta = 0;
       let statut: 'non_saisi' | 'conforme' | 'surplus' | 'manquant' = 'non_saisi';
 
-      if (valide && quantiteReelle !== null) {
-        const d = Math.round((quantiteReelle - m.stockActuel + Number.EPSILON) * 100) / 100;
+      if (valide && quantiteSaisie !== null) {
+        quantiteReelleBase = Math.round((quantiteSaisie * factor + Number.EPSILON) * 100) / 100;
+        const d = Math.round((quantiteReelleBase - m.stockActuel + Number.EPSILON) * 100) / 100;
         delta = d;
         if (d === 0) statut = 'conforme';
         else if (d > 0) statut = 'surplus';
@@ -106,12 +115,15 @@ export const StockInventaire: React.FC = () => {
         matiere: m,
         hasValue,
         valide,
-        quantiteReelle,
+        quantiteSaisie,
+        quantiteReelle: quantiteReelleBase,
+        unitLabel: selectedOpt.labelCourt,
+        factor,
         delta,
         statut
       };
     });
-  }, [matieresActives, saisies]);
+  }, [matieresActives, saisies, unitesInventaire]);
 
   // Écarts réels à corriger
   const ecartsACorriger = useMemo(() => {
@@ -130,16 +142,22 @@ export const StockInventaire: React.FC = () => {
       return;
     }
 
-    const cible = Math.round((parseFloat(brute.replace(',', '.')) + Number.EPSILON) * 100) / 100;
-    if (isNaN(cible) || cible < 0) {
+    const qteNum = parseFloat(brute.replace(',', '.'));
+    if (isNaN(qteNum) || qteNum < 0) {
       toast.error('Quantité invalide (doit être un nombre positif ou 0).');
       return;
     }
 
-    const delta = Math.round((cible - matiere.stockActuel + Number.EPSILON) * 100) / 100;
+    const options = getOptionsConditionnement(matiere);
+    const unitId = unitesInventaire[matiere.id] || options[0].id;
+    const selectedOpt = options.find(o => o.id === unitId) || options[0];
+    const factor = selectedOpt.factor || 1;
+
+    const cibleBase = Math.round((qteNum * factor + Number.EPSILON) * 100) / 100;
+    const delta = Math.round((cibleBase - matiere.stockActuel + Number.EPSILON) * 100) / 100;
 
     if (delta === 0) {
-      toast(`Le stock de ${matiere.nom} est déjà conforme à ${cible} ${matiere.unite}.`, { icon: '👌' });
+      toast(`Le stock de ${matiere.nom} est déjà conforme à ${cibleBase} ${matiere.unite}.`, { icon: '👌' });
       return;
     }
 
@@ -147,18 +165,22 @@ export const StockInventaire: React.FC = () => {
       const auteurNom = user ? `${user.prenom || ''} ${user.nom || ''}`.trim() : 'Gérant';
       const dateCible = new Date(dateInventaire + 'T12:00:00');
 
+      const motifTexte = factor !== 1
+        ? `Ajustement inventaire : ${matiere.nom} (${qteNum} ${selectedOpt.labelCourt} = ${delta > 0 ? '+' : ''}${delta} ${matiere.unite})`
+        : `Ajustement inventaire : ${matiere.nom} (${delta > 0 ? '+' : ''}${delta} ${matiere.unite})`;
+
       await addMouvement({
         date: dateCible,
         matiereId: matiere.id,
         type: 'correction',
         quantite: delta,
-        motif: `Ajustement inventaire : ${matiere.nom} (${delta > 0 ? '+' : ''}${delta} ${matiere.unite})`,
+        motif: motifTexte,
         auteur: auteurNom,
         userId: user?.id || 'current-user-id'
       });
 
       toast.success(
-        `Stock de ${matiere.nom} ajusté à ${cible} ${matiere.unite} (${delta > 0 ? '+' : ''}${delta} ${matiere.unite}) !`
+        `Stock de ${matiere.nom} ajusté : ${cibleBase} ${matiere.unite} (${delta > 0 ? '+' : ''}${delta} ${matiere.unite}) !`
       );
 
       // Effacer la saisie de cette matière
@@ -358,40 +380,84 @@ export const StockInventaire: React.FC = () => {
 
                     {/* Saisie Réelle avec touche Entrée directe */}
                     <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="relative flex-1">
-                          <input
-                            type="number"
-                            step="any"
-                            min="0"
-                            placeholder="Saisir réel..."
-                            value={saisieVal}
-                            onChange={e => handleSaisieChange(m.id, e.target.value)}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                handleAjusterLigne(m);
-                              }
-                            }}
-                            className="w-full py-1.5 pl-3 pr-9 border border-sand-300 rounded-xl text-xs sm:text-sm font-semibold text-sand-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
-                          />
-                          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-sand-400 font-medium pointer-events-none">
-                            {m.unite}
-                          </span>
-                        </div>
+                      {(() => {
+                        const options = getOptionsConditionnement(m);
+                        const aPlusieursOptions = options.length > 1;
+                        const unitIdActif = unitesInventaire[m.id] || options[0].id;
+                        const optionActive = options.find(o => o.id === unitIdActif) || options[0];
+                        const qteNum = parseFloat(saisieVal.replace(',', '.'));
+                        const equivBase = !isNaN(qteNum) && qteNum > 0 && optionActive.factor !== 1
+                          ? Math.round((qteNum * optionActive.factor + Number.EPSILON) * 100) / 100
+                          : null;
 
-                        {/* Bouton direct "Enregistrer" dès qu'une valeur est saisie */}
-                        {aSaisie && (
-                          <button
-                            type="button"
-                            onClick={() => handleAjusterLigne(m)}
-                            className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer"
-                            title={`Enregistrer l'ajustement pour ${m.nom}`}
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
+                        return (
+                          <div className="space-y-1">
+                            {/* Pilules de choix de conditionnement */}
+                            {aPlusieursOptions && (
+                              <div className="flex items-center gap-1 bg-sand-100/70 p-0.5 rounded-lg text-[10px]">
+                                {options.map(opt => (
+                                  <button
+                                    key={opt.id}
+                                    type="button"
+                                    onClick={() =>
+                                      setUnitesInventaire(prev => ({ ...prev, [m.id]: opt.id }))
+                                    }
+                                    className={`flex-1 py-0.5 px-1 rounded font-semibold transition-all text-center ${
+                                      unitIdActif === opt.id
+                                        ? 'bg-emerald-600 text-white shadow-xs'
+                                        : 'text-sand-600 hover:text-sand-900 hover:bg-white'
+                                    }`}
+                                  >
+                                    {opt.labelCourt}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-2">
+                              <div className="relative flex-1">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  min="0"
+                                  placeholder="Saisir réel..."
+                                  value={saisieVal}
+                                  onChange={e => handleSaisieChange(m.id, e.target.value)}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      handleAjusterLigne(m);
+                                    }
+                                  }}
+                                  className="w-full py-1.5 pl-3 pr-14 border border-sand-300 rounded-xl text-xs sm:text-sm font-semibold text-sand-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                                />
+                                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-sand-500 font-medium pointer-events-none truncate max-w-[50px]">
+                                  {optionActive.labelCourt}
+                                </span>
+                              </div>
+
+                              {/* Bouton direct "Enregistrer" dès qu'une valeur est saisie */}
+                              {aSaisie && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAjusterLigne(m)}
+                                  className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer"
+                                  title={`Enregistrer l'ajustement pour ${m.nom}`}
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Équivalence affichée en direct */}
+                            {equivBase !== null && (
+                              <div className="text-[10px] text-emerald-700 font-semibold">
+                                = {equivBase} {m.unite}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     {/* Écart Delta */}
