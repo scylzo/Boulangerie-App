@@ -4,6 +4,17 @@ import { Toaster } from 'react-hot-toast'
 import './index.css'
 import App from './App.tsx'
 
+// Gestion automatique des déploiements / mismatch de chunks Vite
+window.addEventListener('vite:preloadError', () => {
+  const lastReload = sessionStorage.getItem('last_vite_preload_reload');
+  const now = Date.now();
+  if (!lastReload || now - Number(lastReload) > 10000) {
+    sessionStorage.setItem('last_vite_preload_reload', String(now));
+    console.warn('🔄 Nouveau déploiement détecté, rechargement automatique...');
+    window.location.reload();
+  }
+});
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
