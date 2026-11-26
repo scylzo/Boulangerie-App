@@ -6,6 +6,8 @@ import { db } from '../firebase/config';
 import type { Facture, LigneFacture, ParametresFacturation, CommandeClient, InvendusClient, Client, Reglement, ModePaiement } from '../types';
 import { addToSyncQueue, flushSyncQueue } from '../utils/syncQueue';
 import { useReferentielStore } from './referentielStore';
+import { useLivraisonStore } from './livraisonStore';
+import { extraireDateCalendaire } from './productionStore';
 
 
 interface FacturationStore {
@@ -21,6 +23,7 @@ interface FacturationStore {
   // Actions Factures
   genererFacturesDepuisLivraisons: (date: Date, commandesClients: CommandeClient[], retoursClients: InvendusClient[]) => Promise<void>;
   genererFacturesPourClient: (clientId: string, dateReference?: Date) => Promise<void>;
+  mettreAJourFactureApresRetours: (clientId: string, date: Date, produitsRetours: Array<{ produitId: string; invendus: number }>, retoursCompletes?: boolean) => Promise<void>;
   chargerFactures: (dateDebut?: Date, dateFin?: Date, background?: boolean) => Promise<void>;
   chargerFacturesAvecListener: (dateDebut?: Date, dateFin?: Date) => void;
   chargerFacture: (factureId: string) => Promise<void>;
@@ -111,15 +114,17 @@ export const useFacturationStore = create<FacturationStore>()(
             return;
           }
 
+          const targetDateStr = extraireDateCalendaire(date) || (date instanceof Date ? date.toISOString().split('T')[0] : String(date));
+
           // Bornes pour la query
-          const debutJour = new Date(date); debutJour.setHours(0, 0, 0, 0);
-          const finJour = new Date(date); finJour.setHours(23, 59, 59, 999);
+          const debutJour = new Date(targetDateStr + 'T00:00:00.000Z');
+          const finJour = new Date(targetDateStr + 'T23:59:59.999Z');
 
           const qFactures = query(
             collection(db, 'factures'),
             where('dateLivraison', '>=', debutJour),
             where('dateLivraison', '<=', finJour),
-            limit(60)
+            limit(100)
           );
 
           let facturesExistantes: Facture[] = [];
@@ -136,8 +141,7 @@ export const useFacturationStore = create<FacturationStore>()(
           } catch (e) {
             console.warn('Lecture factures existantes Firestore ignorée (repli local):', e);
             facturesExistantes = (get().factures || []).filter(f => {
-              const d = new Date(f.dateLivraison);
-              return d >= debutJour && d <= finJour;
+              return extraireDateCalendaire(f.dateLivraison) === targetDateStr;
             });
           }
 
@@ -181,8 +185,27 @@ export const useFacturationStore = create<FacturationStore>()(
 
           // Traiter chaque client ayant une commande
           for (const [clientId, commandesClient] of commandesParClient) {
+            const deterministicId = `facture_${clientId}_${targetDateStr}`;
+
             // Vérifier si une facture existe déjà pour ce client
-            const factureExistante = facturesExistantes.find(f => f.clientId === clientId);
+            let factureExistante = facturesExistantes.find(f =>
+              f.id === deterministicId ||
+              (f.clientId === clientId && extraireDateCalendaire(f.dateLivraison) === targetDateStr)
+            );
+
+            if (!factureExistante) {
+              try {
+                const docSnap = await getDoc(doc(db, 'factures', deterministicId));
+                if (docSnap.exists()) {
+                  const data = docSnap.data();
+                  factureExistante = {
+                    ...data,
+                    id: docSnap.id,
+                    dateLivraison: data.dateLivraison?.toDate ? data.dateLivraison.toDate() : new Date(data.dateLivraison)
+                  } as Facture;
+                }
+              } catch (_) {}
+            }
 
             // Ne sauter QUE si la facture est payée ou annulée ET a déjà un montant valide (> 0)
             if (factureExistante && ['payee', 'annulee'].includes(factureExistante.statut) && (factureExistante.totalTTC || 0) > 0) {
@@ -199,8 +222,35 @@ export const useFacturationStore = create<FacturationStore>()(
 
             const clientNomFallback = clientInfo?.nom || (commandesClient[0] as any)?.clientNom || (commandesClient[0] as any)?.client?.nom || `Client ${clientId}`;
 
-            const retoursClient = retoursClients.find(r => r.clientId === clientId);
-            const retoursCompletes = get().verifierRetoursCompletes(clientId, date, retoursClients);
+            // Récupérer les retours de ce client pour cette date
+            let retoursClient = (retoursClients || []).find(r =>
+              r.clientId === clientId &&
+              extraireDateCalendaire(r.dateLivraison) === targetDateStr
+            );
+
+            if (!retoursClient) {
+              const invendusStore = useLivraisonStore.getState().invendusClients || [];
+              retoursClient = invendusStore.find(r =>
+                r.clientId === clientId &&
+                extraireDateCalendaire(r.dateLivraison) === targetDateStr
+              );
+            }
+
+            if (!retoursClient) {
+              try {
+                const docSnap = await getDoc(doc(db, 'clientReturns', `retours_${clientId}_${targetDateStr}`));
+                if (docSnap.exists()) {
+                  const data = docSnap.data();
+                  retoursClient = {
+                    ...data,
+                    id: docSnap.id,
+                    dateLivraison: data.dateLivraison?.toDate ? data.dateLivraison.toDate() : new Date(data.dateLivraison)
+                  } as InvendusClient;
+                }
+              } catch (_) {}
+            }
+
+            const retoursCompletes = retoursClient?.retoursCompletes === true || get().verifierRetoursCompletes(clientId, date, retoursClients || []);
 
             // Calculer les lignes de facture avec agrégation par produit
             const lignesMap = new Map<string, LigneFacture>();
@@ -254,15 +304,7 @@ export const useFacturationStore = create<FacturationStore>()(
                     if (prixUnitaire > 0 && ligneExistante.prixUnitaire === 0) {
                       ligneExistante.prixUnitaire = prixUnitaire;
                     }
-                    ligneExistante.quantiteFacturee = Math.max(0, ligneExistante.quantiteLivree - ligneExistante.quantiteRetournee);
-                    ligneExistante.montantLigne = ligneExistante.quantiteFacturee * (ligneExistante.prixUnitaire || prixUnitaire);
                   } else {
-                    // Nouvelle ligne
-                    const produitRetour = retoursClient?.produits.find(p => p.produitId === produitCmd.produitId);
-                    const quantiteRetournee = produitRetour?.invendus || 0;
-                    const quantiteFacturee = Math.max(0, quantiteLivree - quantiteRetournee);
-                    const montantLigne = quantiteFacturee * prixUnitaire;
-
                     lignesMap.set(produitCmd.produitId, {
                       produitId: produitCmd.produitId,
                       produit: {
@@ -271,14 +313,23 @@ export const useFacturationStore = create<FacturationStore>()(
                         prixClient: produitFull.prixClient || prixUnitaire
                       },
                       quantiteLivree,
-                      quantiteRetournee,
-                      quantiteFacturee,
+                      quantiteRetournee: 0,
+                      quantiteFacturee: 0,
                       prixUnitaire,
-                      montantLigne
+                      montantLigne: 0
                     });
                   }
                 }
               }
+            }
+
+            // Déduire systématiquement les retours de chaque ligne
+            for (const ligne of lignesMap.values()) {
+              const produitRetour = retoursClient?.produits?.find(p => p.produitId === ligne.produitId);
+              const qteRetour = Number(produitRetour?.invendus) || 0;
+              ligne.quantiteRetournee = qteRetour;
+              ligne.quantiteFacturee = Math.max(0, ligne.quantiteLivree - qteRetour);
+              ligne.montantLigne = ligne.quantiteFacturee * (ligne.prixUnitaire || 0);
             }
 
             const lignes = Array.from(lignesMap.values());
@@ -370,9 +421,6 @@ export const useFacturationStore = create<FacturationStore>()(
 
               } else {
                 // CRÉATION NOUVELLE FACTURE
-                const dateKeyId = date.toISOString().split('T')[0];
-                const deterministicId = `facture_${clientId}_${dateKeyId}`;
-
                 const nouvelleFacture: Facture = {
                   id: deterministicId,
                   numeroFacture: get().genererNumeroFacture(date),
@@ -427,12 +475,153 @@ export const useFacturationStore = create<FacturationStore>()(
             };
           });
 
-
         } catch (error) {
           set({ isLoading: false });
           console.error('❌ Erreur lors de la génération/mise à jour des factures:', error);
           throw error;
         }
+      },
+
+      mettreAJourFactureApresRetours: async (
+        clientId: string,
+        date: Date,
+        produitsRetours: Array<{ produitId: string; invendus: number }>,
+        retoursCompletes: boolean = true
+      ) => {
+        const dateKey = extraireDateCalendaire(date) || (date instanceof Date ? date.toISOString().split('T')[0] : String(date));
+        const deterministicId = `facture_${clientId}_${dateKey}`;
+
+        // 1. Chercher la facture existante dans le store ou Firestore
+        let facture: Facture | undefined = get().factures.find(f =>
+          f.id === deterministicId ||
+          (f.clientId === clientId && extraireDateCalendaire(f.dateLivraison) === dateKey)
+        );
+
+        if (!facture) {
+          try {
+            const snap = await getDoc(doc(db, 'factures', deterministicId));
+            if (snap.exists()) {
+              const d = snap.data();
+              facture = {
+                ...d,
+                id: snap.id,
+                dateLivraison: d.dateLivraison?.toDate ? d.dateLivraison.toDate() : new Date(d.dateLivraison),
+                dateFacture: d.dateFacture?.toDate ? d.dateFacture.toDate() : new Date(d.dateFacture),
+                createdAt: d.createdAt?.toDate ? d.createdAt.toDate() : new Date(d.createdAt),
+                updatedAt: d.updatedAt?.toDate ? d.updatedAt.toDate() : new Date(d.updatedAt),
+              } as Facture;
+            }
+          } catch (e) {
+            console.warn('Erreur lecture facture pour retours:', e);
+          }
+        }
+
+        // Si aucune facture trouvée, tenter genererFacturesDepuisLivraisons
+        if (!facture) {
+          try {
+            const { useProductionStore } = await import('./productionStore');
+            const { commandesClients } = useProductionStore.getState();
+            const invendusUpdated = useLivraisonStore.getState().invendusClients;
+            await get().genererFacturesDepuisLivraisons(date, commandesClients, invendusUpdated);
+          } catch (e) {
+            console.warn('Génération facture de repli échouée:', e);
+          }
+          return;
+        }
+
+        // Ne pas écraser si payée ou annulée avec montant
+        if (['payee', 'annulee'].includes(facture.statut) && (facture.totalTTC || 0) > 0) {
+          return;
+        }
+
+        // 2. Mettre à jour les lignes avec les quantités retournées
+        const retoursMap = new Map<string, number>(
+          (produitsRetours || []).map(p => [p.produitId, Number(p.invendus) || 0])
+        );
+
+          const nouvellesLignes: LigneFacture[] = (facture.lignes || []).map(ligne => {
+            const qteRetour = retoursMap.has(ligne.produitId) ? retoursMap.get(ligne.produitId)! : 0;
+            const qteLivree = Number(ligne.quantiteLivree) || 0;
+            const qteFacturee = Math.max(0, qteLivree - qteRetour);
+            const pu = Number(ligne.prixUnitaire) || 0;
+            return {
+              ...ligne,
+              quantiteLivree: qteLivree,
+              quantiteRetournee: qteRetour,
+              quantiteFacturee: qteFacturee,
+              montantLigne: qteFacturee * pu
+            };
+          });
+
+        // 3. Recalculer les totaux
+        let parametres = get().parametres;
+        if (!parametres) {
+          try { await get().chargerParametres(); parametres = get().parametres; } catch (_) {}
+        }
+        const tauxTVA = facture.tauxTVA ?? (parametres?.tauxTVADefaut || 0);
+        const totaux = get().calculerTotauxFacture(nouvellesLignes, tauxTVA);
+
+        const soldeUtilise = facture.soldeUtilise || 0;
+        const netAPayer = Math.max(0, totaux.totalTTC - soldeUtilise);
+        const nouveauStatut = retoursCompletes ? 'validee' : 'en_attente_retours';
+
+        // 4. Nettoyage pour Firestore
+        const lignesClean = nouvellesLignes.map(l => {
+          const p = l.produit as any;
+          return {
+            produitId: l.produitId,
+            quantiteLivree: l.quantiteLivree,
+            quantiteRetournee: l.quantiteRetournee,
+            quantiteFacturee: l.quantiteFacturee,
+            prixUnitaire: l.prixUnitaire,
+            montantLigne: l.montantLigne,
+            produit: p ? {
+              id: p.id || l.produitId,
+              nom: p.nom || 'Produit',
+              prixUnitaire: p.prixUnitaire || l.prixUnitaire,
+              prixClient: p.prixClient || l.prixUnitaire,
+              prixBoutique: p.prixBoutique || l.prixUnitaire
+            } : null
+          };
+        });
+
+        const updates: any = {
+          lignes: lignesClean,
+          ...totaux,
+          netAPayer,
+          statut: nouveauStatut,
+          retoursCompletes,
+          updatedAt: new Date()
+        };
+
+        if (retoursCompletes && facture.statut !== 'validee') {
+          updates.validatedAt = new Date();
+        }
+
+        // 5. Sauvegarder dans Firestore
+        try {
+          await updateDoc(doc(db, 'factures', facture.id), updates);
+        } catch (err) {
+          console.warn('Erreur Firestore mise à jour facture retours:', err);
+        }
+
+        // 6. Mettre à jour dans le state local Zustand
+        const factureUpdated: Facture = {
+          ...facture,
+          lignes: nouvellesLignes,
+          ...totaux,
+          netAPayer,
+          statut: nouveauStatut,
+          retoursCompletes,
+          updatedAt: updates.updatedAt,
+          validatedAt: updates.validatedAt || facture.validatedAt
+        };
+
+        set(state => ({
+          factures: state.factures.some(f => f.id === facture!.id)
+            ? state.factures.map(f => f.id === facture!.id ? factureUpdated : f)
+            : [...state.factures, factureUpdated]
+        }));
       },
 
       genererFacturesPourClient: async (clientId: string, dateReference?: Date) => {
@@ -463,32 +652,29 @@ export const useFacturationStore = create<FacturationStore>()(
             dateDebut.setDate(dateDebut.getDate() - 60);
           }
 
-          // 1. Récupérer les commandes
-
-          let commandesQuery = query(
-            collection(db, 'clientOrders'),
-            where('clientId', '==', clientId),
-            where('dateLivraison', '>=', dateDebut),
-            orderBy('dateLivraison', 'asc')
-          );
-
-          if (dateFin) {
-            // Add upper bound if filtering by month
-            commandesQuery = query(
+          // 1. Récupérer les commandes du client
+          let commandesSnap;
+          try {
+            commandesSnap = await getDocs(query(
               collection(db, 'clientOrders'),
-              where('clientId', '==', clientId),
-              where('dateLivraison', '>=', dateDebut),
-              where('dateLivraison', '<=', dateFin),
-              orderBy('dateLivraison', 'asc')
-            );
+              where('clientId', '==', clientId)
+            ));
+          } catch (e) {
+            console.warn('Erreur lecture commandes client Firestore:', e);
           }
 
-          const commandesSnap = await getDocs(commandesQuery);
-          const commandes = commandesSnap.docs
-            .map(d => ({ ...d.data(), id: d.id, dateLivraison: d.data().dateLivraison.toDate() })) as CommandeClient[];
-          
-          // Filtrer les commandes annulées
-          let commandesValides = commandes.filter(c => c.statut !== 'annulee');
+          const rawCommandes = (commandesSnap?.docs || []).map(d => ({
+            ...d.data(),
+            id: d.id,
+            dateLivraison: d.data().dateLivraison?.toDate ? d.data().dateLivraison.toDate() : new Date(d.data().dateLivraison)
+          })) as CommandeClient[];
+
+          // Filtrer par période et exclure annulées
+          let commandesValides = rawCommandes.filter(c => {
+            if (c.statut === 'annulee') return false;
+            const d = new Date(c.dateLivraison);
+            return d >= dateDebut && (!dateFin || d <= dateFin);
+          });
 
           if (commandesValides.length === 0) {
             // Repli : vérifier si des commandes existent dans le programme de production en mémoire
@@ -512,43 +698,49 @@ export const useFacturationStore = create<FacturationStore>()(
             return;
           }
 
-          // 2. Récupérer les retours (invendus)
-          let retoursQuery = query(
-            collection(db, 'clientReturns'),
-            where('clientId', '==', clientId),
-            where('dateLivraison', '>=', dateDebut)
-          );
-
-          if (dateFin) {
-            retoursQuery = query(
+          // 2. Récupérer les retours (invendus) sans requêtes composites
+          let retoursSnap;
+          try {
+            retoursSnap = await getDocs(query(
               collection(db, 'clientReturns'),
-              where('clientId', '==', clientId),
-              where('dateLivraison', '>=', dateDebut),
-              where('dateLivraison', '<=', dateFin)
-            );
+              where('clientId', '==', clientId)
+            ));
+          } catch (e) {
+            console.warn('Erreur lecture retours client Firestore:', e);
           }
 
-          const retoursSnap = await getDocs(retoursQuery);
-          const retours = retoursSnap.docs.map(d => ({ ...d.data(), id: d.id, dateLivraison: d.data().dateLivraison.toDate() })) as InvendusClient[];
+          const rawRetours = (retoursSnap?.docs || []).map(d => ({
+            ...d.data(),
+            id: d.id,
+            dateLivraison: d.data().dateLivraison?.toDate ? d.data().dateLivraison.toDate() : new Date(d.data().dateLivraison)
+          })) as InvendusClient[];
 
-          // 3. Récupérer les factures existantes
-          let facturesQuery = query(
-            collection(db, 'factures'),
-            where('clientId', '==', clientId),
-            where('dateLivraison', '>=', dateDebut)
-          );
+          const retours = rawRetours.filter(r => {
+            const d = new Date(r.dateLivraison);
+            return d >= dateDebut && (!dateFin || d <= dateFin);
+          });
 
-          if (dateFin) {
-            facturesQuery = query(
+          // 3. Récupérer les factures existantes sans requêtes composites
+          let facturesSnap;
+          try {
+            facturesSnap = await getDocs(query(
               collection(db, 'factures'),
-              where('clientId', '==', clientId),
-              where('dateLivraison', '>=', dateDebut),
-              where('dateLivraison', '<=', dateFin)
-            );
+              where('clientId', '==', clientId)
+            ));
+          } catch (e) {
+            console.warn('Erreur lecture factures client Firestore:', e);
           }
 
-          const facturesSnap = await getDocs(facturesQuery);
-          const facturesExistantes = facturesSnap.docs.map(d => ({ ...d.data(), id: d.id, dateLivraison: d.data().dateLivraison.toDate() } as Facture));
+          const rawFactures = (facturesSnap?.docs || []).map(d => ({
+            ...d.data(),
+            id: d.id,
+            dateLivraison: d.data().dateLivraison?.toDate ? d.data().dateLivraison.toDate() : new Date(d.data().dateLivraison)
+          })) as Facture[];
+
+          const facturesExistantes = rawFactures.filter(f => {
+            const d = new Date(f.dateLivraison);
+            return d >= dateDebut && (!dateFin || d <= dateFin);
+          });
 
           // 4. Grouper par date
           const commandesParDate = new Map<string, CommandeClient[]>();
@@ -560,7 +752,7 @@ export const useFacturationStore = create<FacturationStore>()(
 
           // 5. Pré-chargement des données nécessaires pour optimiser la vitesse
           // a. Infos Client (Une seule fois)
-          let clientInfo: Client | undefined = commandes[0]?.client;
+          let clientInfo: Client | undefined = commandesValides[0]?.client;
           if (!clientInfo || !clientInfo.typeClient) {
             try {
               const d = await getDoc(doc(db, 'clients', clientId));
@@ -574,7 +766,7 @@ export const useFacturationStore = create<FacturationStore>()(
 
           // b. Tous les produits impliqués (Pour éviter getDoc en boucle)
           const allProduitIds = new Set<string>();
-          commandes.forEach(c => c.produits.forEach(p => allProduitIds.add(p.produitId)));
+          commandesValides.forEach((c: CommandeClient) => c.produits.forEach((p: any) => allProduitIds.add(p.produitId)));
           
           const produitsCache = new Map<string, any>();
           if (allProduitIds.size > 0) {
@@ -1476,10 +1668,11 @@ export const useFacturationStore = create<FacturationStore>()(
       },
 
       verifierRetoursCompletes: (clientId: string, date: Date, retoursClients: InvendusClient[]) => {
-        // Vérifier si ce client a des retours enregistrés ET marqués comme complétés pour cette date
+        const targetDateStr = extraireDateCalendaire(date);
+        if (!targetDateStr || !retoursClients || !Array.isArray(retoursClients)) return false;
         return retoursClients.some(retour =>
           retour.clientId === clientId &&
-          retour.dateLivraison.toDateString() === date.toDateString() &&
+          extraireDateCalendaire(retour.dateLivraison) === targetDateStr &&
           retour.retoursCompletes === true
         );
       },
@@ -1495,49 +1688,101 @@ export const useFacturationStore = create<FacturationStore>()(
 
       actualiserStatutsFactures: async (clientId?: string, date?: Date) => {
         try {
-          const { factures, verifierRetoursCompletes } = get();
+          const { factures } = get();
           
           // Si on a un client et une date, on cible uniquement cette facture
           if (clientId && date) {
-            const dateStr = date.toISOString().split('T')[0];
+            const dateStr = extraireDateCalendaire(date) || (date instanceof Date ? date.toISOString().split('T')[0] : String(date));
             const facture = factures.find(f => 
               f.clientId === clientId && 
-              f.dateLivraison.toISOString().split('T')[0] === dateStr &&
-              f.statut === 'en_attente_retours'
+              extraireDateCalendaire(f.dateLivraison) === dateStr
             );
 
-            if (facture) {
-              const dateDebut = new Date(date); dateDebut.setHours(0, 0, 0, 0);
-              const dateFin = new Date(date); dateFin.setHours(23, 59, 59, 999);
+            if (facture && !['payee', 'annulee'].includes(facture.statut)) {
+              // Récupérer le retour direct
+              let retour: InvendusClient | null = null;
+              try {
+                const docSnap = await getDoc(doc(db, 'clientReturns', `retours_${clientId}_${dateStr}`));
+                if (docSnap.exists()) {
+                  const d = docSnap.data();
+                  retour = {
+                    ...d,
+                    id: docSnap.id,
+                    dateLivraison: d.dateLivraison?.toDate ? d.dateLivraison.toDate() : new Date(d.dateLivraison)
+                  } as InvendusClient;
+                }
+              } catch (_) {}
 
-              const retoursSnap = await getDocs(query(
-                collection(db, 'clientReturns'),
-                where('clientId', '==', clientId),
-                where('dateLivraison', '>=', dateDebut),
-                where('dateLivraison', '<=', dateFin)
-              ));
+              if (!retour) {
+                const invStore = useLivraisonStore.getState().invendusClients || [];
+                retour = invStore.find(r => r.clientId === clientId && extraireDateCalendaire(r.dateLivraison) === dateStr) || null;
+              }
 
-              const retoursData = retoursSnap.docs.map(doc => ({
-                ...doc.data(),
-                dateLivraison: doc.data().dateLivraison.toDate()
-              })) as InvendusClient[];
+              if (retour && retour.retoursCompletes) {
+                const retoursMap = new Map<string, number>(
+                  (retour.produits || []).map(p => [p.produitId, Number(p.invendus) || 0])
+                );
 
-              const isComplete = verifierRetoursCompletes(clientId, date, retoursData);
+                const nouvellesLignes = (facture.lignes || []).map(l => {
+                  const qteRetour = retoursMap.get(l.produitId) || 0;
+                  const qteLivree = Number(l.quantiteLivree) || 0;
+                  const qteFacturee = Math.max(0, qteLivree - qteRetour);
+                  const pu = Number(l.prixUnitaire) || 0;
+                  return {
+                    ...l,
+                    quantiteLivree: qteLivree,
+                    quantiteRetournee: qteRetour,
+                    quantiteFacturee: qteFacturee,
+                    montantLigne: qteFacturee * pu
+                  };
+                });
 
-              if (isComplete) {
-                const updateData = {
+                let parametres = get().parametres;
+                if (!parametres) {
+                  try { await get().chargerParametres(); parametres = get().parametres; } catch (_) {}
+                }
+                const tauxTVA = facture.tauxTVA ?? (parametres?.tauxTVADefaut || 0);
+                const totaux = get().calculerTotauxFacture(nouvellesLignes, tauxTVA);
+                const soldeUtilise = facture.soldeUtilise || 0;
+                const netAPayer = Math.max(0, totaux.totalTTC - soldeUtilise);
+
+                const lignesClean = nouvellesLignes.map(l => {
+                  const p = l.produit as any;
+                  return {
+                    produitId: l.produitId,
+                    quantiteLivree: l.quantiteLivree,
+                    quantiteRetournee: l.quantiteRetournee,
+                    quantiteFacturee: l.quantiteFacturee,
+                    prixUnitaire: l.prixUnitaire,
+                    montantLigne: l.montantLigne,
+                    produit: p ? {
+                      id: p.id || l.produitId,
+                      nom: p.nom || 'Produit',
+                      prixUnitaire: p.prixUnitaire || l.prixUnitaire,
+                      prixClient: p.prixClient || l.prixUnitaire,
+                      prixBoutique: p.prixBoutique || l.prixUnitaire
+                    } : null
+                  };
+                });
+
+                const updateData: any = {
+                  lignes: lignesClean,
+                  ...totaux,
+                  netAPayer,
                   statut: 'validee' as const,
                   retoursCompletes: true,
-                  validatedAt: new Date(),
                   updatedAt: new Date()
                 };
+                if (facture.statut !== 'validee') {
+                  updateData.validatedAt = new Date();
+                }
 
                 await updateDoc(doc(db, 'factures', facture.id), updateData);
 
                 set(state => ({
-                  factures: state.factures.map(f => f.id === facture.id ? { ...f, ...updateData } : f)
+                  factures: state.factures.map(f => f.id === facture.id ? { ...f, ...updateData, lignes: nouvellesLignes } : f)
                 }));
-                console.log(`✅ Facture ${facture.numeroFacture} actualisée (Ciblée)`);
+                console.log(`✅ Facture ${facture.numeroFacture} actualisée avec retours`);
               }
             }
             return;
@@ -1557,7 +1802,6 @@ export const useFacturationStore = create<FacturationStore>()(
           const dateDebut = new Date(Math.min(...timestamps)); dateDebut.setHours(0, 0, 0, 0);
           const dateFin = new Date(Math.max(...timestamps)); dateFin.setHours(23, 59, 59, 999);
 
-          // UNE SEULE requête pour toute la période au lieu d'une requête par facture (évite l'épuisement des quotas Firestore)
           const retoursSnap = await getDocs(query(
             collection(db, 'clientReturns'),
             where('dateLivraison', '>=', dateDebut),
@@ -1566,21 +1810,85 @@ export const useFacturationStore = create<FacturationStore>()(
 
           const retoursData = retoursSnap.docs.map(doc => ({
             ...doc.data(),
-            dateLivraison: doc.data().dateLivraison.toDate()
+            dateLivraison: doc.data().dateLivraison?.toDate ? doc.data().dateLivraison.toDate() : new Date(doc.data().dateLivraison)
           })) as InvendusClient[];
 
           for (const facture of facturesEnAttente) {
             const d = facture.dateLivraison;
-            if (verifierRetoursCompletes(facture.clientId, d, retoursData)) {
-              const updateData = {
+            const targetDateStr = extraireDateCalendaire(d);
+            const matchingRetour = retoursData.find(r =>
+              r.clientId === facture.clientId &&
+              extraireDateCalendaire(r.dateLivraison) === targetDateStr &&
+              r.retoursCompletes === true
+            );
+
+            if (matchingRetour) {
+              const retoursMap = new Map<string, number>(
+                (matchingRetour.produits || []).map(p => [p.produitId, Number(p.invendus) || 0])
+              );
+
+              const nouvellesLignes = (facture.lignes || []).map(l => {
+                const qteRetour = retoursMap.get(l.produitId) || 0;
+                const qteLivree = Number(l.quantiteLivree) || 0;
+                const qteFacturee = Math.max(0, qteLivree - qteRetour);
+                const pu = Number(l.prixUnitaire) || 0;
+                return {
+                  ...l,
+                  quantiteLivree: qteLivree,
+                  quantiteRetournee: qteRetour,
+                  quantiteFacturee: qteFacturee,
+                  montantLigne: qteFacturee * pu
+                };
+              });
+
+              let parametres = get().parametres;
+              if (!parametres) {
+                try { await get().chargerParametres(); parametres = get().parametres; } catch (_) {}
+              }
+              const tauxTVA = facture.tauxTVA ?? (parametres?.tauxTVADefaut || 0);
+              const totaux = get().calculerTotauxFacture(nouvellesLignes, tauxTVA);
+              const soldeUtilise = facture.soldeUtilise || 0;
+              const netAPayer = Math.max(0, totaux.totalTTC - soldeUtilise);
+
+              const lignesClean = nouvellesLignes.map(l => {
+                const p = l.produit as any;
+                return {
+                  produitId: l.produitId,
+                  quantiteLivree: l.quantiteLivree,
+                  quantiteRetournee: l.quantiteRetournee,
+                  quantiteFacturee: l.quantiteFacturee,
+                  prixUnitaire: l.prixUnitaire,
+                  montantLigne: l.montantLigne,
+                  produit: p ? {
+                    id: p.id || l.produitId,
+                    nom: p.nom || 'Produit',
+                    prixUnitaire: p.prixUnitaire || l.prixUnitaire,
+                    prixClient: p.prixClient || l.prixUnitaire,
+                    prixBoutique: p.prixBoutique || l.prixUnitaire
+                  } : null
+                };
+              });
+
+              const updateData: any = {
+                lignes: lignesClean,
+                ...totaux,
+                netAPayer,
                 statut: 'validee' as const,
                 retoursCompletes: true,
-                validatedAt: new Date(),
                 updatedAt: new Date()
               };
-              await updateDoc(doc(db, 'factures', facture.id), updateData);
+              if (facture.statut !== 'validee') {
+                updateData.validatedAt = new Date();
+              }
+
+              try {
+                await updateDoc(doc(db, 'factures', facture.id), updateData);
+              } catch (e) {
+                console.warn('Erreur mise à jour facture Firestore:', e);
+              }
+
               set(state => ({
-                factures: state.factures.map(f => f.id === facture.id ? { ...f, ...updateData } : f)
+                factures: state.factures.map(f => f.id === facture.id ? { ...f, ...updateData, lignes: nouvellesLignes } : f)
               }));
             }
           }

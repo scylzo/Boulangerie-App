@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { useLivraisonStore } from '../../store/livraisonStore';
-import { useProductionStore } from '../../store/productionStore';
+import { useProductionStore, extraireDateCalendaire } from '../../store/productionStore';
 import { useReferentielStore } from '../../store/referentielStore';
 import { useFacturationStore } from '../../store/facturationStore';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
@@ -24,7 +24,7 @@ export const SaisieRetours: React.FC = () => {
     isLoading
   } = useLivraisonStore();
 
-  const { genererFacturesDepuisLivraisons } = useFacturationStore();
+  const { genererFacturesDepuisLivraisons, mettreAJourFactureApresRetours } = useFacturationStore();
 
   const { commandesClients, chargerProgramme } = useProductionStore();
   const { clients, produits, chargerClients, chargerProduits } = useReferentielStore();
@@ -173,9 +173,12 @@ export const SaisieRetours: React.FC = () => {
       if (confirmation) {
         await marquerAucunRetourClient(clientId, new Date(dateSelectionnee));
 
-        // Mettre à jour la facture (silencieusement en arrière-plan)
+        // Mettre à jour la facture directement
+        await mettreAJourFactureApresRetours(clientId, new Date(dateSelectionnee), [], true);
+
+        // Mettre à jour le lot silencieusement en repli
         const invendusUpdated = useLivraisonStore.getState().invendusClients;
-        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.warn('Mise à jour facture silencieuse:', err));
+        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(() => {});
 
         toast.success(`✅ Aucun retour confirmé pour ${client?.nom || 'le client'}`);
       }
@@ -200,9 +203,11 @@ export const SaisieRetours: React.FC = () => {
       if (confirmation) {
         await annulerValidationRetours(clientId, new Date(dateSelectionnee));
 
-        // Mettre à jour la facture (pour la repasser en attente)
+        // Repasser la facture en attente
+        await mettreAJourFactureApresRetours(clientId, new Date(dateSelectionnee), [], false);
+
         const invendusUpdated = useLivraisonStore.getState().invendusClients;
-        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error(err));
+        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(() => {});
 
         toast.success(`✏️ Retours déverrouillés pour ${client?.nom}`);
       }
@@ -228,8 +233,10 @@ export const SaisieRetours: React.FC = () => {
         await supprimerInvendusClient(clientId, new Date(dateSelectionnee));
 
         // Mettre à jour les factures après suppression
+        await mettreAJourFactureApresRetours(clientId, new Date(dateSelectionnee), [], false);
+
         const invendusUpdated = useLivraisonStore.getState().invendusClients;
-        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.error(err));
+        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(() => {});
 
         toast.success(`🗑️ Retour supprimé pour ${client?.nom}`);
       }
@@ -241,18 +248,20 @@ export const SaisieRetours: React.FC = () => {
 
   // Vérifier si un client a déjà des retours finalisés
   const clientARetoursCompletes = (clientId: string) => {
+    const curDateStr = dateSelectionnee;
     return invendusClients.some(inv =>
       inv.clientId === clientId &&
-      inv.dateLivraison.toDateString() === new Date(dateSelectionnee).toDateString() &&
+      extraireDateCalendaire(inv.dateLivraison) === curDateStr &&
       inv.retoursCompletes
     );
   };
 
   // Vérifier si un client a des retours enregistrés (même non finalisés)
   const clientASauvegarde = (clientId: string) => {
+    const curDateStr = dateSelectionnee;
     return invendusClients.some(inv =>
       inv.clientId === clientId &&
-      inv.dateLivraison.toDateString() === new Date(dateSelectionnee).toDateString()
+      extraireDateCalendaire(inv.dateLivraison) === curDateStr
     );
   };
 
@@ -286,9 +295,12 @@ export const SaisieRetours: React.FC = () => {
 
         await sauvegarderRetoursClient(clientId, new Date(dateSelectionnee), produitsAvecRetours);
 
-        // Mettre à jour la facture (silencieusement en arrière-plan)
+        // Mettre à jour directement et immédiatement la facture correspondante
+        await mettreAJourFactureApresRetours(clientId, new Date(dateSelectionnee), produitsAvecRetours, true);
+
+        // Mettre à jour en tâche de fond le lot
         const invendusUpdated = useLivraisonStore.getState().invendusClients;
-        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(err => console.warn("Mise à jour facture silencieuse:", err));
+        genererFacturesDepuisLivraisons(new Date(dateSelectionnee), commandesClients, invendusUpdated).catch(() => {});
 
         // Réinitialiser l'état local pour ce client
         setInvendusLocaux(prev => {
@@ -368,6 +380,9 @@ export const SaisieRetours: React.FC = () => {
                 if (confirmation) {
                   const clientIds = clientsSansRetours.map(c => c.id!);
                   await marquerTousSansRetour(clientIds, new Date(dateSelectionnee));
+                  for (const cid of clientIds) {
+                    mettreAJourFactureApresRetours(cid, new Date(dateSelectionnee), [], true).catch(() => {});
+                  }
                   toast.success(`✅ ${clientIds.length} clients marqués sans retour !`);
                 }
               }}

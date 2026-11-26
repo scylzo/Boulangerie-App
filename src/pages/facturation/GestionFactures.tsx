@@ -148,6 +148,7 @@ export const GestionFactures: React.FC = () => {
         const end = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
         await chargerFactures(start, end);
         await chargerClients(); // Charger les clients
+        actualiserStatutsFactures().catch(() => {});
       } catch (error) {
         console.error('Erreur lors de l\'initialisation:', error);
       } finally {
@@ -155,18 +156,20 @@ export const GestionFactures: React.FC = () => {
       }
     };
     initialiser();
-  }, [chargerParametres, chargerFactures, chargerClients, selectedMonth]);
+  }, [chargerParametres, chargerFactures, chargerClients, actualiserStatutsFactures, selectedMonth]);
 
   // Synchronisation allégée : uniquement quand l'utilisateur revient sur l'onglet
   useEffect(() => {
     const onFocus = () => {
       const start = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
       const end = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
-      chargerFactures(start, end, true).catch(() => {});
+      chargerFactures(start, end, true)
+        .then(() => actualiserStatutsFactures())
+        .catch(() => {});
     };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
-  }, [chargerFactures, selectedMonth]);
+  }, [chargerFactures, actualiserStatutsFactures, selectedMonth]);
 
   // --- Logique Vue Clients ---
 
