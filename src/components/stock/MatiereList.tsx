@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { Icon } from '@iconify/react';
 import { useStockStore } from '../../store/stockStore';
-import { Plus, Edit2, Trash2, Scale, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
@@ -216,7 +216,7 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
             }}
             className="flex items-center justify-center space-x-2 bg-sand-900 hover:bg-sand-800 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex-1 sm:flex-none text-sm font-medium shadow-sm"
           >
-            <Plus size={16} />
+            <Icon icon="mdi:plus" className="text-lg" />
             <span>Nouvelle Matière</span>
           </button>
         </div>
@@ -279,7 +279,7 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
             </div>
 
             <div className="col-span-1 md:col-span-2 bg-warning-50/50 p-4 rounded-xl flex items-start space-x-3 border border-warning-100">
-              <div className="text-warning-600 mt-0.5"><AlertTriangle size={18} /></div>
+              <div className="text-warning-600 mt-0.5"><Icon icon="mdi:alert-outline" className="w-5 h-5" /></div>
               <div className="text-sm text-warning-600 leading-relaxed">
                 <span className="font-semibold">Note :</span> Créez d'abord la matière avec son unité de base.
                 Vous pourrez ensuite enregistrer des livraisons via le bouton <b>+ Réception Stock</b>.
@@ -315,7 +315,7 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
                 onClick={() => setConversionState({ ...conversionState, isOpen: false })}
                 className="text-sand-400 hover:text-sand-600"
               >
-                <Plus className="rotate-45" size={20} />
+                <Icon icon="mdi:close" className="text-xl" />
               </button>
             </div>
 
@@ -417,7 +417,7 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
                     {isLowStock ? (
                       <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger-100 text-danger-700">
-                        <AlertTriangle size={12} className="mr-1" />
+                        <Icon icon="mdi:alert-circle-outline" className="w-3.5 h-3.5 mr-1" />
                         Critique
                       </span>
                     ) : (
@@ -446,21 +446,21 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
                             : 'text-sand-600 hover:bg-amber-50 hover:text-amber-800'
                         }`}
                       >
-                        <Scale size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <Icon icon="mdi:scale-balance" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                       </button>
                       <button
                         onClick={() => startEdit(matiere)}
                         title="Modifier la matière"
                         className="p-1.5 sm:p-2 text-sand-500 hover:text-sand-800 hover:bg-sand-100 rounded-lg transition-colors cursor-pointer"
                       >
-                        <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <Icon icon="mdi:pencil-outline" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                       </button>
                       <button
                         onClick={() => handleDelete(matiere.id, matiere.nom)}
                         title="Supprimer la matière"
                         className="p-1.5 sm:p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                       >
-                        <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <Icon icon="mdi:trash-can-outline" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                       </button>
                     </div>
                   </td>
@@ -493,7 +493,7 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-terracotta-50 text-terracotta-600 flex items-center justify-center shrink-0">
-                  <Scale size={20} />
+                  <Icon icon="mdi:scale-balance" className="w-5 h-5" />
                 </div>
                 <p className="text-sm text-sand-500">
                   Saisis le <b>stock réellement compté</b>. Un mouvement de correction sera enregistré pour aligner le système sur la réalité.

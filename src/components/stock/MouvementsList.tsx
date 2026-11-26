@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { Icon } from '@iconify/react';
 import { useStockStore } from '../../store/stockStore';
-import { ArrowDownLeft, ArrowUpRight, Search, Edit2, Trash2 } from 'lucide-react';
 import type { MouvementStock, MatierePremiere } from '../../types';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { MouvementModal } from './MouvementModal';
@@ -99,8 +99,8 @@ export const MouvementsList: React.FC = () => {
   };
 
   const getIcon = (type: MouvementStock['type']) => {
-    if (type === 'achat') return <ArrowDownLeft size={16} className="mr-1" />;
-    return <ArrowUpRight size={16} className="mr-1" />;
+    if (type === 'achat') return <Icon icon="mdi:arrow-bottom-left" className="w-4 h-4 mr-1 text-success-700" />;
+    return <Icon icon="mdi:arrow-top-right" className="w-4 h-4 mr-1" />;
   };
 
   const resetFilters = () => {
@@ -116,7 +116,7 @@ export const MouvementsList: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h3 className="text-base sm:text-lg font-semibold text-sand-800">Historique des Mouvements</h3>
         <div className="relative w-full sm:w-auto">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sand-400" size={18} />
+          <Icon icon="mdi:magnify" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sand-400 text-lg pointer-events-none" />
           <input
             type="text"
             placeholder="Rechercher..."
@@ -285,14 +285,14 @@ export const MouvementsList: React.FC = () => {
                       className="p-1.5 text-info-600 hover:bg-info-50 rounded"
                       title="Modifier"
                     >
-                      <Edit2 size={16} />
+                      <Icon icon="mdi:pencil-outline" className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setDeleteConfirm({ isOpen: true, id: m.id })}
                       className="p-1.5 text-danger-600 hover:bg-danger-50 rounded"
                       title="Supprimer (Annule l'impact stock)"
                     >
-                      <Trash2 size={16} />
+                      <Icon icon="mdi:trash-can-outline" className="w-4 h-4" />
                     </button>
                   </div>
                 </td>

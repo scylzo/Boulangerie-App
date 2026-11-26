@@ -1,16 +1,8 @@
 import React, { useState, useMemo } from 'react';
+import { Icon } from '@iconify/react';
 import { useStockStore } from '../../store/stockStore';
 import { formatCurrency } from '../../utils/currency';
 import { formaterQuantite } from '../../utils/calculations';
-import {
-  CalendarRange,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Printer,
-  Search,
-  SlidersHorizontal,
-  FileSpreadsheet
-} from 'lucide-react';
 
 type PeriodePreset = 'aujourdhui' | '7jours' | '30jours' | 'ce_mois' | 'mois_dernier' | 'personnalise';
 
@@ -207,7 +199,7 @@ export const StockRapportPeriode: React.FC = () => {
       <div className="bg-sand-50/70 border border-sand-200 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-base sm:text-lg font-bold text-sand-900 flex items-center gap-2">
-            <CalendarRange className="w-5 h-5 text-terracotta-600" />
+            <Icon icon="mdi:calendar-range" className="w-5 h-5 text-terracotta-600" />
             <span>Rapport & Analyse par Période</span>
           </h2>
           <p className="text-xs sm:text-sm text-sand-600 mt-0.5">
@@ -220,7 +212,7 @@ export const StockRapportPeriode: React.FC = () => {
             onClick={handleImprimer}
             className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-sand-100 text-sand-800 rounded-xl border border-sand-200 text-xs font-semibold shadow-sm transition-colors"
           >
-            <Printer className="w-3.5 h-3.5 text-sand-600" />
+            <Icon icon="mdi:printer" className="w-4 h-4 text-sand-600" />
             <span>Imprimer le rapport</span>
           </button>
         </div>
@@ -230,7 +222,7 @@ export const StockRapportPeriode: React.FC = () => {
       <div className="bg-white border border-sand-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-bold text-sand-500 uppercase tracking-wide mr-1 flex items-center gap-1">
-            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <Icon icon="mdi:tune" className="w-4 h-4 text-sand-500" />
             Période :
           </span>
 
@@ -294,7 +286,7 @@ export const StockRapportPeriode: React.FC = () => {
         {/* Total Achats / Réceptions */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-sand-200 shadow-sm flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-            <ArrowDownLeft className="w-5 h-5" />
+            <Icon icon="mdi:arrow-bottom-left" className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold text-sand-500 uppercase tracking-wide">
@@ -310,7 +302,7 @@ export const StockRapportPeriode: React.FC = () => {
         {/* Total Consommations */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-sand-200 shadow-sm flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center shrink-0">
-            <ArrowUpRight className="w-5 h-5" />
+            <Icon icon="mdi:arrow-top-right" className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold text-sand-500 uppercase tracking-wide">
@@ -326,7 +318,7 @@ export const StockRapportPeriode: React.FC = () => {
         {/* Nombre de mouvements */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-sand-200 shadow-sm flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-            <FileSpreadsheet className="w-5 h-5" />
+            <Icon icon="mdi:file-table-box-outline" className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold text-sand-500 uppercase tracking-wide">
@@ -342,7 +334,7 @@ export const StockRapportPeriode: React.FC = () => {
         {/* Pertes signalées */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-sand-200 shadow-sm flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-sand-100 text-sand-600 flex items-center justify-center shrink-0">
-            <span className="text-base font-bold">⚠️</span>
+            <Icon icon="mdi:alert-outline" className="w-5 h-5 text-amber-700" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold text-sand-500 uppercase tracking-wide">
@@ -360,7 +352,7 @@ export const StockRapportPeriode: React.FC = () => {
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-sm">
-            <Search className="w-4 h-4 text-sand-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Icon icon="mdi:magnify" className="w-4 h-4 text-sand-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Filtrer une matière..."

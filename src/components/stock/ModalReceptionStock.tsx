@@ -190,8 +190,9 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
         {/* Sélection de la Matière */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs font-medium text-sand-700">
-              Matière première
+            <label className="text-xs font-medium text-sand-700 flex items-center gap-1.5">
+              <Icon icon="mdi:package-variant-closed" className="w-4 h-4 text-sand-500" />
+              <span>Matière première</span>
             </label>
             {selectedMatiere && (
               <span className="text-[11px] text-sand-500 font-medium bg-sand-100 px-2 py-0.5 rounded-md">
@@ -200,15 +201,28 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
             )}
           </div>
           <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none flex items-center">
+              <Icon
+                icon={
+                  selectedMatiere?.nom.toLowerCase().includes('farine')
+                    ? 'mdi:barley'
+                    : selectedMatiere?.nom.toLowerCase().includes('glace')
+                    ? 'mdi:snowflake'
+                    : selectedMatiere?.nom.toLowerCase().includes('levure')
+                    ? 'mdi:yeast'
+                    : 'mdi:cube-outline'
+                }
+                className="w-4 h-4 text-emerald-700"
+              />
+            </div>
             <select
               value={matiereId}
               onChange={(e) => handleMatiereChange(e.target.value)}
-              className="w-full py-2.5 pl-3 pr-8 bg-white border border-sand-200 rounded-xl text-sm font-medium text-sand-900 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all cursor-pointer shadow-xs"
+              className="w-full py-2.5 pl-9 pr-8 bg-white border border-sand-200 rounded-xl text-sm font-semibold text-sand-900 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all cursor-pointer shadow-xs"
               required
             >
               {matieres.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.nom.toLowerCase().includes('farine') ? '🌾 ' : m.nom.toLowerCase().includes('glace') ? '❄️ ' : '📦 '}
                   {m.nom} ({m.unite})
                 </option>
               ))}
@@ -311,8 +325,9 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
         {/* Détails logistiques : Date & Fournisseur */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-sand-700 mb-1.5">
-              Date de livraison
+            <label className="text-xs font-medium text-sand-700 mb-1.5 flex items-center gap-1.5">
+              <Icon icon="mdi:calendar" className="w-3.5 h-3.5 text-sand-500" />
+              <span>Date de livraison</span>
             </label>
             <input
               type="date"
@@ -324,8 +339,10 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-sand-700 mb-1.5">
-              Fournisseur <span className="text-[11px] text-sand-400 font-normal">(optionnel)</span>
+            <label className="text-xs font-medium text-sand-700 mb-1.5 flex items-center gap-1.5">
+              <Icon icon="mdi:domain" className="w-3.5 h-3.5 text-sand-500" />
+              <span>Fournisseur</span>
+              <span className="text-[11px] text-sand-400 font-normal">(optionnel)</span>
             </label>
             <select
               value={fournisseurId}
@@ -342,8 +359,10 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
 
         {/* N° BL / Facture */}
         <div>
-          <label className="block text-xs font-medium text-sand-700 mb-1.5">
-            Référence BL ou Facture <span className="text-[11px] text-sand-400 font-normal">(optionnel)</span>
+          <label className="text-xs font-medium text-sand-700 mb-1.5 flex items-center gap-1.5">
+            <Icon icon="mdi:file-document-outline" className="w-3.5 h-3.5 text-sand-500" />
+            <span>Référence BL ou Facture</span>
+            <span className="text-[11px] text-sand-400 font-normal">(optionnel)</span>
           </label>
           <input
             type="text"
@@ -368,8 +387,9 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
               className="mt-0.5 rounded border-sand-300 text-sand-900 focus:ring-sand-900/20 w-4 h-4 cursor-pointer"
             />
             <div className="flex-1">
-              <span className="block text-xs font-semibold text-sand-900">
-                Enregistrer le règlement immédiat (Dépense)
+              <span className="block text-xs font-semibold text-sand-900 flex items-center gap-1.5">
+                <Icon icon="mdi:cash-register" className="w-4 h-4 text-emerald-700" />
+                <span>Enregistrer le règlement immédiat (Dépense)</span>
               </span>
               <span className="block text-[11px] text-sand-500 mt-0.5">
                 Crée automatiquement une charge dans le journal des dépenses pour refléter la sortie d&apos;argent.
@@ -388,13 +408,28 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
                     key={mode}
                     type="button"
                     onClick={() => setModePaiement(mode)}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
+                    className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                       modePaiement === mode
                         ? 'bg-sand-900 text-white border-sand-900 shadow-xs'
                         : 'bg-white text-sand-700 border-sand-200 hover:bg-sand-100/60'
                     }`}
                   >
-                    {mode === 'Especes' ? '💵 Espèces' : mode === 'Mobile Money' ? '📱 Wave / OM' : '🏦 Chèque / Vir.'}
+                    {mode === 'Especes' ? (
+                      <>
+                        <Icon icon="mdi:cash" className="w-3.5 h-3.5" />
+                        <span>Espèces</span>
+                      </>
+                    ) : mode === 'Mobile Money' ? (
+                      <>
+                        <Icon icon="mdi:cellphone" className="w-3.5 h-3.5" />
+                        <span>Wave / OM</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon icon="mdi:bank-outline" className="w-3.5 h-3.5" />
+                        <span>Chèque / Vir.</span>
+                      </>
+                    )}
                   </button>
                 ))}
               </div>

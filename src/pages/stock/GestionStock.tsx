@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Icon } from '@iconify/react';
 import { useStockStore } from '../../store/stockStore';
 import { StockDashboard } from '../../components/stock/StockDashboard';
 import { MatiereList } from '../../components/stock/MatiereList';
@@ -8,13 +9,6 @@ import { ModalReceptionStock } from '../../components/stock/ModalReceptionStock'
 import { StockRapportPeriode } from '../../components/stock/StockRapportPeriode';
 import { StockBilan } from '../../components/stock/StockBilan';
 import type { MatierePremiere } from '../../types';
-import {
-  Package,
-  History,
-  PlusCircle,
-  CalendarRange,
-  CalendarCheck2
-} from 'lucide-react';
 
 type TabType = 'reserve' | 'mouvements' | 'rapport' | 'bilan';
 
@@ -55,7 +49,7 @@ export const GestionStock: React.FC = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
             <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0 border border-emerald-100">
-              <Package className="w-5 h-5 text-emerald-700" />
+              <Icon icon="mdi:package-variant-closed" className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="font-display text-lg sm:text-2xl font-semibold text-sand-900 truncate">
@@ -74,7 +68,7 @@ export const GestionStock: React.FC = () => {
               className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm transition-all text-xs sm:text-sm font-semibold w-full sm:w-auto cursor-pointer"
               title="Enregistrer l'arrivée de sacs de farine, glace, levure ou ingrédients"
             >
-              <PlusCircle className="w-4 h-4" />
+              <Icon icon="mdi:plus-circle-outline" className="w-4 h-4 text-lg" />
               <span>+ Réception de Stock</span>
             </button>
           </div>
@@ -99,7 +93,7 @@ export const GestionStock: React.FC = () => {
                     : 'border-transparent text-sand-600 hover:text-sand-900 hover:border-sand-300'
                 }`}
               >
-                <Package size={16} className={activeTab === 'reserve' ? 'text-emerald-700' : ''} />
+                <Icon icon="mdi:package-variant-closed" className={`text-base ${activeTab === 'reserve' ? 'text-emerald-700' : ''}`} />
                 <span>Réserve & Matières</span>
               </button>
 
@@ -112,7 +106,7 @@ export const GestionStock: React.FC = () => {
                     : 'border-transparent text-sand-600 hover:text-sand-900 hover:border-sand-300'
                 }`}
               >
-                <History size={16} className={activeTab === 'mouvements' ? 'text-emerald-700' : ''} />
+                <Icon icon="mdi:history" className={`text-base ${activeTab === 'mouvements' ? 'text-emerald-700' : ''}`} />
                 <span>Historique Mouvements</span>
               </button>
 
@@ -125,7 +119,7 @@ export const GestionStock: React.FC = () => {
                     : 'border-transparent text-sand-600 hover:text-sand-900 hover:border-sand-300'
                 }`}
               >
-                <CalendarRange size={16} className={activeTab === 'rapport' ? 'text-emerald-700' : ''} />
+                <Icon icon="mdi:calendar-range" className={`text-base ${activeTab === 'rapport' ? 'text-emerald-700' : ''}`} />
                 <span>Rapport par Période</span>
               </button>
 
@@ -138,7 +132,7 @@ export const GestionStock: React.FC = () => {
                     : 'border-transparent text-sand-600 hover:text-sand-900 hover:border-sand-300'
                 }`}
               >
-                <CalendarCheck2 size={16} className={activeTab === 'bilan' ? 'text-emerald-700' : ''} />
+                <Icon icon="mdi:calendar-check" className={`text-base ${activeTab === 'bilan' ? 'text-emerald-700' : ''}`} />
                 <span>Bilan Journalier & Mensuel</span>
               </button>
             </nav>
