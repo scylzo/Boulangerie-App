@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import { formatCurrency } from '../../utils/currency';
 import { formaterQuantite } from '../../utils/calculations';
-import { BilanMensuelIngredientsModal } from '../stock/BilanMensuelIngredientsModal';
 import type { MouvementStock, MatierePremiere } from '../../types/stock';
 import type { Depense } from '../../types/depense';
 import type { ProgrammeProduction } from '../../types/production';
@@ -29,10 +28,8 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
   depenses,
   mouvements,
   matieres,
-  programmes,
-  onRefresh
+  programmes
 }) => {
-  const [showBilanModal, setShowBilanModal] = useState(false);
   const [ongletDetail, setOngletDetail] = useState<'aucun' | 'matieres' | 'depenses'>('aucun');
 
   // Dates début et fin au format Date
@@ -221,16 +218,6 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
             Mois dernier
           </button>
         </div>
-
-        {/* Bouton Bilan Mensuel Ingrédients */}
-        <button
-          onClick={() => setShowBilanModal(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all shrink-0 max-w-full"
-        >
-          <Icon icon="mdi:calendar-check" className="w-4 h-4 shrink-0" />
-          <span className="truncate">Bilan Mensuel Matières & Ingrédients</span>
-          <span className="hidden lg:inline font-normal opacity-90 text-xs">(Farine, Levure, Améliorant...)</span>
-        </button>
       </div>
 
       {/* ── LES 4 INDICATEURS CLÉS ─────────────────────────────── */}
@@ -500,7 +487,7 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
             </h4>
             {Object.keys(detailMatieres).length === 0 ? (
               <p className="text-xs text-sand-500 py-4 text-center">
-                Aucune consommation enregistrée sur cette période. Utilisez le bouton &quot;Bilan Mensuel Ingrédients&quot; pour déclarer les sachets.
+                Aucune consommation enregistrée sur cette période. Déclarez vos consommations dans le module Stock.
               </p>
             ) : (
               <div className="divide-y divide-sand-100">
@@ -545,15 +532,6 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
           </div>
         )}
       </div>
-
-      {/* Modal Bilan Mensuel Ingrédients */}
-      <BilanMensuelIngredientsModal
-        isOpen={showBilanModal}
-        onClose={() => setShowBilanModal(false)}
-        onSuccess={() => {
-          if (onRefresh) onRefresh();
-        }}
-      />
     </div>
   );
 };
