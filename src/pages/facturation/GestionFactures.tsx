@@ -8,6 +8,7 @@ import { PaymentModal } from '../../components/factures/PaymentModal';
 import { CalculateurRistourneModal } from '../../components/factures/CalculateurRistourneModal';
 import { ReleveFacturesModal } from '../../components/factures/ReleveFacturesModal';
 import { ReleveVersementsModal } from '../../components/factures/ReleveVersementsModal';
+import { TableauRecouvrement } from '../../components/factures/TableauRecouvrement';
 import { useFacturationStore } from '../../store/facturationStore';
 
 import { useLivraisonStore } from '../../store/livraisonStore';
@@ -21,7 +22,7 @@ import { Button } from '../../components/ui/Button';
 
 
 // Types pour la vue
-type ViewMode = 'clients_list' | 'client_details';
+type ViewMode = 'clients_list' | 'client_details' | 'recouvrement';
 
 export const GestionFactures: React.FC = () => {
   const {
@@ -1130,13 +1131,46 @@ export const GestionFactures: React.FC = () => {
     <div className="min-h-screen bg-sand-100 overflow-x-hidden">
       {/* Header */}
       <div className="bg-white border-b border-sand-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <div className="w-10 h-10 bg-terracotta-50 rounded-xl flex items-center justify-center shrink-0">
-            <Icon icon="mdi:receipt-text-outline" className="text-xl text-terracotta-600" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="w-10 h-10 bg-terracotta-50 rounded-xl flex items-center justify-center shrink-0">
+              <Icon icon="mdi:receipt-text-outline" className="text-xl text-terracotta-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="font-display text-lg sm:text-2xl font-semibold text-sand-900 truncate">Facturation</h1>
+              <p className="text-xs sm:text-sm text-sand-500 truncate">Génération, encaissements, retours &amp; suivi des paiements</p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="font-display text-lg sm:text-2xl font-semibold text-sand-900 truncate">Facturation</h1>
-            <p className="text-xs sm:text-sm text-sand-500 truncate">Génération, encaissements, retours & avoirs clients</p>
+
+          <div className="flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200 gap-1 self-start sm:self-auto">
+            <button
+              onClick={() => {
+                setViewMode('clients_list');
+                setSelectedClient(null);
+              }}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+                viewMode === 'clients_list' || viewMode === 'client_details'
+                  ? 'bg-sand-900 text-white shadow-xs'
+                  : 'text-sand-600 hover:text-sand-900'
+              }`}
+            >
+              <Icon icon="mdi:account-group-outline" className="text-base" />
+              <span>Clients &amp; Factures</span>
+            </button>
+            <button
+              onClick={() => {
+                setViewMode('recouvrement');
+                setSelectedClient(null);
+              }}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+                viewMode === 'recouvrement'
+                  ? 'bg-emerald-800 text-white shadow-xs'
+                  : 'text-sand-600 hover:text-sand-900'
+              }`}
+            >
+              <Icon icon="mdi:table-check" className="text-base" />
+              <span>Suivi Paiements</span>
+            </button>
           </div>
         </div>
       </div>
@@ -1145,6 +1179,15 @@ export const GestionFactures: React.FC = () => {
       <main className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6">
         {viewMode === 'clients_list' && renderClientsList()}
         {viewMode === 'client_details' && renderClientDetails()}
+        {viewMode === 'recouvrement' && (
+          <TableauRecouvrement
+            factures={factures}
+            clients={clients}
+            selectedMonth={selectedMonth}
+            onChangeMonth={handleChangeMonth}
+            onOpenClient={handleSelectClient}
+          />
+        )}
       </main>
 
       {/* Modals & Loaders */}
