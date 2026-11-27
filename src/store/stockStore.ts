@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { firestoreService } from '../firebase/collections';
+import { memeJour } from '../utils/dateUtils';
 import type {
     MatierePremiere,
     MouvementStock,
@@ -42,6 +43,12 @@ interface StockState {
 
     // Actions Spécifiques
     declarerConsommationJournee: (date: Date, consommations: { matiereId: string, quantite: number, motif?: string }[]) => Promise<void>;
+    declarerConsommationPeriode: (
+        dateDebut: Date,
+        dateFin: Date,
+        consommations: { matiereId: string, quantiteParJour: number, motif?: string }[],
+        options?: { exclureDimanches?: boolean; ecraserExistant?: boolean }
+    ) => Promise<{ nbJours: number; nbMouvements: number }>;
     deleteMouvement: (id: string) => Promise<void>;
     updateMouvement: (id: string, updates: Partial<MouvementStock>) => Promise<void>;
 
@@ -360,6 +367,96 @@ export const useStockStore = create<StockState>((set, get) => ({
 
         } catch (error: any) {
             console.error('Erreur déclaration consommation:', error);
+            set({ isLoading: false, error: error.message });
+            throw error;
+        }
+    },
+
+    declarerConsommationPeriode: async (
+        dateDebut: Date,
+        dateFin: Date,
+        consommations: { matiereId: string, quantiteParJour: number, motif?: string }[],
+        options: { exclureDimanches?: boolean; ecraserExistant?: boolean } = {}
+    ) => {
+        set({ isLoading: true });
+        try {
+            const { exclureDimanches = true, ecraserExistant = true } = options;
+
+            const debut = new Date(dateDebut);
+            debut.setHours(0, 0, 0, 0);
+            const fin = new Date(dateFin);
+            fin.setHours(23, 59, 59, 999);
+
+            if (debut.getTime() > fin.getTime()) {
+                throw new Error("La date de début doit être antérieure ou égale à la date de fin.");
+            }
+
+            // Générer la liste des jours calendaires
+            const datesJours: Date[] = [];
+            const cur = new Date(debut);
+            while (cur <= fin) {
+                if (!exclureDimanches || cur.getDay() !== 0) {
+                    datesJours.push(new Date(cur.getFullYear(), cur.getMonth(), cur.getDate(), 12, 0, 0));
+                }
+                cur.setDate(cur.getDate() + 1);
+            }
+
+            if (datesJours.length === 0) {
+                throw new Error("Aucune journée de production éligible sur cette période.");
+            }
+
+            const consosValides = consommations.filter(c => Number(c.quantiteParJour) > 0);
+            if (consosValides.length === 0) {
+                throw new Error("Veuillez saisir au moins une matière avec une quantité positive.");
+            }
+
+            console.log(`📝 Déclaration consommation période (${datesJours.length} jours) pour ${consosValides.length} matières`);
+
+            let nbMouvementsTraites = 0;
+
+            for (const jour of datesJours) {
+                const payloadJour: { id?: string, matiereId: string, quantite: number, motif?: string }[] = [];
+
+                for (const c of consosValides) {
+                    const qte = Number(c.quantiteParJour);
+                    const mvtExistant = get().mouvements.find(m =>
+                        m.type === 'consommation' &&
+                        m.matiereId === c.matiereId &&
+                        memeJour(new Date(m.date), jour)
+                    );
+
+                    if (mvtExistant) {
+                        if (ecraserExistant) {
+                            payloadJour.push({
+                                id: mvtExistant.id,
+                                matiereId: c.matiereId,
+                                quantite: qte,
+                                motif: c.motif || `Consommation journalière (${qte})`
+                            });
+                            nbMouvementsTraites++;
+                        }
+                    } else {
+                        payloadJour.push({
+                            matiereId: c.matiereId,
+                            quantite: qte,
+                            motif: c.motif || `Consommation journalière (${qte})`
+                        });
+                        nbMouvementsTraites++;
+                    }
+                }
+
+                if (payloadJour.length > 0) {
+                    await get().declarerConsommationJournee(jour, payloadJour);
+                }
+            }
+
+            set({ isLoading: false });
+            return {
+                nbJours: datesJours.length,
+                nbMouvements: nbMouvementsTraites
+            };
+        } catch (error: any) {
+            console.error('Erreur déclaration consommation période:', error);
             set({ isLoading: false, error: error.message });
             throw error;
         }
