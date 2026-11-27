@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useStockStore } from '../../store/stockStore';
 import { useAuthStore } from '../../store/authStore';
 import { formaterQuantite } from '../../utils/calculations';
+import { formaterNomUnite } from '../../utils/conditionnementStock';
 import {
   ClipboardCheck,
   CheckCircle2,
@@ -353,8 +354,8 @@ export const StockInventaire: React.FC = () => {
                     <td className="py-3 px-4">
                       <div className="font-semibold text-sand-900">{m.nom}</div>
                       <div className="text-[11px] text-sand-400">
-                        Unité : <span className="font-medium text-sand-600">{m.unite}</span>
-                        {m.stockMinimum ? ` • Seuil alerte : ${m.stockMinimum} ${m.unite}` : ''}
+                        Unité : <span className="font-medium text-sand-600">{formaterNomUnite(m.unite)}</span>
+                        {m.stockMinimum ? ` • Seuil alerte : ${formaterQuantite(m.stockMinimum, m.unite)}` : ''}
                       </div>
                     </td>
 
@@ -437,7 +438,7 @@ export const StockInventaire: React.FC = () => {
                             {/* Équivalence affichée en direct */}
                             {equivBase !== null && (
                               <div className="text-[10px] text-emerald-700 font-semibold">
-                                = {equivBase} {m.unite}
+                                = {formaterQuantite(equivBase, m.unite)}
                               </div>
                             )}
                           </div>
@@ -451,15 +452,15 @@ export const StockInventaire: React.FC = () => {
                         <span className="text-sand-300">—</span>
                       ) : statut === 'conforme' ? (
                         <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full text-xs">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> 0 {m.unite}
+                          <CheckCircle2 className="w-3.5 h-3.5" /> 0 {formaterNomUnite(m.unite)}
                         </span>
                       ) : statut === 'surplus' ? (
                         <span className="inline-flex items-center gap-1 text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full text-xs font-bold">
-                          +{delta} {m.unite}
+                          +{formaterQuantite(delta, m.unite)}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-100/80 px-2 py-0.5 rounded-full text-xs font-bold">
-                          {delta} {m.unite}
+                          {formaterQuantite(delta, m.unite)}
                         </span>
                       )}
                     </td>

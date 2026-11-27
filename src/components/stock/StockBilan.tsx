@@ -7,7 +7,8 @@ import { formatCurrency } from '../../utils/currency';
 import { formaterQuantite } from '../../utils/calculations';
 import { memeJour } from '../../utils/dateUtils';
 import {
-  getOptionsConditionnement
+  getOptionsConditionnement,
+  formaterNomUnite
 } from '../../utils/conditionnementStock';
 import { Modal } from '../ui/Modal';
 import toast from 'react-hot-toast';
@@ -630,7 +631,7 @@ export const StockBilan: React.FC = () => {
                           {m.nom}
                         </span>
                         <span className="text-[11px] font-medium text-sand-500">
-                          {m.unite}
+                          {formaterNomUnite(m.unite)}
                         </span>
                       </div>
 
@@ -679,15 +680,15 @@ export const StockBilan: React.FC = () => {
                       {/* Équivalence en direct si facteur !== 1 */}
                       {qteBaseEquiv !== null && optionActive.factor !== 1 && (
                         <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50/80 px-2 py-0.5 rounded-md">
-                          = {qteBaseEquiv} {m.unite} déduit du stock
+                          = {qteBaseEquiv} {formaterNomUnite(m.unite, qteBaseEquiv > 1)} déduit du stock
                         </div>
                       )}
 
                       <div className="text-[10px] text-sand-500 flex justify-between">
-                        <span>Dispo : {m.stockActuel} {m.unite}</span>
+                        <span>Dispo : {formaterQuantite(m.stockActuel, m.unite)}</span>
                         {consoExistante && (
                           <span className="text-cyan-700 font-semibold">
-                            Saisi : {Math.abs(consoExistante.quantite)} {m.unite}
+                            Saisi : {formaterQuantite(Math.abs(consoExistante.quantite), m.unite)}
                           </span>
                         )}
                       </div>
@@ -974,7 +975,7 @@ export const StockBilan: React.FC = () => {
                           </div>
                           {optionActive.factor !== 1 && (
                             <div className="text-[10px] text-emerald-700 font-medium">
-                              = {totalBasePeriode} {m.unite}
+                              = {formaterQuantite(totalBasePeriode, m.unite)}
                             </div>
                           )}
                           {m.prixUnitaireMoyen && m.prixUnitaireMoyen > 0 && (
@@ -1211,7 +1212,7 @@ export const StockBilan: React.FC = () => {
                           {m.nom}
                         </span>
                         <span className="text-[11px] font-medium text-sand-500">
-                          {m.unite}
+                          {formaterNomUnite(m.unite)}
                         </span>
                       </div>
 
@@ -1260,7 +1261,7 @@ export const StockBilan: React.FC = () => {
                       {/* Équivalence en direct si facteur !== 1 */}
                       {qteBaseEquiv !== null && optionActive.factor !== 1 && (
                         <div className="text-[10px] font-bold text-terracotta-700 bg-terracotta-50/80 px-2 py-0.5 rounded-md">
-                          = {qteBaseEquiv} {m.unite} déduit du stock
+                          = {qteBaseEquiv} {formaterNomUnite(m.unite, qteBaseEquiv > 1)} déduit du stock
                         </div>
                       )}
                     </div>

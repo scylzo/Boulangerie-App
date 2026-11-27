@@ -6,7 +6,7 @@ import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
 import type { MatierePremiere, UniteMesure } from '../../types';
 import { formaterQuantite } from '../../utils/calculations';
-import { getOptionsConditionnement } from '../../utils/conditionnementStock';
+import { getOptionsConditionnement, formaterNomUnite } from '../../utils/conditionnementStock';
 import { useAuthStore } from '../../store/authStore';
 
 interface MatiereListProps {
@@ -408,7 +408,7 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                     <div className="text-xs sm:text-sm font-medium text-sand-900">
-                      {formaterQuantite(matiere.stockActuel)} <span className="text-sand-500 text-xs">{matiere.unite}</span>
+                      {formaterQuantite(matiere.stockActuel)} <span className="text-sand-500 text-xs">{formaterNomUnite(matiere.unite, Math.abs(matiere.stockActuel) > 1)}</span>
                     </div>
                     <div className="text-[10px] text-sand-400 mt-0.5">
                       Seuil: {formaterQuantite(matiere.stockMinimum, matiere.unite)}
@@ -556,7 +556,7 @@ export const MatiereList: React.FC<MatiereListProps> = () => {
 
               {factor !== 1 && saisieNum > 0 && (
                 <div className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
-                  = {cible} {m.unite} équivalent en réserve
+                  = {cible} {formaterNomUnite(m.unite, cible > 1)} équivalent en réserve
                 </div>
               )}
 
