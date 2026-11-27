@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStockStore } from '../../store/stockStore';
 import { useDepenseStore } from '../../store/depenseStore';
@@ -13,9 +13,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Icon } from '@iconify/react';
 import omLogo from '../../assets/om.svg';
 import waveLogo from '../../assets/wave.svg';
-import { TableauBordRentabilite } from '../../components/finance/TableauBordRentabilite';
 import { TableauBordFinanceSimple } from '../../components/finance/TableauBordFinanceSimple';
-import { calculerAnalyseRentabilite } from '../../utils/analyseRentabilite';
 import { firestoreService, dateToTimestamp } from '../../firebase/collections';
 import { where, limit } from 'firebase/firestore';
 import type { ProgrammeProduction } from '../../types/production';
@@ -30,8 +28,7 @@ import {
     Coins,
     Calendar,
     FileText,
-    ArrowRight,
-    Award
+    ArrowRight
 } from 'lucide-react';
 
 
@@ -46,8 +43,8 @@ export const Comptabilite: React.FC = () => {
     });
 
     const navigate = useNavigate();
-    // Vue : 'simple' (Boulangerie 4 Chiffres), 'rentabilite' (SIG & point mort), 'marge' (économique) ou 'tresorerie' (encaissé)
-    const [vue, setVue] = useState<'simple' | 'rentabilite' | 'marge' | 'tresorerie'>('simple');
+    // 2 vues simples pour le gérant : 'simple' (Mon Bilan / Bénéfice) et 'tresorerie' (Ma Caisse & Encaissements)
+    const [vue, setVue] = useState<'simple' | 'tresorerie'>('simple');
     const [programmes, setProgrammes] = useState<ProgrammeProduction[]>([]);
     const [isActualisant, setIsActualisant] = useState(false);
 
@@ -120,38 +117,10 @@ export const Comptabilite: React.FC = () => {
     };
     const totalEncaisseMode = encaissementsParMode.espece + encaissementsParMode.om + encaissementsParMode.wave;
 
-    // Libellés dynamiques
+    // Libellés simples pour le gérant
     const L = estTreso
-        ? { recettes: 'Encaissements', couts: 'Décaissements', resultat: 'Solde trésorerie', livraison: 'Livraisons réglées', matieres: 'Achats matières' }
-        : { recettes: 'Recettes', couts: 'Dépenses', resultat: 'Résultat économique', livraison: 'Livraisons facturées', matieres: 'Matières consommées' };
-
-    // ── Analyse de rentabilité complète (SIG & Seuil de rentabilité) ────
-    const debutDate = useMemo(() => {
-        const d = new Date(periode.debut);
-        d.setHours(0, 0, 0, 0);
-        return d;
-    }, [periode.debut]);
-
-    const finDate = useMemo(() => {
-        const d = new Date(periode.fin);
-        d.setHours(23, 59, 59, 999);
-        return d;
-    }, [periode.fin]);
-
-    const rapportRentabilite = useMemo(() => {
-        const depensesProrata = getDepensesProRata(debutDate, finDate);
-        return calculerAnalyseRentabilite({
-            debut: debutDate,
-            fin: finDate,
-            caBoutiquePos,
-            factures,
-            depensesProrata,
-            coutMatieresConsommees: stats.achatsMatieres,
-            mouvements,
-            matieres,
-            caLivraisonEncaisse: stats.caLivraisonEncaisse
-        });
-    }, [debutDate, finDate, caBoutiquePos, factures, getDepensesProRata, stats.achatsMatieres, stats.caLivraisonEncaisse, mouvements, matieres]);
+        ? { recettes: 'Argent encaissé', couts: 'Argent sorti', resultat: 'Reste en caisse', livraison: 'Factures réglées', matieres: 'Achats stock' }
+        : { recettes: 'Ventes', couts: 'Coûts totaux', resultat: 'Bénéfice net', livraison: 'Livraisons facturées', matieres: 'Matières utilisées' };
 
     const chargerDonnees = async (forceStock = false) => {
         setStats(prev => ({ ...prev, loading: true }));
@@ -624,54 +593,6 @@ export const Comptabilite: React.FC = () => {
             }
         }
 
-        // 5. SYNTHÈSE DE RENTABILITÉ & SIG
-        if (finalY > 180) {
-            doc.addPage();
-            finalY = 20;
-        }
-
-        doc.setFontSize(14);
-        doc.setTextColor(190, 80, 50); // Terracotta
-        doc.setFont("helvetica", "bold");
-        doc.text("5. Soldes Intermédiaires de Gestion & Point Mort", 14, finalY);
-
-        const sigData = [
-            ['Chiffre d\'Affaires Net', formatPdfCurrency(rapportRentabilite.sig.caNet), '100 %'],
-            ['Coût Matières Premières (Food Cost)', `-${formatPdfCurrency(rapportRentabilite.sig.coutMatieresConsommees)}`, `${rapportRentabilite.sig.tauxFoodCost.toFixed(1)} %`],
-            ['MARGE BRUTE MATIÈRES', formatPdfCurrency(rapportRentabilite.sig.margeBrute), `${rapportRentabilite.sig.tauxMargeBrute.toFixed(1)} %`],
-            ['Charges Externes (Énergie, Loyer, Carburant)', `-${formatPdfCurrency(rapportRentabilite.sig.chargesExternes)}`, `${rapportRentabilite.sig.tauxChargesExternes.toFixed(1)} %`],
-            ['VALEUR AJOUTÉE (VA)', formatPdfCurrency(rapportRentabilite.sig.valeurAjoutee), `${rapportRentabilite.sig.tauxValeurAjoutee.toFixed(1)} %`],
-            ['Charges de Personnel (Salaires)', `-${formatPdfCurrency(rapportRentabilite.sig.chargesPersonnel)}`, `${rapportRentabilite.sig.tauxMasseSalariale.toFixed(1)} %`],
-            ['EXCÉDENT BRUT D\'EXPLOITATION (EBE)', formatPdfCurrency(rapportRentabilite.sig.ebe), `${rapportRentabilite.sig.tauxEBE.toFixed(1)} %`],
-            ['RÉSULTAT NET', formatPdfCurrency(rapportRentabilite.sig.resultatNet), `${rapportRentabilite.sig.tauxMargeNette.toFixed(1)} %`],
-            ['Seuil de Rentabilité (Point Mort)', formatPdfCurrency(rapportRentabilite.seuil.seuilRentabiliteFCFA), rapportRentabilite.seuil.estRentable ? 'Rentable' : 'Déficitaire'],
-            ['CA Minimum d\'Équilibre Requis', `${formatPdfCurrency(rapportRentabilite.seuil.caEquilibreParJour)} / jour`, `${rapportRentabilite.periode.nbJours} jours`]
-        ];
-
-        autoTable(doc, {
-            startY: finalY + 5,
-            head: [['Poste Comptable', 'Montant', '% du CA / Statut']],
-            body: sigData,
-            theme: 'striped',
-            headStyles: { fillColor: [190, 80, 50], halign: 'left' },
-            columnStyles: {
-                0: { cellWidth: 100 },
-                1: { halign: 'right', fontStyle: 'bold' },
-                2: { halign: 'right' }
-            },
-            didParseCell: function (data) {
-                // Mettre en gras les totaux clés
-                if ([2, 4, 6, 7].includes(data.row.index) && data.section === 'body') {
-                    data.cell.styles.fontStyle = 'bold';
-                    if (data.row.index === 7) {
-                        data.cell.styles.textColor = rapportRentabilite.sig.resultatNet >= 0 ? [39, 174, 96] : [192, 57, 43];
-                    }
-                }
-            }
-        });
-
-        finalY = (doc as any).lastAutoTable.finalY + 15;
-
         // --- PIED DE PAGE ---
         const pageCount = (doc as any).internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
@@ -696,7 +617,7 @@ export const Comptabilite: React.FC = () => {
                         </div>
                         <div className="min-w-0 flex-1">
                             <h1 className="text-lg sm:text-xl font-bold text-sand-900 truncate">Comptabilité</h1>
-                            <p className="text-xs sm:text-sm text-sand-500 truncate">{estTreso ? 'Encaissements − Décaissements = Solde de trésorerie' : 'Recettes − Coûts consommés = Résultat économique'}</p>
+                            <p className="text-xs sm:text-sm text-sand-500 truncate">Vue d&apos;ensemble des ventes, dépenses et bénéfice de la boulangerie</p>
                         </div>
                     </div>
 
@@ -743,7 +664,7 @@ export const Comptabilite: React.FC = () => {
 
             {/* Contenu principal */}
             <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-                {/* Sélecteur de vue : Suivi Simple / Rentabilité (SIG) / Marge économique / Trésorerie */}
+                {/* Sélecteur de vue simplifié : Mon Bilan / Ma Caisse */}
                 <div className="bg-white rounded-2xl shadow-card border border-sand-200 p-3 sm:p-4 space-y-3 overflow-hidden">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200 overflow-x-auto max-w-full no-scrollbar gap-1">
@@ -751,36 +672,24 @@ export const Comptabilite: React.FC = () => {
                                 onClick={() => setVue('simple')}
                                 className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${vue === 'simple' ? 'bg-terracotta-600 text-white shadow-sm' : 'text-sand-600 hover:text-sand-900'}`}
                             >
-                                <Icon icon="mdi:view-dashboard" className="w-4 h-4" /> Suivi Simple (Boulangerie)
-                            </button>
-                            <button
-                                onClick={() => setVue('rentabilite')}
-                                className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${vue === 'rentabilite' ? 'bg-sand-800 text-white shadow-sm' : 'text-sand-600 hover:text-sand-900'}`}
-                            >
-                                <Award size={15} /> Analyse Experte (SIG)
-                            </button>
-                            <button
-                                onClick={() => setVue('marge')}
-                                className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${vue === 'marge' ? 'bg-info-600 text-white shadow-sm' : 'text-sand-600 hover:text-sand-900'}`}
-                            >
-                                <PieChartIcon size={15} /> Marge économique
+                                <Icon icon="mdi:view-dashboard" className="w-4 h-4" /> Mon Bilan (Bénéfice)
                             </button>
                             <button
                                 onClick={() => setVue('tresorerie')}
                                 className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${vue === 'tresorerie' ? 'bg-success-600 text-white shadow-sm' : 'text-sand-600 hover:text-sand-900'}`}
                             >
-                                <Coins size={15} /> Trésorerie
+                                <Coins size={15} /> Ma Caisse &amp; Encaissements
                             </button>
                         </div>
 
                         {ecartMargeTreso > 0 && (
                             <button
                                 onClick={() => navigate('/facturation')}
-                                title="Voir les factures / impayés"
+                                title="Voir les factures non payées"
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warning-50 text-warning-800 text-xs font-semibold ring-1 ring-inset ring-warning-200 hover:bg-warning-100 transition-colors shrink-0 max-w-full"
                             >
                                 <Coins size={14} className="shrink-0" />
-                                <span className="truncate">Créances à encaisser : <strong>{formatCurrency(ecartMargeTreso)}</strong></span>
+                                <span className="truncate">Reste à encaisser : <strong>{formatCurrency(ecartMargeTreso)}</strong></span>
                                 <ArrowRight size={14} className="shrink-0" />
                             </button>
                         )}
@@ -788,12 +697,8 @@ export const Comptabilite: React.FC = () => {
 
                     <p className="text-xs text-sand-500 border-t border-sand-100 pt-2 leading-relaxed">
                         {vue === 'simple'
-                            ? 'Suivi financier boulangerie en 4 chiffres : J\'ai vendu, J\'ai consommé en matières, J\'ai dépensé en charges, J\'ai gagné (Bénéfice net).'
-                            : vue === 'rentabilite'
-                            ? 'Diagnostic financier complet : Soldes Intermédiaires de Gestion (SIG), seuil de rentabilité (point mort), analyse par canal et gaspillage.'
-                            : estTreso
-                            ? 'Argent réellement encaissé et décaissé — les factures non réglées ne comptent pas.'
-                            : 'Rentabilité brute : CA produit − coûts consommés (inclut le facturé non encore encaissé).'}
+                            ? 'En 4 chiffres simples : ce que j\'ai vendu − mes matières utilisées − mes dépenses = mon bénéfice net.'
+                            : 'L\'argent réellement encaissé (Espèces, Orange Money, Wave) moins les sorties réelles sur la période.'}
                     </p>
                 </div>
 
@@ -810,8 +715,6 @@ export const Comptabilite: React.FC = () => {
                         programmes={programmes}
                         onRefresh={() => chargerDonnees(true)}
                     />
-                ) : vue === 'rentabilite' ? (
-                    <TableauBordRentabilite rapport={rapportRentabilite} formatCurrency={formatCurrency} />
                 ) : (
                     <>
 

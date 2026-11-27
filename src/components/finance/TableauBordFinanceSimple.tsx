@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import { formatCurrency } from '../../utils/currency';
+import { formaterQuantite } from '../../utils/calculations';
 import { BilanMensuelIngredientsModal } from '../stock/BilanMensuelIngredientsModal';
 import type { MouvementStock, MatierePremiere } from '../../types/stock';
 import type { Depense } from '../../types/depense';
@@ -473,7 +474,7 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
                     <div>
                       <span className="font-bold text-sand-900">{nom}</span>
                       <span className="text-sand-500 ml-2">
-                        ({info.quantite.toFixed(1)} {info.unite})
+                        ({formaterQuantite(info.quantite, info.unite)})
                       </span>
                     </div>
                     <span className="font-extrabold text-sand-900">
