@@ -20,16 +20,14 @@ export const ModalValidationProduction: React.FC<ModalValidationProductionProps>
   dateProduction,
   sacsInitiaux
 }) => {
-  // Estimation standard : ~130 baguettes / pains par sac de 50kg
-  const sacsEstimes = Math.max(1, Math.round((totalPains / 130) * 10) / 10);
-  const [sacsFarine, setSacsFarine] = useState<number>(sacsInitiaux || sacsEstimes);
+  const [sacsFarine, setSacsFarine] = useState<number>(sacsInitiaux || 0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setSacsFarine(sacsInitiaux && sacsInitiaux > 0 ? sacsInitiaux : sacsEstimes);
+      setSacsFarine(sacsInitiaux && sacsInitiaux > 0 ? sacsInitiaux : 0);
     }
-  }, [isOpen, sacsInitiaux, sacsEstimes]);
+  }, [isOpen, sacsInitiaux]);
 
   // Rendement : nombre de pièces par sac
   const rendement = sacsFarine > 0 ? Math.round(totalPains / sacsFarine) : 0;
@@ -65,12 +63,12 @@ export const ModalValidationProduction: React.FC<ModalValidationProductionProps>
         {/* Saisie des sacs de farine pétris */}
         <div className="space-y-3">
           <label className="block text-sm font-bold text-sand-900">
-            🌾 Nombre de sacs de farine de 50 kg pétris :
+            Nombre de sacs de farine de 50 kg pétris :
           </label>
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setSacsFarine(prev => Math.max(0.5, Math.round((prev - 0.5) * 10) / 10))}
+              onClick={() => setSacsFarine(prev => Math.max(0, Math.round((prev - 0.5) * 10) / 10))}
               className="w-12 h-12 flex items-center justify-center rounded-xl bg-sand-100 hover:bg-sand-200 text-sand-800 font-bold text-xl border border-sand-300 transition-colors"
             >
               −
@@ -80,7 +78,8 @@ export const ModalValidationProduction: React.FC<ModalValidationProductionProps>
                 type="number"
                 step="0.5"
                 min="0"
-                value={sacsFarine}
+                value={sacsFarine || ''}
+                placeholder="0"
                 onChange={(e) => setSacsFarine(Math.max(0, parseFloat(e.target.value) || 0))}
                 className="w-full text-center text-2xl font-bold py-2.5 px-4 bg-white border-2 border-terracotta-400 focus:border-terracotta-600 focus:ring-0 rounded-xl text-sand-900 shadow-sm"
               />
@@ -96,38 +95,14 @@ export const ModalValidationProduction: React.FC<ModalValidationProductionProps>
               +
             </button>
           </div>
-          <p className="text-xs text-sand-500">
-            💡 Suggestion automatique : ~{sacsEstimes} sacs pour {totalPains} pièces. Ajustez selon le travail réel au pétrin.
-          </p>
         </div>
 
         {/* Calcul du rendement en direct */}
         {sacsFarine > 0 && totalPains > 0 && (
-          <div className={`p-4 rounded-xl border flex items-center justify-between ${
-            rendement >= 125
-              ? 'bg-success-50 border-success-200 text-success-900'
-              : rendement >= 115
-              ? 'bg-amber-50 border-amber-200 text-amber-900'
-              : 'bg-rose-50 border-rose-200 text-rose-900'
-          }`}>
+          <div className="p-4 rounded-xl border bg-sand-50 border-sand-200 text-sand-900 flex items-center justify-between">
             <div>
-              <div className="text-xs font-bold uppercase tracking-wide opacity-80">Rendement calculé</div>
+              <div className="text-xs font-bold uppercase tracking-wide text-sand-500">Rendement constaté</div>
               <div className="text-xl font-bold mt-0.5">{rendement} pièces / sac de 50 kg</div>
-            </div>
-            <div className="text-right text-xs font-semibold">
-              {rendement >= 125 ? (
-                <span className="inline-flex items-center gap-1 text-success-700">
-                  <Icon icon="mdi:check-circle" className="w-5 h-5" /> Excellent rendement
-                </span>
-              ) : rendement >= 115 ? (
-                <span className="inline-flex items-center gap-1 text-amber-700">
-                  <Icon icon="mdi:alert" className="w-5 h-5" /> Rendement acceptable
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-rose-700">
-                  <Icon icon="mdi:alert-circle" className="w-5 h-5" /> Rendement faible (surdosage)
-                </span>
-              )}
             </div>
           </div>
         )}
