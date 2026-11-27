@@ -85,3 +85,52 @@ export const formaterQuantite = (quantite: number, unite: string = ''): string =
   const arrondie = signe * (Math.round((abs + Number.EPSILON) * 100) / 100);
   return `${arrondie.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}${libelleUnite}`;
 };
+
+export interface ParametresRendement {
+  poidsBaguetteGr: number; // Défaut : 300 g
+  coeffRendement: number;  // Défaut : 1366 (g par kg de farine → 50 × 1366 = 68 300 g / sac de 50 kg)
+}
+
+const RENDEMENT_STORAGE_KEY = 'boulangerie_rendement_params';
+
+export const DEFAULT_RENDEMENT_PARAMS: ParametresRendement = {
+  poidsBaguetteGr: 300,
+  coeffRendement: 1366,
+};
+
+export const getParametresRendement = (): ParametresRendement => {
+  try {
+    const raw = localStorage.getItem(RENDEMENT_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        poidsBaguetteGr: Number(parsed.poidsBaguetteGr) > 0 ? Number(parsed.poidsBaguetteGr) : DEFAULT_RENDEMENT_PARAMS.poidsBaguetteGr,
+        coeffRendement: Number(parsed.coeffRendement) > 0 ? Number(parsed.coeffRendement) : DEFAULT_RENDEMENT_PARAMS.coeffRendement,
+      };
+    }
+  } catch {
+    // ignore storage errors
+  }
+  return DEFAULT_RENDEMENT_PARAMS;
+};
+
+export const saveParametresRendement = (params: ParametresRendement): void => {
+  try {
+    localStorage.setItem(RENDEMENT_STORAGE_KEY, JSON.stringify(params));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+/**
+ * Rendement théorique en pièces par sac de 50 kg :
+ * (50 × coeffRendement) ÷ poidsBaguetteGr
+ * Ex : (50 × 1366) ÷ 300 = 228 pièces / sac
+ */
+export const calculerRendementTheoriqueParSac = (
+  poidsBaguetteGr: number,
+  coeffRendement: number = 1366
+): number => {
+  if (!poidsBaguetteGr || poidsBaguetteGr <= 0 || !coeffRendement || coeffRendement <= 0) return 0;
+  return Math.round((50 * coeffRendement) / poidsBaguetteGr);
+};

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import { formatCurrency } from '../../utils/currency';
-import { formaterQuantite } from '../../utils/calculations';
+import { formaterQuantite, getParametresRendement, calculerRendementTheoriqueParSac } from '../../utils/calculations';
 import type { MouvementStock, MatierePremiere } from '../../types/stock';
 import type { Depense } from '../../types/depense';
 import type { ProgrammeProduction } from '../../types/production';
@@ -93,9 +93,17 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
     return { totalPains: pains, sacsFarinePetris: sacs };
   }, [programmes, debutDate, finDate]);
 
-  // Rendement Farine : pains sortis par sac
+  // Rendement Farine : pièces sorties par sac vs norme théorique (50 kg × 1,366 ÷ poids baguette)
+  const paramsRendement = getParametresRendement();
+  const rendementTheorique = calculerRendementTheoriqueParSac(
+    paramsRendement.poidsBaguetteGr,
+    paramsRendement.coeffRendement
+  );
   const rendementFarine = sacsFarinePetris > 0 && totalPains > 0
     ? Math.round(totalPains / sacsFarinePetris)
+    : null;
+  const tauxAtteinteRendement = rendementFarine && rendementTheorique > 0
+    ? Math.round((rendementFarine / rendementTheorique) * 100)
     : null;
 
   // 3. MATIÈRES PREMIÈRES CONSOMMÉES
@@ -388,14 +396,12 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
                 </span>
               )}
             </div>
-            {rendementFarine && (
+            {rendementFarine && tauxAtteinteRendement !== null && (
               <p className={`text-[11px] font-semibold mt-1 inline-flex items-center gap-1 ${
-                rendementFarine >= 125 ? 'text-emerald-600' : 'text-amber-600'
+                tauxAtteinteRendement >= 95 ? 'text-emerald-600' : 'text-amber-600'
               }`}>
-                <Icon icon={rendementFarine >= 125 ? 'mdi:check-circle-outline' : 'mdi:alert-outline'} className="w-3.5 h-3.5" />
-                {rendementFarine >= 125
-                  ? 'Bon rendement (≥ 125 baguettes/sac)'
-                  : 'Rendement faible (surveiller le dosage)'}
+                <Icon icon={tauxAtteinteRendement >= 95 ? 'mdi:check-circle-outline' : 'mdi:alert-outline'} className="w-3.5 h-3.5" />
+                {tauxAtteinteRendement}% de la norme ({rendementTheorique} pcs/sac · {paramsRendement.poidsBaguetteGr} g)
               </p>
             )}
           </div>

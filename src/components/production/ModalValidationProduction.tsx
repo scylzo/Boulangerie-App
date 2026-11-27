@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import {
+  getParametresRendement,
+  saveParametresRendement,
+  calculerRendementTheoriqueParSac
+} from '../../utils/calculations';
 
 interface ModalValidationProductionProps {
   isOpen: boolean;
@@ -21,16 +26,38 @@ export const ModalValidationProduction: React.FC<ModalValidationProductionProps>
   sacsInitiaux
 }) => {
   const [sacsFarine, setSacsFarine] = useState<number>(sacsInitiaux || 0);
+  const [poidsBaguette, setPoidsBaguette] = useState<number>(() => getParametresRendement().poidsBaguetteGr);
+  const [coeffRendement, setCoeffRendement] = useState<number>(() => getParametresRendement().coeffRendement);
+  const [showParams, setShowParams] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setSacsFarine(sacsInitiaux && sacsInitiaux > 0 ? sacsInitiaux : 0);
+      const saved = getParametresRendement();
+      setPoidsBaguette(saved.poidsBaguetteGr);
+      setCoeffRendement(saved.coeffRendement);
     }
   }, [isOpen, sacsInitiaux]);
 
-  // Rendement : nombre de pièces par sac
-  const rendement = sacsFarine > 0 ? Math.round(totalPains / sacsFarine) : 0;
+  const handlePoidsChange = (val: number) => {
+    const clean = Math.max(1, val);
+    setPoidsBaguette(clean);
+    saveParametresRendement({ poidsBaguetteGr: clean, coeffRendement });
+  };
+
+  const handleCoeffChange = (val: number) => {
+    const clean = Math.max(1, val);
+    setCoeffRendement(clean);
+    saveParametresRendement({ poidsBaguetteGr: poidsBaguette, coeffRendement: clean });
+  };
+
+  // Rendement théorique (50 kg × coeff ÷ poids baguette) et rendement constaté
+  const rendementTheorique = calculerRendementTheoriqueParSac(poidsBaguette, coeffRendement);
+  const rendementConstate = sacsFarine > 0 ? Math.round(totalPains / sacsFarine) : 0;
+  const tauxAtteinte = rendementTheorique > 0 && rendementConstate > 0
+    ? Math.round((rendementConstate / rendementTheorique) * 100)
+    : 0;
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
@@ -46,7 +73,7 @@ export const ModalValidationProduction: React.FC<ModalValidationProductionProps>
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Clôturer la production">
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* En-tête informatif */}
         <div className="flex items-start gap-3 p-3.5 bg-sand-50 rounded-xl border border-sand-200">
           <Icon icon="mdi:bread-slice" className="w-8 h-8 text-terracotta-600 shrink-0 mt-0.5" />
@@ -97,19 +124,96 @@ export const ModalValidationProduction: React.FC<ModalValidationProductionProps>
           </div>
         </div>
 
+        {/* Paramètres de référence (poids baguette & coefficient 1366) */}
+        <div className="rounded-xl border border-sand-200 bg-sand-50/70 p-3 space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xs text-sand-700">
+              <span className="font-semibold text-sand-900">Norme théorique :</span>{' '}
+              <strong className="text-terracotta-700">{rendementTheorique} pcs / sac</strong>{' '}
+              <span className="text-sand-500">
+                (50 kg × {(coeffRendement / 1000).toFixed(3).replace('.', ',')} ÷ {poidsBaguette} g)
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowParams(prev => !prev)}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold bg-white border border-sand-200 text-sand-700 hover:bg-sand-100 transition-colors shrink-0"
+            >
+              <Icon icon="mdi:tune-variant" className="w-3.5 h-3.5" />
+              <span>{showParams ? 'Masquer' : 'Modifier'}</span>
+            </button>
+          </div>
+
+          {showParams && (
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-sand-200/80">
+              <div>
+                <label className="block text-[11px] font-semibold text-sand-600 mb-1">
+                  Poids baguette (g)
+                </label>
+                <input
+                  type="number"
+                  min="50"
+                  step="10"
+                  value={poidsBaguette}
+                  onChange={(e) => handlePoidsChange(parseFloat(e.target.value) || 300)}
+                  className="w-full px-2.5 py-1.5 text-sm font-bold bg-white border border-sand-300 rounded-lg text-sand-900 focus:border-terracotta-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-sand-600 mb-1">
+                  Coefficient rendement
+                </label>
+                <input
+                  type="number"
+                  min="500"
+                  step="1"
+                  value={coeffRendement}
+                  onChange={(e) => handleCoeffChange(parseFloat(e.target.value) || 1366)}
+                  className="w-full px-2.5 py-1.5 text-sm font-bold bg-white border border-sand-300 rounded-lg text-sand-900 focus:border-terracotta-500 outline-none"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Calcul du rendement en direct */}
         {sacsFarine > 0 && totalPains > 0 && (
-          <div className="p-4 rounded-xl border bg-sand-50 border-sand-200 text-sand-900 flex items-center justify-between">
+          <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 ${
+            tauxAtteinte >= 95
+              ? 'bg-success-50 border-success-200 text-success-900'
+              : tauxAtteinte >= 88
+              ? 'bg-amber-50 border-amber-200 text-amber-900'
+              : 'bg-rose-50 border-rose-200 text-rose-900'
+          }`}>
             <div>
-              <div className="text-xs font-bold uppercase tracking-wide text-sand-500">Rendement constaté</div>
-              <div className="text-xl font-bold mt-0.5">{rendement} pièces / sac de 50 kg</div>
+              <div className="text-xs font-bold uppercase tracking-wide opacity-80">Rendement constaté</div>
+              <div className="text-xl font-bold mt-0.5">{rendementConstate} pièces / sac</div>
+              <div className="text-[11px] opacity-80 mt-0.5">
+                {tauxAtteinte}% de la norme ({rendementTheorique} pcs/sac)
+              </div>
+            </div>
+            <div className="text-right text-xs font-semibold shrink-0">
+              {tauxAtteinte >= 95 ? (
+                <span className="inline-flex items-center gap-1 text-success-700">
+                  <Icon icon="mdi:check-circle" className="w-5 h-5" /> Conforme
+                </span>
+              ) : tauxAtteinte >= 88 ? (
+                <span className="inline-flex items-center gap-1 text-amber-700">
+                  <Icon icon="mdi:alert" className="w-5 h-5" /> Sous la norme
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-rose-700">
+                  <Icon icon="mdi:alert-circle" className="w-5 h-5" /> Écart important
+                </span>
+              )}
             </div>
           </div>
         )}
 
         {/* Note d'impact */}
         <p className="text-xs text-sand-500 bg-sand-50 p-3 rounded-lg border border-sand-200">
-          ℹ️ En confirmant, la production sera marquée comme <strong>terminée</strong> et le rendement par sac (<strong>{sacsFarine} sacs pétris</strong>) sera enregistré pour le suivi.
+          En confirmant, la production sera marquée comme <strong>terminée</strong> et les{' '}
+          <strong>{sacsFarine} sacs pétris</strong> seront enregistrés pour le suivi du rendement.
         </p>
 
         {/* Actions */}
