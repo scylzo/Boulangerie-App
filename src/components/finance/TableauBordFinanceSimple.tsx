@@ -73,24 +73,36 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
   const totalVentes = caBoutiquePos + caLivraison;
   const creancesEnAttente = Math.max(0, caLivraison - caLivraisonEncaisse);
 
-  // 2. PRODUCTION & SACS PÉTRIS
-  const { totalPains, sacsFarinePetris } = useMemo(() => {
+  // 2. PRODUCTION & SACS PÉTRIS (uniquement les journées clôturées avec sacs pétris > 0)
+  const { totalPains, sacsFarinePetris, nbJoursRendement } = useMemo(() => {
     let pains = 0;
     let sacs = 0;
+    let jours = 0;
+
+    const toSafeDate = (val: any): Date => {
+      if (!val) return new Date(NaN);
+      if (val instanceof Date) return val;
+      if (typeof val?.toDate === 'function') return val.toDate();
+      if (typeof val?.seconds === 'number') return new Date(val.seconds * 1000);
+      return new Date(val);
+    };
 
     programmes.forEach(p => {
-      const d = new Date(p.dateProduction || p.createdAt);
-      if (d >= debutDate && d <= finDate) {
-        if (p.totauxParProduit) {
-          pains += p.totauxParProduit.reduce((sum, item) => sum + (item.totalGlobal || 0), 0);
-        }
-        if (p.sacsFarinePetris) {
-          sacs += p.sacsFarinePetris;
+      const d = toSafeDate(p.dateProduction || p.createdAt);
+      if (!isNaN(d.getTime()) && d >= debutDate && d <= finDate) {
+        const nbSacs = Number(p.sacsFarinePetris) || 0;
+        if (nbSacs > 0 && p.totauxParProduit && p.totauxParProduit.length > 0) {
+          const painsJour = p.totauxParProduit.reduce((sum, item) => sum + (item.totalGlobal || 0), 0);
+          if (painsJour > 0) {
+            pains += painsJour;
+            sacs += nbSacs;
+            jours += 1;
+          }
         }
       }
     });
 
-    return { totalPains: pains, sacsFarinePetris: sacs };
+    return { totalPains: pains, sacsFarinePetris: sacs, nbJoursRendement: jours };
   }, [programmes, debutDate, finDate]);
 
   // Rendement Farine : pièces sorties par sac vs norme théorique (50 kg × 1,366 ÷ poids baguette)
@@ -392,7 +404,7 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
               </span>
               {sacsFarinePetris > 0 && (
                 <span className="text-xs text-sand-500">
-                  ({sacsFarinePetris} sacs pétris)
+                  ({sacsFarinePetris} sacs · {nbJoursRendement} j)
                 </span>
               )}
             </div>

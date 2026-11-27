@@ -153,7 +153,7 @@ export const Comptabilite: React.FC = () => {
                 where('dateProduction', '<=', dateToTimestamp(fin)),
                 limit(60)
             ]).then(progs => {
-                if (progs && progs.length > 0) setProgrammes(progs);
+                setProgrammes(progs || []);
             }).catch(err => {
                 console.warn('Programme production comptabilité non disponible ou quota:', err?.message || err);
             });
