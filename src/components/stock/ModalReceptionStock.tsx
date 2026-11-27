@@ -33,7 +33,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
   const [reference, setReference] = useState<string>('');
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [enregistrerEnDepense, setEnregistrerEnDepense] = useState(false);
-  const [modePaiement, setModePaiement] = useState<'Especes' | 'Mobile Money' | 'Cheque'>('Especes');
+  const [modePaiement, setModePaiement] = useState<'Especes' | 'Mobile Money' | 'Virement' | 'Cheque'>('Especes');
   const [unitReceptionId, setUnitReceptionId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -393,7 +393,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
                 <span>Enregistrer le règlement immédiat (Dépense)</span>
               </span>
               <span className="block text-[11px] text-sand-500 mt-0.5">
-                Crée automatiquement une charge dans le journal des dépenses pour refléter la sortie d&apos;argent.
+                Note aussi ce paiement dans votre onglet Dépenses (catégorie Intrants, sans aucun doublon dans votre bénéfice).
               </span>
             </div>
           </label>
@@ -403,8 +403,8 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
               <span className="block text-[11px] font-medium text-sand-600 mb-1.5">
                 Mode de règlement utilisé :
               </span>
-              <div className="grid grid-cols-3 gap-2">
-                {(['Especes', 'Mobile Money', 'Cheque'] as const).map(mode => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(['Especes', 'Mobile Money', 'Virement', 'Cheque'] as const).map(mode => (
                   <button
                     key={mode}
                     type="button"
@@ -425,10 +425,15 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
                         <Icon icon="mdi:cellphone" className="w-3.5 h-3.5" />
                         <span>Wave / OM</span>
                       </>
+                    ) : mode === 'Virement' ? (
+                      <>
+                        <Icon icon="mdi:bank-transfer" className="w-3.5 h-3.5" />
+                        <span>Banque / Vir.</span>
+                      </>
                     ) : (
                       <>
-                        <Icon icon="mdi:bank-outline" className="w-3.5 h-3.5" />
-                        <span>Chèque / Vir.</span>
+                        <Icon icon="mdi:checkbook" className="w-3.5 h-3.5" />
+                        <span>Chèque</span>
                       </>
                     )}
                   </button>

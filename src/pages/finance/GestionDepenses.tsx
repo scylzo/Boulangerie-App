@@ -10,6 +10,7 @@ import { DepenseForm } from '../../components/depenses/DepenseForm';
 import { DepenseList } from '../../components/depenses/DepenseList';
 import { FournisseurList } from '../../components/stock/FournisseurList';
 import { TrendingDown, Plus, Users, Wallet, FileText, RefreshCw, Package } from 'lucide-react';
+import { formaterNomUnite } from '../../utils/conditionnementStock';
 import type { Depense, CategorieDepense } from '../../types/depense';
 
 const CATEGORIES: CategorieDepense[] = [
@@ -90,7 +91,7 @@ export const GestionDepenses: React.FC = () => {
         montant: montant,
         categorie: 'Intrants',
         intrant: matiere ? matiere.nom : undefined,
-        description: `Achat Stock : ${matiere ? matiere.nom : 'Matière inconnue'} (${m.quantite} ${matiere?.unite})`,
+        description: `Achat Stock : ${matiere ? matiere.nom : 'Matière inconnue'} (${m.quantite} ${formaterNomUnite(matiere?.unite || '', m.quantite > 1)})`,
         fournisseur: fournisseur ? fournisseur.nom : undefined,
         auteur: m.auteur,
         validee: true,
@@ -141,21 +142,39 @@ export const GestionDepenses: React.FC = () => {
     return simpleDate >= startFilter && simpleDate <= endFilter;
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  // Calculer les totaux basés sur la liste affichée (WYSIWYG)
-  const totalDepenses = filteredDepenses.reduce((sum, d) => sum + d.montant, 0);
+  // Séparation claire selon l'onglet actif (évite d'additionner les livraisons Stock + les mémos banque Intrants)
+  const depensesGeneralesFiltrees = filteredDepenses.filter(d => !d.id.startsWith('stock_'));
+  const achatsStockFiltres = filteredDepenses.filter(d => d.id.startsWith('stock_'));
 
-  const parCategorie = filteredDepenses.reduce((acc, d) => {
+  // Dans l'onglet Dépenses Générales : distinguer Frais de fonctionnement (comptés en Compta) vs Paiements matières/banque (mémo)
+  const totalFonctionnement = depensesGeneralesFiltrees
+    .filter(d => d.categorie !== 'Intrants')
+    .reduce((sum, d) => sum + d.montant, 0);
+  const totalMemoIntrants = depensesGeneralesFiltrees
+    .filter(d => d.categorie === 'Intrants')
+    .reduce((sum, d) => sum + d.montant, 0);
+  const totalAchatsStock = achatsStockFiltres.reduce((sum, d) => sum + d.montant, 0);
+
+  // Liste active pour la répartition et les compteurs
+  const activeList = activeTab === 'stock' ? achatsStockFiltres : depensesGeneralesFiltrees;
+  const totalDepenses = activeTab === 'stock'
+    ? totalAchatsStock
+    : selectedCategory === 'Toutes' && selectedIntrant === 'Tous'
+      ? totalFonctionnement
+      : depensesGeneralesFiltrees.reduce((sum, d) => sum + d.montant, 0);
+
+  const parCategorie = activeList.reduce((acc, d) => {
     acc[d.categorie] = (acc[d.categorie] || 0) + d.montant;
     return acc;
   }, {} as Record<string, number>);
 
   const parIntrant = React.useMemo(() => {
-    return filteredDepenses.reduce((acc, d) => {
+    return activeList.reduce((acc, d) => {
       const nom = d.intrant || 'Autre / Non spécifié';
       acc[nom] = (acc[nom] || 0) + d.montant;
       return acc;
     }, {} as Record<string, number>);
-  }, [filteredDepenses]);
+  }, [activeList]);
 
   const handleEditDepense = (depense: Depense) => {
     if (depense.id.startsWith('stock_')) {
@@ -431,26 +450,47 @@ export const GestionDepenses: React.FC = () => {
       {activeTab !== 'fournisseurs' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-2xl shadow-card border border-sand-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sand-500 font-medium">
-                {selectedIntrant !== 'Tous'
-                  ? `Total : ${selectedIntrant}`
-                  : selectedCategory !== 'Toutes'
-                  ? `Total : ${selectedCategory}`
-                  : dateFilter.debut === new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0] &&
-                    (dateFilter.fin === new Date().toISOString().split('T')[0] ||
-                      dateFilter.fin === new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
-                  ? 'Total ce mois'
-                  : 'Total sur la période'}
-              </h3>
-              <div className="w-11 h-11 bg-danger-50 text-danger-600 rounded-full flex items-center justify-center">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-sand-600 font-semibold text-sm">
+                  {activeTab === 'stock'
+                    ? 'Total livraisons Stock'
+                    : selectedIntrant !== 'Tous'
+                    ? `Total : ${selectedIntrant}`
+                    : selectedCategory !== 'Toutes'
+                    ? `Total : ${selectedCategory}`
+                    : 'Frais de fonctionnement'}
+                </h3>
+                {activeTab === 'generales' && selectedCategory === 'Toutes' && selectedIntrant === 'Tous' && (
+                  <p className="text-[11px] text-sand-400">
+                    Carburant, élec, loyer, salaires… (compté en Compta)
+                  </p>
+                )}
+              </div>
+              <div className="w-11 h-11 bg-danger-50 text-danger-600 rounded-full flex items-center justify-center shrink-0">
                 <TrendingDown size={20} />
               </div>
             </div>
             <p className="font-display text-3xl font-semibold text-sand-900">{totalDepenses.toLocaleString()} FCFA</p>
-            <p className="text-xs text-sand-500 mt-2">
-              {filteredDepenses.length} dépense{filteredDepenses.length > 1 ? 's' : ''} trouvée{filteredDepenses.length > 1 ? 's' : ''}
+            <p className="text-xs text-sand-500 mt-1.5">
+              {activeList.length} ligne{activeList.length > 1 ? 's' : ''} sur la période
             </p>
+            {activeTab === 'generales' && selectedCategory === 'Toutes' && selectedIntrant === 'Tous' && totalMemoIntrants > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('Intrants')}
+                className="mt-3 w-full text-left px-3 py-2 rounded-xl bg-sky-50 hover:bg-sky-100/80 border border-sky-200 transition-colors"
+                title="Cliquer pour voir uniquement vos paiements matières / banque"
+              >
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-sky-900">Mémo paiements matières / banque</span>
+                  <span className="font-bold text-sky-800">{totalMemoIntrants.toLocaleString()} FCFA</span>
+                </div>
+                <p className="text-[10px] text-sky-700 mt-0.5">
+                  Historique uniquement · pas compté en double en Compta
+                </p>
+              </button>
+            )}
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-card border border-sand-200 md:col-span-2">

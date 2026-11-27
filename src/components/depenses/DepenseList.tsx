@@ -121,6 +121,20 @@ export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, onDeleteStock,
                           {depense.intrant}
                         </span>
                       )}
+                      {depense.moyenPaiement && (
+                        <span className="inline-flex items-center text-[11px] text-sand-600 bg-sand-100 px-2 py-0.5 rounded font-medium">
+                          <CreditCard size={11} className="mr-1 text-sand-500" />
+                          {depense.moyenPaiement === 'Especes' ? 'Espèces' : depense.moyenPaiement === 'Cheque' ? 'Chèque' : depense.moyenPaiement}
+                        </span>
+                      )}
+                      {depense.categorie === 'Intrants' && !depense.id.startsWith('stock_') && (
+                        <span
+                          className="inline-flex items-center text-[11px] text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded font-medium"
+                          title="Cette ligne sert d'historique de paiement. En Comptabilité, le coût des matières vient de vos consommations de Stock pour éviter tout doublon."
+                        >
+                          Mémo paiement · Pas de doublon en Compta
+                        </span>
+                      )}
                       {depense.fournisseur && (
                         <div className="flex items-center text-xs text-sand-500">
                           <Building2 size={12} className="mr-1" />

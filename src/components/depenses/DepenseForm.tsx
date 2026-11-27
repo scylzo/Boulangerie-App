@@ -30,7 +30,7 @@ const QUICK_CATEGORIES: { id: CategorieDepense; label: string; icon: React.React
   { id: 'Électricité', label: 'Électricité', icon: <Zap size={15} /> },
   { id: 'Eau', label: 'Eau', icon: <Droplet size={15} /> },
   { id: 'Entretien', label: 'Entretien', icon: <Wrench size={15} /> },
-  { id: 'Intrants', label: 'Glace / Intrants', icon: <Snowflake size={15} /> },
+  { id: 'Intrants', label: 'Matières / Banque', icon: <Snowflake size={15} /> },
   { id: 'Divers', label: 'Divers', icon: <Package size={15} /> },
 ];
 
@@ -150,9 +150,7 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
                     onClick={() => {
                       setFormData(prev => ({
                         ...prev,
-                        categorie: cat.id,
-                        intrant: cat.id === 'Intrants' && !prev.intrant ? 'Glace' : prev.intrant,
-                        description: prev.description || (cat.id === 'Intrants' ? 'Achat sacs de glace' : '')
+                        categorie: cat.id
                       }));
                     }}
                     className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium border transition-all text-left ${
@@ -180,9 +178,14 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
             </select>
           </div>
 
-          {/* Intrant spécifique si Intrants / Glace sélectionné */}
+          {/* Intrant spécifique si Intrants / Banque sélectionné */}
           {(formData.categorie === 'Intrants' || formData.intrant !== '') && (
             <div className="bg-sky-50/70 p-3.5 rounded-xl border border-sky-200 space-y-2">
+              {formData.categorie === 'Intrants' && (
+                <p className="text-[11px] text-sky-800 bg-white/80 border border-sky-200/80 rounded-lg px-2.5 py-2 leading-relaxed">
+                  <strong>Mode bloc-note paiement :</strong> idéal pour noter un versement banque ou un paiement de farine/glace. Cette ligne est gardée dans votre historique et <strong>n&apos;est pas comptée en double</strong> dans votre bénéfice (déjà calculé avec vos consommations de Stock).
+                </p>
+              )}
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-semibold text-sky-900">
                   Matière ou intrant acheté {formData.categorie === 'Intrants' && <span className="text-danger-500">*</span>}
