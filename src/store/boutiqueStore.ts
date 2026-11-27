@@ -76,6 +76,25 @@ interface BoutiqueStore {
 // Debounce pour la sauvegarde automatique
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
+// Nettoie récursivement les champs `undefined` avant écriture Firestore
+const stripUndefinedDeep = <T,>(obj: T): T => {
+  if (obj === null || obj === undefined) return obj;
+  if (obj instanceof Date) return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(item => stripUndefinedDeep(item)) as unknown as T;
+  }
+  if (typeof obj === 'object') {
+    const cleaned: Record<string, any> = {};
+    Object.entries(obj as Record<string, any>).forEach(([k, v]) => {
+      if (v !== undefined) {
+        cleaned[k] = stripUndefinedDeep(v);
+      }
+    });
+    return cleaned as T;
+  }
+  return obj;
+};
+
 export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
   // État initial
   stockJour: null,
@@ -866,7 +885,6 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
   calculerVentesBoutique: () => {
     const { stockJour, equipeMatin, equipeSoir } = get();
     if (!stockJour || !equipeMatin) return;
-    if (!stockJour.isJourneeContinue && !equipeSoir) return;
 
     // Collecter tous les IDs de produits uniques présents dans le stock OU les équipes
     const allProduitIds = new Set<string>();
@@ -886,14 +904,14 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
         const vMatin = pMatin?.vendu || 0;
         const rMidi = pMatin?.reste || 0;
         const vSoir = stockJour.isJourneeContinue ? 0 : (pSoir?.vendu || 0);
-        const invendu = stockJour.isJourneeContinue ? rMidi : (pSoir?.reste || 0);
+        const invendu = (stockJour.isJourneeContinue || !equipeSoir) ? rMidi : (pSoir?.reste || 0);
 
         // Récupérer les infos produit depuis n'importe quelle source disponible
         const infoProduit = stockProduit?.produit || pMatin?.produit || pSoir?.produit;
 
         return {
           produitId,
-          produit: infoProduit,
+          ...(infoProduit ? { produit: infoProduit } : {}),
           stockDebut: stockProduit?.stockDebut || pMatin?.stockDebut || 0,
           venduMatin: vMatin,
           resteMidi: rMidi,
@@ -928,7 +946,8 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const docId = `${equipe.date.toISOString().split('T')[0]}_${periode}`;
-      await setDoc(doc(db, 'shopShifts', docId), { ...equipe, updatedAt: new Date() }, { merge: true });
+      const payload = stripUndefinedDeep({ ...equipe, updatedAt: new Date() });
+      await setDoc(doc(db, 'shopShifts', docId), payload, { merge: true });
       set({ isLoading: false });
     } catch (error) {
       set({ isLoading: false });
@@ -942,7 +961,8 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const docId = `ventes_${ventesJour.date.toISOString().split('T')[0]}`;
-      await setDoc(doc(db, 'shopSales', docId), { ...ventesJour, updatedAt: new Date() }, { merge: true });
+      const payload = stripUndefinedDeep({ ...ventesJour, updatedAt: new Date() });
+      await setDoc(doc(db, 'shopSales', docId), payload, { merge: true });
       set({ isLoading: false });
     } catch (error) {
       set({ isLoading: false });
@@ -979,22 +999,63 @@ export const useBoutiqueStore = create<BoutiqueStore>((set, get) => ({
 
   getVentesPeriode: async (dateDebut: Date, dateFin: Date) => {
     try {
-      const q = query(collection(db, 'shopSales'), where('date', '>=', dateToTimestamp(dateDebut)), where('date', '<=', dateToTimestamp(dateFin)));
-      const snapshot = await getDocs(q);
       if (get().produits.length === 0) await get().chargerProduits();
       const catalogue = get().produits;
-      let total = 0;
-      snapshot.docs.forEach(doc => {
-        const data = doc.data() as VentesBoutique;
-        total += data.produits.reduce((acc, p) => {
-          let prix = p.produit?.prixBoutique || p.produit?.prixUnitaire || 0;
-          if (!prix) {
-            const inCat = catalogue.find(cp => cp.id === p.produitId);
-            prix = inCat?.prixBoutique || inCat?.prixUnitaire || 0;
-          }
-          return acc + (p.venduTotal * prix);
+
+      const getPrixProduit = (produitId: string, embedded?: any): number => {
+        const pEmbedded = embedded?.prixBoutique || embedded?.prixUnitaire || 0;
+        if (pEmbedded > 0) return pEmbedded;
+        const inCat = catalogue.find(cp => cp.id === produitId);
+        return inCat?.prixBoutique || inCat?.prixUnitaire || 0;
+      };
+
+      const toDayKey = (raw: any, fallbackId?: string): string => {
+        if (fallbackId) {
+          const match = fallbackId.match(/(\d{4}-\d{2}-\d{2})/);
+          if (match) return match[1];
+        }
+        const d = raw instanceof Date ? raw : raw?.toDate ? raw.toDate() : new Date(raw);
+        if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
+        return '';
+      };
+
+      const [salesSnap, shiftsSnap] = await Promise.all([
+        getDocs(query(collection(db, 'shopSales'), where('date', '>=', dateToTimestamp(dateDebut)), where('date', '<=', dateToTimestamp(dateFin)))),
+        getDocs(query(collection(db, 'shopShifts'), where('date', '>=', dateToTimestamp(dateDebut)), where('date', '<=', dateToTimestamp(dateFin))))
+      ]);
+
+      // 1. Calcul par jour depuis shopSales (prioritaire quand renseigné)
+      const totalParJourSales = new Map<string, number>();
+      salesSnap.docs.forEach(docu => {
+        const data = docu.data() as VentesBoutique;
+        const dayKey = toDayKey(data.date, docu.id);
+        const montantJour = (data.produits || []).reduce((acc, p) => {
+          const qty = p.venduTotal || ((p.venduMatin || 0) + (p.venduSoir || 0));
+          return acc + (qty * getPrixProduit(p.produitId, p.produit));
         }, 0);
+        if (montantJour > 0 && dayKey) {
+          totalParJourSales.set(dayKey, (totalParJourSales.get(dayKey) || 0) + montantJour);
+        }
       });
+
+      // 2. Fallback par jour depuis shopShifts (si shopSales absent ou à 0 pour cette journée)
+      const totalParJourShifts = new Map<string, number>();
+      shiftsSnap.docs.forEach(docu => {
+        const data = docu.data() as EquipeBoutique;
+        const dayKey = toDayKey(data.date, docu.id);
+        if (!dayKey || totalParJourSales.has(dayKey)) return;
+        const montantShift = (data.produits || []).reduce((acc, p) => {
+          const qty = p.vendu || 0;
+          return acc + (qty * getPrixProduit(p.produitId, p.produit));
+        }, 0);
+        if (montantShift > 0) {
+          totalParJourShifts.set(dayKey, (totalParJourShifts.get(dayKey) || 0) + montantShift);
+        }
+      });
+
+      let total = 0;
+      totalParJourSales.forEach(v => { total += v; });
+      totalParJourShifts.forEach(v => { total += v; });
       return total;
     } catch (e) { console.error(e); return 0; }
   },
