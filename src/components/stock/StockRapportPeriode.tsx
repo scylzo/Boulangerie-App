@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import { useStockStore } from '../../store/stockStore';
 import { formatCurrency } from '../../utils/currency';
 import { formaterQuantite } from '../../utils/calculations';
+import { formaterNomUnite } from '../../utils/conditionnementStock';
 
 type PeriodePreset = 'aujourdhui' | '7jours' | '30jours' | 'ce_mois' | 'mois_dernier' | 'personnalise';
 
@@ -394,7 +395,7 @@ export const StockRapportPeriode: React.FC = () => {
                       <td className="py-3 px-4">
                         <div className="font-semibold text-sand-900">{r.nom}</div>
                         <div className="text-[11px] text-sand-400">
-                          Unité : <span className="font-medium text-sand-600">{r.unite}</span>
+                          Unité : <span className="font-medium text-sand-600">{formaterNomUnite(r.unite)}</span>
                         </div>
                       </td>
 
@@ -422,7 +423,7 @@ export const StockRapportPeriode: React.FC = () => {
                       <td className="py-3 px-4 text-right font-medium">
                         {r.correctionsQte !== 0 ? (
                           <span className={r.correctionsQte > 0 ? 'text-amber-700' : 'text-rose-600'}>
-                            {r.correctionsQte > 0 ? '+' : ''}{r.correctionsQte} {r.unite}
+                            {r.correctionsQte > 0 ? '+' : ''}{formaterQuantite(r.correctionsQte, r.unite)}
                           </span>
                         ) : (
                           <span className="text-sand-300">—</span>

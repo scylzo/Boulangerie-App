@@ -5,7 +5,7 @@ import { useStockStore } from '../../store/stockStore';
 import { useDepenseStore } from '../../store/depenseStore';
 import { useAuthStore } from '../../store';
 import { formatCurrency } from '../../utils/currency';
-import { getOptionsConditionnement } from '../../utils/conditionnementStock';
+import { getOptionsConditionnement, formaterNomUnite } from '../../utils/conditionnementStock';
 import toast from 'react-hot-toast';
 import type { MatierePremiere } from '../../types/stock';
 
@@ -123,9 +123,10 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
       const dateObj = new Date(date);
       dateObj.setHours(12, 0, 0, 0);
 
+      const unitLabelBase = formaterNomUnite(selectedMatiere.unite);
       const motifTexte = factor !== 1
-        ? `Réception livraison : ${qteNum} ${optionActive?.labelCourt || ''} (${qteBase} ${selectedMatiere.unite}) de ${selectedMatiere.nom}`
-        : `Réception livraison : ${qteNum} ${selectedMatiere.unite} de ${selectedMatiere.nom}`;
+        ? `Réception livraison : ${qteNum} ${optionActive?.labelCourt || ''} (${qteBase} ${unitLabelBase}) de ${selectedMatiere.nom}`
+        : `Réception livraison : ${qteNum} ${unitLabelBase} de ${selectedMatiere.nom}`;
 
       // 1. Enregistrer le mouvement d'entrée en stock
       await addMouvement({
@@ -150,7 +151,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
           montant: montantTotal,
           categorie: 'Intrants',
           intrant: selectedMatiere.nom,
-          description: `Achat stock : ${qteNum} ${optionActive?.labelCourt || selectedMatiere.unite} de ${selectedMatiere.nom}${reference ? ` (Réf: ${reference})` : ''}`,
+          description: `Achat stock : ${qteNum} ${optionActive?.labelCourt || unitLabelBase} de ${selectedMatiere.nom}${reference ? ` (Réf: ${reference})` : ''}`,
           fournisseur: fournisseurs.find(f => f.id === fournisseurId)?.nom,
           moyenPaiement: modePaiement,
           userId: user?.id || 'system'
@@ -158,7 +159,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
       }
 
       toast.success(
-        `Réception enregistrée : +${qteNum} ${optionActive?.labelCourt || selectedMatiere.unite} (+${qteBase} ${selectedMatiere.unite}) de ${selectedMatiere.nom} !`
+        `Réception enregistrée : +${qteNum} ${optionActive?.labelCourt || unitLabelBase} (+${qteBase} ${unitLabelBase}) de ${selectedMatiere.nom} !`
       );
 
       if (onSuccess) onSuccess();
@@ -196,7 +197,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
             </label>
             {selectedMatiere && (
               <span className="text-[11px] text-sand-500 font-medium bg-sand-100 px-2 py-0.5 rounded-md">
-                Stock actuel : <strong className="text-sand-900">{selectedMatiere.stockActuel} {selectedMatiere.unite}</strong>
+                Stock actuel : <strong className="text-sand-900">{selectedMatiere.stockActuel} {formaterNomUnite(selectedMatiere.unite, selectedMatiere.stockActuel > 1)}</strong>
               </span>
             )}
           </div>
@@ -223,7 +224,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
             >
               {matieres.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.nom} ({m.unite})
+                  {m.nom} ({formaterNomUnite(m.unite)})
                 </option>
               ))}
             </select>
@@ -267,7 +268,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-sand-700 mb-1.5">
-              Quantité reçue ({optionActive?.labelCourt || selectedMatiere?.unite}) <span className="text-danger-500">*</span>
+              Quantité reçue ({optionActive?.labelCourt || formaterNomUnite(selectedMatiere?.unite || '')}) <span className="text-danger-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -277,23 +278,23 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
                 placeholder={isFarine ? 'Ex: 50' : isGlace ? 'Ex: 8' : '0'}
                 value={quantite}
                 onChange={(e) => setQuantite(e.target.value)}
-                className="w-full py-2 pl-3 pr-20 text-sm font-semibold bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
+                className="w-full py-2 pl-3 pr-24 text-sm font-semibold bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
                 required
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-sand-400 bg-sand-50 px-1.5 py-0.5 rounded truncate max-w-[70px]">
-                {optionActive?.labelCourt || selectedMatiere?.unite || 'unité'}
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-sand-500 bg-sand-50 px-1.5 py-0.5 rounded truncate max-w-[85px]">
+                {optionActive?.labelCourt || formaterNomUnite(selectedMatiere?.unite || '') || 'unité'}
               </span>
             </div>
             {optionActive && optionActive.factor !== 1 && quantiteBaseCalculee > 0 && (
               <p className="text-[11px] font-semibold text-emerald-700 mt-1">
-                = {quantiteBaseCalculee} {selectedMatiere?.unite} ajoutés au stock
+                = {quantiteBaseCalculee} {formaterNomUnite(selectedMatiere?.unite || '', quantiteBaseCalculee > 1)} ajoutés au stock
               </p>
             )}
           </div>
 
           <div>
             <label className="block text-xs font-medium text-sand-700 mb-1.5">
-              Prix payé par {optionActive?.labelCourt || selectedMatiere?.unite}
+              Prix payé par {optionActive?.labelCourt || formaterNomUnite(selectedMatiere?.unite || '')}
             </label>
             <div className="relative">
               <input
@@ -303,10 +304,10 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
                 placeholder={isFarine ? '18000' : isGlace ? '1500' : '0'}
                 value={prixUnitaire}
                 onChange={(e) => setPrixUnitaire(e.target.value)}
-                className="w-full py-2 pl-3 pr-20 text-sm font-semibold bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
+                className="w-full py-2 pl-3 pr-24 text-sm font-semibold bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-medium text-sand-400 bg-sand-50 px-1.5 py-0.5 rounded">
-                F/{optionActive?.labelCourt || selectedMatiere?.unite || 'u'}
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-medium text-sand-500 bg-sand-50 px-1.5 py-0.5 rounded">
+                F/{optionActive?.labelCourt || formaterNomUnite(selectedMatiere?.unite || '') || 'u'}
               </span>
             </div>
           </div>

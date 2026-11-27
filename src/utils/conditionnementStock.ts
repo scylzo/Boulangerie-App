@@ -7,6 +7,41 @@ export interface OptionConditionnement {
 }
 
 /**
+ * Formate proprement les libellés d'unités de mesure (évite les identifiants techniques bruts comme sac_50kg).
+ */
+export const formaterNomUnite = (unite: string, pluriel: boolean = false): string => {
+  if (!unite) return '';
+  const clean = unite.trim().toLowerCase();
+  switch (clean) {
+    case 'sac_50kg':
+      return pluriel ? 'sacs (50kg)' : 'sac (50kg)';
+    case 'sac_25kg':
+      return pluriel ? 'sacs (25kg)' : 'sac (25kg)';
+    case 'sac':
+      return pluriel ? 'sacs' : 'sac';
+    case 'sachet':
+      return pluriel ? 'sachets' : 'sachet';
+    case 'carton':
+      return pluriel ? 'cartons' : 'carton';
+    case 'piece':
+    case 'pièce':
+      return pluriel ? 'pièces' : 'pièce';
+    case 'kg':
+    case 'kilo':
+      return 'kg';
+    case 'g':
+      return 'g';
+    case 'l':
+    case 'litre':
+      return pluriel ? 'litres' : 'litre';
+    case 'ml':
+      return 'ml';
+    default:
+      return unite.replace(/_/g, ' ');
+  }
+};
+
+/**
  * Détecte si une matière première utilise généralement des conditionnements intermédiaires
  * (ex: Levure ou Magimix achetés par cartons de 20 sachets de 500g, ou Farine en sacs).
  */
@@ -94,12 +129,36 @@ export const getOptionsConditionnement = (
     ];
   }
 
+  if (unite === 'sac_50kg') {
+    return [
+      {
+        id: 'sac_50kg',
+        label: 'Sac (50kg)',
+        labelCourt: 'sac (50kg)',
+        factor: 1,
+        description: 'Sac standard 50kg'
+      }
+    ];
+  }
+
+  if (unite === 'sac_25kg') {
+    return [
+      {
+        id: 'sac_25kg',
+        label: 'Sac (25kg)',
+        labelCourt: 'sac (25kg)',
+        factor: 1,
+        description: 'Sac standard 25kg'
+      }
+    ];
+  }
+
   // Unité par défaut identique à l'unité de stockage
   return [
     {
       id: unite,
-      label: unite,
-      labelCourt: unite,
+      label: formaterNomUnite(unite),
+      labelCourt: formaterNomUnite(unite),
       factor: 1
     }
   ];

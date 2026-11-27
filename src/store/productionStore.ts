@@ -5,7 +5,6 @@ import type { ProgrammeProduction, CommandeClient, QuantiteBoutique, Produit, Cl
 import { firestoreService, businessQueries, realTimeListeners, dateToTimestamp, timestampToDate } from '../firebase/collections';
 import { activerModeSecours } from '../firebase/config';
 import { Timestamp } from 'firebase/firestore';
-import { useStockStore } from './stockStore';
 import { addToSyncQueue } from '../utils/syncQueue';
 
 
@@ -55,7 +54,7 @@ interface ProductionStore {
   sauvegarderEtRecharger: () => Promise<void>; // Sauvegarde + rechargement pour éviter les conflits
   envoyerAuBoulanger: () => Promise<void>;
   genererFacturesDuProgramme: () => Promise<void>;
-  validerProduction: (sacsFarine?: number) => Promise<void>; // Action pour déduire les stocks de farine
+  validerProduction: (sacsFarine?: number) => Promise<void>; // Valider la production et enregistrer les sacs pétris (rendement)
   marquerCommeModifie: () => void; // Marquer le programme comme modifié après envoi
   nettoyerListeners: () => void; // Nettoyer les listeners
   declencherAutoSauvegarde: () => void;
@@ -736,43 +735,8 @@ export const useProductionStore = create<ProductionStore>((set, get) => ({
     try {
       const nbSacs = sacsFarine !== undefined ? Number(sacsFarine) : (Number(programmeActuel.sacsFarinePetris) || 0);
 
-      // Si un nombre de sacs de farine pétris est renseigné, déduire automatiquement du stock
-      if (nbSacs > 0) {
-        const stockStore = useStockStore.getState();
-        if (stockStore.matieres.length === 0) {
-          await stockStore.chargerDonnees();
-        }
-        const matieres = useStockStore.getState().matieres;
-        const matiereFarine = matieres.find(m => 
-          m.nom.toLowerCase().includes('farine') && m.active
-        ) || matieres.find(m => m.nom.toLowerCase().includes('farine'));
-
-        if (matiereFarine) {
-          // Quantité à déduire selon l'unité de stockage (kg, sac, sac_50kg)
-          let quantiteADeduire = nbSacs;
-          if (matiereFarine.unite === 'kg' || matiereFarine.unite === 'g') {
-            quantiteADeduire = nbSacs * 50; // 50kg par sac standard
-          }
-
-          const dateProd = new Date(programmeActuel.dateProduction);
-          const dateStr = dateProd.toLocaleDateString('fr-FR');
-
-          await stockStore.addMouvement({
-            matiereId: matiereFarine.id,
-            quantite: quantiteADeduire,
-            type: 'consommation',
-            motif: `Production du ${dateStr} - ${nbSacs} sac(s) de farine pétri(s)`,
-            auteur: 'Boulangerie',
-            responsable: 'Chef Boulanger',
-            referenceDocument: `PROD-${programmeActuel.id.slice(-6)}`,
-            date: dateProd,
-            userId: 'system'
-          });
-          console.log(`✅ ${quantiteADeduire} ${matiereFarine.unite} de farine déduit(s) pour ${nbSacs} sac(s)`);
-        }
-      }
-
-      // Mettre à jour le statut du programme et enregistrer les sacs pétris
+      // Mettre à jour le statut du programme et enregistrer les sacs pétris (indicateur de rendement)
+      // Note: La consommation de matières premières est gérée exclusivement dans le module Stock
       const programmeValide = {
         ...programmeActuel,
         sacsFarinePetris: nbSacs > 0 ? nbSacs : programmeActuel.sacsFarinePetris,

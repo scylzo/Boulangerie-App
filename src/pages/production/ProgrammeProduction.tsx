@@ -710,7 +710,7 @@ export const ProgrammeProduction: React.FC = () => {
   const handleConfirmValidation = async (sacsFarine: number) => {
     try {
       await validerProduction(sacsFarine);
-      toast.success(`Production validée : ${sacsFarine} sac(s) de farine déduit(s) du stock`);
+      toast.success(`Production validée : ${sacsFarine} sac(s) de farine pétri(s)`);
     } catch (error) {
       toast.error('Erreur lors de la validation de la production');
     }

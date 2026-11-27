@@ -67,18 +67,21 @@ export const validerVente = (vendu: number, stockDebut: number): boolean => {
   return vendu >= 0 && vendu <= stockDebut && Number.isInteger(vendu);
 };
 
+import { formaterNomUnite } from './conditionnementStock';
+
 // Formatage
 export const formaterPourcentage = (valeur: number): string => {
   return `${valeur.toFixed(1)}%`;
 };
 
 export const formaterQuantite = (quantite: number, unite: string = ''): string => {
+  const libelleUnite = unite ? ' ' + formaterNomUnite(unite, Math.abs(quantite) > 1) : '';
   if (quantite === undefined || quantite === null || isNaN(quantite)) {
-    return `0${unite ? ' ' + unite : ''}`;
+    return `0${libelleUnite}`;
   }
   // Arrondir à 2 décimales pour éviter les problèmes de précision flottante (ex: -32.900000000000006 -> -32,9)
   const signe = quantite < 0 ? -1 : 1;
   const abs = Math.abs(quantite);
   const arrondie = signe * (Math.round((abs + Number.EPSILON) * 100) / 100);
-  return `${arrondie.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}${unite ? ' ' + unite : ''}`;
+  return `${arrondie.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}${libelleUnite}`;
 };

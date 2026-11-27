@@ -134,8 +134,7 @@ export const ModalValidationProduction: React.FC<ModalValidationProductionProps>
 
         {/* Note d'impact */}
         <p className="text-xs text-sand-500 bg-sand-50 p-3 rounded-lg border border-sand-200">
-          ℹ️ En confirmant, la production sera marquée comme <strong>terminée</strong> et{' '}
-          <strong>{sacsFarine * 50} kg ({sacsFarine} sacs)</strong> seront automatiquement déduits du stock de farine.
+          ℹ️ En confirmant, la production sera marquée comme <strong>terminée</strong> et le rendement par sac (<strong>{sacsFarine} sacs pétris</strong>) sera enregistré pour le suivi.
         </p>
 
         {/* Actions */}
@@ -150,7 +149,7 @@ export const ModalValidationProduction: React.FC<ModalValidationProductionProps>
             className="bg-terracotta-600 hover:bg-terracotta-700 text-white"
           >
             <Icon icon="mdi:check" className="w-5 h-5 mr-1" />
-            Confirmer et déduire le stock
+            Confirmer la production
           </Button>
         </div>
       </div>
