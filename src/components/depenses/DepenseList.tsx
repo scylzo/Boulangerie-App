@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDepenseStore } from '../../store/depenseStore';
-import { Trash2, Calendar, Tag, CreditCard, Building2, Edit2, Package } from 'lucide-react';
+import { Trash2, Calendar, Tag, CreditCard, Building2, Edit2 } from 'lucide-react';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import type { Depense } from '../../types/depense';
@@ -115,24 +115,10 @@ export const DepenseList: React.FC<DepenseListProps> = ({ onEdit, onDeleteStock,
                   <td className="px-6 py-4">
                     <div className="text-sm text-sand-900 font-medium">{depense.description}</div>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
-                      {depense.intrant && (
-                        <span className="inline-flex items-center text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-medium">
-                          <Package size={12} className="mr-1 text-amber-600" />
-                          {depense.intrant}
-                        </span>
-                      )}
                       {depense.moyenPaiement && (
                         <span className="inline-flex items-center text-[11px] text-sand-600 bg-sand-100 px-2 py-0.5 rounded font-medium">
                           <CreditCard size={11} className="mr-1 text-sand-500" />
                           {depense.moyenPaiement === 'Especes' ? 'Espèces' : depense.moyenPaiement === 'Cheque' ? 'Chèque' : depense.moyenPaiement}
-                        </span>
-                      )}
-                      {depense.categorie === 'Intrants' && !depense.id.startsWith('stock_') && (
-                        <span
-                          className="inline-flex items-center text-[11px] text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded font-medium"
-                          title="Cette ligne sert d'historique de paiement. En Comptabilité, le coût des matières vient de vos consommations de Stock pour éviter tout doublon."
-                        >
-                          Mémo paiement · Pas de doublon en Compta
                         </span>
                       )}
                       {depense.fournisseur && (

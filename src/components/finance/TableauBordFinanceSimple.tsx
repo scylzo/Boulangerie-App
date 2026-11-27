@@ -139,23 +139,19 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
     };
   }, [mouvements, matieres, debutDate, finDate]);
 
-  // 4. DÉPENSES OPÉRATIONNELLES (CHARGES) + MÉMO PAIEMENTS INTRANTS
-  const { coutGasoil, coutSalaires, coutEnergie, totalDepenses, totalMemoIntrants, depensesParCat } = useMemo(() => {
+  // 4. DÉPENSES OPÉRATIONNELLES (CHARGES)
+  const { coutGasoil, coutSalaires, coutEnergie, totalDepenses, depensesParCat } = useMemo(() => {
     let gasoil = 0;
     let salaires = 0;
     let energie = 0;
     let autres = 0;
-    let memoIntrants = 0;
     const parCat: Record<string, number> = {};
 
     depenses.forEach(dep => {
       const d = new Date(dep.date);
       if (d >= debutDate && d <= finDate) {
-        // Ignorer les intrants dans les charges pour ne pas doubler avec les consommations de stock
-        if (dep.categorie === 'Intrants') {
-          memoIntrants += (dep.montant || 0);
-          return;
-        }
+        // Ignorer d'éventuelles anciennes lignes Intrants pour ne pas doubler avec le stock
+        if (dep.categorie === 'Intrants') return;
 
         const cat = dep.categorie as string;
         const montant = dep.montant || 0;
@@ -183,7 +179,6 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
       coutEnergie: energie,
       coutAutres: autres,
       totalDepenses: total,
-      totalMemoIntrants: memoIntrants,
       depensesParCat: parCat
     };
   }, [depenses, debutDate, finDate]);
@@ -311,7 +306,7 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
               {formatCurrency(totalDepenses)}
             </div>
             <p className="text-[11px] text-rose-700 font-medium">
-              Source : Dépenses (hors paiements matières)
+              Source : Dépenses
             </p>
           </div>
           <div className="mt-4 pt-3 border-t border-sand-100 text-xs text-sand-600 space-y-1">
@@ -323,12 +318,6 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
               <span>Salaires & Énergie :</span>
               <strong className="text-sand-900">{formatCurrency(coutSalaires + coutEnergie)}</strong>
             </div>
-            {totalMemoIntrants > 0 && (
-              <div className="pt-1.5 mt-1.5 border-t border-sand-100 flex justify-between text-[11px] text-sky-700" title="Saisis en catégorie Intrants dans Dépenses : gardés en historique mais non additionnés ici car le coût matière est déjà dans la Carte 2.">
-                <span>Mémo banque / matières :</span>
-                <strong className="font-semibold">{formatCurrency(totalMemoIntrants)}</strong>
-              </div>
-            )}
           </div>
         </div>
 

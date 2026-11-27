@@ -3,7 +3,7 @@ import { useDepenseStore } from '../../store/depenseStore';
 import { useStockStore } from '../../store/stockStore';
 import { useAuthStore } from '../../store';
 import type { CategorieDepense, Depense } from '../../types/depense';
-import { X, Plus, Loader2, Save, ChevronDown, ChevronUp, Fuel, Users, Zap, Droplet, Wrench, Snowflake, Package } from 'lucide-react';
+import { X, Plus, Loader2, Save, ChevronDown, ChevronUp, Fuel, Users, Zap, Droplet, Wrench, Package } from 'lucide-react';
 
 interface DepenseFormProps {
   onDesc: () => void;
@@ -18,7 +18,6 @@ const CATEGORIES: CategorieDepense[] = [
   'Loyer',
   'Salaires',
   'Entretien',
-  'Intrants',
   'Marketing',
   'Transport',
   'Divers'
@@ -30,29 +29,27 @@ const QUICK_CATEGORIES: { id: CategorieDepense; label: string; icon: React.React
   { id: 'Électricité', label: 'Électricité', icon: <Zap size={15} /> },
   { id: 'Eau', label: 'Eau', icon: <Droplet size={15} /> },
   { id: 'Entretien', label: 'Entretien', icon: <Wrench size={15} /> },
-  { id: 'Intrants', label: 'Matières / Banque', icon: <Snowflake size={15} /> },
   { id: 'Divers', label: 'Divers', icon: <Package size={15} /> },
 ];
 
 export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData }) => {
-  const { ajouterDepense, modifierDepense, depenses } = useDepenseStore();
+  const { ajouterDepense, modifierDepense } = useDepenseStore();
   const { user } = useAuthStore();
-  const { fournisseurs, matieres, chargerDonnees } = useStockStore();
+  const { fournisseurs, chargerDonnees } = useStockStore();
 
   React.useEffect(() => {
-    if (fournisseurs.length === 0 || matieres.length === 0) {
+    if (fournisseurs.length === 0) {
       chargerDonnees();
     }
-  }, [fournisseurs.length, matieres.length, chargerDonnees]);
+  }, [fournisseurs.length, chargerDonnees]);
 
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [formData, setFormData] = useState({
-    categorie: initialData?.categorie || ('Carburant Véhicule' as CategorieDepense),
+    categorie: (initialData?.categorie && initialData.categorie !== 'Intrants' ? initialData.categorie : 'Carburant Véhicule') as CategorieDepense,
     montant: initialData?.montant ? initialData.montant.toString() : '',
     moyenPaiement: initialData?.moyenPaiement || ('Especes' as 'Especes' | 'Mobile Money' | 'Virement' | 'Cheque'),
     description: initialData?.description || '',
-    intrant: initialData?.intrant || '',
     fournisseur: initialData?.fournisseur || '',
     date: initialData ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     dateDebutUsage: initialData?.dateDebutUsage ? new Date(initialData.dateDebutUsage).toISOString().split('T')[0] : '',
@@ -60,33 +57,10 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
   });
 
   const [showManualInput, setShowManualInput] = useState(false);
-  const [showManualIntrant, setShowManualIntrant] = useState(false);
-
-  // Liste de suggestions d'intrants (matières du stock + intrants déjà saisis)
-  const intrantsOptions = React.useMemo(() => {
-    const set = new Set<string>();
-    // Priorité aux classiques boulangerie
-    set.add('Glace');
-    set.add('Levure');
-    set.add('Sel');
-    set.add('Améliorant');
-    matieres.forEach(m => {
-      if (m.nom?.trim()) set.add(m.nom.trim());
-    });
-    depenses.forEach(d => {
-      if (d.intrant?.trim()) set.add(d.intrant.trim());
-    });
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
-  }, [matieres, depenses]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-
-    if (formData.categorie === 'Intrants' && !formData.intrant.trim()) {
-      alert("Veuillez spécifier le nom de l'intrant (ex: Glace, Levure, etc.).");
-      return;
-    }
 
     setLoading(true);
     try {
@@ -94,8 +68,7 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
         categorie: formData.categorie,
         montant: Number(formData.montant),
         moyenPaiement: formData.moyenPaiement,
-        description: formData.description.trim() || `${formData.categorie}${formData.intrant ? ` - ${formData.intrant}` : ''}`,
-        intrant: formData.intrant.trim() || undefined,
+        description: formData.description.trim() || formData.categorie,
         fournisseur: formData.fournisseur || undefined,
         date: new Date(formData.date),
         dateDebutUsage: formData.dateDebutUsage ? new Date(formData.dateDebutUsage) : undefined,
@@ -177,104 +150,6 @@ export const DepenseForm: React.FC<DepenseFormProps> = ({ onDesc, initialData })
               ))}
             </select>
           </div>
-
-          {/* Intrant spécifique si Intrants / Banque sélectionné */}
-          {(formData.categorie === 'Intrants' || formData.intrant !== '') && (
-            <div className="bg-sky-50/70 p-3.5 rounded-xl border border-sky-200 space-y-2">
-              {formData.categorie === 'Intrants' && (
-                <p className="text-[11px] text-sky-800 bg-white/80 border border-sky-200/80 rounded-lg px-2.5 py-2 leading-relaxed">
-                  <strong>Mode bloc-note paiement :</strong> idéal pour noter un versement banque ou un paiement de farine/glace. Cette ligne est gardée dans votre historique et <strong>n&apos;est pas comptée en double</strong> dans votre bénéfice (déjà calculé avec vos consommations de Stock).
-                </p>
-              )}
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-semibold text-sky-900">
-                  Matière ou intrant acheté {formData.categorie === 'Intrants' && <span className="text-danger-500">*</span>}
-                </label>
-                {formData.categorie !== 'Intrants' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormData({ ...formData, intrant: '' });
-                      setShowManualIntrant(false);
-                    }}
-                    className="text-xs text-sand-500 hover:text-danger-600 underline"
-                  >
-                    Retirer
-                  </button>
-                )}
-              </div>
-
-              {/* Raccourcis express pour la glace et levure */}
-              <div className="flex flex-wrap gap-1.5">
-                {['Glace', 'Levure', 'Sel', 'Améliorant'].map(item => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => {
-                      setShowManualIntrant(false);
-                      setFormData(prev => ({
-                        ...prev,
-                        intrant: item,
-                        description: prev.description || `Achat ${item}`
-                      }));
-                    }}
-                    className={`px-2.5 py-1 text-xs rounded-lg border font-medium transition-colors ${
-                      formData.intrant.toLowerCase() === item.toLowerCase()
-                        ? 'bg-sky-600 text-white border-sky-600'
-                        : 'bg-white text-sky-800 border-sky-200 hover:bg-sky-100'
-                    }`}
-                  >
-                    {item === 'Glace' ? '❄️ Glace' : item}
-                  </button>
-                ))}
-              </div>
-
-              <div>
-                <select
-                  value={
-                    showManualIntrant
-                      ? 'autre'
-                      : intrantsOptions.includes(formData.intrant)
-                      ? formData.intrant
-                      : formData.intrant
-                      ? 'autre'
-                      : ''
-                  }
-                  onChange={e => {
-                    const val = e.target.value;
-                    if (val === 'autre') {
-                      setShowManualIntrant(true);
-                      setFormData({ ...formData, intrant: '' });
-                    } else {
-                      setShowManualIntrant(false);
-                      setFormData({ ...formData, intrant: val });
-                    }
-                  }}
-                  className="w-full p-2 border border-sky-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none bg-white text-xs"
-                >
-                  <option value="">-- Autre intrant de la liste --</option>
-                  {intrantsOptions.map(nom => (
-                    <option key={nom} value={nom}>
-                      {nom}
-                    </option>
-                  ))}
-                  <option value="autre">Autre (Saisie libre)</option>
-                </select>
-              </div>
-
-              {(showManualIntrant || (formData.intrant !== '' && !intrantsOptions.includes(formData.intrant))) && (
-                <input
-                  type="text"
-                  required={formData.categorie === 'Intrants'}
-                  value={formData.intrant}
-                  onChange={e => setFormData({ ...formData, intrant: e.target.value })}
-                  className="w-full p-2 border border-sky-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none text-xs bg-white"
-                  placeholder="Ex: Sacs de glace, Levure fraîche, Sucre..."
-                  autoFocus={showManualIntrant && formData.intrant === ''}
-                />
-              )}
-            </div>
-          )}
 
           {/* Montant & Date */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

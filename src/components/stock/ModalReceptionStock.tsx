@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import { Modal } from '../ui/Modal';
 import { useStockStore } from '../../store/stockStore';
-import { useDepenseStore } from '../../store/depenseStore';
 import { useAuthStore } from '../../store';
 import { formatCurrency } from '../../utils/currency';
 import { getOptionsConditionnement, formaterNomUnite } from '../../utils/conditionnementStock';
@@ -23,7 +22,6 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
   onSuccess
 }) => {
   const { matieres, fournisseurs, addMouvement } = useStockStore();
-  const { ajouterDepense } = useDepenseStore();
   const { user } = useAuthStore();
 
   const [matiereId, setMatiereId] = useState<string>(matiereInitiale?.id || '');
@@ -32,8 +30,6 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
   const [fournisseurId, setFournisseurId] = useState<string>('');
   const [reference, setReference] = useState<string>('');
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [enregistrerEnDepense, setEnregistrerEnDepense] = useState(false);
-  const [modePaiement, setModePaiement] = useState<'Especes' | 'Mobile Money' | 'Virement' | 'Cheque'>('Especes');
   const [unitReceptionId, setUnitReceptionId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -128,7 +124,7 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
         ? `Réception livraison : ${qteNum} ${optionActive?.labelCourt || ''} (${qteBase} ${unitLabelBase}) de ${selectedMatiere.nom}`
         : `Réception livraison : ${qteNum} ${unitLabelBase} de ${selectedMatiere.nom}`;
 
-      // 1. Enregistrer le mouvement d'entrée en stock
+      // Enregistrer le mouvement d'entrée en stock
       await addMouvement({
         matiereId: selectedMatiere.id,
         type: 'achat',
@@ -143,20 +139,6 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
         date: dateObj,
         userId: user?.id || 'system'
       });
-
-      // 2. Si coché, enregistrer automatiquement la sortie d'argent dans Dépenses
-      if (enregistrerEnDepense && montantTotal > 0) {
-        await ajouterDepense({
-          date: dateObj,
-          montant: montantTotal,
-          categorie: 'Intrants',
-          intrant: selectedMatiere.nom,
-          description: `Achat stock : ${qteNum} ${optionActive?.labelCourt || unitLabelBase} de ${selectedMatiere.nom}${reference ? ` (Réf: ${reference})` : ''}`,
-          fournisseur: fournisseurs.find(f => f.id === fournisseurId)?.nom,
-          moyenPaiement: modePaiement,
-          userId: user?.id || 'system'
-        });
-      }
 
       toast.success(
         `Réception enregistrée : +${qteNum} ${optionActive?.labelCourt || unitLabelBase} (+${qteBase} ${unitLabelBase}) de ${selectedMatiere.nom} !`
@@ -372,75 +354,6 @@ export const ModalReceptionStock: React.FC<ModalReceptionStockProps> = ({
             onChange={(e) => setReference(e.target.value)}
             className="w-full py-2 px-3 text-sm bg-white border border-sand-200 rounded-xl text-sand-900 placeholder:text-sand-300 focus:ring-2 focus:ring-sand-900/10 focus:border-sand-900 outline-none transition-all shadow-xs"
           />
-        </div>
-
-        {/* Option : Enregistrer aussi en dépense / sortie de caisse */}
-        <div className={`p-3.5 border rounded-xl transition-all ${
-          enregistrerEnDepense
-            ? 'bg-sand-50/90 border-sand-300'
-            : 'bg-white border-sand-200 hover:border-sand-300'
-        }`}>
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={enregistrerEnDepense}
-              onChange={(e) => setEnregistrerEnDepense(e.target.checked)}
-              className="mt-0.5 rounded border-sand-300 text-sand-900 focus:ring-sand-900/20 w-4 h-4 cursor-pointer"
-            />
-            <div className="flex-1">
-              <span className="block text-xs font-semibold text-sand-900 flex items-center gap-1.5">
-                <Icon icon="mdi:cash-register" className="w-4 h-4 text-emerald-700" />
-                <span>Enregistrer le règlement immédiat (Dépense)</span>
-              </span>
-              <span className="block text-[11px] text-sand-500 mt-0.5">
-                Note aussi ce paiement dans votre onglet Dépenses (catégorie Intrants, sans aucun doublon dans votre bénéfice).
-              </span>
-            </div>
-          </label>
-
-          {enregistrerEnDepense && (
-            <div className="mt-3 pt-3 border-t border-sand-200 animate-in fade-in duration-200">
-              <span className="block text-[11px] font-medium text-sand-600 mb-1.5">
-                Mode de règlement utilisé :
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(['Especes', 'Mobile Money', 'Virement', 'Cheque'] as const).map(mode => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setModePaiement(mode)}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                      modePaiement === mode
-                        ? 'bg-sand-900 text-white border-sand-900 shadow-xs'
-                        : 'bg-white text-sand-700 border-sand-200 hover:bg-sand-100/60'
-                    }`}
-                  >
-                    {mode === 'Especes' ? (
-                      <>
-                        <Icon icon="mdi:cash" className="w-3.5 h-3.5" />
-                        <span>Espèces</span>
-                      </>
-                    ) : mode === 'Mobile Money' ? (
-                      <>
-                        <Icon icon="mdi:cellphone" className="w-3.5 h-3.5" />
-                        <span>Wave / OM</span>
-                      </>
-                    ) : mode === 'Virement' ? (
-                      <>
-                        <Icon icon="mdi:bank-transfer" className="w-3.5 h-3.5" />
-                        <span>Banque / Vir.</span>
-                      </>
-                    ) : (
-                      <>
-                        <Icon icon="mdi:checkbook" className="w-3.5 h-3.5" />
-                        <span>Chèque</span>
-                      </>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Actions */}
