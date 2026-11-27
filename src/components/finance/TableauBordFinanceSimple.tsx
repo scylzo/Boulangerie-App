@@ -233,16 +233,24 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
         </button>
       </div>
 
-      {/* ── LES 4 CHIFFRES CLÉS : LE CŒUR DU SYSTÈME ──────────── */}
+      {/* ── LES 4 INDICATEURS CLÉS ─────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* CARTE 1 : J'AI VENDU */}
+        {/* CARTE 1 : CHIFFRE D'AFFAIRES */}
         <div className="bg-white rounded-2xl shadow-card border border-sand-200 p-5 relative overflow-hidden flex flex-col justify-between">
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-sand-500">
-                1. J&apos;ai Produit / Vendu
-              </span>
-              <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-sand-500 truncate">
+                  Chiffre d&apos;affaires
+                </span>
+                <span
+                  className="text-sand-400 hover:text-sand-600 cursor-help shrink-0"
+                  title="Total des ventes en boutique (caisse) + factures de livraison sur la période."
+                >
+                  <Icon icon="mdi:information-outline" className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                 <Icon icon="mdi:cash-register" className="w-5 h-5" />
               </div>
             </div>
@@ -262,14 +270,22 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
           </div>
         </div>
 
-        {/* CARTE 2 : J'AI CONSOMMÉ EN MATIÈRES */}
+        {/* CARTE 2 : MATIÈRES CONSOMMÉES */}
         <div className="bg-white rounded-2xl shadow-card border border-sand-200 p-5 relative overflow-hidden flex flex-col justify-between">
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-sand-500">
-                2. J&apos;ai Consommé en Matières
-              </span>
-              <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-sand-500 truncate">
+                  Matières consommées
+                </span>
+                <span
+                  className="text-sand-400 hover:text-sand-600 cursor-help shrink-0"
+                  title="Quantités consommées au fournil × prix unitaire moyen (module Stock)."
+                >
+                  <Icon icon="mdi:information-outline" className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                 <Icon icon="mdi:wheat" className="w-5 h-5" />
               </div>
             </div>
@@ -292,14 +308,22 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
           </div>
         </div>
 
-        {/* CARTE 3 : J'AI DÉPENSÉ EN CHARGES */}
+        {/* CARTE 3 : DÉPENSES D'EXPLOITATION */}
         <div className="bg-white rounded-2xl shadow-card border border-sand-200 p-5 relative overflow-hidden flex flex-col justify-between">
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-sand-500">
-                3. J&apos;ai Dépensé en Charges
-              </span>
-              <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-sand-500 truncate">
+                  Dépenses d&apos;exploitation
+                </span>
+                <span
+                  className="text-sand-400 hover:text-sand-600 cursor-help shrink-0"
+                  title="Frais de fonctionnement : carburant, salaires, électricité, eau, glace, loyer, entretien (module Dépenses)."
+                >
+                  <Icon icon="mdi:information-outline" className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
                 <Icon icon="mdi:gas-station" className="w-5 h-5" />
               </div>
             </div>
@@ -322,18 +346,26 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
           </div>
         </div>
 
-        {/* CARTE 4 : J'AI GAGNÉ (BÉNÉFICE NET) */}
+        {/* CARTE 4 : BÉNÉFICE NET */}
         <div className={`rounded-2xl shadow-card border p-5 relative overflow-hidden flex flex-col justify-between ${
           estRentable
             ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-emerald-600'
             : 'bg-gradient-to-br from-rose-500 to-red-600 text-white border-rose-600'
         }`}>
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-white/80">
-                4. J&apos;AI GAGNÉ (BÉNÉFICE)
-              </span>
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-white/85 truncate">
+                  Bénéfice net
+                </span>
+                <span
+                  className="text-white/75 hover:text-white cursor-help shrink-0"
+                  title="Chiffre d'affaires − Matières consommées − Dépenses d'exploitation."
+                >
+                  <Icon icon="mdi:information-outline" className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white shrink-0">
                 <Icon icon={estRentable ? "mdi:check-circle" : "mdi:alert-circle"} className="w-5 h-5" />
               </div>
             </div>
@@ -370,12 +402,13 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
               )}
             </div>
             {rendementFarine && (
-              <p className={`text-[11px] font-semibold mt-1 ${
+              <p className={`text-[11px] font-semibold mt-1 inline-flex items-center gap-1 ${
                 rendementFarine >= 125 ? 'text-emerald-600' : 'text-amber-600'
               }`}>
+                <Icon icon={rendementFarine >= 125 ? 'mdi:check-circle-outline' : 'mdi:alert-outline'} className="w-3.5 h-3.5" />
                 {rendementFarine >= 125
-                  ? '✅ Bon rendement (≥ 125 baguettes/sac)'
-                  : '⚠️ Rendement faible (surveiller le dosage)'}
+                  ? 'Bon rendement (≥ 125 baguettes/sac)'
+                  : 'Rendement faible (surveiller le dosage)'}
               </p>
             )}
           </div>
@@ -436,23 +469,25 @@ export const TableauBordFinanceSimple: React.FC<TableauBordFinanceSimpleProps> =
           <div className="flex items-center gap-2">
             <button
               onClick={() => setOngletDetail(ongletDetail === 'matieres' ? 'aucun' : 'matieres')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 ongletDetail === 'matieres'
                   ? 'bg-amber-100 text-amber-900 border border-amber-300'
                   : 'bg-sand-100 hover:bg-sand-200 text-sand-700'
               }`}
             >
-              🌾 Détail Matières consommées
+              <Icon icon="mdi:wheat" className="w-4 h-4" />
+              <span>Détail Matières consommées</span>
             </button>
             <button
               onClick={() => setOngletDetail(ongletDetail === 'depenses' ? 'aucun' : 'depenses')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 ongletDetail === 'depenses'
                   ? 'bg-rose-100 text-rose-900 border border-rose-300'
                   : 'bg-sand-100 hover:bg-sand-200 text-sand-700'
               }`}
             >
-              ⛽ Détail Dépenses de fonctionnement
+              <Icon icon="mdi:cash-minus" className="w-4 h-4" />
+              <span>Détail Dépenses d&apos;exploitation</span>
             </button>
           </div>
         </div>

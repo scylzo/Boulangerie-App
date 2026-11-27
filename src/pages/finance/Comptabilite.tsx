@@ -43,8 +43,9 @@ export const Comptabilite: React.FC = () => {
     });
 
     const navigate = useNavigate();
-    // 2 vues simples pour le gérant : 'simple' (Mon Bilan / Bénéfice) et 'tresorerie' (Ma Caisse & Encaissements)
+    // 2 vues : 'simple' (Bilan & Résultat) et 'tresorerie' (Trésorerie & Caisse)
     const [vue, setVue] = useState<'simple' | 'tresorerie'>('simple');
+    const [showFormulaInfo, setShowFormulaInfo] = useState(false);
     const [programmes, setProgrammes] = useState<ProgrammeProduction[]>([]);
     const [isActualisant, setIsActualisant] = useState(false);
 
@@ -117,10 +118,10 @@ export const Comptabilite: React.FC = () => {
     };
     const totalEncaisseMode = encaissementsParMode.espece + encaissementsParMode.om + encaissementsParMode.wave;
 
-    // Libellés simples pour le gérant
+    // Libellés
     const L = estTreso
-        ? { recettes: 'Argent encaissé', couts: 'Argent sorti', resultat: 'Reste en caisse', livraison: 'Factures réglées', matieres: 'Achats stock' }
-        : { recettes: 'Ventes', couts: 'Coûts totaux', resultat: 'Bénéfice net', livraison: 'Livraisons facturées', matieres: 'Matières utilisées' };
+        ? { recettes: 'Encaissements', couts: 'Sorties', resultat: 'Solde de caisse', livraison: 'Livraisons réglées', matieres: 'Achats stock' }
+        : { recettes: 'Chiffre d\'affaires', couts: 'Coûts totaux', resultat: 'Bénéfice net', livraison: 'Livraisons facturées', matieres: 'Matières consommées' };
 
     const chargerDonnees = async (forceStock = false) => {
         setStats(prev => ({ ...prev, loading: true }));
@@ -617,7 +618,7 @@ export const Comptabilite: React.FC = () => {
                         </div>
                         <div className="min-w-0 flex-1">
                             <h1 className="text-lg sm:text-xl font-bold text-sand-900 truncate">Comptabilité</h1>
-                            <p className="text-xs sm:text-sm text-sand-500 truncate">Vue d&apos;ensemble des ventes, dépenses et bénéfice de la boulangerie</p>
+                            <p className="text-xs sm:text-sm text-sand-500 truncate">Suivi des ventes, coûts et résultats</p>
                         </div>
                     </div>
 
@@ -664,28 +665,28 @@ export const Comptabilite: React.FC = () => {
 
             {/* Contenu principal */}
             <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-                {/* Sélecteur de vue simplifié : Mon Bilan / Ma Caisse */}
+                {/* Sélecteur de vue : Bilan & Résultat / Trésorerie & Caisse */}
                 <div className="bg-white rounded-2xl shadow-card border border-sand-200 p-3 sm:p-4 space-y-3 overflow-hidden">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200 overflow-x-auto max-w-full no-scrollbar gap-1">
                             <button
-                                onClick={() => setVue('simple')}
+                                onClick={() => { setVue('simple'); setShowFormulaInfo(false); }}
                                 className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${vue === 'simple' ? 'bg-terracotta-600 text-white shadow-sm' : 'text-sand-600 hover:text-sand-900'}`}
                             >
-                                <Icon icon="mdi:view-dashboard" className="w-4 h-4" /> Mon Bilan (Bénéfice)
+                                <Icon icon="mdi:view-dashboard-outline" className="w-4 h-4" /> Bilan &amp; Résultat
                             </button>
                             <button
-                                onClick={() => setVue('tresorerie')}
+                                onClick={() => { setVue('tresorerie'); setShowFormulaInfo(false); }}
                                 className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${vue === 'tresorerie' ? 'bg-success-600 text-white shadow-sm' : 'text-sand-600 hover:text-sand-900'}`}
                             >
-                                <Coins size={15} /> Ma Caisse &amp; Encaissements
+                                <Coins size={15} /> Trésorerie &amp; Caisse
                             </button>
                         </div>
 
                         {ecartMargeTreso > 0 && (
                             <button
                                 onClick={() => navigate('/facturation')}
-                                title="Voir les factures non payées"
+                                title="Voir les factures en attente de règlement"
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warning-50 text-warning-800 text-xs font-semibold ring-1 ring-inset ring-warning-200 hover:bg-warning-100 transition-colors shrink-0 max-w-full"
                             >
                                 <Coins size={14} className="shrink-0" />
@@ -695,11 +696,65 @@ export const Comptabilite: React.FC = () => {
                         )}
                     </div>
 
-                    <p className="text-xs text-sand-500 border-t border-sand-100 pt-2 leading-relaxed">
-                        {vue === 'simple'
-                            ? 'En 4 chiffres simples : ce que j\'ai vendu − mes matières utilisées − mes dépenses = mon bénéfice net.'
-                            : 'L\'argent réellement encaissé (Espèces, Orange Money, Wave) moins les sorties réelles sur la période.'}
-                    </p>
+                    {/* Barre de formule + icône info (i) */}
+                    <div className="border-t border-sand-100 pt-2.5 flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-sand-700 font-medium">
+                            {vue === 'simple' ? (
+                                <>
+                                    <span className="px-2 py-0.5 rounded-md bg-sand-100 text-sand-800 font-semibold">Chiffre d&apos;affaires</span>
+                                    <span className="text-sand-400 font-bold">−</span>
+                                    <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200/70 font-semibold">Matières consommées</span>
+                                    <span className="text-sand-400 font-bold">−</span>
+                                    <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200/70 font-semibold">Dépenses</span>
+                                    <span className="text-sand-400 font-bold">=</span>
+                                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/70 font-bold">Bénéfice net</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/70 font-semibold">Encaissements réels</span>
+                                    <span className="text-sand-400 font-bold">−</span>
+                                    <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200/70 font-semibold">Achats stock</span>
+                                    <span className="text-sand-400 font-bold">−</span>
+                                    <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200/70 font-semibold">Dépenses</span>
+                                    <span className="text-sand-400 font-bold">=</span>
+                                    <span className="px-2 py-0.5 rounded-md bg-sand-900 text-white font-bold">Solde de caisse</span>
+                                </>
+                            )}
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setShowFormulaInfo(prev => !prev)}
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                                showFormulaInfo
+                                    ? 'bg-sand-900 text-white border-sand-900'
+                                    : 'bg-sand-50 text-sand-600 border-sand-200 hover:bg-sand-100 hover:text-sand-900'
+                            }`}
+                            title="Explication de la formule"
+                            aria-expanded={showFormulaInfo}
+                        >
+                            <Icon icon="mdi:information-outline" className="w-4 h-4" />
+                            <span className="hidden sm:inline">Détail du calcul</span>
+                        </button>
+                    </div>
+
+                    {showFormulaInfo && (
+                        <div className="bg-sand-50 border border-sand-200 rounded-xl p-3 text-xs text-sand-700 space-y-1.5">
+                            {vue === 'simple' ? (
+                                <>
+                                    <p><strong className="text-sand-900">Chiffre d&apos;affaires :</strong> ventes encaissées en boutique (caisse) + factures de livraison sur la période.</p>
+                                    <p><strong className="text-sand-900">Matières consommées :</strong> quantité réelle utilisée au fournil valorisée au prix moyen (module Stock).</p>
+                                    <p><strong className="text-sand-900">Dépenses :</strong> frais de fonctionnement enregistrés sur la période (carburant, salaires, électricité, eau, glace, loyer, entretien…).</p>
+                                </>
+                            ) : (
+                                <>
+                                    <p><strong className="text-sand-900">Encaissements réels :</strong> paiements effectivement reçus en Espèces, Orange Money et Wave (hors factures impayées).</p>
+                                    <p><strong className="text-sand-900">Achats stock :</strong> montant des réceptions de matières enregistrées dans le module Stock.</p>
+                                    <p><strong className="text-sand-900">Dépenses :</strong> total des frais de fonctionnement réglés sur la période.</p>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {vue === 'simple' ? (
