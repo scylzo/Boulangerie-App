@@ -1721,13 +1721,15 @@ export const ProgrammeProduction: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-sand-100 tabular-nums">
-                        {programmeActuel.totauxParProduit.map((total) => (
+                        {programmeActuel.totauxParProduit.map((total) => {
+                          const nomProduit = total.produit?.nom || produits.find(p => p.id === total.produitId)?.nom || total.produitId;
+                          return (
                           <tr key={total.produitId} className="hover:bg-sand-50/60 transition-colors">
                             <td className="px-3.5 py-2.5">
                               <div className="flex items-center gap-2">
-                                <Icon icon={getProductIcon(total.produit?.nom || '')} className="text-base text-sand-400" />
+                                <Icon icon={getProductIcon(nomProduit)} className="text-base text-sand-400" />
                                 <span className="font-semibold text-sand-900 uppercase">
-                                  {total.produit?.nom || total.produitId}
+                                  {nomProduit}
                                 </span>
                               </div>
                             </td>
@@ -1740,7 +1742,8 @@ export const ProgrammeProduction: React.FC = () => {
                               {total.totalGlobal}
                             </td>
                           </tr>
-                        ))}
+                          );
+                        })}
                       </tbody>
                       <tfoot>
                         <tr className="bg-sand-100 border-t-2 border-sand-300 font-bold text-sand-900 tabular-nums">
