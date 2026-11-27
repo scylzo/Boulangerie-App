@@ -1,7 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useDepenseStore } from '../../store/depenseStore';
 import { useStockStore } from '../../store/stockStore';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
@@ -668,12 +667,6 @@ export const GestionDepenses: React.FC = () => {
                     <p className="text-xs text-emerald-700">Ces dépenses proviennent des livraisons de matières (farine, glace, levure...).</p>
                   </div>
                 </div>
-                <Link
-                  to="/stock"
-                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors whitespace-nowrap"
-                >
-                  + Réceptionner dans Stock
-                </Link>
               </div>
 
               <DepenseList
