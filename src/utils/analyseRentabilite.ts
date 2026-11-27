@@ -174,9 +174,10 @@ export function calculerAnalyseRentabilite(params: {
     // Carburants (Liés à la livraison et aux déplacements)
     const chargeCarburant = (categs['Carburant Véhicule'] || 0) + (categs['Carburant Moto'] || 0);
 
-    // Électricité et Eau (Énergies nécessaires à la cuisson et production)
+    // Électricité, Eau et Glace
     const chargeElectricite = categs['Électricité'] || 0;
     const chargeEau = categs['Eau'] || 0;
+    const chargeGlace = categs['Glace'] || 0;
 
     // Autres charges externes
     const chargeEntretien = categs['Entretien'] || 0;
@@ -185,7 +186,7 @@ export function calculerAnalyseRentabilite(params: {
     const chargeDivers = categs['Divers'] || 0;
 
     // Total des charges externes (hors salaires et hors intrants déjà gérés par stock)
-    const chargesExternes = chargeLoyer + chargeCarburant + chargeElectricite + chargeEau + chargeEntretien + chargeTransport + chargeMarketing + chargeDivers;
+    const chargesExternes = chargeLoyer + chargeCarburant + chargeElectricite + chargeEau + chargeGlace + chargeEntretien + chargeTransport + chargeMarketing + chargeDivers;
 
     // 3. Calculs des SIG (Soldes Intermédiaires de Gestion)
     const margeBrute = caNet - coutMatieresConsommees;

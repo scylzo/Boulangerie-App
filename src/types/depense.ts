@@ -3,6 +3,7 @@ export type CategorieDepense =
     | 'Carburant Moto'
     | 'Électricité'
     | 'Eau'
+    | 'Glace'
     | 'Loyer'
     | 'Salaires'
     | 'Entretien'

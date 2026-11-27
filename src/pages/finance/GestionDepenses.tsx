@@ -14,6 +14,7 @@ const CATEGORIES: CategorieDepense[] = [
   'Carburant Moto',
   'Électricité',
   'Eau',
+  'Glace',
   'Loyer',
   'Salaires',
   'Entretien',
@@ -55,9 +56,10 @@ export const GestionDepenses: React.FC = () => {
     }));
   }, [dateFilter.debut, dateFilter.fin, selectedCategory]);
 
-  // Uniquement les dépenses hors Intrants (le stock est géré exclusivement dans l'onglet Stock)
+  // Afficher toutes les dépenses enregistrées dans Dépenses (y compris l'historique Intrants/Glace déjà saisi)
+  const hasHistoricalIntrants = depenses.some(d => d.categorie === 'Intrants');
+
   const filteredDepenses = depenses.filter(d => {
-    if (d.categorie === 'Intrants') return false;
     if (selectedCategory !== 'Toutes' && d.categorie !== selectedCategory) {
       return false;
     }
@@ -98,7 +100,6 @@ export const GestionDepenses: React.FC = () => {
     const e = new Date(reportConfig.fin); e.setHours(23, 59, 59, 999);
 
     return depenses.filter(d => {
-      if (d.categorie === 'Intrants') return false;
       if (reportConfig.categorie !== 'Toutes' && d.categorie !== reportConfig.categorie) {
         return false;
       }
@@ -126,7 +127,6 @@ export const GestionDepenses: React.FC = () => {
     const eFilter = new Date(activeConfig.fin); eFilter.setHours(23, 59, 59, 999);
 
     const depensesExport = depenses.filter(d => {
-      if (d.categorie === 'Intrants') return false;
       if (activeConfig.categorie !== 'Toutes' && d.categorie !== activeConfig.categorie) {
         return false;
       }
@@ -336,6 +336,9 @@ export const GestionDepenses: React.FC = () => {
                   {CATEGORIES.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
+                  {hasHistoricalIntrants && (
+                    <option value="Intrants">Intrants (Historique)</option>
+                  )}
                 </select>
 
                 <div className="flex items-center gap-2 bg-sand-50 p-1.5 rounded-lg border border-sand-200">

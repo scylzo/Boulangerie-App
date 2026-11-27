@@ -3,7 +3,7 @@ import { useDepenseStore } from '../../store/depenseStore';
 import { useStockStore } from '../../store/stockStore';
 import { useAuthStore } from '../../store';
 import type { CategorieDepense, Depense } from '../../types/depense';
-import { X, Plus, Loader2, Save, ChevronDown, ChevronUp, Fuel, Users, Zap, Droplet, Wrench, Package } from 'lucide-react';
+import { X, Plus, Loader2, Save, ChevronDown, ChevronUp, Fuel, Users, Zap, Droplet, Wrench, Snowflake, Package } from 'lucide-react';
 
 interface DepenseFormProps {
   onDesc: () => void;
@@ -15,6 +15,7 @@ const CATEGORIES: CategorieDepense[] = [
   'Carburant Moto',
   'Électricité',
   'Eau',
+  'Glace',
   'Loyer',
   'Salaires',
   'Entretien',
@@ -28,6 +29,7 @@ const QUICK_CATEGORIES: { id: CategorieDepense; label: string; icon: React.React
   { id: 'Salaires', label: 'Salaires & Avances', icon: <Users size={15} /> },
   { id: 'Électricité', label: 'Électricité', icon: <Zap size={15} /> },
   { id: 'Eau', label: 'Eau', icon: <Droplet size={15} /> },
+  { id: 'Glace', label: 'Glace', icon: <Snowflake size={15} /> },
   { id: 'Entretien', label: 'Entretien', icon: <Wrench size={15} /> },
   { id: 'Divers', label: 'Divers', icon: <Package size={15} /> },
 ];
