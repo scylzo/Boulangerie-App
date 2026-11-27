@@ -1186,6 +1186,7 @@ export const GestionFactures: React.FC = () => {
             selectedMonth={selectedMonth}
             onChangeMonth={handleChangeMonth}
             onOpenClient={handleSelectClient}
+            onLoadRange={chargerFactures}
           />
         )}
       </main>

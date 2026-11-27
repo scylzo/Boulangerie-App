@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { db } from '../../firebase/config';
 import type { Client, Facture } from '../../types';
 
-type PeriodeQuinzaine = 'q1' | 'q2' | 'mois';
+type PeriodeQuinzaine = 'q1' | 'q2' | 'mois' | 'personnalise';
 
 interface TableauRecouvrementProps {
   factures: Facture[];
@@ -15,6 +15,7 @@ interface TableauRecouvrementProps {
   selectedMonth: Date;
   onChangeMonth: (delta: number) => void;
   onOpenClient: (client: Client) => void;
+  onLoadRange?: (start: Date, end: Date) => void;
 }
 
 interface LigneRecouvrement {
@@ -48,7 +49,8 @@ export const TableauRecouvrement: React.FC<TableauRecouvrementProps> = ({
   clients,
   selectedMonth,
   onChangeMonth,
-  onOpenClient
+  onOpenClient,
+  onLoadRange
 }) => {
   const [periodeType, setPeriodeType] = useState<PeriodeQuinzaine>(() => {
     const today = new Date();
@@ -57,6 +59,17 @@ export const TableauRecouvrement: React.FC<TableauRecouvrementProps> = ({
       today.getMonth() === selectedMonth.getMonth();
     if (sameMonth && today.getDate() > 15) return 'q2';
     return 'q1';
+  });
+  const [customDebut, setCustomDebut] = useState<string>(() => {
+    const y = selectedMonth.getFullYear();
+    const m = String(selectedMonth.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}-01`;
+  });
+  const [customFin, setCustomFin] = useState<string>(() => {
+    const y = selectedMonth.getFullYear();
+    const m = String(selectedMonth.getMonth() + 1).padStart(2, '0');
+    const d = String(new Date(y, selectedMonth.getMonth() + 1, 0).getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   });
   const [filtreStatut, setFiltreStatut] = useState<'tous' | 'impayes' | 'payes'>('tous');
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,6 +82,24 @@ export const TableauRecouvrement: React.FC<TableauRecouvrementProps> = ({
 
   const { startDate, endDate, dateLabel, periodeKey } = useMemo(() => {
     const ym = `${year}-${String(month + 1).padStart(2, '0')}`;
+    if (periodeType === 'personnalise' && customDebut && customFin) {
+      const s = new Date(customDebut);
+      s.setHours(0, 0, 0, 0);
+      const e = new Date(customFin);
+      e.setHours(23, 59, 59, 999);
+      const [startD, endD] = s <= e ? [s, e] : [e, s];
+      const d1 = String(startD.getDate()).padStart(2, '0');
+      const m1 = String(startD.getMonth() + 1).padStart(2, '0');
+      const d2 = String(endD.getDate()).padStart(2, '0');
+      const m2 = String(endD.getMonth() + 1).padStart(2, '0');
+      const sameMonth = startD.getMonth() === endD.getMonth() && startD.getFullYear() === endD.getFullYear();
+      return {
+        startDate: startD,
+        endDate: endD,
+        dateLabel: sameMonth ? `${d1} au ${d2}` : `${d1}/${m1} au ${d2}/${m2}`,
+        periodeKey: `custom_${customDebut}_${customFin}`
+      };
+    }
     if (periodeType === 'q1') {
       return {
         startDate: new Date(year, month, 1, 0, 0, 0, 0),
@@ -91,7 +122,14 @@ export const TableauRecouvrement: React.FC<TableauRecouvrementProps> = ({
       dateLabel: `01 au ${lastDayOfMonth}`,
       periodeKey: `${ym}_mois`
     };
-  }, [year, month, lastDayOfMonth, periodeType]);
+  }, [year, month, lastDayOfMonth, periodeType, customDebut, customFin]);
+
+  // Charger les factures de l'intervalle personnalisé si besoin (ex: à cheval sur 2 mois)
+  useEffect(() => {
+    if (periodeType === 'personnalise' && onLoadRange && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+      onLoadRange(startDate, endDate);
+    }
+  }, [periodeType, startDate, endDate, onLoadRange]);
 
   // Charger les commentaires sauvegardés pour cette période
   useEffect(() => {
@@ -413,11 +451,12 @@ export const TableauRecouvrement: React.FC<TableauRecouvrementProps> = ({
               </button>
             </div>
 
-            <div className="flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200 gap-1">
+            <div className="flex items-center p-1 rounded-xl bg-sand-100 border border-sand-200 gap-1 flex-wrap">
               {([
                 { id: 'q1' as const, label: '01 au 15' },
                 { id: 'q2' as const, label: `16 au ${lastDayOfMonth}` },
-                { id: 'mois' as const, label: 'Mois complet' }
+                { id: 'mois' as const, label: 'Mois complet' },
+                { id: 'personnalise' as const, label: 'Personnalisé' }
               ]).map(opt => (
                 <button
                   key={opt.id}
@@ -432,6 +471,25 @@ export const TableauRecouvrement: React.FC<TableauRecouvrementProps> = ({
                 </button>
               ))}
             </div>
+
+            {periodeType === 'personnalise' && (
+              <div className="flex items-center gap-2 bg-sand-50 px-2.5 py-1.5 rounded-xl border border-sand-200 text-xs">
+                <span className="font-semibold text-sand-600">Du</span>
+                <input
+                  type="date"
+                  value={customDebut}
+                  onChange={e => setCustomDebut(e.target.value)}
+                  className="bg-white border border-sand-300 rounded-md px-2 py-1 text-xs font-medium text-sand-900 outline-none focus:border-emerald-700"
+                />
+                <span className="font-semibold text-sand-600">au</span>
+                <input
+                  type="date"
+                  value={customFin}
+                  onChange={e => setCustomFin(e.target.value)}
+                  className="bg-white border border-sand-300 rounded-md px-2 py-1 text-xs font-medium text-sand-900 outline-none focus:border-emerald-700"
+                />
+              </div>
+            )}
           </div>
 
           {/* Recherche + Statut + PDF */}
