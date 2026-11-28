@@ -4,6 +4,7 @@ export type CategorieDepense =
     | 'Électricité'
     | 'Eau'
     | 'Glace'
+    | 'Œufs'
     | 'Loyer'
     | 'Salaires'
     | 'Entretien'
